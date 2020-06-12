@@ -1,6 +1,4 @@
-FROM centos:7
-
-RUN yum install -y git
+FROM gcr.io/jenkinsxio-labs-private/jxl-base:0.0.52
 
 ENTRYPOINT ["jx-gitops"]
 
