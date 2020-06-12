@@ -5,27 +5,27 @@ pipelineConfig:
     release:
       pipeline:
         stages:
-          - agent:
-              image: gcr.io/jenkinsxio-labs-private/jxl
-            name: chart
-            steps:
-              - name: release-binary
-                command: make release
-                image: golang:1.12
-              - name: build-and-push-image
-                image: gcr.io/kaniko-project/executor:debug-9912ccbf8d22bbafbf971124600fbb0b13b9cbd6
-                command: /kaniko/executor --cache=true --cache-dir=/workspace --context=/workspace/source --dockerfile=/workspace/source/Dockerfile --destination=gcr.io/$DOCKER_REGISTRY_ORG/jx-gitops:$VERSION --cache-repo=gcr.io/jx-labs-infra/cache
-              - name: changelog
-                command: jx step changelog --verbose --header-file=hack/changelog-header.md --version=$VERSION --rev=$PULL_BASE_SHA --output-markdown=changelog.md --update-release=false
-              - name: upload-binaries
-                command: make goreleaser
-                image: gcr.io/jenkinsxio-labs/go-releaser:0.0.18
-              - name: copy-to-bucket
-                command: gsutil cp dist/*.gz dist/*.zip gs://cloudbees-jx-gitops-plugin/plugin/${VERSION}
-                image: gcr.io/jenkinsxio-labs-private/jxl
-              - command: ./promote.sh
-                dir: /workspace/source
-                name: promote-release
+        - agent:
+            image: gcr.io/jenkinsxio-labs-private/jxl
+          name: chart
+          steps:
+          - name: release-binary
+            command: make release
+            image: golang:1.12
+          - name: build-and-push-image
+            image: gcr.io/kaniko-project/executor:debug-9912ccbf8d22bbafbf971124600fbb0b13b9cbd6
+            command: /kaniko/executor --cache=true --cache-dir=/workspace --context=/workspace/source --dockerfile=/workspace/source/Dockerfile --destination=gcr.io/$DOCKER_REGISTRY_ORG/jx-gitops:$VERSION --cache-repo=gcr.io/jx-labs-infra/cache
+          - name: changelog
+            command: jx step changelog --verbose --header-file=hack/changelog-header.md --version=$VERSION --rev=$PULL_BASE_SHA --output-markdown=changelog.md --update-release=false
+          - name: upload-binaries
+            command: make goreleaser
+            image: gcr.io/jenkinsxio-labs/go-releaser:0.0.18
+          #              - name: copy-to-bucket
+          #                command: gsutil cp dist/*.gz dist/*.zip gs://cloudbees-jx-gitops-plugin/plugin/${VERSION}
+          #                image: gcr.io/jenkinsxio-labs-private/jxl
+          - command: ./promote.sh
+            dir: /workspace/source
+            name: promote-release
 #              - name: upload-plugin
 #                command: ./hack/upload_plugin.sh
 #                image: gcr.io/jenkinsxio-labs-private/github-release:0.0.6
