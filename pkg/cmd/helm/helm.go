@@ -9,7 +9,8 @@ import (
 // NewCmdHelm creates the new command
 func NewCmdHelm() *cobra.Command {
 	command := &cobra.Command{
-		Use: "helm",
+		Use:   "helm",
+		Short: "Commands for working with helm charts",
 		Run: func(command *cobra.Command, args []string) {
 			err := command.Help()
 			if err != nil {

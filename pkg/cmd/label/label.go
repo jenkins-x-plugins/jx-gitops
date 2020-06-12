@@ -23,8 +23,12 @@ var (
 `)
 
 	labelExample = templates.Examples(`
+		# updates recursively labels all resources in the current directory 
+		%s step update label mylabel=cheese another=thing
+
 		# updates recursively all resources 
-		%s step update label --dir . foo=bar
+		%s step update label --dir myresource-dir foo=bar
+
 	`)
 )
 
@@ -42,7 +46,7 @@ func NewCmdUpdateLabel() (*cobra.Command, *Options) {
 		Use:     "label",
 		Short:   "Updates all kubernetes resources in the given directory tree to add/override the given label",
 		Long:    labelLong,
-		Example: fmt.Sprintf(labelExample, common.BinaryName),
+		Example: fmt.Sprintf(labelExample, common.BinaryName, common.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
 			err := UpdateLabelArgsInYamlFiles(o.Dir, args)
 			helper.CheckErr(err)
