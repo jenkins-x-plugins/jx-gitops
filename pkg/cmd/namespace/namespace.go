@@ -2,19 +2,16 @@ package namespace
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/jenkins-x/jx-gitops/pkg/common"
-	"github.com/jenkins-x/jx-gitops/pkg/mapslices"
+	"github.com/jenkins-x/jx-gitops/pkg/kyamls"
 	"github.com/jenkins-x/jx/pkg/cmd/helper"
 	"github.com/jenkins-x/jx/pkg/cmd/templates"
 	"github.com/jenkins-x/jx/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
+	"sigs.k8s.io/kustomize/kyaml/yaml"
 )
 
 var (
@@ -65,56 +62,28 @@ func (o *Options) Run() error {
 
 // UpdateNamespaceInYamlFiles updates the namespace in yaml files
 func UpdateNamespaceInYamlFiles(dir string, ns string) error {
-	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
-		if info == nil || info.IsDir() {
-			return nil
-		}
-		if !strings.HasSuffix(path, ".yaml") && !strings.HasSuffix(path, ".yml") {
-			return nil
-		}
-
-		// lets load the file
-		data, err := ioutil.ReadFile(path)
-		if err != nil {
-			return errors.Wrapf(err, "failed to load file %s", path)
+	modifyFn := func(node *yaml.RNode, path string) (bool, error) {
+		kind := ""
+		kindNode := node.Field("kind")
+		if kindNode != nil && kindNode.Value != nil {
+			var err error
+			kind, err = kindNode.Value.String()
+			if err != nil {
+				return false, errors.Wrapf(err, "failed to find kind")
+			}
 		}
 
-		ms := yaml.MapSlice{}
-		err = yaml.Unmarshal(data, &ms)
-		if err != nil {
-			return errors.Wrapf(err, "failed to unmarshal YAML file %s", path)
-		}
-
-		kind, _, err := mapslices.NestedString(ms, "kind")
-		if err != nil {
-			return errors.Wrapf(err, "failed to find kind in path %s", path)
-		}
 		// ignore common cluster based resources
 		if kind == "" || kind == "Namespace" || strings.HasPrefix(kind, "Cluster") {
-			return nil
+			return false, nil
 		}
 
-		fields := []string{"metadata", "namespace"}
-		ms, flag, err := mapslices.SetNestedField(ms, ns, fields...)
+		err := node.PipeE(yaml.Lookup("metadata", "namespace"), yaml.FieldSetter{StringValue: ns})
 		if err != nil {
-			return errors.Wrapf(err, "failed to set fields %#v to value %v", fields, ns)
+			return false, errors.Wrapf(err, "failed to set metadata.namespace to %s", ns)
 		}
-		if !flag {
-			return nil
-		}
-		data, err = yaml.Marshal(ms)
-		if err != nil {
-			return errors.Wrapf(err, "failed to marshal modified file %s", path)
-		}
-
-		err = ioutil.WriteFile(path, data, util.DefaultFileWritePermissions)
-		if err != nil {
-			return errors.Wrapf(err, "failed to save %s", path)
-		}
-		return nil
-	})
-	if err != nil {
-		return errors.Wrapf(err, "failed to set namespace to %s in dir %s", ns, dir)
+		return true, nil
 	}
-	return nil
+
+	return kyamls.ModifyFiles(dir, modifyFn)
 }

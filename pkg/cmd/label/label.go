@@ -2,12 +2,11 @@ package label
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"sort"
 	"strings"
 
 	"github.com/jenkins-x/jx-gitops/pkg/common"
+	"github.com/jenkins-x/jx-gitops/pkg/kyamls"
 	"github.com/jenkins-x/jx/pkg/cmd/helper"
 	"github.com/jenkins-x/jx/pkg/cmd/templates"
 	"github.com/pkg/errors"
@@ -74,68 +73,5 @@ func UpdateLabelInYamlFiles(dir string, labels []string) error {
 		return true, nil
 	}
 
-	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
-		if info == nil || info.IsDir() {
-			return nil
-		}
-		if !strings.HasSuffix(path, ".yaml") && !strings.HasSuffix(path, ".yml") {
-			return nil
-		}
-		node, err := yaml.ReadFile(path)
-		if err != nil {
-			return errors.Wrapf(err, "failed to load file %s", path)
-		}
-
-		modified, err := modifyFn(node, path)
-		if err != nil {
-			return errors.Wrapf(err, "failed to modify file %s", path)
-		}
-
-		if !modified {
-			return nil
-		}
-
-		err = yaml.WriteFile(node, path)
-		if err != nil {
-			return errors.Wrapf(err, "failed to save %s", path)
-		}
-		return nil
-	})
-	if err != nil {
-		return errors.Wrapf(err, "failed to set labels %#v in dir %s", labels, dir)
-	}
-	return nil
+	return kyamls.ModifyFiles(dir, modifyFn)
 }
-
-/*
-func dummy() (*cobra.Command, *Options) {
-	o := &Options{}
-
-	resourceList := &framework.ResourceList{}
-	cmd := framework.Command(resourceList, func() error {
-		fmt.Println("TODO: starting up....")
-		// cmd.Execute() will parse the ResourceList.functionConfig into cmd.Flags from
-		// the ResourceList.functionConfig.data field.
-
-		args := resourceList.Flags.Args()
-		log.Logger().Infof("invoked with args %#v", args)
-
-		for i := range resourceList.Items {
-			// modify the resources using the kyaml/yaml library:
-			// https://pkg.go.dev/sigs.k8s.io/kustomize/kyaml/yaml
-			filter := yaml.SetLabel("value", "dummy")
-			if err := resourceList.Items[i].PipeE(filter); err != nil {
-				return err
-			}
-		}
-		return nil
-	})
-
-	cmd.Use = "label"
-	cmd.Short = "Updates all kubernetes resources in the given directory tree to add/override the given label"
-	cmd.Long = labelLong
-	cmd.Example = fmt.Sprintf(labelExample, common.BinaryName, common.BinaryName)
-
-	return &cmd, o
-}
-*/
