@@ -1,0 +1,11 @@
+apiVersion: kpt.dev/v1alpha1
+kind: Kptfile
+metadata:
+    name: app1
+upstream:
+    type: git
+    git:
+        commit: 4cc6b80d49808060b1f06f530399b986ed344f23
+        repo: https://github.com/jenkins-x/jxr-kube-resources
+        directory: /jenkins-x/lighthouse
+        ref: master

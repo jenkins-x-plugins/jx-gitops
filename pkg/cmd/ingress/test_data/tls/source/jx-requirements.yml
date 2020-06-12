@@ -1,0 +1,8 @@
+ingress:
+  domain: "my.domain.com"
+  externalDNS: false
+  namespaceSubDomain: -jx.
+  tls:
+    email: ""
+    enabled: true
+    production: false

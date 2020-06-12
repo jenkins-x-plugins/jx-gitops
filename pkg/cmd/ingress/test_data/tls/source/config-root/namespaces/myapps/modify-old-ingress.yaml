@@ -1,0 +1,19 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+  name: modify-old-ingress
+  namespace: myapps
+spec:
+  rules:
+  - http:
+      paths:
+      - backend:
+          serviceName: godemo48
+          servicePort: 80
+    host: godemo48.cluster.local
+  tls:
+  - hosts:
+    - godemo48.cluster.local
+    secretName: ""
