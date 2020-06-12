@@ -3,9 +3,9 @@ kind: Service
 metadata:
   name: cheese
   labels:
-    beer: stella
     chart: cheese
-    wine: merlot
+    beer: 'stella'
+    wine: 'merlot'
 spec:
   ports:
   - port: 80

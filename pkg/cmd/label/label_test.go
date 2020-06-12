@@ -53,7 +53,7 @@ func TestUpdateLabelsInYamlFiles(t *testing.T) {
 				})
 			}
 		}
-		err = label.UpdateLabelArgsInYamlFiles(tmpDir, args)
+		err = label.UpdateLabelInYamlFiles(tmpDir, args)
 		require.NoError(t, err, "failed to update namespace in dir %s for args %#v", tmpDir, args)
 
 		for _, tc := range testCases {

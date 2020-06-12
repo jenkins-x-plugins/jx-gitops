@@ -5,11 +5,12 @@ require (
 	github.com/jenkins-x/helmboot v0.0.83 // indirect
 	github.com/jenkins-x/jx v1.3.981-0.20200605070345-2c10fe601319
 	github.com/pkg/errors v0.8.1
-	github.com/spf13/cobra v0.0.6
+	github.com/spf13/cobra v1.0.0
 	github.com/stretchr/testify v1.4.0
 	gopkg.in/yaml.v2 v2.2.8
 	k8s.io/api v0.0.0-20190718183219-b59d8169aab5
 	k8s.io/apimachinery v0.0.0-20190703205208-4cfb76a8bf76
+	sigs.k8s.io/kustomize/kyaml v0.2.0
 	sigs.k8s.io/yaml v1.1.0
 
 )
