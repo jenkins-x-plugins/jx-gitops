@@ -21,7 +21,6 @@ func TestUpdateLabelsInYamlFiles(t *testing.T) {
 	argTests := [][]string{
 		{"beer=stella", "wine=merlot"},
 		{"wine=merlot", "beer=stella"},
-		{"wine=merlot", "chart=cheese", "beer=stella"},
 	}
 
 	for _, args := range argTests {
@@ -67,7 +66,7 @@ func TestUpdateLabelsInYamlFiles(t *testing.T) {
 			result := strings.TrimSpace(string(resultData))
 			expectedText := strings.TrimSpace(string(expectData))
 			if d := cmp.Diff(result, expectedText); d != "" {
-				t.Errorf("Generated Pipeline did not match expected: %s for args %#v", d, args)
+				t.Errorf("Generated Pipeline for file %s did not match expected: %s for args %#v", tc.SourceFile, d, args)
 			}
 			t.Logf("generated for file %s with args %#v file\n%s\n", tc.SourceFile, args, result)
 		}

@@ -247,9 +247,8 @@ func SetNestedField(obj yaml.MapSlice, value interface{}, fields ...string) (yam
 	parent := obj
 	flag := false
 	idx := len(fields) - 1
-	field := ""
-	i := 0
-	for i, field = range fields[:idx] {
+	parentField := fields[0]
+	for i, field := range fields[:idx] {
 		if val, _ := Get(m, field); val != nil {
 			if valMap, ok := val.(yaml.MapSlice); ok {
 				parent = m
@@ -259,15 +258,18 @@ func SetNestedField(obj yaml.MapSlice, value interface{}, fields ...string) (yam
 			}
 		} else {
 			newVal := yaml.MapSlice{}
-			Set(m, field, newVal)
+			m, _ = Set(m, field, newVal)
+			Set(parent, parentField, m)
+			parent = m
 			m = newVal
 		}
+		parentField = field
 	}
 	m, flag = Set(m, fields[idx], value)
 	if idx == 0 {
 		return m, flag, nil
 	}
-	Set(parent, field, m)
+	Set(parent, parentField, m)
 	return obj, flag, nil
 }
 
