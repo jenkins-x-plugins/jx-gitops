@@ -26,7 +26,7 @@ var (
 
 	kptExample = templates.Examples(`
 		# updates the kpt of all the yaml resources in the given directory
-		%s step update kpt --dir .
+		%s kpt --dir .
 	`)
 
 	pathSeparator = string(os.PathSeparator)

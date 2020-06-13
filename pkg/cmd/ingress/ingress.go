@@ -28,7 +28,7 @@ var (
 
 	ingressExample = templates.Examples(`
 		# updates any newly created Ingress resources to the new domain
-		%s step update ingress
+		%s ingress
 	`)
 )
 

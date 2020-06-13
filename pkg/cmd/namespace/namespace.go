@@ -21,7 +21,7 @@ var (
 
 	namespaceExample = templates.Examples(`
 		# updates the namespace of all the yaml resources in the given directory
-		%s step update namespace -n cheese --dir .
+		%s namespace -n cheese --dir .
 	`)
 )
 

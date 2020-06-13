@@ -21,9 +21,9 @@ var (
 
 	labelExample = templates.Examples(`
 		# updates recursively labels all resources in the current directory 
-		%s step update label mylabel=cheese another=thing
+		%s label mylabel=cheese another=thing
 		# updates recursively all resources 
-		%s step update label --dir myresource-dir foo=bar
+		%s label --dir myresource-dir foo=bar
 	`)
 )
 
