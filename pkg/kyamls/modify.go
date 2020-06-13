@@ -9,9 +9,14 @@ import (
 	"sigs.k8s.io/kustomize/kyaml/yaml"
 )
 
-// ModifyFiles recurses the given directory and modifies any suitable file
-func ModifyFiles(dir string, modifyFn func(node *yaml.RNode, path string) (bool, error)) error {
-	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+// ModifyFiles recursively walks the given directory and modifies any suitable file
+func ModifyFiles(dir string, modifyFn func(node *yaml.RNode, path string) (bool, error), filter Filter) error {
+	filterFn, err := filter.ToFilterFn()
+	if err != nil {
+		return errors.Wrap(err, "failed to create filter")
+	}
+
+	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if info == nil || info.IsDir() {
 			return nil
 		}
@@ -23,6 +28,15 @@ func ModifyFiles(dir string, modifyFn func(node *yaml.RNode, path string) (bool,
 			return errors.Wrapf(err, "failed to load file %s", path)
 		}
 
+		if filterFn != nil {
+			flag, err := filterFn(node, path)
+			if err != nil {
+				return errors.Wrapf(err, "failed to evaluate filter on file %s", path)
+			}
+			if !flag {
+				return nil
+			}
+		}
 		modified, err := modifyFn(node, path)
 		if err != nil {
 			return errors.Wrapf(err, "failed to modify file %s", path)

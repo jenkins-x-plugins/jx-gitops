@@ -28,6 +28,7 @@ var (
 
 // NamespaceOptions the options for the command
 type Options struct {
+	kyamls.Filter
 	Dir       string
 	Namespace string
 	DirMode   bool
@@ -51,7 +52,7 @@ func NewCmdUpdateNamespace() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.Dir, "dir", "", ".", "the directory to recursively look for the *.yaml or *.yml files")
 	cmd.Flags().StringVarP(&o.Namespace, "namespace", "n", "", "the namespace to modify the resources to")
 	cmd.Flags().BoolVarP(&o.DirMode, "dir-mode", "", false, "assumes the first child directory is the name of the namespace to use")
-
+	o.Filter.AddFlags(cmd)
 	return cmd, o
 }
 
@@ -62,7 +63,7 @@ func (o *Options) Run() error {
 		if ns == "" {
 			return util.MissingOption("namespace")
 		}
-		return UpdateNamespaceInYamlFiles(o.Dir, ns)
+		return UpdateNamespaceInYamlFiles(o.Dir, ns, o.Filter)
 	}
 
 	return o.RunDirMode()
@@ -84,7 +85,7 @@ func (o *Options) RunDirMode() error {
 		name := f.Name()
 
 		dir := filepath.Join(o.Dir, name)
-		err = UpdateNamespaceInYamlFiles(dir, name)
+		err = UpdateNamespaceInYamlFiles(dir, name, o.Filter)
 		if err != nil {
 			return err
 		}
@@ -93,7 +94,7 @@ func (o *Options) RunDirMode() error {
 }
 
 // UpdateNamespaceInYamlFiles updates the namespace in yaml files
-func UpdateNamespaceInYamlFiles(dir string, ns string) error {
+func UpdateNamespaceInYamlFiles(dir string, ns string, filter kyamls.Filter) error {
 	modifyFn := func(node *yaml.RNode, path string) (bool, error) {
 		kind := kyamls.GetKind(node, path)
 
@@ -109,7 +110,7 @@ func UpdateNamespaceInYamlFiles(dir string, ns string) error {
 		return true, nil
 	}
 
-	err := kyamls.ModifyFiles(dir, modifyFn)
+	err := kyamls.ModifyFiles(dir, modifyFn, filter)
 	if err != nil {
 		return errors.Wrapf(err, "failed to modify namespace to %s in dir %s", ns, dir)
 	}

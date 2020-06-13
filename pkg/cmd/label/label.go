@@ -29,6 +29,7 @@ var (
 
 // LabelOptions the options for the command
 type Options struct {
+	kyamls.Filter
 	Dir   string
 	Label string
 }
@@ -43,17 +44,17 @@ func NewCmdUpdateLabel() (*cobra.Command, *Options) {
 		Long:    labelLong,
 		Example: fmt.Sprintf(labelExample, common.BinaryName, common.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
-			err := UpdateLabelInYamlFiles(o.Dir, args)
+			err := UpdateLabelInYamlFiles(o.Dir, args, o.Filter)
 			helper.CheckErr(err)
 		},
 	}
 	cmd.Flags().StringVarP(&o.Dir, "dir", "", ".", "the directory to recursively look for the *.yaml or *.yml files")
-
+	o.Filter.AddFlags(cmd)
 	return cmd, o
 }
 
 // UpdateLabelInYamlFiles updates the labels in yaml files
-func UpdateLabelInYamlFiles(dir string, labels []string) error {
+func UpdateLabelInYamlFiles(dir string, labels []string, filter kyamls.Filter) error {
 	modifyFn := func(node *yaml.RNode, path string) (bool, error) {
 		sort.Strings(labels)
 
@@ -73,5 +74,5 @@ func UpdateLabelInYamlFiles(dir string, labels []string) error {
 		return true, nil
 	}
 
-	return kyamls.ModifyFiles(dir, modifyFn)
+	return kyamls.ModifyFiles(dir, modifyFn, filter)
 }

@@ -29,6 +29,7 @@ var (
 
 // AnnotateOptions the options for the command
 type Options struct {
+	kyamls.Filter
 	Dir      string
 	Annotate string
 }
@@ -43,17 +44,17 @@ func NewCmdUpdateAnnotate() (*cobra.Command, *Options) {
 		Long:    annotateLong,
 		Example: fmt.Sprintf(annotateExample, common.BinaryName, common.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
-			err := UpdateAnnotateInYamlFiles(o.Dir, args)
+			err := UpdateAnnotateInYamlFiles(o.Dir, args, o.Filter)
 			helper.CheckErr(err)
 		},
 	}
 	cmd.Flags().StringVarP(&o.Dir, "dir", "", ".", "the directory to recursively look for the *.yaml or *.yml files")
-
+	o.Filter.AddFlags(cmd)
 	return cmd, o
 }
 
 // UpdateAnnotateInYamlFiles updates the annotations in yaml files
-func UpdateAnnotateInYamlFiles(dir string, annotations []string) error {
+func UpdateAnnotateInYamlFiles(dir string, annotations []string, filter kyamls.Filter) error {
 	modifyFn := func(node *yaml.RNode, path string) (bool, error) {
 		sort.Strings(annotations)
 
@@ -73,5 +74,5 @@ func UpdateAnnotateInYamlFiles(dir string, annotations []string) error {
 		return true, nil
 	}
 
-	return kyamls.ModifyFiles(dir, modifyFn)
+	return kyamls.ModifyFiles(dir, modifyFn, filter)
 }

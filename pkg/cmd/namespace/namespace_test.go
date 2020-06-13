@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/namespace"
+	"github.com/jenkins-x/jx-gitops/pkg/kyamls"
 	"github.com/jenkins-x/jx/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -51,7 +52,7 @@ func TestUpdateNamespaceInYamlFiles(t *testing.T) {
 		}
 	}
 
-	err = namespace.UpdateNamespaceInYamlFiles(tmpDir, "something")
+	err = namespace.UpdateNamespaceInYamlFiles(tmpDir, "something", kyamls.Filter{})
 	require.NoError(t, err, "failed to update namespace in dir %s", tmpDir)
 
 	for _, tc := range testCases {
