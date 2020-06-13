@@ -2,7 +2,8 @@ package namespace
 
 import (
 	"fmt"
-	"strings"
+	"io/ioutil"
+	"path/filepath"
 
 	"github.com/jenkins-x/jx-gitops/pkg/common"
 	"github.com/jenkins-x/jx-gitops/pkg/kyamls"
@@ -29,6 +30,7 @@ var (
 type Options struct {
 	Dir       string
 	Namespace string
+	DirMode   bool
 }
 
 // NewCmdUpdate creates a command object for the command
@@ -48,42 +50,68 @@ func NewCmdUpdateNamespace() (*cobra.Command, *Options) {
 	}
 	cmd.Flags().StringVarP(&o.Dir, "dir", "", ".", "the directory to recursively look for the *.yaml or *.yml files")
 	cmd.Flags().StringVarP(&o.Namespace, "namespace", "n", "", "the namespace to modify the resources to")
+	cmd.Flags().BoolVarP(&o.DirMode, "dir-mode", "", false, "assumes the first child directory is the name of the namespace to use")
 
 	return cmd, o
 }
 
 // Run implements the command
 func (o *Options) Run() error {
-	if o.Namespace == "" {
-		return util.MissingOption("namespace")
+	ns := o.Namespace
+	if !o.DirMode {
+		if ns == "" {
+			return util.MissingOption("namespace")
+		}
+		return UpdateNamespaceInYamlFiles(o.Dir, ns)
 	}
-	return UpdateNamespaceInYamlFiles(o.Dir, o.Namespace)
+
+	return o.RunDirMode()
+}
+
+func (o *Options) RunDirMode() error {
+	if o.Namespace != "" {
+		return errors.Errorf("should not specify the --namespace option if you are running dir mode as the namespace is taken from the first child directory names")
+	}
+	files, err := ioutil.ReadDir(o.Dir)
+	if err != nil {
+		return errors.Wrapf(err, "failed to read dir %s", o.Dir)
+	}
+
+	for _, f := range files {
+		if !f.IsDir() {
+			continue
+		}
+		name := f.Name()
+
+		dir := filepath.Join(o.Dir, name)
+		err = UpdateNamespaceInYamlFiles(dir, name)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // UpdateNamespaceInYamlFiles updates the namespace in yaml files
 func UpdateNamespaceInYamlFiles(dir string, ns string) error {
 	modifyFn := func(node *yaml.RNode, path string) (bool, error) {
-		kind := ""
-		kindNode := node.Field("kind")
-		if kindNode != nil && kindNode.Value != nil {
-			var err error
-			kind, err = kindNode.Value.String()
-			if err != nil {
-				return false, errors.Wrapf(err, "failed to find kind")
-			}
-		}
+		kind := kyamls.GetKind(node, path)
 
 		// ignore common cluster based resources
-		if kind == "" || kind == "Namespace" || strings.HasPrefix(kind, "Cluster") {
+		if kyamls.IsClusterKind(kind) {
 			return false, nil
 		}
 
-		err := node.PipeE(yaml.Lookup("metadata", "namespace"), yaml.FieldSetter{StringValue: ns})
+		err := node.PipeE(yaml.LookupCreate(yaml.ScalarNode, "metadata", "namespace"), yaml.FieldSetter{StringValue: ns})
 		if err != nil {
 			return false, errors.Wrapf(err, "failed to set metadata.namespace to %s", ns)
 		}
 		return true, nil
 	}
 
-	return kyamls.ModifyFiles(dir, modifyFn)
+	err := kyamls.ModifyFiles(dir, modifyFn)
+	if err != nil {
+		return errors.Wrapf(err, "failed to modify namespace to %s in dir %s", ns, dir)
+	}
+	return nil
 }
