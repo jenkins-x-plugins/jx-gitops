@@ -39,6 +39,8 @@ func (f *FakeRunner) ExpectResults(t *testing.T, results ...FakeResult) {
 	for i, r := range results {
 		c := commands[i]
 		assert.Equal(t, r.CLI, c.String(), "command line for command %s", i+1)
-		assert.Equal(t, r.Dir, c.Dir, "directory line for command %s", i+1)
+		if r.Dir != "" {
+			assert.Equal(t, r.Dir, c.Dir, "directory line for command %s", i+1)
+		}
 	}
 }

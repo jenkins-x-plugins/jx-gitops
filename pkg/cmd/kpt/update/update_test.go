@@ -1,10 +1,10 @@
-package kpt_test
+package update_test
 
 import (
 	"path/filepath"
 	"testing"
 
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/kpt"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/kpt/update"
 	"github.com/jenkins-x/jx-gitops/pkg/testhelpers"
 	"github.com/stretchr/testify/require"
 )
@@ -15,7 +15,7 @@ func TestUpdateKptNoFilter(t *testing.T) {
 	require.NoError(t, err, "failed to find abs dir of %s", sourceDir)
 	require.DirExists(t, absSourceDir)
 
-	_, uk := kpt.NewCmdUpdateKpt()
+	_, uk := update.NewCmdKptUpdate()
 
 	runner := &testhelpers.FakeRunner{}
 	uk.CommandRunner = runner.Run
@@ -42,7 +42,7 @@ func TestUpdateKptFilterRepositoryURL(t *testing.T) {
 	require.NoError(t, err, "failed to find abs dir of %s", sourceDir)
 	require.DirExists(t, absSourceDir)
 
-	_, uk := kpt.NewCmdUpdateKpt()
+	_, uk := update.NewCmdKptUpdate()
 
 	runner := &testhelpers.FakeRunner{}
 	uk.CommandRunner = runner.Run
@@ -65,7 +65,7 @@ func TestUpdateKptFilterRepositoryName(t *testing.T) {
 	require.NoError(t, err, "failed to find abs dir of %s", sourceDir)
 	require.DirExists(t, absSourceDir)
 
-	_, uk := kpt.NewCmdUpdateKpt()
+	_, uk := update.NewCmdKptUpdate()
 
 	runner := &testhelpers.FakeRunner{}
 	uk.CommandRunner = runner.Run
@@ -89,7 +89,7 @@ func TestUpdateKptFilterNotMatching(t *testing.T) {
 	require.NoError(t, err, "failed to find abs dir of %s", sourceDir)
 	require.DirExists(t, absSourceDir)
 
-	_, uk := kpt.NewCmdUpdateKpt()
+	_, uk := update.NewCmdKptUpdate()
 
 	runner := &testhelpers.FakeRunner{}
 	uk.CommandRunner = runner.Run

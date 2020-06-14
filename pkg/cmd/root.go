@@ -26,9 +26,9 @@ func Main() *cobra.Command {
 		},
 	}
 	cmd.AddCommand(helm.NewCmdHelm())
+	cmd.AddCommand(kpt.NewCmdKpt())
 	cmd.AddCommand(common.SplitCommand(annotate.NewCmdUpdateAnnotate()))
 	cmd.AddCommand(common.SplitCommand(ingress.NewCmdUpdateIngress()))
-	cmd.AddCommand(common.SplitCommand(kpt.NewCmdUpdateKpt()))
 	cmd.AddCommand(common.SplitCommand(label.NewCmdUpdateLabel()))
 	cmd.AddCommand(common.SplitCommand(namespace.NewCmdUpdateNamespace()))
 	cmd.AddCommand(common.SplitCommand(version.NewCmdVersion()))
