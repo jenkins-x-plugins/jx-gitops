@@ -7,6 +7,7 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/kpt"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/label"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/namespace"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/split"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/version"
 	"github.com/jenkins-x/jx-gitops/pkg/common"
 	"github.com/jenkins-x/jx/pkg/log"
@@ -31,6 +32,7 @@ func Main() *cobra.Command {
 	cmd.AddCommand(common.SplitCommand(ingress.NewCmdUpdateIngress()))
 	cmd.AddCommand(common.SplitCommand(label.NewCmdUpdateLabel()))
 	cmd.AddCommand(common.SplitCommand(namespace.NewCmdUpdateNamespace()))
+	cmd.AddCommand(common.SplitCommand(split.NewCmdSplit()))
 	cmd.AddCommand(common.SplitCommand(version.NewCmdVersion()))
 	return cmd
 }

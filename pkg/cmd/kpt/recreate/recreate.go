@@ -145,6 +145,11 @@ func (o *Options) Run() error {
 			Args: args,
 			Dir:  dir,
 		}
+
+		err = os.RemoveAll(kptDir)
+		if err != nil {
+			return errors.Wrapf(err, "failed to remove kpt directory %s", kptDir)
+		}
 		log.Logger().Infof("about to run %s in dir %s", util.ColorInfo(c.String()), util.ColorInfo(c.Dir))
 		text, err := o.CommandRunner(c)
 		log.Logger().Infof(text)
