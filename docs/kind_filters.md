@@ -1,4 +1,4 @@
-## Kind Filters
+## Kind Filters
 
 Its useful to query YAML files to modify (e.g. `jx-gitops label`) via the resource kind.
 

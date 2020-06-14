@@ -1,0 +1,15 @@
+steps:
+- name: 'golang:1.13-stretch'
+  args: ['make', 'label']
+  env:
+  - 'GOPRIVATE=github.com/jenkins-x/helmboot'
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ 'build', '-f', 'fns/label/Dockerfile', '-t', 'gcr.io/jenkinsxio-labs-private/jx-fn-label:${_VERSION}', '.' ]
+substitutions:
+  _VERSION: 0.0.0-JR6
+timeout: 3600s
+options:
+  machineType: 'N1_HIGHCPU_8'
+logsBucket: gs://jenkinsxio-labs-private
+images:
+- 'gcr.io/jenkinsxio-labs-private/jx-fn-label:${_VERSION}'
