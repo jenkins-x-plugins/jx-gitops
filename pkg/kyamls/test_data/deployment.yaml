@@ -1,0 +1,23 @@
+# Source: myapp/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp-myapp
+  namespace: myapps
+  labels:
+    chart: "myapp-0.0.12"
+    gitops.jenkins-x.io/pipeline: 'environment'
+spec:
+  selector:
+    matchLabels:
+      app: myapp-myapp
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        draft: draft-app
+        app: myapp-myapp
+    spec:
+      containers:
+      - name: myapp
+        image: "myapp:0.0.12"

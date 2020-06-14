@@ -9,13 +9,23 @@ import (
 
 // GetKind finds the Kind of the node at the given path
 func GetKind(node *yaml.RNode, path string) string {
+	return GetStringField(node, path, "kind")
+}
+
+// GetAPIVersion finds the API Version of the node at the given path
+func GetAPIVersion(node *yaml.RNode, path string) string {
+	return GetStringField(node, path, "apiVersion")
+}
+
+/// GetStringField returns the given field from the node or returns a blank string if the field cannot be found
+func GetStringField(node *yaml.RNode, path string, key string) string {
 	kind := ""
-	kindNode := node.Field("kind")
+	kindNode := node.Field(key)
 	if kindNode != nil && kindNode.Value != nil {
 		var err error
 		kind, err = kindNode.Value.String()
 		if err != nil {
-			log.Logger().Warnf("failed to read kind on node for %s", path)
+			log.Logger().Warnf("failed to read field '%s'  on node for %s", key, path)
 		}
 	}
 	return strings.TrimSpace(kind)
