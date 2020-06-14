@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/split"
 	"github.com/jenkins-x/jx-gitops/pkg/common"
 	"github.com/jenkins-x/jx-gitops/pkg/plugins"
 	"github.com/jenkins-x/jx/pkg/cmd/helper"
@@ -48,6 +49,7 @@ type TemplateOptions struct {
 	Repository       string
 	BatchMode        bool
 	NoGitCommit      bool
+	NoSplit          bool
 	IncludeCRDs      bool
 	Gitter           gits.Gitter
 }
@@ -81,6 +83,7 @@ func NewCmdHelmTemplate() (*cobra.Command, *TemplateOptions) {
 func (o *TemplateOptions) AddFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&o.DefaultDomain, "domain", "", "cluster.local", "the default domain name in the generated ingress")
 	cmd.Flags().BoolVarP(&o.NoGitCommit, "no-git-commit", "", false, "if set then the command will not git add/commit the generated resources")
+	cmd.Flags().BoolVarP(&o.NoSplit, "no-split", "", false, "if set then disable splitting of multiple resources into separate files")
 	cmd.Flags().BoolVarP(&o.IncludeCRDs, "include-crds", "", true, "if CRDs should be included in the output")
 }
 
@@ -217,6 +220,15 @@ func (o *TemplateOptions) Run() error {
 	err = os.RemoveAll(tmpDir)
 	if err != nil {
 		return errors.Wrapf(err, "failed to remove tmp dir %s", tmpDir)
+	}
+	if !o.NoSplit {
+		so := &split.Options{
+			Dir: outDir,
+		}
+		err = so.Run()
+		if err != nil {
+			return errors.Wrapf(err, "failed to split YAML files at %s", outDir)
+		}
 	}
 	if o.NoGitCommit {
 		return nil
