@@ -1,0 +1,14 @@
+---
+# Source: lighthouse/templates/hmacsecret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: lighthouse-hmac-token
+  labels:
+    app: lighthouse-lighthouse
+    chart: "lighthouse-0.0.633"
+    release: "lighthouse"
+    heritage: "Helm"
+type: Opaque
+data:  
+  hmac: ""
