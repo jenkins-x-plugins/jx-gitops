@@ -9,8 +9,8 @@ spec:
   vaultRole: vault-infra
   data:
   - name: hmac
-    key: secret/data/lighthouse/hmac
-    property: token
+    key: secret/data/lighthouse/hmac/token
+    property: hmac
   template:
     metadata:
       labels:
