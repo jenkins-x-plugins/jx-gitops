@@ -27,7 +27,7 @@ var (
 	`)
 
 	// resourcesSeparator is used to separate multiple objects stored in the same YAML file
-	resourcesSeparator = "---"
+	resourcesSeparator = "\n---\n"
 )
 
 // Options the options for the command
@@ -79,9 +79,7 @@ func SplitYamlFiles(dir string) error {
 		buf := strings.Builder{}
 		for _, section := range sections {
 			if buf.Len() > 0 {
-				buf.WriteString("\n")
 				buf.WriteString(resourcesSeparator)
-				buf.WriteString("\n")
 			}
 			buf.WriteString(section)
 			if !isWhitespaceOrComments(section) {
