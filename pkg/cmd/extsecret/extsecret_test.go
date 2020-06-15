@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/extsecret"
+	"github.com/jenkins-x/jx-gitops/pkg/secretmapping"
 	"github.com/jenkins-x/jx/pkg/util"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -47,8 +48,13 @@ func TestToExtSecrets(t *testing.T) {
 			})
 		}
 	}
+
 	_, eo := extsecret.NewCmdExtSecrets()
 	eo.Dir = tmpDir
+
+	eo.SecretMapping, _, err = secretmapping.LoadSecretMapping(sourceData, true)
+	require.NoError(t, err, "failed to load secret mapping")
+
 	err = eo.Run()
 	require.NoError(t, err, "failed to convert to external secrets in dir %s", tmpDir)
 

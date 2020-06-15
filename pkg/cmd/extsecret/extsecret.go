@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
 	"github.com/jenkins-x/jx-gitops/pkg/common"
 	"github.com/jenkins-x/jx-gitops/pkg/kyamls"
+	"github.com/jenkins-x/jx-gitops/pkg/secretmapping"
 	"github.com/jenkins-x/jx/pkg/cmd/helper"
 	"github.com/jenkins-x/jx/pkg/cmd/templates"
 	"github.com/pkg/errors"
@@ -40,6 +42,7 @@ type Options struct {
 	Backend         string
 	VaultMountPoint string
 	VaultRole       string
+	SecretMapping   *v1alpha1.SecretMapping
 }
 
 // NewCmdExtSecrets creates a command object for the command
@@ -67,6 +70,15 @@ func NewCmdExtSecrets() (*cobra.Command, *Options) {
 func (o *Options) Run() error {
 	dir := o.Dir
 	backend := o.Backend
+
+	if o.SecretMapping == nil {
+		var err error
+		o.SecretMapping, _, err = secretmapping.LoadSecretMapping(dir, false)
+		if err != nil {
+			return errors.Wrapf(err, "failed to load secret mapping file")
+		}
+	}
+
 	modifyFn := func(node *yaml.RNode, path string) (bool, error) {
 		err := kyamls.SetStringValue(node, path, "kubernetes-client.io/v1", "apiVersion")
 		if err != nil {
@@ -138,6 +150,18 @@ func (o *Options) convertData(node *yaml.RNode, path string) (bool, error) {
 				secretPath = strings.Join(names[0:len(names)-1], "/")
 			}
 			key := "secret/data/" + secretPath
+
+			if o.SecretMapping != nil {
+				mapping := o.SecretMapping.Find(secretName, field)
+				if mapping != nil {
+					if mapping.Key != "" {
+						key = mapping.Key
+					}
+					if mapping.Property != "" {
+						property = mapping.Property
+					}
+				}
+			}
 
 			err = kyamls.SetStringValue(rNode, path, field, "name")
 			if err != nil {

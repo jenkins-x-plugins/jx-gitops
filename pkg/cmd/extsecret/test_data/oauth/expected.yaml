@@ -9,7 +9,7 @@ spec:
   vaultRole: vault-infra
   data:
   - name: oauth
-    key: secret/data/lighthouse/oauth
+    key: secret/data/jx/pipelineUser
     property: token
   template:
     metadata:
