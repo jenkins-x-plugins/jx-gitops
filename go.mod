@@ -1,11 +1,13 @@
 module github.com/jenkins-x/jx-gitops
 
 require (
+	github.com/cpuguy83/go-md2man v1.0.10
 	github.com/google/go-cmp v0.3.0
 	github.com/jenkins-x/helmboot v0.0.83 // indirect
 	github.com/jenkins-x/jx v1.3.981-0.20200605070345-2c10fe601319
 	github.com/pkg/errors v0.8.1
 	github.com/spf13/cobra v1.0.0
+	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.4.0
 	gopkg.in/yaml.v2 v2.2.8
 	k8s.io/api v0.0.0-20190718183219-b59d8169aab5

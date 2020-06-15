@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/annotate"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/extsecret"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helm"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/ingress"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/kpt"
@@ -29,6 +30,7 @@ func Main() *cobra.Command {
 	cmd.AddCommand(helm.NewCmdHelm())
 	cmd.AddCommand(kpt.NewCmdKpt())
 	cmd.AddCommand(common.SplitCommand(annotate.NewCmdUpdateAnnotate()))
+	cmd.AddCommand(common.SplitCommand(extsecret.NewCmdExtSecrets()))
 	cmd.AddCommand(common.SplitCommand(ingress.NewCmdUpdateIngress()))
 	cmd.AddCommand(common.SplitCommand(label.NewCmdUpdateLabel()))
 	cmd.AddCommand(common.SplitCommand(namespace.NewCmdUpdateNamespace()))
