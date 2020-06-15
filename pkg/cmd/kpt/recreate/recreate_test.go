@@ -26,7 +26,7 @@ func TestKptRecreate(t *testing.T) {
 
 	runner.ExpectResults(t,
 		testhelpers.FakeResult{
-			CLI: "kpt pkg get https://github.com/jenkins-x/jxr-kube-resources.git/jenkins-x/lighthouse@4cc6b80d49808060b1f06f530399b986ed344f23 config-root/namespaces/app1",
+			CLI: "kpt pkg get https://github.com/jenkins-x/jxr-kube-resources.git/jenkins-x/lighthouse@4cc6b80d49808060b1f06f530399b986ed344f23 config-root/namespaces/myapps/app1",
 		},
 		testhelpers.FakeResult{
 			CLI: "kpt pkg get https://github.com/another/thing.git/kubernetes/app2@4cc6b80d49808060b1f06f530399b986ed344f23 config-root/namespaces/app2",

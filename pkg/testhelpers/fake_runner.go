@@ -1,6 +1,7 @@
 package testhelpers
 
 import (
+	"sort"
 	"testing"
 
 	"github.com/jenkins-x/jx/pkg/util"
@@ -36,11 +37,23 @@ func (f *FakeRunner) ExpectResults(t *testing.T, results ...FakeResult) {
 
 	require.Equal(t, len(results), len(commands), "expected command invocations")
 
+	sort.Slice(commands, func(i, j int) bool {
+		c1 := commands[i].String()
+		c2 := commands[j].String()
+		return c1 < c2
+	})
+
+	sort.Slice(results, func(i, j int) bool {
+		c1 := results[i].CLI
+		c2 := results[j].CLI
+		return c1 < c2
+	})
+
 	for i, r := range results {
 		c := commands[i]
-		assert.Equal(t, r.CLI, c.String(), "command line for command %s", i+1)
+		assert.Equal(t, r.CLI, c.String(), "command line for command %d", i+1)
 		if r.Dir != "" {
-			assert.Equal(t, r.Dir, c.Dir, "directory line for command %s", i+1)
+			assert.Equal(t, r.Dir, c.Dir, "directory line for command %d", i+1)
 		}
 	}
 }

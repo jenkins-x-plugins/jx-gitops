@@ -35,6 +35,7 @@ var (
 type Options struct {
 	Dir           string
 	OutDir        string
+	IgnoreErrors  bool
 	CommandRunner common.CommandRunner
 }
 
@@ -54,6 +55,7 @@ func NewCmdKptRecreate() (*cobra.Command, *Options) {
 	}
 	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the directory to recursively look for the *.yaml or *.yml files")
 	cmd.Flags().StringVarP(&o.OutDir, "out-dir", "o", "", "the output directory to generate the output")
+	cmd.Flags().BoolVarP(&o.IgnoreErrors, "ignore-errors", "i", false, "if enabled we continue processing on kpt errors")
 	return cmd, o
 }
 
@@ -96,7 +98,7 @@ func (o *Options) Run() error {
 			return errors.Wrapf(err, "failed to calculate the relative directory of %s", kptDir)
 		}
 		kptDir = strings.TrimSuffix(kptDir, pathSeparator)
-		parentDir, _ := filepath.Split(kptDir)
+		parentDir, kptDirName := filepath.Split(kptDir)
 		parentDir = strings.TrimSuffix(parentDir, pathSeparator)
 
 		u := &unstructured.Unstructured{}
@@ -139,7 +141,15 @@ func (o *Options) Run() error {
 		}
 
 		expression := fmt.Sprintf("%s%s@%s", gitURL, directory, version)
-		args := []string{"pkg", "get", expression, rel}
+		directories := strings.Split(directory, pathSeparator)
+
+		// if the folder resource name is the same as the namespace then lets omit
+		destDir := rel
+		if directories[len(directories)-1] == kptDirName {
+			destDir, _ = filepath.Split(rel)
+			destDir = strings.TrimSuffix(destDir, pathSeparator)
+		}
+		args := []string{"pkg", "get", expression, destDir}
 		c := &util.Command{
 			Name: "kpt",
 			Args: args,
@@ -154,7 +164,10 @@ func (o *Options) Run() error {
 		text, err := o.CommandRunner(c)
 		log.Logger().Infof(text)
 		if err != nil {
-			return errors.Wrapf(err, "failed to run kpt command")
+			if !o.IgnoreErrors {
+				return errors.Wrapf(err, "failed to run kpt command")
+			}
+			log.Logger().Warnf(err.Error())
 		}
 		return nil
 	})
