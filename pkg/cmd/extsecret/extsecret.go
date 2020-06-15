@@ -51,7 +51,7 @@ func NewCmdExtSecrets() (*cobra.Command, *Options) {
 		Aliases: []string{"extsecrets", "extsec"},
 		Short:   "Converts all Secret resources in the path to ExternalSecret CRDs",
 		Long:    labelLong,
-		Example: fmt.Sprintf(labelExample, common.BinaryName, common.BinaryName),
+		Example: fmt.Sprintf(labelExample, common.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
 			err := o.Run()
 			helper.CheckErr(err)

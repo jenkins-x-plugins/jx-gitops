@@ -17,7 +17,7 @@ Converts all Secret resources in the path to ExternalSecret CRDs
 ### Examples
 
   # updates recursively labels all resources in the current directory
-  jx-gitops extsecret --dir=.%!(EXTRA string=jx-gitops)
+  jx-gitops extsecret --dir=.
 
 ### Options
 
