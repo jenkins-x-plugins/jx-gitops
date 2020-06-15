@@ -142,13 +142,8 @@ func (o *Options) convertData(node *yaml.RNode, path string) (bool, error) {
 			rNode := yaml.NewRNode(newNode)
 
 			// trim the suffix from the name and use it on the property?
-			property := "token"
+			property := field
 			secretPath := strings.ReplaceAll(secretName, "-", "/")
-			names := strings.Split(secretPath, "/")
-			if len(names) > 1 {
-				property = names[len(names)-1]
-				secretPath = strings.Join(names[0:len(names)-1], "/")
-			}
 			key := "secret/data/" + secretPath
 
 			if o.SecretMapping != nil {
