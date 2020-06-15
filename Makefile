@@ -170,3 +170,14 @@ lint: ## Lint the code
 
 .PHONY: all
 all: fmt build test lint
+
+
+bin/docs:
+	go build $(LDFLAGS) -v -o bin/docs cmd/docs/*.go
+
+.PHONY: docs
+docs: bin/docs ## update docs
+	@echo "Generating docs"
+	@./bin/docs --target=./docs/cmd
+	@./bin/docs --target=./docs/man/man1 --kind=man
+	@rm -f ./bin/docs
