@@ -1,0 +1,53 @@
+# Source: godemo48/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: godemo48-godemo48
+  labels:
+    draft: draft-app
+    chart: "godemo48-0.0.12"
+  namespace: myapps
+  annotations:
+    wave.pusher.com/update-on-config-change: 'true'
+spec:
+  selector:
+    matchLabels:
+      app: godemo48-godemo48
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        draft: draft-app
+        app: godemo48-godemo48
+    spec:
+      containers:
+      - name: godemo48
+        image: "gcr.io/jstrachan-multicluster/godemo48:0.0.12"
+        imagePullPolicy: IfNotPresent
+        env:
+        envFrom: null
+        ports:
+        - containerPort: 8080
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          limits:
+            cpu: 100m
+            memory: 256Mi
+          requests:
+            cpu: 80m
+            memory: 128Mi
+      terminationGracePeriodSeconds:

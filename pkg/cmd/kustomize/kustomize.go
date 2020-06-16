@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -22,13 +23,13 @@ var (
 	splitLong = templates.LongDesc(`
 		Generates a kustomize layout by comparing a source and target directories.
 
-	If you are using kpt to consume templates and you make lots of modifications and hit merge/upgrade issues this command lets you recreate your kpt directories and compare the source files from the current files and reverse engineer the kustomize scripts to take the new upstream source and generate the required output.
+If you are using kpt to consume templates and you make lots of modifications and hit merge/upgrade issues this command lets you reverse engineer kustomize overlays from the changes you have made the to resources. 
 
 `)
 
 	splitExample = templates.Examples(`
-		# splits any files containing multiple resources
-		%s kustomize --source src --dest config-root
+		# reverse engineer kustomize overlays by comparing the source to the current target
+		%s kustomize --source src/base --target config-root --output src/overlays/default
 	`)
 
 	// mandatoryFields fields we should not remove when creating a diff
@@ -71,7 +72,12 @@ func (o *Options) Run() error {
 	dir := o.SourceDir
 
 	var err error
-	if o.OutputDir == "" {
+	if o.OutputDir != "" {
+		err = os.MkdirAll(o.OutputDir, util.DefaultWritePermissions)
+		if err != nil {
+			return errors.Wrapf(err, "failed to create dir %s", o.OutputDir)
+		}
+	} else {
 		o.OutputDir, err = ioutil.TempDir("", "")
 		if err != nil {
 			return errors.Wrapf(err, "failed to create a temp dir")
@@ -214,41 +220,48 @@ func (o *Options) removeEqualLeaves(src *yaml.Node, target *yaml.Node, path stri
 
 	case yaml.MappingNode:
 		for i := 0; i < len(srcContent)-1; i += 2 {
-			if i < len(targetContent)-1 {
-				sKey := srcContent[i]
-				sValue := srcContent[i+1]
+			sKey := srcContent[i]
+			sValue := srcContent[i+1]
 
-				j := findMapEntry(sKey, targetContent)
-				if j < 0 {
-					// TODO should we mark this item as being removed by adding an empty entry?
-					continue
-				}
+			j := findMapEntry(sKey, targetContent)
+			if j < 0 {
+				// TODO should we mark this item as being removed by adding an empty entry?
+				continue
+			}
 
-				tValue := targetContent[j+1]
+			tValue := targetContent[j+1]
 
-				childPath := sKey.Value
-				if jsonPath != "" {
-					childPath = jsonPath + "." + childPath
-				}
-				if util.StringArrayIndex(mandatoryFields, childPath) >= 0 {
-					continue
-				}
-				newTValue, err := o.removeEqualLeaves(sValue, tValue, path, childPath)
-				if err != nil {
-					return nil, errors.Wrapf(err, "failed to process node %s", childPath)
-				}
-				if newTValue == nil {
-					// lets remove this index
-					replaceTargetIdx = append(replaceTargetIdx, j)
-				}
-			} else {
-				// lets leave this element intact as its content is different
+			childPath := sKey.Value
+			if jsonPath != "" {
+				childPath = jsonPath + "." + childPath
+			}
+			if util.StringArrayIndex(mandatoryFields, childPath) >= 0 {
+				continue
+			}
+			newTValue, err := o.removeEqualLeaves(sValue, tValue, path, childPath)
+			if err != nil {
+				return nil, errors.Wrapf(err, "failed to process node %s", childPath)
+			}
+			if newTValue == nil {
+				// lets remove this index
+				replaceTargetIdx = append(replaceTargetIdx, j)
 			}
 		}
-		// lets iterate in reverse order to preserve the indexes
-		for i := len(replaceTargetIdx) - 1; i >= 0; i-- {
-			idx := replaceTargetIdx[i]
-			targetContent = append(targetContent[0:idx], targetContent[idx+2:]...)
+
+		// sort the indices in largest first
+		sort.Slice(replaceTargetIdx, func(i, j int) bool {
+			n1 := replaceTargetIdx[i]
+			n2 := replaceTargetIdx[j]
+			return n1 > n2
+		})
+
+		// lets process the largest index first to avoid index values becoming invalid
+		for _, idx := range replaceTargetIdx {
+			if idx+2 >= len(targetContent) {
+				targetContent = targetContent[0:idx]
+			} else {
+				targetContent = append(targetContent[0:idx], targetContent[idx+2:]...)
+			}
 		}
 
 	case yaml.SequenceNode:

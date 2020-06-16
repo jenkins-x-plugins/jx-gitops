@@ -6,6 +6,7 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helm"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/ingress"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/kpt"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/kustomize"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/label"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/namespace"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/split"
@@ -32,6 +33,7 @@ func Main() *cobra.Command {
 	cmd.AddCommand(common.SplitCommand(annotate.NewCmdUpdateAnnotate()))
 	cmd.AddCommand(common.SplitCommand(extsecret.NewCmdExtSecrets()))
 	cmd.AddCommand(common.SplitCommand(ingress.NewCmdUpdateIngress()))
+	cmd.AddCommand(common.SplitCommand(kustomize.NewCmdKustomize()))
 	cmd.AddCommand(common.SplitCommand(label.NewCmdUpdateLabel()))
 	cmd.AddCommand(common.SplitCommand(namespace.NewCmdUpdateNamespace()))
 	cmd.AddCommand(common.SplitCommand(split.NewCmdSplit()))

@@ -13,8 +13,6 @@ import (
 func TestKustomize(t *testing.T) {
 	_, ko := kustomize.NewCmdKustomize()
 
-	expected := filepath.Join("test_data", "expected", "myapp")
-
 	ko.SourceDir = filepath.Join("test_data", "source")
 	ko.TargetDir = filepath.Join("test_data", "target")
 	require.DirExists(t, ko.SourceDir)
@@ -24,15 +22,20 @@ func TestKustomize(t *testing.T) {
 	require.NoError(t, err, "failed to run")
 
 	outDir := ko.OutputDir
-	myapp := filepath.Join(outDir, "myapp")
-
 	assert.NotEmpty(t, outDir, "no output dir")
-	t.Logf("overlay files generated in %s\n", myapp)
+	t.Logf("overlay files generated in %s\n", outDir)
 
-	assert.FileExists(t, filepath.Join(myapp, "deployment.yaml"))
-	assert.FileExists(t, filepath.Join(myapp, "ingress.yaml"))
-	testhelpers.AssertFileNotExists(t, filepath.Join(myapp, "service.yaml"))
+	expected := filepath.Join("test_data", "expected", "godemo48")
+	actual := filepath.Join(outDir, "godemo48")
+	testhelpers.AssertFileNotExists(t, filepath.Join(actual, "deployment.yaml"))
+	testhelpers.AssertFileNotExists(t, filepath.Join(actual, "service.yaml"))
 
-	testhelpers.AssertTextFilesEqual(t, filepath.Join(myapp, "ingress.yaml"), filepath.Join(expected, "ingress.yaml"), "kusomize")
-	testhelpers.AssertTextFilesEqual(t, filepath.Join(myapp, "deployment.yaml"), filepath.Join(expected, "deployment.yaml"), "kusomize")
+	actual = filepath.Join(outDir, "myapp")
+	expected = filepath.Join("test_data", "expected", "myapp")
+	assert.FileExists(t, filepath.Join(actual, "deployment.yaml"))
+	assert.FileExists(t, filepath.Join(actual, "ingress.yaml"))
+	testhelpers.AssertFileNotExists(t, filepath.Join(actual, "service.yaml"))
+
+	testhelpers.AssertTextFilesEqual(t, filepath.Join(actual, "ingress.yaml"), filepath.Join(expected, "ingress.yaml"), "kusomize")
+	testhelpers.AssertTextFilesEqual(t, filepath.Join(actual, "deployment.yaml"), filepath.Join(expected, "deployment.yaml"), "kusomize")
 }
