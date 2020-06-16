@@ -60,20 +60,20 @@ func disableFlagsInUseLine(cmd *cobra.Command) {
 // This is different from the VisitAll of cobra.Command where only parents
 // are checked.
 func visitAll(root *cobra.Command, fn func(*cobra.Command)) {
-	for _, cmd := range root.Commands() {
-		visitAll(cmd, fn)
+	for _, c := range root.Commands() {
+		visitAll(c, fn)
 	}
 	fn(root)
 }
 
 func loadLongDescription(cmd *cobra.Command, path ...string) error {
-	for _, cmd := range cmd.Commands() {
-		if cmd.Name() == "" {
+	for _, c := range cmd.Commands() {
+		if c.Name() == "" {
 			continue
 		}
-		fullpath := filepath.Join(path[0], strings.Join(append(path[1:], cmd.Name()), "_")+".md")
-		if cmd.HasSubCommands() {
-			if err := loadLongDescription(cmd, path[0], cmd.Name()); err != nil {
+		fullpath := filepath.Join(path[0], strings.Join(append(path[1:], c.Name()), "_")+".md")
+		if c.HasSubCommands() {
+			if err := loadLongDescription(c, path[0], c.Name()); err != nil {
 				return err
 			}
 		}
@@ -88,8 +88,8 @@ func loadLongDescription(cmd *cobra.Command, path ...string) error {
 			return err
 		}
 		description, examples := parseMDContent(string(content))
-		cmd.Long = description
-		cmd.Example = examples
+		c.Long = description
+		c.Example = examples
 	}
 	return nil
 }
@@ -129,9 +129,12 @@ func main() {
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 	}
-	fmt.Printf("Project root: %s\n", opts.source)
-	fmt.Printf("Generating yaml files into %s\n", opts.target)
-	if err := generateCliYaml(opts); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to generate yaml files: %s\n", err.Error())
+	if opts != nil {
+		fmt.Printf("Project root: %s\n", opts.source)
+		fmt.Printf("Generating yaml files into %s\n", opts.target)
+
+		if err := generateCliYaml(opts); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to generate yaml files: %s\n", err.Error())
+		}
 	}
 }

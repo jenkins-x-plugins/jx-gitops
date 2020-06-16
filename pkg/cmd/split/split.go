@@ -55,11 +55,11 @@ func NewCmdSplit() (*cobra.Command, *Options) {
 
 // Run implements the command
 func (o *Options) Run() error {
-	return SplitYamlFiles(o.Dir)
+	return ProcessYamlFiles(o.Dir)
 }
 
-// SplitYamlFiles splits any files with multiple resources into separate files
-func SplitYamlFiles(dir string) error {
+// ProcessYamlFiles splits any files with multiple resources into separate files
+func ProcessYamlFiles(dir string) error {
 	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if info == nil || info.IsDir() {
 			return nil

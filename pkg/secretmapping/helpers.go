@@ -17,7 +17,7 @@ func LoadSecretMapping(dir string, failIfMissing bool) (*v1alpha1.SecretMapping,
 	if err != nil {
 		return nil, "", errors.Wrap(err, "creating absolute path")
 	}
-	relPath := filepath.Join(".jx-gitops", "secret-mappings.yaml")
+	relPath := filepath.Join(".jx", "gitops", "secret-mappings.yaml")
 
 	for absolute != "" && absolute != "." && absolute != "/" {
 		fileName := filepath.Join(absolute, relPath)
