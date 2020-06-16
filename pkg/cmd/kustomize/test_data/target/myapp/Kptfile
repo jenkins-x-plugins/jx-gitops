@@ -1,0 +1,11 @@
+apiVersion: kpt.dev/v1alpha1
+kind: Kptfile
+metadata:
+    name: myapp
+upstream:
+    type: git
+    git:
+        commit: 63bff7802c2de9cb81569612cc9d0bce565a59da
+        repo: https://github.com/jstrachan/myapp
+        directory: /charts/myapp/resources
+        ref: v1.0.5

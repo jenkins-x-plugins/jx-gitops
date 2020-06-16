@@ -1,0 +1,11 @@
+# Source: myapp/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp-myapp
+  annotations:
+    wave.pusher.com/update-on-config-change: "true"
+  labels:
+    newlabel: cheese
+spec:
+  replicas: 3

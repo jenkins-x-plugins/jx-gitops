@@ -1,0 +1,15 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+  name: myapp
+  namespace: myapps
+spec:
+  rules:
+  - host: myapp.1.2.3.4.nipio
+    http:
+      paths:
+      - backend:
+          serviceName: myapp
+          servicePort: 80
