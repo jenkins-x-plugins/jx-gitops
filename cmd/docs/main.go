@@ -21,9 +21,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/jenkins-x/jx-gitops/pkg/cmd"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd"
 )
 
 const descriptionSourcePath = "docs/reference/cmd/"
