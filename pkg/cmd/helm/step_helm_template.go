@@ -28,14 +28,6 @@ var (
 		# generates the resources from a helm chart
 		%s step helm template
 	`)
-
-	defaultValuesYaml = `jxRequirements:
-  ingress:
-    domain: %s
-    namespaceSubDomain: "."
-    tls:
-      enabled: true 
-`
 )
 
 // HelmTemplateOptions the options for the command
@@ -43,7 +35,7 @@ type TemplateOptions struct {
 	OutDir           string
 	ReleaseName      string
 	Chart            string
-	ValuesFile       string
+	ValuesFiles      []string
 	DefaultDomain    string
 	GitCommitMessage string
 	Version          string
@@ -73,7 +65,7 @@ func NewCmdHelmTemplate() (*cobra.Command, *TemplateOptions) {
 	cmd.Flags().StringVarP(&o.OutDir, "output-dir", "o", "", "the output directory to generate the templates to. Defaults to charts/$name/resources")
 	cmd.Flags().StringVarP(&o.ReleaseName, "name", "n", "", "the name of the helm release to template. Defaults to $APP_NAME if not specified")
 	cmd.Flags().StringVarP(&o.Chart, "chart", "c", "", "the chart name to template. Defaults to 'charts/$name'")
-	cmd.Flags().StringVarP(&o.ValuesFile, "values", "", "charts/template-values.yaml", "the helm values.yaml file used to template values in the generated template")
+	cmd.Flags().StringArrayVarP(&o.ValuesFiles, "values", "f", []string{""}, "the helm values.yaml file used to template values in the generated template")
 	cmd.Flags().StringVarP(&o.Version, "version", "v", "", "the version of the helm chart to use. If not specified then the latest one is used")
 	cmd.Flags().StringVarP(&o.Repository, "repository", "r", "", "the helm chart repository to locate the chart")
 	cmd.Flags().StringVarP(&o.GitCommitMessage, "commit-message", "", "chore: generated kubernetes resources from helm chart", "the git commit message used")
@@ -131,12 +123,6 @@ func (o *TemplateOptions) Run() error {
 		}
 	}
 
-	// lets ensure we've a values file
-	valuesFile, err := o.lazyCreateValuesFile()
-	if err != nil {
-		return err
-	}
-
 	tmpDir, err := ioutil.TempDir("", "")
 	if err != nil {
 		return errors.Wrap(err, "failed to create temporary directory")
@@ -171,7 +157,12 @@ func (o *TemplateOptions) Run() error {
 	}
 
 	cmdDir := ""
-	args := []string{"template", "--output-dir", tmpDir, "--values", valuesFile}
+
+	args := []string{"template", "--output-dir", tmpDir}
+	for _, valuesFile := range o.ValuesFiles {
+		args = append(args, "--values", valuesFile)
+	}
+
 	if o.Repository != "" {
 		args = append(args, "--repo", o.Repository)
 		cmdDir = tmpChartDir
@@ -192,6 +183,7 @@ func (o *TemplateOptions) Run() error {
 	}
 	log.Logger().Infof("about to run %s", util.ColorInfo(c.String()))
 	_, err = c.RunWithoutRetry()
+
 	if err != nil {
 		return errors.Wrapf(err, "failed to run %s", c.String())
 	}
@@ -258,29 +250,6 @@ func (o *TemplateOptions) GitCommit(outDir string, commitMessage string) error {
 		return errors.Wrapf(err, "failed to commit generated resources to git in dir %s", outDir)
 	}
 	return nil
-}
-
-func (o *TemplateOptions) lazyCreateValuesFile() (string, error) {
-	valuesFile := o.ValuesFile
-	exists, err := util.FileExists(valuesFile)
-	if err != nil {
-		return "", errors.Wrapf(err, "failed to check if values file exists %s", valuesFile)
-	}
-	if !exists {
-		text := fmt.Sprintf(defaultValuesYaml, o.DefaultDomain)
-		dir := filepath.Dir(valuesFile)
-		if dir != "" && dir != "." {
-			err = os.MkdirAll(dir, util.DefaultWritePermissions)
-			if err != nil {
-				return "", errors.Wrapf(err, "failed to ensure that values file directory %s can be created", dir)
-			}
-		}
-		err = ioutil.WriteFile(valuesFile, []byte(text), util.DefaultFileWritePermissions)
-		if err != nil {
-			return "", errors.Wrapf(err, "failed to save default values file %s", valuesFile)
-		}
-	}
-	return valuesFile, err
 }
 
 // Git returns the gitter - lazily creating one if required

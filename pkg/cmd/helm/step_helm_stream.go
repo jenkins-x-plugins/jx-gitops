@@ -169,7 +169,6 @@ func (o *StreamOptions) Run() error {
 		if err != nil {
 			return errors.Wrapf(err, "failed to create values dir for chart %s", chartName)
 		}
-		ho.ValuesFile = filepath.Join(valuesDir, "template-values.yaml")
 
 		log.Logger().Infof("generating chart %s version %s to dir %s", chartName, version, chartOutput)
 
