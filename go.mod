@@ -10,10 +10,11 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.4.0
 	gopkg.in/yaml.v2 v2.2.8
-	k8s.io/api v0.0.0-20190718183219-b59d8169aab5
-	k8s.io/apimachinery v0.0.0-20190703205208-4cfb76a8bf76
+	k8s.io/api v0.17.0
+	k8s.io/apimachinery v0.17.0
+	sigs.k8s.io/kustomize/api v0.4.1
 	sigs.k8s.io/kustomize/kyaml v0.2.0
-	sigs.k8s.io/yaml v1.1.0
+	sigs.k8s.io/yaml v1.2.0
 
 )
 

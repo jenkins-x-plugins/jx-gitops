@@ -10,12 +10,14 @@ import (
 	"strings"
 
 	"github.com/jenkins-x/jx-gitops/pkg/common"
+	"github.com/jenkins-x/jx-gitops/pkg/kustomizes"
 	"github.com/jenkins-x/jx/pkg/cmd/helper"
 	"github.com/jenkins-x/jx/pkg/cmd/templates"
 	"github.com/jenkins-x/jx/pkg/log"
 	"github.com/jenkins-x/jx/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"sigs.k8s.io/kustomize/api/types"
 	"sigs.k8s.io/kustomize/kyaml/yaml"
 )
 
@@ -33,14 +35,16 @@ If you are using kpt to consume templates and you make lots of modifications and
 	`)
 
 	// mandatoryFields fields we should not remove when creating a diff
-	mandatoryFields = []string{"apiVersion", "kind", "metadata.name"}
+	mandatoryFields = []string{"apiVersion", "kind", "metadata.name", "metadata.namespace"}
 )
 
 // Options the options for the command
 type Options struct {
-	SourceDir string
-	TargetDir string
-	OutputDir string
+	SourceDir         string
+	TargetDir         string
+	OutputDir         string
+	Kustomization     *types.Kustomization
+	BaseKustomization *types.Kustomization
 }
 
 // NewCmdKustomize creates a command object for the command
@@ -71,6 +75,9 @@ func (o *Options) Run() error {
 	}
 	dir := o.SourceDir
 
+	o.BaseKustomization = kustomizes.LazyCreate(o.BaseKustomization)
+	o.Kustomization = kustomizes.LazyCreate(o.Kustomization)
+
 	var err error
 	if o.OutputDir != "" {
 		err = os.MkdirAll(o.OutputDir, util.DefaultWritePermissions)
@@ -83,6 +90,18 @@ func (o *Options) Run() error {
 			return errors.Wrapf(err, "failed to create a temp dir")
 		}
 	}
+	relBase, err := filepath.Rel(o.OutputDir, dir)
+	if err != nil {
+		log.Logger().Warnf("could not find releative source dir %s from output dir %s", dir, o.OutputDir)
+
+		// lets use the abs path
+		relBase, err = filepath.Abs(dir)
+		if err != nil {
+			return errors.Wrapf(err, "failed to find absolute path of %s", dir)
+		}
+	}
+	o.Kustomization.Resources = append(o.Kustomization.Resources, relBase)
+
 	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if info == nil || info.IsDir() {
 			return nil
@@ -121,6 +140,8 @@ func (o *Options) Run() error {
 		if err != nil {
 			return errors.Wrapf(err, "failed to create a delta node for %s", path)
 		}
+		o.BaseKustomization.Resources = append(o.BaseKustomization.Resources, rel)
+
 		if overlayNode == nil {
 			log.Logger().Warnf("target file identical for %s so no need for an overlay", path)
 			return nil
@@ -137,13 +158,20 @@ func (o *Options) Run() error {
 		if err != nil {
 			return errors.Wrapf(err, "failed to save overlay to %s", overlayFile)
 		}
+
+		o.Kustomization.PatchesStrategicMerge = append(o.Kustomization.PatchesStrategicMerge, types.PatchStrategicMerge(rel))
 		return nil
 	})
 	if err != nil {
 		return errors.Wrapf(err, "failed to generate kustomize overlays to dir %s", dir)
 	}
 	log.Logger().Infof("created kustomize overlay files at %s", util.ColorInfo(o.OutputDir))
-	return nil
+
+	err = kustomizes.SaveKustomization(o.BaseKustomization, dir)
+	if err != nil {
+		return err
+	}
+	return kustomizes.SaveKustomization(o.Kustomization, o.OutputDir)
 }
 
 func (o *Options) createOverlay(srcNode *yaml.RNode, targetNode *yaml.RNode, path string) (*yaml.RNode, error) {
