@@ -2,6 +2,7 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: myapp
+  namespace: myapps
 spec:
   rules:
   - host: myapp.1.2.3.4.nipio
