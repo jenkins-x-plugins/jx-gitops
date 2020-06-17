@@ -26,7 +26,7 @@ make build commit
 If a Pull Request upgrades a version of a [helm](https://helm.sh/) chart or [kpt](https://googlecontainertools.github.io/kpt/) package with a simple one liner, seeing a second commit on the Pull Request with the actual changes to the kubernetes `Deployment` resource in terms of changes to images, volumes, environment variables and so forth is extremely useful.
 
 
-### Makefile
+### Makefile
 
 This is not a requirement but using a `Makefile` to trigger the various tools like [helm](https://helm.sh/), [kpt](https://googlecontainertools.github.io/kpt/) or [kustomize](https://kustomize.io/) can help provide the same CLI UX and use the same pipeline irrespective of which permutation of tools are used.
 
