@@ -11,6 +11,24 @@ Many tools can be used to fetch the YAML files from repositories and modify them
 
 However we see those as tools that should be used at build time to generate the YAML and then check it into Git. The most important thing is to standise on what gets checked into git + that gets released: namely the standard kubernetes resources and custom resources.
 
+### Secrets
+
+We obviously don't want to commit raw kubernetes `Secret` YAML into git!
+
+You can use sealed secrets. 
+
+We highly recommend using [Kubernetes External Secrets](https://github.com/godaddy/kubernetes-external-secrets) which means you can check in the `ExternalSecret` resources into git which are a reference to the actual secret values from some provider:
+
+* Alibaba Cloud KMS Secret Manager
+* Amazon Secret Manager
+* Amazon Parameter Store
+* Azure Key Vault 
+* Google Secret Manager
+* HashiCorp Vault
+
+If you use [jx-gitops extsecret](https://github.com/jenkins-x/jx-gitops/blob/master/docs/cmd/jx-gitops_extsecret.md) [jx-gitops helm template](https://github.com/jenkins-x/jx-gitops/blob/master/docs/cmd/jx-gitops_helm_template.md) commands all of your kubernetes `Secret`resources will get automatically converted to `ExternalSecret` resources so you can safely check them into your git repository. You may also find the [document on Secret Mapping](secret_mapping.md) useful
+
+ 
 ### Pull Requests
 
 Proposing pull requests on your git repositories are an excellent way to get reviews from your team and to run any automated tooling to verify the resources.
@@ -47,8 +65,3 @@ make apply
 We recommend you lint your YAML files to ensure a consistent layout. If using tools like `helm` we recommend splitting YAML files into a file per resource to simplify understanding and to make things easier to process with tools. 
 
 e.g. use [jx-gitops split](https://github.com/jenkins-x/jx-gitops/blob/master/docs/cmd/jx-gitops_split.md) in your `Makefile`.
-
-
-Tool agnostic - close to real 
-PR include changes
-Ext secrets 
