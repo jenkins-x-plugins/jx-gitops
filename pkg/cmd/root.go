@@ -9,6 +9,7 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/kustomize"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/label"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/namespace"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/repository"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/split"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/version"
 	"github.com/jenkins-x/jx-gitops/pkg/common"
@@ -36,6 +37,7 @@ func Main() *cobra.Command {
 	cmd.AddCommand(common.SplitCommand(kustomize.NewCmdKustomize()))
 	cmd.AddCommand(common.SplitCommand(label.NewCmdUpdateLabel()))
 	cmd.AddCommand(common.SplitCommand(namespace.NewCmdUpdateNamespace()))
+	cmd.AddCommand(common.SplitCommand(repository.NewCmdUpdateRepository()))
 	cmd.AddCommand(common.SplitCommand(split.NewCmdSplit()))
 	cmd.AddCommand(common.SplitCommand(version.NewCmdVersion()))
 	return cmd

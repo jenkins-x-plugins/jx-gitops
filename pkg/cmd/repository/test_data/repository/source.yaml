@@ -1,0 +1,17 @@
+# Source: jxboot-helmfile-resources/templates/repositories.yaml
+apiVersion: jenkins.io/v1
+kind: SourceRepository
+metadata:
+  name: "dev"
+  labels:
+    jenkins.io/gitSync: "false"
+  namespace: jx
+spec:
+  provider: "https://github.com"
+  providerName: 'github'
+  org: "myorg"
+  repo: "environment-mycluster-dev"
+  description: "the git repository for the Dev environment"
+  scheduler:
+    kind: Scheduler
+    name: "environment"

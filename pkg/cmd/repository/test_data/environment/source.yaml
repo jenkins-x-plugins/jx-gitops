@@ -1,0 +1,16 @@
+# Source: jxboot-helmfile-resources/templates/environments.yaml
+apiVersion: jenkins.io/v1
+kind: Environment
+metadata:
+  labels:
+    env: "dev"
+    team: jx
+  name: "dev"
+  namespace: jx
+spec:
+  source:
+    ref: "master"
+    url: https://github.com/myorg/environment-mycluster-dev.git
+  kind: Development
+  label: Development
+  namespace: jx
