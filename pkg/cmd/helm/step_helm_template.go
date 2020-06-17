@@ -34,6 +34,7 @@ var (
 type TemplateOptions struct {
 	OutDir           string
 	ReleaseName      string
+	Namespace        string
 	Chart            string
 	ValuesFiles      []string
 	DefaultDomain    string
@@ -64,6 +65,7 @@ func NewCmdHelmTemplate() (*cobra.Command, *TemplateOptions) {
 	}
 	cmd.Flags().StringVarP(&o.OutDir, "output-dir", "o", "", "the output directory to generate the templates to. Defaults to charts/$name/resources")
 	cmd.Flags().StringVarP(&o.ReleaseName, "name", "n", "", "the name of the helm release to template. Defaults to $APP_NAME if not specified")
+	cmd.Flags().StringVarP(&o.Namespace, "namespace", "", "", "specifies the namespace to use to generate the templates in")
 	cmd.Flags().StringVarP(&o.Chart, "chart", "c", "", "the chart name to template. Defaults to 'charts/$name'")
 	cmd.Flags().StringArrayVarP(&o.ValuesFiles, "values", "f", []string{""}, "the helm values.yaml file used to template values in the generated template")
 	cmd.Flags().StringVarP(&o.Version, "version", "v", "", "the version of the helm chart to use. If not specified then the latest one is used")
@@ -166,6 +168,9 @@ func (o *TemplateOptions) Run() error {
 	if o.Repository != "" {
 		args = append(args, "--repo", o.Repository)
 		cmdDir = tmpChartDir
+	}
+	if o.Namespace != "" {
+		args = append(args, "--namespace", o.Namespace)
 	}
 	if o.Version != "" {
 		args = append(args, "--version", o.Version)

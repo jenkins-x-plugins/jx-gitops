@@ -10,6 +10,7 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/common"
 	"github.com/jenkins-x/jx/pkg/cmd/helper"
 	"github.com/jenkins-x/jx/pkg/cmd/templates"
+	"github.com/jenkins-x/jx/pkg/config"
 	"github.com/jenkins-x/jx/pkg/gits"
 	"github.com/jenkins-x/jx/pkg/log"
 	"github.com/jenkins-x/jx/pkg/util"
@@ -27,6 +28,14 @@ var (
 	helmStreamExample = templates.Examples(`
 		%s step helm stream
 	`)
+
+	defaultValuesYaml = `jxRequirements:
+  ingress:
+    domain: %s
+    namespaceSubDomain: "."
+    tls:
+      enabled: true 
+`
 
 	pathSeparator = string(os.PathSeparator)
 )
@@ -139,6 +148,12 @@ func (o *StreamOptions) Run() error {
 			return errors.Wrapf(err, "failed to find version number for chart %s", chartName)
 		}
 
+		defaultsDir := filepath.Join(versionsDir, string(versionstream.KindApp), chartName)
+		defaults, _, err := config.LoadAppDefaultsConfig(defaultsDir)
+		if err != nil {
+			return errors.Wrapf(err, "failed to load defaults from dir %s", defaultsDir)
+		}
+
 		if version == "" {
 			return fmt.Errorf("could not find version for chart %s", chartName)
 		}
@@ -155,6 +170,10 @@ func (o *StreamOptions) Run() error {
 		// lets use the chart name within the chart repository
 		ho.Chart = ho.ReleaseName
 
+		if defaults.Namespace != "" {
+			ho.Namespace = defaults.Namespace
+		}
+
 		// lets find the repository prefix
 		paths := strings.Split(chartName, pathSeparator)
 		repoPrefix := paths[0]
@@ -169,6 +188,13 @@ func (o *StreamOptions) Run() error {
 		if err != nil {
 			return errors.Wrapf(err, "failed to create values dir for chart %s", chartName)
 		}
+		templateValuesFile := filepath.Join(valuesDir, "template-values.yaml")
+		err = o.lazyCreateValuesFile(templateValuesFile)
+		if err != nil {
+			return errors.Wrapf(err, "failed to lazily create the template values file")
+		}
+
+		ho.ValuesFile = templateValuesFile
 
 		log.Logger().Infof("generating chart %s version %s to dir %s", chartName, version, chartOutput)
 
@@ -193,6 +219,28 @@ func (o *StreamOptions) Run() error {
 		}
 	}
 	return nil
+}
+
+func (o *StreamOptions) lazyCreateValuesFile(valuesFile string) error {
+	exists, err := util.FileExists(valuesFile)
+	if err != nil {
+		return errors.Wrapf(err, "failed to check if values file exists %s", valuesFile)
+	}
+	if !exists {
+		text := fmt.Sprintf(defaultValuesYaml, o.DefaultDomain)
+		dir := filepath.Dir(valuesFile)
+		if dir != "" && dir != "." {
+			err = os.MkdirAll(dir, util.DefaultWritePermissions)
+			if err != nil {
+				return errors.Wrapf(err, "failed to ensure that values file directory %s can be created", dir)
+			}
+		}
+		err = ioutil.WriteFile(valuesFile, []byte(text), util.DefaultFileWritePermissions)
+		if err != nil {
+			return errors.Wrapf(err, "failed to save default values file %s", valuesFile)
+		}
+	}
+	return err
 }
 
 // Git returns the gitter - lazily creating one if required
