@@ -194,7 +194,7 @@ func (o *StreamOptions) Run() error {
 			return errors.Wrapf(err, "failed to lazily create the template values file")
 		}
 
-		ho.ValuesFile = templateValuesFile
+		ho.ValuesFiles = append(ho.ValuesFiles, templateValuesFile)
 
 		log.Logger().Infof("generating chart %s version %s to dir %s", chartName, version, chartOutput)
 
