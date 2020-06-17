@@ -35,7 +35,9 @@ var (
 type Options struct {
 	Dir           string
 	OutDir        string
+	Version       string
 	IgnoreErrors  bool
+	DryRun        bool
 	CommandRunner common.CommandRunner
 }
 
@@ -55,7 +57,9 @@ func NewCmdKptRecreate() (*cobra.Command, *Options) {
 	}
 	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the directory to recursively look for the *.yaml or *.yml files")
 	cmd.Flags().StringVarP(&o.OutDir, "out-dir", "o", "", "the output directory to generate the output")
+	cmd.Flags().StringVarP(&o.Version, "version", "", "", "if specified overrides the versions used in the kpt packages (e.g. to 'master')")
 	cmd.Flags().BoolVarP(&o.IgnoreErrors, "ignore-errors", "i", false, "if enabled we continue processing on kpt errors")
+	cmd.Flags().BoolVarP(&o.DryRun, "dry-run", "", false, "just output the commands to be executed")
 	return cmd, o
 }
 
@@ -74,6 +78,9 @@ func (o *Options) Run() error {
 		if err != nil {
 			return errors.Wrap(err, "failed to create temp dir")
 		}
+	}
+	if o.DryRun {
+		o.CommandRunner = common.DryRunCommandRunner
 	}
 	if o.CommandRunner == nil {
 		o.CommandRunner = common.DefaultCommandRunner
@@ -125,12 +132,15 @@ func (o *Options) Run() error {
 		if directory == "" {
 			return errors.Errorf("no git directory for path %s", path)
 		}
-		version, _, err := unstructured.NestedString(u.Object, "upstream", "git", "commit")
-		if err != nil {
-			return errors.Wrapf(err, "failed to find git commit for path %s", path)
-		}
+		version := o.Version
 		if version == "" {
-			return errors.Errorf("no git version for path %s", path)
+			version, _, err = unstructured.NestedString(u.Object, "upstream", "git", "commit")
+			if err != nil {
+				return errors.Wrapf(err, "failed to find git commit for path %s", path)
+			}
+			if version == "" {
+				return errors.Errorf("no git version for path %s", path)
+			}
 		}
 
 		if !strings.HasSuffix(gitURL, ".git") {
@@ -160,7 +170,6 @@ func (o *Options) Run() error {
 		if err != nil {
 			return errors.Wrapf(err, "failed to remove kpt directory %s", kptDir)
 		}
-		log.Logger().Infof("about to run %s in dir %s", util.ColorInfo(c.String()), util.ColorInfo(c.Dir))
 		text, err := o.CommandRunner(c)
 		log.Logger().Infof(text)
 		if err != nil {
