@@ -132,9 +132,12 @@ darwin: ## Build for OSX
 	chmod +x build/darwin/$(NAME)
 
 .PHONY: release
-release: clean linux test
+release: clean linux test promoter
 
 release-all: release linux win darwin
+
+promoter:
+	cd promote && go build main.go
 
 .PHONY: goreleaser
 goreleaser:
