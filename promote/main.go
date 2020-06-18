@@ -23,7 +23,7 @@ func main() {
 				},
 			},
 			RegexFiles{
-				Regex: `\s+image: gcr.io/jenkinsxio-labs-private/jx-gitops::(.*)`,
+				Regex: `\s+image: gcr.io/jenkinsxio-labs-private/jx-gitops:(.*)`,
 				Files: []string{"jenkins-x*.yml"},
 			},
 		)
