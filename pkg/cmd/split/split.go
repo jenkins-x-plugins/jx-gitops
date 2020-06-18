@@ -72,7 +72,11 @@ func ProcessYamlFiles(dir string) error {
 			return errors.Wrapf(err, "failed to load file %s", path)
 		}
 
-		sections := strings.Split(string(data), resourcesSeparator)
+		input := string(data)
+		if strings.HasPrefix(input, resourcesSeparator) {
+			input = "\n"
+		}
+		sections := strings.Split(input, "\n"+resourcesSeparator)
 
 		count := 0
 		var files []string
