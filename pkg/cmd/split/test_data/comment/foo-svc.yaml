@@ -1,0 +1,17 @@
+---
+# Source: kubernetes-external-secrets/crds/kubernetes-client.io_externalsecrets_crd.yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: beer
+  labels:
+    chart: beer
+spec:
+  ports:
+  - port: 80
+    targetPort: 8080
+    protocol: TCP
+    name: http
+  selector:
+    app: beer

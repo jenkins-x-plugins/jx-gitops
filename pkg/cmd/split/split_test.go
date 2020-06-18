@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/split"
+	"github.com/jenkins-x/jx-gitops/pkg/testhelpers"
 	"github.com/jenkins-x/jx/pkg/util"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -30,7 +31,13 @@ func TestSplitYamlFiles(t *testing.T) {
 
 	t.Logf("split files in dir %s\n", tmpDir)
 
-	assert.FileExists(t, filepath.Join(tmpDir, "jx", "foo-svc.yaml"))
-	assert.FileExists(t, filepath.Join(tmpDir, "jx", "foo-svc2.yaml"))
-	assert.FileExists(t, filepath.Join(tmpDir, "something", "cheese-svc.yaml"))
+	assert.FileExists(t, filepath.Join(tmpDir, "two", "foo-svc.yaml"))
+	assert.FileExists(t, filepath.Join(tmpDir, "two", "foo-svc2.yaml"))
+	assert.FileExists(t, filepath.Join(tmpDir, "no-separator", "cheese-svc.yaml"))
+
+	assert.FileExists(t, filepath.Join(tmpDir, "separator", "cheese-svc.yaml"))
+	testhelpers.AssertFileNotExists(t, filepath.Join(tmpDir, "separator", "cheese-svc2.yaml"))
+
+	assert.FileExists(t, filepath.Join(tmpDir, "comment", "foo-svc.yaml"))
+	testhelpers.AssertFileNotExists(t, filepath.Join(tmpDir, "comment", "foo-svc2.yaml"))
 }
