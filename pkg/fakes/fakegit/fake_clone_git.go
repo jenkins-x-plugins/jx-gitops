@@ -1,6 +1,6 @@
 package fakegit
 
-import "github.com/jenkins-x/jx/pkg/gits"
+import "github.com/jenkins-x/jx/v2/pkg/gits"
 
 // GitFakeClone struct for the fake git
 type GitFakeClone struct {

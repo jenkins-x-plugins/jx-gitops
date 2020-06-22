@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	jenkinsv1 "github.com/jenkins-x/jx/pkg/apis/jenkins.io/v1"
-	"github.com/jenkins-x/jx/pkg/extensions"
+	jenkinsv1 "github.com/jenkins-x/jx/v2/pkg/apis/jenkins.io/v1"
+	"github.com/jenkins-x/jx/v2/pkg/extensions"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

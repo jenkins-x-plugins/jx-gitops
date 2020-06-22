@@ -8,14 +8,14 @@ import (
 	"strings"
 
 	"github.com/jenkins-x/jx-gitops/pkg/common"
-	"github.com/jenkins-x/jx/pkg/cmd/helper"
-	"github.com/jenkins-x/jx/pkg/cmd/templates"
-	"github.com/jenkins-x/jx/pkg/config"
-	"github.com/jenkins-x/jx/pkg/gits"
-	"github.com/jenkins-x/jx/pkg/log"
-	"github.com/jenkins-x/jx/pkg/util"
-	"github.com/jenkins-x/jx/pkg/versionstream"
-	"github.com/jenkins-x/jx/pkg/versionstream/versionstreamrepo"
+	"github.com/jenkins-x/jx-promote/pkg/jxapps"
+	"github.com/jenkins-x/jx-promote/pkg/versionstream"
+	"github.com/jenkins-x/jx-promote/pkg/versionstream/versionstreamrepo"
+	"github.com/jenkins-x/jx/v2/pkg/cmd/helper"
+	"github.com/jenkins-x/jx/v2/pkg/cmd/templates"
+	"github.com/jenkins-x/jx/v2/pkg/gits"
+	"github.com/jenkins-x/jx/v2/pkg/log"
+	"github.com/jenkins-x/jx/v2/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -149,7 +149,7 @@ func (o *StreamOptions) Run() error {
 		}
 
 		defaultsDir := filepath.Join(versionsDir, string(versionstream.KindApp), chartName)
-		defaults, _, err := config.LoadAppDefaultsConfig(defaultsDir)
+		defaults, _, err := jxapps.LoadAppDefaultsConfig(defaultsDir)
 		if err != nil {
 			return errors.Wrapf(err, "failed to load defaults from dir %s", defaultsDir)
 		}

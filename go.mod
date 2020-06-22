@@ -2,15 +2,13 @@ module github.com/jenkins-x/jx-gitops
 
 require (
 	github.com/cpuguy83/go-md2man v1.0.10
-	github.com/google/go-cmp v0.3.0
-	github.com/jenkins-x/helmboot v0.0.83 // indirect
-	github.com/jenkins-x/jx v1.3.981-0.20200605070345-2c10fe601319
-	github.com/jenkins-x/jx-logging v0.0.0-20200514201235-0fc2160d7f69
+	github.com/google/go-cmp v0.3.1
+	github.com/jenkins-x/jx-promote v0.0.32
+	github.com/jenkins-x/jx/v2 v2.1.78
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.5.1
-	gopkg.in/yaml.v2 v2.2.8
+	github.com/stretchr/testify v1.6.0
 	k8s.io/api v0.17.0
 	k8s.io/apimachinery v0.17.0
 	sigs.k8s.io/kustomize/api v0.4.1
@@ -18,6 +16,8 @@ require (
 	sigs.k8s.io/yaml v1.2.0
 
 )
+
+replace github.com/heptio/sonobuoy => github.com/jenkins-x/sonobuoy v0.11.7-0.20190318120422-253758214767
 
 replace k8s.io/api => k8s.io/api v0.0.0-20190528110122-9ad12a4af326
 
@@ -29,14 +29,16 @@ replace k8s.io/client-go => k8s.io/client-go v0.0.0-20190528110200-4f3abb12cae2
 
 replace k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20190528110544-fa58353d80f3
 
-replace git.apache.org/thrift.git => github.com/apache/thrift v0.0.0-20180902110319-2566ecd5d999
-
 replace github.com/sirupsen/logrus => github.com/jtnord/logrus v1.4.2-0.20190423161236-606ffcaf8f5d
 
 replace github.com/Azure/azure-sdk-for-go => github.com/Azure/azure-sdk-for-go v21.1.0+incompatible
 
-replace github.com/Azure/go-autorest => github.com/Azure/go-autorest v10.14.0+incompatible
+replace github.com/Azure/go-autorest => github.com/Azure/go-autorest v10.15.5+incompatible
 
 replace github.com/banzaicloud/bank-vaults => github.com/banzaicloud/bank-vaults v0.0.0-20190508130850-5673d28c46bd
+
+replace github.com/TV4/logrus-stackdriver-formatter => github.com/jenkins-x/logrus-stackdriver-formatter v0.1.1-0.20200408213659-1dcf20c371bb
+
+replace code.gitea.io/sdk/gitea => code.gitea.io/sdk/gitea v0.12.0
 
 go 1.13

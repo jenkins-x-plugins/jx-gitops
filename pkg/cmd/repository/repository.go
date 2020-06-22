@@ -5,11 +5,11 @@ import (
 
 	"github.com/jenkins-x/jx-gitops/pkg/common"
 	"github.com/jenkins-x/jx-gitops/pkg/kyamls"
-	"github.com/jenkins-x/jx/pkg/cmd/helper"
-	"github.com/jenkins-x/jx/pkg/cmd/templates"
-	"github.com/jenkins-x/jx/pkg/gits"
-	"github.com/jenkins-x/jx/pkg/log"
-	"github.com/jenkins-x/jx/pkg/util"
+	"github.com/jenkins-x/jx/v2/pkg/cmd/helper"
+	"github.com/jenkins-x/jx/v2/pkg/cmd/templates"
+	"github.com/jenkins-x/jx/v2/pkg/gits"
+	"github.com/jenkins-x/jx/v2/pkg/log"
+	"github.com/jenkins-x/jx/v2/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/kustomize/kyaml/yaml"
@@ -79,7 +79,7 @@ func (o *Options) Run(args []string) error {
 		return errors.Wrapf(err, "failed to parse git URL: %s", o.gitURL)
 	}
 	if discovered {
-		o.gitURL = o.gitInfo.HttpCloneURL()
+		o.gitURL = o.gitInfo.URL
 
 		log.Logger().Infof("discovered git URL %s replacing it in the dev Environment and Source Repository in dir %s", util.ColorInfo(o.gitURL), util.ColorInfo(o.Dir))
 	}

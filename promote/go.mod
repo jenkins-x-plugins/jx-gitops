@@ -1,25 +1,18 @@
 module github.com/jenkins-x/jxl-promote
 
 require (
-	cloud.google.com/go v0.37.4 // indirect
-	github.com/google/go-cmp v0.3.1 // indirect
+	github.com/apache/thrift v0.12.0 // indirect
 	github.com/gophercloud/gophercloud v0.1.0 // indirect
 	github.com/jenkins-x/jx v0.0.0-20200501072805-de27d267fa83
+	github.com/jenkins-x/jx/v2 v2.1.78 // indirect
+	github.com/openzipkin/zipkin-go v0.1.6 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v0.9.4 // indirect
 	github.com/rifflock/lfshook v0.0.0-20180920164130-b9218ef580f5 // indirect
-	github.com/shurcooL/githubv4 v0.0.0-20190718010115-4ba037080260 // indirect
-	github.com/shurcooL/graphql v0.0.0-20181231061246-d48a9a75455f // indirect
-	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
-	google.golang.org/api v0.3.2 // indirect
-	google.golang.org/appengine v1.5.0 // indirect
-	k8s.io/api v0.0.0-20190816222004-e3a6b8045b0b // indirect
-	k8s.io/apimachinery v0.0.0-20190816221834-a9f1d8a9c101 // indirect
-	k8s.io/client-go v11.0.1-0.20190805182717-6502b5e7b1b5+incompatible // indirect
 	k8s.io/metrics v0.0.0-20190704050707-780c337c9cbd // indirect
 )
 
-exclude github.com/jenkins-x/jx/pkg/prow v0.0.0-20190912224545-e8f82ee218ba
+exclude github.com/jenkins-x/jx/v2/pkg/prow v0.0.0-20190912224545-e8f82ee218ba
 
 replace github.com/golang/lint => golang.org/x/lint v0.0.0-20180702182130-06c8688daad7
 

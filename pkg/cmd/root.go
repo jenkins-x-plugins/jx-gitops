@@ -13,7 +13,7 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/split"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/version"
 	"github.com/jenkins-x/jx-gitops/pkg/common"
-	"github.com/jenkins-x/jx/pkg/log"
+	"github.com/jenkins-x/jx/v2/pkg/log"
 	"github.com/spf13/cobra"
 )
 
