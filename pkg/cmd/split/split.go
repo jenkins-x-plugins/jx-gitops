@@ -74,7 +74,7 @@ func ProcessYamlFiles(dir string) error {
 
 		input := string(data)
 		if strings.HasPrefix(input, resourcesSeparator) {
-			input = "\n"
+			input = "\n" + input
 		}
 		sections := strings.Split(input, "\n"+resourcesSeparator)
 
