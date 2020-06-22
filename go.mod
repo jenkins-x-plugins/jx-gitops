@@ -5,10 +5,11 @@ require (
 	github.com/google/go-cmp v0.3.0
 	github.com/jenkins-x/helmboot v0.0.83 // indirect
 	github.com/jenkins-x/jx v1.3.981-0.20200605070345-2c10fe601319
-	github.com/pkg/errors v0.8.1
+	github.com/jenkins-x/jx-logging v0.0.0-20200514201235-0fc2160d7f69
+	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.4.0
+	github.com/stretchr/testify v1.5.1
 	gopkg.in/yaml.v2 v2.2.8
 	k8s.io/api v0.17.0
 	k8s.io/apimachinery v0.17.0
