@@ -8,6 +8,11 @@
 
 jx-gitops is a small command line tool working with Kubernetes resources and CRD files in a GitOps repository.
 
+## Getting Started
+
+Download the [jx-gitops binary](https://github.com/jenkins-x/jx-gitops/releases) for your operating system and add it to your `$PATH`.
+
+There will be an `app` you can install soon too...
 
 ## Commands
 
