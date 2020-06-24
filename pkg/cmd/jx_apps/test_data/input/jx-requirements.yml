@@ -1,0 +1,5 @@
+cluster:
+  namespace: jx
+versionStream:
+  ref: master
+  url: https://github.com/jenkins-x/jxr-versions.git
