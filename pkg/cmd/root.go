@@ -5,6 +5,7 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/extsecret"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helm"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/ingress"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/jx_apps"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/kpt"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/kustomize"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/label"
@@ -30,6 +31,7 @@ func Main() *cobra.Command {
 		},
 	}
 	cmd.AddCommand(helm.NewCmdHelm())
+	cmd.AddCommand(jx_apps.NewCmdJxApps())
 	cmd.AddCommand(kpt.NewCmdKpt())
 	cmd.AddCommand(common.SplitCommand(annotate.NewCmdUpdateAnnotate()))
 	cmd.AddCommand(common.SplitCommand(extsecret.NewCmdExtSecrets()))
