@@ -17,6 +17,7 @@ import (
 	"github.com/jenkins-x/jx-promote/pkg/versionstream"
 	"github.com/jenkins-x/jx/v2/pkg/cmd/helper"
 	"github.com/jenkins-x/jx/v2/pkg/cmd/templates"
+	"github.com/jenkins-x/jx/v2/pkg/config"
 	"github.com/jenkins-x/jx/v2/pkg/gits"
 	"github.com/jenkins-x/jx/v2/pkg/log"
 	"github.com/jenkins-x/jx/v2/pkg/util"
@@ -111,7 +112,14 @@ func (o *JxAppsTemplateOptions) Run() error {
 	versionsDir := o.VersionStreamDir
 	if o.VersionStreamDir == "" {
 		if o.VersionStreamURL == "" {
-			return errors.Errorf("Missing option: --%s or --%s ", util.ColorInfo("dir"), util.ColorInfo("url"))
+			requirements, _, err := config.LoadRequirementsConfig(o.Dir, false)
+			if err != nil {
+				return errors.Wrapf(err, "failed to load jx-requirements.yml")
+			}
+			o.VersionStreamURL = requirements.VersionStream.URL
+		}
+		if o.VersionStreamURL == "" {
+			return errors.Errorf("Missing option:  --%s ", util.ColorInfo("url"))
 		}
 
 		var err error
