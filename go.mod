@@ -3,7 +3,7 @@ module github.com/jenkins-x/jx-gitops
 require (
 	github.com/cpuguy83/go-md2man v1.0.10
 	github.com/google/go-cmp v0.3.1
-	github.com/jenkins-x/jx-promote v0.0.32
+	github.com/jenkins-x/jx-promote v0.0.39
 	github.com/jenkins-x/jx/v2 v2.1.78
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.0.0
