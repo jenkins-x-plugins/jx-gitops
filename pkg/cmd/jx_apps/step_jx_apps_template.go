@@ -50,6 +50,7 @@ type JxAppsTemplateOptions struct {
 	GitCommitMessage string
 	VersionStreamURL string
 	VersionStreamRef string
+	Namespace        string
 	NoGitCommit      bool
 	NoSplit          bool
 	NoExtSecrets     bool
@@ -79,6 +80,7 @@ func NewCmdJxAppsTemplate() (*cobra.Command, *JxAppsTemplateOptions) {
 	cmd.Flags().StringVarP(&o.GitCommitMessage, "commit-message", "", "chore: generated kubernetes resources from helm chart", "the git commit message used")
 	cmd.Flags().StringVarP(&o.VersionStreamURL, "url", "n", "", "the git clone URL of the version stream")
 	cmd.Flags().StringVarP(&o.VersionStreamRef, "ref", "c", "master", "the git ref (branch, tag, revision) to git clone")
+	cmd.Flags().StringVarP(&o.Namespace, "namespace", "", "jx", "the default namespace if none is specified in the jx-apps.yml or jx-requirements.yml")
 	o.AddFlags(cmd)
 	return cmd, o
 }
@@ -110,12 +112,12 @@ func (o *JxAppsTemplateOptions) Run() error {
 	}
 	// todo should we get the version stream here? this isn't quite right as we need the jx apps
 	versionsDir := o.VersionStreamDir
+	requirements, _, err := config.LoadRequirementsConfig(o.Dir, false)
+	if err != nil {
+		return errors.Wrapf(err, "failed to load jx-requirements.yml")
+	}
 	if o.VersionStreamDir == "" {
 		if o.VersionStreamURL == "" {
-			requirements, _, err := config.LoadRequirementsConfig(o.Dir, false)
-			if err != nil {
-				return errors.Wrapf(err, "failed to load jx-requirements.yml")
-			}
 			o.VersionStreamURL = requirements.VersionStream.URL
 		}
 		if o.VersionStreamURL == "" {
@@ -198,6 +200,13 @@ func (o *JxAppsTemplateOptions) Run() error {
 
 		if ho.Namespace == "" && defaults.Namespace != "" {
 			ho.Namespace = defaults.Namespace
+		}
+
+		if ho.Namespace == "" {
+			ho.Namespace = requirements.Cluster.Namespace
+			if ho.Namespace == "" {
+				ho.Namespace = o.Namespace
+			}
 		}
 
 		if ho.Namespace != "" {
