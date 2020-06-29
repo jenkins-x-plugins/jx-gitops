@@ -43,19 +43,10 @@ const (
 // JxAppsTemplateOptions the options for the command
 type JxAppsTemplateOptions struct {
 	helm.TemplateOptions
-	OutDir           string
 	Dir              string
 	VersionStreamDir string
-	DefaultDomain    string
-	GitCommitMessage string
 	VersionStreamURL string
 	VersionStreamRef string
-	Namespace        string
-	NoGitCommit      bool
-	NoSplit          bool
-	NoExtSecrets     bool
-	IncludeCRDs      bool
-	Gitter           gits.Gitter
 	prefixes         *versionstream.RepositoryPrefixes
 	IOFileHandles    *util.IOFileHandles
 }
@@ -95,7 +86,6 @@ func (o *JxAppsTemplateOptions) AddFlags(cmd *cobra.Command) {
 
 // Run implements the command
 func (o *JxAppsTemplateOptions) Run() error {
-
 	appsCfg, appsCfgFile, err := jxapps.LoadAppConfig(o.Dir)
 	if err != nil {
 		return errors.Wrap(err, "failed to load jx-apps.yml")
