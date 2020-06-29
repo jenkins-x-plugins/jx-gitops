@@ -15,7 +15,7 @@ pipelineConfig:
           steps:
           - name: release-binary
             command: make release
-            image: golang:1.12
+            image: golang:1.13
           - name: build-and-push-image
             image: gcr.io/kaniko-project/executor:debug-9912ccbf8d22bbafbf971124600fbb0b13b9cbd6
             command: /kaniko/executor --cache=true --cache-dir=/workspace --context=/workspace/source --dockerfile=/workspace/source/Dockerfile --destination=gcr.io/$DOCKER_REGISTRY_ORG/jx-gitops:$VERSION --cache-repo=gcr.io/jx-labs-infra/cache
