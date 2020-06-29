@@ -4,9 +4,10 @@ require (
 	github.com/apache/thrift v0.12.0 // indirect
 	github.com/gophercloud/gophercloud v0.1.0 // indirect
 	github.com/jenkins-x/jx v0.0.0-20200501072805-de27d267fa83
+	github.com/jenkins-x/jx-logging v0.0.11 // indirect
 	github.com/jenkins-x/jx/v2 v2.1.78 // indirect
 	github.com/openzipkin/zipkin-go v0.1.6 // indirect
-	github.com/pkg/errors v0.8.1
+	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v0.9.4 // indirect
 	github.com/rifflock/lfshook v0.0.0-20180920164130-b9218ef580f5 // indirect
 	k8s.io/metrics v0.0.0-20190704050707-780c337c9cbd // indirect
