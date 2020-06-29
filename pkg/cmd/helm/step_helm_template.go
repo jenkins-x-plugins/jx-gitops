@@ -10,10 +10,10 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/split"
 	"github.com/jenkins-x/jx-gitops/pkg/common"
 	"github.com/jenkins-x/jx-gitops/pkg/plugins"
+	"github.com/jenkins-x/jx-logging/pkg/log"
 	"github.com/jenkins-x/jx/v2/pkg/cmd/helper"
 	"github.com/jenkins-x/jx/v2/pkg/cmd/templates"
 	"github.com/jenkins-x/jx/v2/pkg/gits"
-	"github.com/jenkins-x/jx/v2/pkg/log"
 	"github.com/jenkins-x/jx/v2/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -46,6 +46,7 @@ type TemplateOptions struct {
 	NoSplit          bool
 	NoExtSecrets     bool
 	IncludeCRDs      bool
+	CheckExists      bool
 	Gitter           gits.Gitter
 }
 
@@ -82,6 +83,7 @@ func (o *TemplateOptions) AddFlags(cmd *cobra.Command) {
 	cmd.Flags().BoolVarP(&o.NoSplit, "no-split", "", false, "if set then disable splitting of multiple resources into separate files")
 	cmd.Flags().BoolVarP(&o.NoExtSecrets, "no-external-secrets", "", false, "if set then disable converting Secret resources to ExternalSecrets")
 	cmd.Flags().BoolVarP(&o.IncludeCRDs, "include-crds", "", true, "if CRDs should be included in the output")
+	cmd.Flags().BoolVarP(&o.CheckExists, "optional", "", false, "check if there is a charts dir and if not do nothing if it does not exist")
 }
 
 // Run implements the command
@@ -106,6 +108,19 @@ func (o *TemplateOptions) Run() error {
 		chart = filepath.Join("charts", name)
 	}
 
+	if o.Repository == "" {
+		exists, err := util.DirExists(chart)
+		if err != nil {
+			return errors.Wrapf(err, "failed to check if dir exists %s", chart)
+		}
+		if !exists {
+			if o.CheckExists {
+				log.Logger().Infof("no charts dir so doing nothing %s", chart)
+				return nil
+			}
+			return errors.Errorf("there is no chart at %s - you could try supply --chart", chart)
+		}
+	}
 	outDir := o.OutDir
 	if outDir == "" {
 		outDir = filepath.Join(chart, "resources")
@@ -113,16 +128,6 @@ func (o *TemplateOptions) Run() error {
 	err = os.MkdirAll(outDir, util.DefaultWritePermissions)
 	if err != nil {
 		return errors.Wrapf(err, "failed to ensure output directory exists %s", outDir)
-	}
-
-	if o.Repository == "" {
-		exists, err := util.DirExists(chart)
-		if err != nil {
-			return errors.Wrapf(err, "failed to check if dir exists %s", chart)
-		}
-		if !exists {
-			return errors.Errorf("there is no chart at %s - you could try supply --chart", chart)
-		}
 	}
 
 	tmpDir, err := ioutil.TempDir("", "")

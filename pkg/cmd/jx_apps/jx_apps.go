@@ -2,7 +2,7 @@ package jx_apps
 
 import (
 	"github.com/jenkins-x/jx-gitops/pkg/common"
-	"github.com/jenkins-x/jx/v2/pkg/log"
+	"github.com/jenkins-x/jx-logging/pkg/log"
 	"github.com/spf13/cobra"
 )
 
