@@ -10,6 +10,10 @@ pipelineConfig:
       step:
         sh: make linux
         image: golang:1.13
+    - name: make-test
+      step:
+        sh: make test
+        image: golang:1.13
     release:
       pipeline:
         stages:
