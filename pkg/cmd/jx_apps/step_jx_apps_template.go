@@ -11,7 +11,7 @@ import (
 
 	"github.com/jenkins-x/jx-promote/pkg/versionstream/versionstreamrepo"
 
-	"github.com/jenkins-x/jx-promote/pkg/jxapps"
+	"github.com/jenkins-x/jx-apps/pkg/jxapps"
 
 	"github.com/jenkins-x/jx-gitops/pkg/common"
 	"github.com/jenkins-x/jx-logging/pkg/log"

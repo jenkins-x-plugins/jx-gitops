@@ -9,7 +9,7 @@ import (
 
 	"github.com/jenkins-x/jx-gitops/pkg/common"
 	"github.com/jenkins-x/jx-logging/pkg/log"
-	"github.com/jenkins-x/jx-promote/pkg/jxapps"
+	"github.com/jenkins-x/jx-apps/pkg/jxapps"
 	"github.com/jenkins-x/jx-promote/pkg/versionstream"
 	"github.com/jenkins-x/jx-promote/pkg/versionstream/versionstreamrepo"
 	"github.com/jenkins-x/jx/v2/pkg/cmd/helper"
