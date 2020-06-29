@@ -3,7 +3,7 @@ package kyamls
 import (
 	"strings"
 
-	"github.com/jenkins-x/jx/v2/pkg/log"
+	"github.com/jenkins-x/jx-logging/pkg/log"
 	"sigs.k8s.io/kustomize/kyaml/yaml"
 )
 
