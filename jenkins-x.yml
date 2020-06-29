@@ -6,6 +6,10 @@ pipelineConfig:
     - name: helm-template
       step:
         sh: echo disabled
+    - name: make-linux
+      step:
+        sh: make linux
+        image: golang:1.13
     release:
       pipeline:
         stages:
