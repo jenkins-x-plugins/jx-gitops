@@ -36,10 +36,6 @@ var (
 	`)
 )
 
-const (
-	pathSeparator = string(os.PathSeparator)
-)
-
 // JxAppsTemplateOptions the options for the command
 type JxAppsTemplateOptions struct {
 	helm.TemplateOptions
