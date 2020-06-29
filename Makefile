@@ -132,7 +132,7 @@ darwin: ## Build for OSX
 	chmod +x build/darwin/$(NAME)
 
 .PHONY: release
-release: clean linux test promoter
+release: clean linux test
 
 release-all: release linux win darwin
 
