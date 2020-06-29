@@ -5,7 +5,7 @@ pipelineConfig:
     overrides:
     - name: helm-template
       step:
-        - sh: echo disabled
+        sh: echo disabled
     release:
       pipeline:
         stages:
