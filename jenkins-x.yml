@@ -2,6 +2,10 @@ buildPack: go-cli
 dockerRegistryOwner: jenkinsxio-labs-private
 pipelineConfig:
   pipelines:
+    overrides:
+    - name: helm-template
+      step:
+        sh: echo disabled
     release:
       pipeline:
         stages:
