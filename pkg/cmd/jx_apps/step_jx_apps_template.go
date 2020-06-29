@@ -96,7 +96,7 @@ func (o *JxAppsTemplateOptions) AddFlags(cmd *cobra.Command) {
 // Run implements the command
 func (o *JxAppsTemplateOptions) Run() error {
 
-	appsCfg, _, err := jxapps.LoadAppConfig(o.Dir)
+	appsCfg, appsCfgFile, err := jxapps.LoadAppConfig(o.Dir)
 	if err != nil {
 		return errors.Wrap(err, "failed to load jx-apps.yml")
 	}
@@ -151,6 +151,8 @@ func (o *JxAppsTemplateOptions) Run() error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to find the absolute dir for %s", versionsDir)
 	}
+
+	appsCfgDir := filepath.Dir(appsCfgFile)
 
 	count := 0
 	for _, app := range appsCfg.Apps {
@@ -237,6 +239,20 @@ func (o *JxAppsTemplateOptions) Run() error {
 
 		if exists {
 			ho.ValuesFiles = append(ho.ValuesFiles, templateValuesFile)
+		}
+
+		// find any extra values files
+		valuesFile := filepath.Join(appsCfgDir, "apps", chartName, "values.yaml")
+		exists, err = util.FileExists(valuesFile)
+		if err != nil {
+			return errors.Wrapf(err, "failed to find values file %s", valuesFile)
+		}
+		if exists {
+			absValuesFile, err := filepath.Abs(valuesFile)
+			if err != nil {
+				return errors.Wrapf(err, "failed to get absolute path of %s", valuesFile)
+			}
+			ho.ValuesFiles = append(ho.ValuesFiles, absValuesFile)
 		}
 
 		appSubfolder := "apps"
