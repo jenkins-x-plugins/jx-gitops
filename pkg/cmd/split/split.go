@@ -101,7 +101,7 @@ func ProcessYamlFiles(dir string) error {
 				buf.Reset()
 			}
 		}
-		if count > 1 {
+		if count >= 1 {
 			for i, text := range files {
 				name := path
 				if i > 0 {
