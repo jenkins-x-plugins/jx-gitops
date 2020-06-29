@@ -33,6 +33,7 @@ var (
 // HelmTemplateOptions the options for the command
 type TemplateOptions struct {
 	OutDir           string
+	HelmBinary       string
 	ReleaseName      string
 	Namespace        string
 	Chart            string
@@ -88,9 +89,13 @@ func (o *TemplateOptions) AddFlags(cmd *cobra.Command) {
 
 // Run implements the command
 func (o *TemplateOptions) Run() error {
-	bin, err := plugins.GetHelmBinary(plugins.HelmVersion)
-	if err != nil {
-		return err
+	var err error
+	bin := o.HelmBinary
+	if bin == "" {
+		bin, err = plugins.GetHelmBinary(plugins.HelmVersion)
+		if err != nil {
+			return err
+		}
 	}
 
 	name := o.ReleaseName

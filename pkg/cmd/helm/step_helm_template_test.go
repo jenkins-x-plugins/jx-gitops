@@ -18,6 +18,7 @@ func TestStepHelmTemplate(t *testing.T) {
 	require.NoError(t, err, "failed to create tmp dir")
 
 	name := "mychart"
+	o.HelmBinary = "helm"
 	o.ReleaseName = name
 	o.Chart = filepath.Join("test_data", name)
 	o.OutDir = tmpDir
@@ -34,5 +35,4 @@ func TestStepHelmTemplate(t *testing.T) {
 
 	assert.FileExists(t, filepath.Join(templateDir, "deployment.yaml"))
 	assert.FileExists(t, filepath.Join(templateDir, "service.yaml"))
-
 }
