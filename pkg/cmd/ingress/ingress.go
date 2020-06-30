@@ -7,14 +7,13 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/jenkins-x/jx-api/pkg/config"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
 	"github.com/jenkins-x/jx-logging/pkg/log"
-	"github.com/jenkins-x/jx/v2/pkg/config"
-	"github.com/jenkins-x/jx/v2/pkg/gits"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"k8s.io/api/extensions/v1beta1"
@@ -37,7 +36,6 @@ var (
 type Options struct {
 	Dir           string
 	ReplaceDomain string
-	Gitter        gits.Gitter
 	BatchMode     bool
 }
 

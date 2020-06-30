@@ -7,10 +7,12 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
+	"github.com/jenkins-x/jx-helpers/pkg/gitclient"
+	"github.com/jenkins-x/jx-helpers/pkg/gitclient/gitconfig"
+	"github.com/jenkins-x/jx-helpers/pkg/gitclient/giturl"
+	"github.com/jenkins-x/jx-helpers/pkg/options"
 	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
 	"github.com/jenkins-x/jx-logging/pkg/log"
-	"github.com/jenkins-x/jx/v2/pkg/gits"
-	"github.com/jenkins-x/jx/v2/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/kustomize/kyaml/yaml"
@@ -33,9 +35,8 @@ var (
 type Options struct {
 	kyamls.Filter
 	Dir     string
-	Gitter  gits.Gitter
 	gitURL  string
-	gitInfo *gits.GitRepository
+	gitInfo *giturl.GitRepository
 }
 
 // NewCmdUpdateRepository creates a command object for the command
@@ -66,16 +67,16 @@ func (o *Options) Run(args []string) error {
 	}
 	if len(args) == 0 {
 		// lets try discover the git url
-		o.gitURL, err = findGitURLFromDir(o.Git(), o.Dir)
+		o.gitURL, err = findGitURLFromDir(o.Dir)
 		if err != nil {
 			return errors.Wrapf(err, "failed to discover git URL in dir %s. you could try pass the git URL as an argument", o.Dir)
 		}
 		if o.gitURL == "" {
-			return util.MissingArgument("git-url")
+			return options.MissingOption("git-url")
 		}
 		discovered = true
 	}
-	o.gitInfo, err = gits.ParseGitURL(o.gitURL)
+	o.gitInfo, err = giturl.ParseGitURL(o.gitURL)
 	if err != nil {
 		return errors.Wrapf(err, "failed to parse git URL: %s", o.gitURL)
 	}
@@ -145,16 +146,8 @@ func (o *Options) modifySourceRepository(node *yaml.RNode, path string) (bool, e
 	return true, nil
 }
 
-// Git lazily create a gitter if its not specified
-func (o *Options) Git() gits.Gitter {
-	if o.Gitter == nil {
-		o.Gitter = gits.NewGitCLI()
-	}
-	return o.Gitter
-}
-
-func findGitURLFromDir(gitter gits.Gitter, dir string) (string, error) {
-	_, gitConfDir, err := gitter.FindGitConfigDir(dir)
+func findGitURLFromDir(dir string) (string, error) {
+	_, gitConfDir, err := gitclient.FindGitConfigDir(dir)
 	if err != nil {
 		return "", errors.Wrapf(err, "there was a problem obtaining the git config dir of directory %s", dir)
 	}
@@ -162,5 +155,5 @@ func findGitURLFromDir(gitter gits.Gitter, dir string) (string, error) {
 	if gitConfDir == "" {
 		return "", fmt.Errorf("no .git directory could be found from dir %s", dir)
 	}
-	return gitter.DiscoverUpstreamGitURL(gitConfDir)
+	return gitconfig.DiscoverUpstreamGitURL(gitConfDir)
 }
