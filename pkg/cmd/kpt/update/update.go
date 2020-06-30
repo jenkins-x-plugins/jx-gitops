@@ -11,10 +11,10 @@ import (
 	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
+	"github.com/jenkins-x/jx-helpers/pkg/gitclient/giturl"
+	"github.com/jenkins-x/jx-helpers/pkg/maps"
 	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
 	"github.com/jenkins-x/jx-logging/pkg/log"
-	"github.com/jenkins-x/jx/v2/pkg/gits"
-	"github.com/jenkins-x/jx/v2/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -149,7 +149,7 @@ func (o *Options) Matches(path string) (bool, error) {
 	}
 
 	repoPath := "upstream.git.repo"
-	repo := util.GetMapValueAsStringViaPath(obj.Object, repoPath)
+	repo := maps.GetMapValueAsStringViaPath(obj.Object, repoPath)
 	if repo == "" {
 		log.Logger().Warnf("could not find field %s in file %s", repoPath, path)
 		return false, nil
@@ -160,7 +160,7 @@ func (o *Options) Matches(path string) (bool, error) {
 		}
 	}
 	if o.RepositoryOwner != "" || o.RepositoryName != "" {
-		gitInfo, err := gits.ParseGitURL(repo)
+		gitInfo, err := giturl.ParseGitURL(repo)
 		if err != nil {
 			return false, errors.Wrapf(err, "failed to parse git URL %s", repo)
 		}

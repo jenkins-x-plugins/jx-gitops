@@ -15,9 +15,9 @@ import (
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/jenkins-x/jx-helpers/pkg/options"
+	"github.com/jenkins-x/jx-helpers/pkg/stringhelpers"
 	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
 	"github.com/jenkins-x/jx-logging/pkg/log"
-	"github.com/jenkins-x/jx/v2/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/kustomize/api/types"
@@ -189,7 +189,7 @@ func (o *Options) createOverlay(srcNode *yaml.RNode, targetNode *yaml.RNode, pat
 		count := 0
 		// lets verify we don't only contain mandatory fields
 		err = walkMappingNodes(overlay, "", func(node *yaml.Node, jsonPath string) error {
-			if jsonPath != "" && jsonPath != "metadata" && util.StringArrayIndex(mandatoryFields, jsonPath) < 0 {
+			if jsonPath != "" && jsonPath != "metadata" && stringhelpers.StringArrayIndex(mandatoryFields, jsonPath) < 0 {
 				if count == 0 {
 					fmt.Printf("path %s has non mandatory path %s\n", path, jsonPath)
 				}
@@ -266,7 +266,7 @@ func (o *Options) removeEqualLeaves(src *yaml.Node, target *yaml.Node, path stri
 			if jsonPath != "" {
 				childPath = jsonPath + "." + childPath
 			}
-			if util.StringArrayIndex(mandatoryFields, childPath) >= 0 {
+			if stringhelpers.StringArrayIndex(mandatoryFields, childPath) >= 0 {
 				continue
 			}
 			newTValue, err := o.removeEqualLeaves(sValue, tValue, path, childPath)
