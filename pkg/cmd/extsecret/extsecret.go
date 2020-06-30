@@ -5,11 +5,11 @@ import (
 	"strings"
 
 	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
-	"github.com/jenkins-x/jx-gitops/pkg/common"
 	"github.com/jenkins-x/jx-gitops/pkg/kyamls"
+	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-gitops/pkg/secretmapping"
-	"github.com/jenkins-x/jx/v2/pkg/cmd/helper"
-	"github.com/jenkins-x/jx/v2/pkg/cmd/templates"
+	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
+	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/kustomize/kyaml/yaml"
@@ -54,7 +54,7 @@ func NewCmdExtSecrets() (*cobra.Command, *Options) {
 		Aliases: []string{"extsecrets", "extsec"},
 		Short:   "Converts all Secret resources in the path to ExternalSecret CRDs",
 		Long:    labelLong,
-		Example: fmt.Sprintf(labelExample, common.BinaryName),
+		Example: fmt.Sprintf(labelExample, rootcmd.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
 			err := o.Run()
 			helper.CheckErr(err)

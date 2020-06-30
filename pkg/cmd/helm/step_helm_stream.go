@@ -7,14 +7,16 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jenkins-x/jx-gitops/pkg/common"
-	"github.com/jenkins-x/jx-logging/pkg/log"
 	"github.com/jenkins-x/jx-apps/pkg/jxapps"
-	"github.com/jenkins-x/jx-promote/pkg/versionstream"
-	"github.com/jenkins-x/jx-promote/pkg/versionstream/versionstreamrepo"
-	"github.com/jenkins-x/jx/v2/pkg/cmd/helper"
-	"github.com/jenkins-x/jx/v2/pkg/cmd/templates"
-	"github.com/jenkins-x/jx/v2/pkg/gits"
+	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
+	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
+	"github.com/jenkins-x/jx-helpers/pkg/files"
+	"github.com/jenkins-x/jx-helpers/pkg/gitclient"
+	"github.com/jenkins-x/jx-helpers/pkg/gitclient/cli"
+	"github.com/jenkins-x/jx-helpers/pkg/versionstream"
+	"github.com/jenkins-x/jx-helpers/pkg/versionstream/versionstreamrepo"
+	"github.com/jenkins-x/jx-logging/pkg/log"
 	"github.com/jenkins-x/jx/v2/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -47,7 +49,7 @@ type StreamOptions struct {
 	Dir              string
 	VersionStreamURL string
 	VersionStreamRef string
-	IOFileHandles    *util.IOFileHandles
+	IOFileHandles    *files.IOFileHandles
 }
 
 // NewCmdHelmStream creates a command object for the command
@@ -58,7 +60,7 @@ func NewCmdHelmStream() (*cobra.Command, *StreamOptions) {
 		Use:     "stream",
 		Short:   "Generate the kubernetes resources for all helm charts in a version stream",
 		Long:    helmStreamLong,
-		Example: fmt.Sprintf(helmStreamExample, common.BinaryName),
+		Example: fmt.Sprintf(helmStreamExample, rootcmd.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
 			err := o.Run()
 			helper.CheckErr(err)
@@ -89,7 +91,7 @@ func (o *StreamOptions) Run() error {
 			return errors.Wrap(err, "failed to create temp dir")
 		}
 
-		versionsDir, _, err = versionstreamrepo.CloneJXVersionsRepoToDir(o.Dir, o.VersionStreamURL, o.VersionStreamRef, nil, o.Git(), true, false, common.GetIOFileHandles(o.IOFileHandles))
+		versionsDir, _, err = versionstreamrepo.CloneJXVersionsRepoToDir(o.Dir, o.VersionStreamURL, o.VersionStreamRef, nil, o.Git(), true, false, files.GetIOFileHandles(o.IOFileHandles))
 		if err != nil {
 			return errors.Wrapf(err, "failed to clone version stream to %s", o.Dir)
 		}
@@ -244,9 +246,9 @@ func (o *StreamOptions) lazyCreateValuesFile(valuesFile string) error {
 }
 
 // Git returns the gitter - lazily creating one if required
-func (o *StreamOptions) Git() gits.Gitter {
+func (o *StreamOptions) Git() gitclient.Interface {
 	if o.Gitter == nil {
-		o.Gitter = gits.NewGitCLI()
+		o.Gitter = cli.NewCLIClient("", o.CommandRunner)
 	}
 	return o.Gitter
 }

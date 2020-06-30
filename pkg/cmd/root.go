@@ -13,7 +13,8 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/repository"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/split"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/version"
-	"github.com/jenkins-x/jx-gitops/pkg/common"
+	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x/jx-helpers/pkg/cobras"
 	"github.com/jenkins-x/jx-logging/pkg/log"
 	"github.com/spf13/cobra"
 )
@@ -21,7 +22,7 @@ import (
 // Main creates the new command
 func Main() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   common.TopLevelCommand,
+		Use:   rootcmd.TopLevelCommand,
 		Short: "GitOps utility commands",
 		Run: func(cmd *cobra.Command, args []string) {
 			err := cmd.Help()
@@ -33,14 +34,14 @@ func Main() *cobra.Command {
 	cmd.AddCommand(helm.NewCmdHelm())
 	cmd.AddCommand(jx_apps.NewCmdJxApps())
 	cmd.AddCommand(kpt.NewCmdKpt())
-	cmd.AddCommand(common.SplitCommand(annotate.NewCmdUpdateAnnotate()))
-	cmd.AddCommand(common.SplitCommand(extsecret.NewCmdExtSecrets()))
-	cmd.AddCommand(common.SplitCommand(ingress.NewCmdUpdateIngress()))
-	cmd.AddCommand(common.SplitCommand(kustomize.NewCmdKustomize()))
-	cmd.AddCommand(common.SplitCommand(label.NewCmdUpdateLabel()))
-	cmd.AddCommand(common.SplitCommand(namespace.NewCmdUpdateNamespace()))
-	cmd.AddCommand(common.SplitCommand(repository.NewCmdUpdateRepository()))
-	cmd.AddCommand(common.SplitCommand(split.NewCmdSplit()))
-	cmd.AddCommand(common.SplitCommand(version.NewCmdVersion()))
+	cmd.AddCommand(cobras.SplitCommand(annotate.NewCmdUpdateAnnotate()))
+	cmd.AddCommand(cobras.SplitCommand(extsecret.NewCmdExtSecrets()))
+	cmd.AddCommand(cobras.SplitCommand(ingress.NewCmdUpdateIngress()))
+	cmd.AddCommand(cobras.SplitCommand(kustomize.NewCmdKustomize()))
+	cmd.AddCommand(cobras.SplitCommand(label.NewCmdUpdateLabel()))
+	cmd.AddCommand(cobras.SplitCommand(namespace.NewCmdUpdateNamespace()))
+	cmd.AddCommand(cobras.SplitCommand(repository.NewCmdUpdateRepository()))
+	cmd.AddCommand(cobras.SplitCommand(split.NewCmdSplit()))
+	cmd.AddCommand(cobras.SplitCommand(version.NewCmdVersion()))
 	return cmd
 }

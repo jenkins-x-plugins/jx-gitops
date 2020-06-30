@@ -9,11 +9,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jenkins-x/jx-gitops/pkg/common"
 	"github.com/jenkins-x/jx-gitops/pkg/kustomizes"
+	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
+	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-logging/pkg/log"
-	"github.com/jenkins-x/jx/v2/pkg/cmd/helper"
-	"github.com/jenkins-x/jx/v2/pkg/cmd/templates"
 	"github.com/jenkins-x/jx/v2/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -55,7 +55,7 @@ func NewCmdKustomize() (*cobra.Command, *Options) {
 		Use:     "kustomize",
 		Short:   "Generates a kustomize layout by comparing a source and target directories",
 		Long:    splitLong,
-		Example: fmt.Sprintf(splitExample, common.BinaryName),
+		Example: fmt.Sprintf(splitExample, rootcmd.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
 			err := o.Run()
 			helper.CheckErr(err)

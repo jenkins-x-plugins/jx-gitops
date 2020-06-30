@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jenkins-x/jx-gitops/pkg/common"
+	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
+	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-logging/pkg/log"
-	"github.com/jenkins-x/jx/v2/pkg/cmd/helper"
-	"github.com/jenkins-x/jx/v2/pkg/cmd/templates"
 	"github.com/jenkins-x/jx/v2/pkg/config"
 	"github.com/jenkins-x/jx/v2/pkg/gits"
 	"github.com/jenkins-x/jx/v2/pkg/util"
@@ -48,7 +48,7 @@ func NewCmdUpdateIngress() (*cobra.Command, *Options) {
 		Use:     "ingress",
 		Short:   "Updates Ingress resources with the current ingress domain",
 		Long:    ingressLong,
-		Example: fmt.Sprintf(ingressExample, common.BinaryName),
+		Example: fmt.Sprintf(ingressExample, rootcmd.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
 			err := o.Run()
 			helper.CheckErr(err)

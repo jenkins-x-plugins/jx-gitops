@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/split"
-	"github.com/jenkins-x/jx-gitops/pkg/testhelpers"
+	"github.com/jenkins-x/jx-helpers/pkg/testhelpers"
 	"github.com/jenkins-x/jx/v2/pkg/util"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

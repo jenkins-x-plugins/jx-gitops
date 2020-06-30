@@ -5,10 +5,10 @@ import (
 	"io/ioutil"
 	"path/filepath"
 
-	"github.com/jenkins-x/jx-gitops/pkg/common"
 	"github.com/jenkins-x/jx-gitops/pkg/kyamls"
-	"github.com/jenkins-x/jx/v2/pkg/cmd/helper"
-	"github.com/jenkins-x/jx/v2/pkg/cmd/templates"
+	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
+	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
 	"github.com/jenkins-x/jx/v2/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -49,7 +49,7 @@ func NewCmdUpdateNamespace() (*cobra.Command, *Options) {
 		Aliases: []string{"ns"},
 		Short:   "Updates all kubernetes resources in the given directory to the given namespace",
 		Long:    namespaceLong,
-		Example: fmt.Sprintf(namespaceExample, common.BinaryName, common.BinaryName),
+		Example: fmt.Sprintf(namespaceExample, rootcmd.BinaryName, rootcmd.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
 			err := o.Run()
 			helper.CheckErr(err)

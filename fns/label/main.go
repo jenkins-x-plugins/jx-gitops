@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jenkins-x/jx-gitops/pkg/common"
+	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-logging/pkg/log"
 	"github.com/jenkins-x/jx/v2/pkg/cmd/templates"
 	"sigs.k8s.io/kustomize/kyaml/fn/framework"
@@ -58,7 +58,7 @@ func main() {
 	cmd.Use = "label"
 	cmd.Short = "Updates all kubernetes resources in the given directory tree to add/override the given label"
 	cmd.Long = labelLong
-	cmd.Example = fmt.Sprintf(labelExample, common.BinaryName, common.BinaryName)
+	cmd.Example = fmt.Sprintf(labelExample, rootcmd.BinaryName, rootcmd.BinaryName)
 
 	/*
 		cmd := &cobra.Command{

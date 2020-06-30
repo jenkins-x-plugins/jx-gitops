@@ -8,12 +8,14 @@ import (
 
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/extsecret"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/split"
-	"github.com/jenkins-x/jx-gitops/pkg/common"
 	"github.com/jenkins-x/jx-gitops/pkg/plugins"
+	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner"
+	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
+	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
+	"github.com/jenkins-x/jx-helpers/pkg/gitclient"
+	"github.com/jenkins-x/jx-helpers/pkg/gitclient/cli"
 	"github.com/jenkins-x/jx-logging/pkg/log"
-	"github.com/jenkins-x/jx/v2/pkg/cmd/helper"
-	"github.com/jenkins-x/jx/v2/pkg/cmd/templates"
-	"github.com/jenkins-x/jx/v2/pkg/gits"
 	"github.com/jenkins-x/jx/v2/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -48,7 +50,8 @@ type TemplateOptions struct {
 	NoExtSecrets     bool
 	IncludeCRDs      bool
 	CheckExists      bool
-	Gitter           gits.Gitter
+	Gitter           gitclient.Interface
+	CommandRunner    cmdrunner.CommandRunner
 }
 
 // NewCmdHelmTemplate creates a command object for the command
@@ -59,7 +62,7 @@ func NewCmdHelmTemplate() (*cobra.Command, *TemplateOptions) {
 		Use:     "template",
 		Short:   "Generate the kubernetes resources from a helm chart",
 		Long:    helmTemplateLong,
-		Example: fmt.Sprintf(helmTemplateExample, common.BinaryName),
+		Example: fmt.Sprintf(helmTemplateExample, rootcmd.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
 			err := o.Run()
 			helper.CheckErr(err)
@@ -89,6 +92,9 @@ func (o *TemplateOptions) AddFlags(cmd *cobra.Command) {
 
 // Run implements the command
 func (o *TemplateOptions) Run() error {
+	if o.CommandRunner == nil {
+		o.CommandRunner = cmdrunner.DefaultCommandRunner
+	}
 	var err error
 	bin := o.HelmBinary
 	if bin == "" {
@@ -154,17 +160,17 @@ func (o *TemplateOptions) Run() error {
 		}
 		args = append(args, name)
 
-		c := util.Command{
+		c := &cmdrunner.Command{
 			Name: bin,
 			Args: args,
 			Dir:  tmpChartDir,
 			Out:  os.Stdout,
 			Err:  os.Stderr,
 		}
-		log.Logger().Infof("about to run %s", util.ColorInfo(c.String()))
-		_, err = c.RunWithoutRetry()
+		log.Logger().Infof("about to run %s", util.ColorInfo(c.CLI()))
+		_, err = o.CommandRunner(c)
 		if err != nil {
-			return errors.Wrapf(err, "failed to run %s", c.String())
+			return errors.Wrapf(err, "failed to run %s", c.CLI())
 		}
 	}
 
@@ -189,18 +195,17 @@ func (o *TemplateOptions) Run() error {
 		args = append(args, "--include-crds")
 	}
 	args = append(args, name, chart)
-	c := util.Command{
+	c := &cmdrunner.Command{
 		Name: bin,
 		Args: args,
 		Dir:  cmdDir,
 		Out:  os.Stdout,
 		Err:  os.Stderr,
 	}
-	log.Logger().Infof("about to run %s", util.ColorInfo(c.String()))
-	_, err = c.RunWithoutRetry()
-
+	log.Logger().Infof("about to run %s", util.ColorInfo(c.CLI()))
+	results, err := o.CommandRunner(c)
 	if err != nil {
-		return errors.Wrapf(err, "failed to run %s", c.String())
+		return errors.Wrapf(err, "failed to run %s got: %s", c.CLI(), results)
 	}
 
 	// now lets copy the templates from the temp dir to the outDir
@@ -256,11 +261,11 @@ func (o *TemplateOptions) Run() error {
 
 func (o *TemplateOptions) GitCommit(outDir string, commitMessage string) error {
 	gitter := o.Git()
-	err := gitter.Add(outDir, "*")
+	_, err := gitter.Command(outDir, "add", "*")
 	if err != nil {
 		return errors.Wrapf(err, "failed to add generated resources to git in dir %s", outDir)
 	}
-	err = gitter.CommitIfChanges(outDir, commitMessage)
+	err = gitclient.CommitIfChanges(gitter, outDir, commitMessage)
 	if err != nil {
 		return errors.Wrapf(err, "failed to commit generated resources to git in dir %s", outDir)
 	}
@@ -268,9 +273,9 @@ func (o *TemplateOptions) GitCommit(outDir string, commitMessage string) error {
 }
 
 // Git returns the gitter - lazily creating one if required
-func (o *TemplateOptions) Git() gits.Gitter {
+func (o *TemplateOptions) Git() gitclient.Interface {
 	if o.Gitter == nil {
-		o.Gitter = gits.NewGitCLI()
+		o.Gitter = cli.NewCLIClient("", o.CommandRunner)
 	}
 	return o.Gitter
 }

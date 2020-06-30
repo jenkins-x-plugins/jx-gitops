@@ -8,9 +8,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jenkins-x/jx-gitops/pkg/common"
-	"github.com/jenkins-x/jx/v2/pkg/cmd/helper"
-	"github.com/jenkins-x/jx/v2/pkg/cmd/templates"
+	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
+	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
 	"github.com/jenkins-x/jx/v2/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -43,7 +43,7 @@ func NewCmdSplit() (*cobra.Command, *Options) {
 		Use:     "split",
 		Short:   "Splits any YAML files which define multiple resources into separate files",
 		Long:    splitLong,
-		Example: fmt.Sprintf(splitExample, common.BinaryName),
+		Example: fmt.Sprintf(splitExample, rootcmd.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
 			err := o.Run()
 			helper.CheckErr(err)
