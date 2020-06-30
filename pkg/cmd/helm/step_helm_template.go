@@ -8,13 +8,17 @@ import (
 
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/extsecret"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/split"
-	"github.com/jenkins-x/jx-gitops/pkg/common"
 	"github.com/jenkins-x/jx-gitops/pkg/plugins"
+	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner"
+	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
+	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
+	"github.com/jenkins-x/jx-helpers/pkg/files"
+	"github.com/jenkins-x/jx-helpers/pkg/gitclient"
+	"github.com/jenkins-x/jx-helpers/pkg/gitclient/cli"
+	"github.com/jenkins-x/jx-helpers/pkg/options"
+	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
 	"github.com/jenkins-x/jx-logging/pkg/log"
-	"github.com/jenkins-x/jx/v2/pkg/cmd/helper"
-	"github.com/jenkins-x/jx/v2/pkg/cmd/templates"
-	"github.com/jenkins-x/jx/v2/pkg/gits"
-	"github.com/jenkins-x/jx/v2/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -33,6 +37,7 @@ var (
 // HelmTemplateOptions the options for the command
 type TemplateOptions struct {
 	OutDir           string
+	HelmBinary       string
 	ReleaseName      string
 	Namespace        string
 	Chart            string
@@ -47,7 +52,8 @@ type TemplateOptions struct {
 	NoExtSecrets     bool
 	IncludeCRDs      bool
 	CheckExists      bool
-	Gitter           gits.Gitter
+	Gitter           gitclient.Interface
+	CommandRunner    cmdrunner.CommandRunner
 }
 
 // NewCmdHelmTemplate creates a command object for the command
@@ -58,7 +64,7 @@ func NewCmdHelmTemplate() (*cobra.Command, *TemplateOptions) {
 		Use:     "template",
 		Short:   "Generate the kubernetes resources from a helm chart",
 		Long:    helmTemplateLong,
-		Example: fmt.Sprintf(helmTemplateExample, common.BinaryName),
+		Example: fmt.Sprintf(helmTemplateExample, rootcmd.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
 			err := o.Run()
 			helper.CheckErr(err)
@@ -68,7 +74,7 @@ func NewCmdHelmTemplate() (*cobra.Command, *TemplateOptions) {
 	cmd.Flags().StringVarP(&o.ReleaseName, "name", "n", "", "the name of the helm release to template. Defaults to $APP_NAME if not specified")
 	cmd.Flags().StringVarP(&o.Namespace, "namespace", "", "", "specifies the namespace to use to generate the templates in")
 	cmd.Flags().StringVarP(&o.Chart, "chart", "c", "", "the chart name to template. Defaults to 'charts/$name'")
-	cmd.Flags().StringArrayVarP(&o.ValuesFiles, "values", "f", []string{""}, "the helm values.yaml file used to template values in the generated template")
+	cmd.Flags().StringArrayVarP(&o.ValuesFiles, "values", "f", nil, "the helm values.yaml file used to template values in the generated template")
 	cmd.Flags().StringVarP(&o.Version, "version", "v", "", "the version of the helm chart to use. If not specified then the latest one is used")
 	cmd.Flags().StringVarP(&o.Repository, "repository", "r", "", "the helm chart repository to locate the chart")
 	cmd.Flags().StringVarP(&o.GitCommitMessage, "commit-message", "", "chore: generated kubernetes resources from helm chart", "the git commit message used")
@@ -88,9 +94,16 @@ func (o *TemplateOptions) AddFlags(cmd *cobra.Command) {
 
 // Run implements the command
 func (o *TemplateOptions) Run() error {
-	bin, err := plugins.GetHelmBinary(plugins.HelmVersion)
-	if err != nil {
-		return err
+	if o.CommandRunner == nil {
+		o.CommandRunner = cmdrunner.DefaultCommandRunner
+	}
+	var err error
+	bin := o.HelmBinary
+	if bin == "" {
+		bin, err = plugins.GetHelmBinary(plugins.HelmVersion)
+		if err != nil {
+			return err
+		}
 	}
 
 	name := o.ReleaseName
@@ -99,7 +112,7 @@ func (o *TemplateOptions) Run() error {
 		if name == "" {
 			name = os.Getenv("REPO_NAME")
 			if name == "" {
-				return util.MissingOption("name")
+				return options.MissingOption("name")
 			}
 		}
 	}
@@ -109,7 +122,7 @@ func (o *TemplateOptions) Run() error {
 	}
 
 	if o.Repository == "" {
-		exists, err := util.DirExists(chart)
+		exists, err := files.DirExists(chart)
 		if err != nil {
 			return errors.Wrapf(err, "failed to check if dir exists %s", chart)
 		}
@@ -125,7 +138,7 @@ func (o *TemplateOptions) Run() error {
 	if outDir == "" {
 		outDir = filepath.Join(chart, "resources")
 	}
-	err = os.MkdirAll(outDir, util.DefaultWritePermissions)
+	err = os.MkdirAll(outDir, files.DefaultDirWritePermissions)
 	if err != nil {
 		return errors.Wrapf(err, "failed to ensure output directory exists %s", outDir)
 	}
@@ -149,17 +162,17 @@ func (o *TemplateOptions) Run() error {
 		}
 		args = append(args, name)
 
-		c := util.Command{
+		c := &cmdrunner.Command{
 			Name: bin,
 			Args: args,
 			Dir:  tmpChartDir,
 			Out:  os.Stdout,
 			Err:  os.Stderr,
 		}
-		log.Logger().Infof("about to run %s", util.ColorInfo(c.String()))
-		_, err = c.RunWithoutRetry()
+		log.Logger().Infof("about to run %s", termcolor.ColorInfo(c.CLI()))
+		_, err = o.CommandRunner(c)
 		if err != nil {
-			return errors.Wrapf(err, "failed to run %s", c.String())
+			return errors.Wrapf(err, "failed to run %s", c.CLI())
 		}
 	}
 
@@ -184,41 +197,40 @@ func (o *TemplateOptions) Run() error {
 		args = append(args, "--include-crds")
 	}
 	args = append(args, name, chart)
-	c := util.Command{
+	c := &cmdrunner.Command{
 		Name: bin,
 		Args: args,
 		Dir:  cmdDir,
 		Out:  os.Stdout,
 		Err:  os.Stderr,
 	}
-	log.Logger().Infof("about to run %s", util.ColorInfo(c.String()))
-	_, err = c.RunWithoutRetry()
-
+	log.Logger().Infof("about to run %s", termcolor.ColorInfo(c.CLI()))
+	results, err := o.CommandRunner(c)
 	if err != nil {
-		return errors.Wrapf(err, "failed to run %s", c.String())
+		return errors.Wrapf(err, "failed to run %s got: %s", c.CLI(), results)
 	}
 
 	// now lets copy the templates from the temp dir to the outDir
 	crdsDir := filepath.Join(tmpDir, name, "crds")
-	exists, err := util.DirExists(crdsDir)
+	exists, err := files.DirExists(crdsDir)
 	if err != nil {
 		return errors.Wrapf(err, "failed to check if crds dir was generated")
 	}
 	if exists {
-		err = util.CopyDirOverwrite(crdsDir, outDir)
+		err = files.CopyDirOverwrite(crdsDir, outDir)
 		if err != nil {
 			return errors.Wrapf(err, "failed to copy generated crds at %s to %s", crdsDir, outDir)
 		}
 	}
 	templatesDir := filepath.Join(tmpDir, name, "templates")
-	exists, err = util.DirExists(templatesDir)
+	exists, err = files.DirExists(templatesDir)
 	if err != nil {
 		return errors.Wrapf(err, "failed to check if templates dir was generated")
 	}
 	if !exists {
 		return errors.Errorf("no templates directory was created at %s", templatesDir)
 	}
-	err = util.CopyDirOverwrite(templatesDir, outDir)
+	err = files.CopyDirOverwrite(templatesDir, outDir)
 	if err != nil {
 		return errors.Wrapf(err, "failed to copy generated templates at %s to %s", templatesDir, outDir)
 	}
@@ -251,11 +263,11 @@ func (o *TemplateOptions) Run() error {
 
 func (o *TemplateOptions) GitCommit(outDir string, commitMessage string) error {
 	gitter := o.Git()
-	err := gitter.Add(outDir, "*")
+	_, err := gitter.Command(outDir, "add", "*")
 	if err != nil {
 		return errors.Wrapf(err, "failed to add generated resources to git in dir %s", outDir)
 	}
-	err = gitter.CommitIfChanges(outDir, commitMessage)
+	err = gitclient.CommitIfChanges(gitter, outDir, commitMessage)
 	if err != nil {
 		return errors.Wrapf(err, "failed to commit generated resources to git in dir %s", outDir)
 	}
@@ -263,9 +275,9 @@ func (o *TemplateOptions) GitCommit(outDir string, commitMessage string) error {
 }
 
 // Git returns the gitter - lazily creating one if required
-func (o *TemplateOptions) Git() gits.Gitter {
+func (o *TemplateOptions) Git() gitclient.Interface {
 	if o.Gitter == nil {
-		o.Gitter = gits.NewGitCLI()
+		o.Gitter = cli.NewCLIClient("", o.CommandRunner)
 	}
 	return o.Gitter
 }

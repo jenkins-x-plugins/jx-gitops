@@ -8,20 +8,20 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/repository"
-	"github.com/jenkins-x/jx/v2/pkg/util"
+	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestUpdateRepository(t *testing.T) {
 	sourceData := filepath.Join("test_data")
-	files, err := ioutil.ReadDir(sourceData)
+	fileNames, err := ioutil.ReadDir(sourceData)
 	assert.NoError(t, err)
 
 	tmpDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err, "could not create temp dir")
 
-	t.Logf("generating files to %s\n", tmpDir)
+	t.Logf("generating fileNames to %s\n", tmpDir)
 
 	type testCase struct {
 		SourceFile   string
@@ -30,7 +30,7 @@ func TestUpdateRepository(t *testing.T) {
 	}
 
 	var testCases []testCase
-	for _, f := range files {
+	for _, f := range fileNames {
 		if f.IsDir() {
 			name := f.Name()
 			srcFile := filepath.Join(sourceData, name, "source.yaml")
@@ -39,7 +39,7 @@ func TestUpdateRepository(t *testing.T) {
 			require.FileExists(t, expectedFile)
 
 			outFile := filepath.Join(tmpDir, name+".yaml")
-			err = util.CopyFile(srcFile, outFile)
+			err = files.CopyFile(srcFile, outFile)
 			require.NoError(t, err, "failed to copy %s to %s", srcFile, outFile)
 
 			testCases = append(testCases, testCase{

@@ -7,13 +7,14 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jenkins-x/jx-gitops/pkg/common"
+	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
+	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
+	"github.com/jenkins-x/jx-helpers/pkg/files"
+	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
 	"github.com/jenkins-x/jx-logging/pkg/log"
-	"github.com/jenkins-x/jx/v2/pkg/cmd/helper"
-	"github.com/jenkins-x/jx/v2/pkg/cmd/templates"
 	"github.com/jenkins-x/jx/v2/pkg/config"
 	"github.com/jenkins-x/jx/v2/pkg/gits"
-	"github.com/jenkins-x/jx/v2/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"k8s.io/api/extensions/v1beta1"
@@ -48,7 +49,7 @@ func NewCmdUpdateIngress() (*cobra.Command, *Options) {
 		Use:     "ingress",
 		Short:   "Updates Ingress resources with the current ingress domain",
 		Long:    ingressLong,
-		Example: fmt.Sprintf(ingressExample, common.BinaryName),
+		Example: fmt.Sprintf(ingressExample, rootcmd.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
 			err := o.Run()
 			helper.CheckErr(err)
@@ -73,7 +74,7 @@ func (o *Options) Run() error {
 	}
 	tlsEnabled := requirements.Ingress.TLS.Enabled
 
-	log.Logger().Infof("replacing ingress domain %s to %s with TLS: %v", util.ColorInfo(o.ReplaceDomain), util.ColorInfo(newDomain), tlsEnabled)
+	log.Logger().Infof("replacing ingress domain %s to %s with TLS: %v", termcolor.ColorInfo(o.ReplaceDomain), termcolor.ColorInfo(newDomain), tlsEnabled)
 
 	fn := func(ing *v1beta1.Ingress, path string) (bool, error) {
 		modified := false
@@ -87,9 +88,9 @@ func (o *Options) Run() error {
 			if host != "" && host != currentHost {
 				modified = true
 				s.Rules[i].Host = host
-				log.Logger().Infof("ingress at %s updated to %s", util.ColorInfo(path), util.ColorInfo(host))
+				log.Logger().Infof("ingress at %s updated to %s", termcolor.ColorInfo(path), termcolor.ColorInfo(host))
 			} else {
-				log.Logger().Infof("ingress at %s does not match domain as is %s", util.ColorInfo(path), util.ColorInfo(currentHost))
+				log.Logger().Infof("ingress at %s does not match domain as is %s", termcolor.ColorInfo(path), termcolor.ColorInfo(currentHost))
 			}
 		}
 		for i, tls := range s.TLS {
@@ -102,15 +103,15 @@ func (o *Options) Run() error {
 				if host != "" && host != currentHost {
 					modified = true
 					if !tlsEnabled {
-						log.Logger().Infof("ingress at %s disabling TLS", util.ColorInfo(path))
+						log.Logger().Infof("ingress at %s disabling TLS", termcolor.ColorInfo(path))
 						s.TLS = nil
 						break
 					}
-					log.Logger().Infof("ingress at %s updated to %s", util.ColorInfo(path), util.ColorInfo(host))
+					log.Logger().Infof("ingress at %s updated to %s", termcolor.ColorInfo(path), termcolor.ColorInfo(host))
 					hosts[j] = host
 					s.TLS[i].Hosts = hosts
 				} else {
-					log.Logger().Infof("ingress at %s does not match domain as is %s", util.ColorInfo(path), util.ColorInfo(currentHost))
+					log.Logger().Infof("ingress at %s does not match domain as is %s", termcolor.ColorInfo(path), termcolor.ColorInfo(currentHost))
 				}
 			}
 		}
@@ -175,7 +176,7 @@ func UpdateIngresses(dir string, fn func(ing *v1beta1.Ingress, path string) (boo
 			return nil
 		}
 		data, err = yaml.Marshal(ing)
-		err = ioutil.WriteFile(path, data, util.DefaultFileWritePermissions)
+		err = ioutil.WriteFile(path, data, files.DefaultFileWritePermissions)
 		if err != nil {
 			return errors.Wrapf(err, "failed to save %s", path)
 		}

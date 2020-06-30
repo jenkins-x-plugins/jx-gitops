@@ -7,11 +7,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jenkins-x/jx-gitops/pkg/common"
+	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner"
+	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
+	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
+	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/jenkins-x/jx-logging/pkg/log"
-	"github.com/jenkins-x/jx/v2/pkg/cmd/helper"
-	"github.com/jenkins-x/jx/v2/pkg/cmd/templates"
-	"github.com/jenkins-x/jx/v2/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -38,7 +39,7 @@ type Options struct {
 	Version       string
 	IgnoreErrors  bool
 	DryRun        bool
-	CommandRunner common.CommandRunner
+	CommandRunner cmdrunner.CommandRunner
 }
 
 // NewCmdKptRecreate creates a command object for the command
@@ -49,7 +50,7 @@ func NewCmdKptRecreate() (*cobra.Command, *Options) {
 		Use:     "recreate",
 		Short:   "Recreates the kpt packages in the given directory",
 		Long:    kptLong,
-		Example: fmt.Sprintf(kptExample, common.BinaryName),
+		Example: fmt.Sprintf(kptExample, rootcmd.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
 			err := o.Run()
 			helper.CheckErr(err)
@@ -80,13 +81,13 @@ func (o *Options) Run() error {
 		}
 	}
 	if o.DryRun {
-		o.CommandRunner = common.DryRunCommandRunner
+		o.CommandRunner = cmdrunner.DryRunCommandRunner
 	}
 	if o.CommandRunner == nil {
-		o.CommandRunner = common.DefaultCommandRunner
+		o.CommandRunner = cmdrunner.DefaultCommandRunner
 	}
 
-	err = util.CopyDirOverwrite(dir, o.OutDir)
+	err = files.CopyDirOverwrite(dir, o.OutDir)
 	if err != nil {
 		return errors.Wrapf(err, "failed to copy %s to %s", dir, o.OutDir)
 	}
@@ -160,7 +161,7 @@ func (o *Options) Run() error {
 			destDir = strings.TrimSuffix(destDir, pathSeparator)
 		}
 		args := []string{"pkg", "get", expression, destDir}
-		c := &util.Command{
+		c := &cmdrunner.Command{
 			Name: "kpt",
 			Args: args,
 			Dir:  dir,

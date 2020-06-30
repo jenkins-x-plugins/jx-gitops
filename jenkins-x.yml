@@ -35,9 +35,9 @@ pipelineConfig:
           #              - name: copy-to-bucket
           #                command: gsutil cp dist/*.gz dist/*.zip gs://cloudbees-jx-gitops-plugin/plugin/${VERSION}
           #                image: gcr.io/jenkinsxio-labs-private/jxl
-          - name: promote-release
-            command: ./promote/main
+          - command: ./promote.sh
             dir: /workspace/source
+            name: promote-release
 #              - name: upload-plugin
 #                command: ./hack/upload_plugin.sh
 #                image: gcr.io/jenkinsxio-labs-private/github-release:0.0.6

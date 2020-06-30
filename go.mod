@@ -3,13 +3,14 @@ module github.com/jenkins-x/jx-gitops
 require (
 	github.com/cpuguy83/go-md2man v1.0.10
 	github.com/google/go-cmp v0.4.0
+	github.com/jenkins-x/jx-apps v0.0.1
+	github.com/jenkins-x/jx-helpers v1.0.12
 	github.com/jenkins-x/jx-logging v0.0.10
-	github.com/jenkins-x/jx-promote v0.0.45
-	github.com/jenkins-x/jx/v2 v2.1.84
+	github.com/jenkins-x/jx/v2 v2.1.90
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.6.0
+	github.com/stretchr/testify v1.6.1
 	k8s.io/api v0.17.2
 	k8s.io/apimachinery v0.17.2
 	sigs.k8s.io/kustomize/api v0.4.1

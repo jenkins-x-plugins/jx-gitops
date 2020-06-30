@@ -8,19 +8,18 @@ import (
 	"strings"
 
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helm"
+	"github.com/jenkins-x/jx-helpers/pkg/files"
+	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
+	"github.com/jenkins-x/jx-helpers/pkg/versionstream/versionstreamrepo"
 
-	"github.com/jenkins-x/jx-promote/pkg/versionstream/versionstreamrepo"
+	"github.com/jenkins-x/jx-apps/pkg/jxapps"
 
-	"github.com/jenkins-x/jx-promote/pkg/jxapps"
-
-	"github.com/jenkins-x/jx-gitops/pkg/common"
+	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
+	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
+	"github.com/jenkins-x/jx-helpers/pkg/versionstream"
 	"github.com/jenkins-x/jx-logging/pkg/log"
-	"github.com/jenkins-x/jx-promote/pkg/versionstream"
-	"github.com/jenkins-x/jx/v2/pkg/cmd/helper"
-	"github.com/jenkins-x/jx/v2/pkg/cmd/templates"
 	"github.com/jenkins-x/jx/v2/pkg/config"
-	"github.com/jenkins-x/jx/v2/pkg/gits"
-	"github.com/jenkins-x/jx/v2/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -44,7 +43,7 @@ type JxAppsTemplateOptions struct {
 	VersionStreamURL string
 	VersionStreamRef string
 	prefixes         *versionstream.RepositoryPrefixes
-	IOFileHandles    *util.IOFileHandles
+	IOFileHandles    *files.IOFileHandles
 }
 
 // NewCmdJxAppsTemplate creates a command object for the command
@@ -55,7 +54,7 @@ func NewCmdJxAppsTemplate() (*cobra.Command, *JxAppsTemplateOptions) {
 		Use:     "template",
 		Short:   "Generate the kubernetes resources from a jx-apps.yml",
 		Long:    jxAppsTemplateLong,
-		Example: fmt.Sprintf(jxAppsTemplateExample, common.BinaryName),
+		Example: fmt.Sprintf(jxAppsTemplateExample, rootcmd.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
 			err := o.Run()
 			helper.CheckErr(err)
@@ -92,7 +91,7 @@ func (o *JxAppsTemplateOptions) Run() error {
 		outDir = "config-root"
 	}
 
-	err = os.MkdirAll(outDir, util.DefaultWritePermissions)
+	err = os.MkdirAll(outDir, files.DefaultDirWritePermissions)
 	if err != nil {
 		return errors.Wrapf(err, "failed to ensure output directory exists %s", outDir)
 	}
@@ -107,7 +106,7 @@ func (o *JxAppsTemplateOptions) Run() error {
 			o.VersionStreamURL = requirements.VersionStream.URL
 		}
 		if o.VersionStreamURL == "" {
-			return errors.Errorf("Missing option:  --%s ", util.ColorInfo("url"))
+			return errors.Errorf("Missing option:  --%s ", termcolor.ColorInfo("url"))
 		}
 
 		var err error
@@ -116,7 +115,7 @@ func (o *JxAppsTemplateOptions) Run() error {
 			return errors.Wrap(err, "failed to create temp dir")
 		}
 
-		versionsDir, _, err = versionstreamrepo.CloneJXVersionsRepoToDir(o.Dir, o.VersionStreamURL, o.VersionStreamRef, nil, o.Git(), true, false, common.GetIOFileHandles(o.IOFileHandles))
+		versionsDir, _, err = versionstreamrepo.CloneJXVersionsRepoToDir(o.Dir, o.VersionStreamURL, o.VersionStreamRef, nil, o.Git(), true, false, files.GetIOFileHandles(o.IOFileHandles))
 		if err != nil {
 			return errors.Wrapf(err, "failed to clone version stream to %s", o.Dir)
 		}
@@ -212,13 +211,13 @@ func (o *JxAppsTemplateOptions) Run() error {
 		ho.Repository = repository
 
 		valuesDir := filepath.Join(absVersionDir, "charts", prefix, chartName)
-		err = os.MkdirAll(valuesDir, util.DefaultWritePermissions)
+		err = os.MkdirAll(valuesDir, files.DefaultDirWritePermissions)
 		if err != nil {
 			return errors.Wrapf(err, "failed to create values dir for chart %s", fullChartName)
 		}
 
 		templateValuesFile := filepath.Join(valuesDir, "template-values.yaml")
-		exists, err := util.FileExists(templateValuesFile)
+		exists, err := files.FileExists(templateValuesFile)
 		if err != nil {
 			return errors.Wrapf(err, "failed to check if template values file exists %s", templateValuesFile)
 		}
@@ -229,7 +228,7 @@ func (o *JxAppsTemplateOptions) Run() error {
 
 		// find any extra values files
 		valuesFile := filepath.Join(appsCfgDir, "apps", chartName, "values.yaml")
-		exists, err = util.FileExists(valuesFile)
+		exists, err = files.FileExists(valuesFile)
 		if err != nil {
 			return errors.Wrapf(err, "failed to find values file %s", valuesFile)
 		}
@@ -252,7 +251,7 @@ func (o *JxAppsTemplateOptions) Run() error {
 		}
 
 		appValuesFile := filepath.Join(absDir, appSubfolder, ho.ReleaseName, "values.yaml")
-		exists, err = util.FileExists(appValuesFile)
+		exists, err = files.FileExists(appValuesFile)
 		if err != nil {
 			return errors.Wrapf(err, "failed to check if app values file exists %s", appValuesFile)
 		}
@@ -280,27 +279,6 @@ func (o *JxAppsTemplateOptions) Run() error {
 	}
 	return nil
 
-}
-
-func (o *JxAppsTemplateOptions) GitCommit(outDir string, commitMessage string) error {
-	gitter := o.Git()
-	err := gitter.Add(outDir, "*")
-	if err != nil {
-		return errors.Wrapf(err, "failed to add generated resources to git in dir %s", outDir)
-	}
-	err = gitter.CommitIfChanges(outDir, commitMessage)
-	if err != nil {
-		return errors.Wrapf(err, "failed to commit generated resources to git in dir %s", outDir)
-	}
-	return nil
-}
-
-// Git returns the gitter - lazily creating one if required
-func (o *JxAppsTemplateOptions) Git() gits.Gitter {
-	if o.Gitter == nil {
-		o.Gitter = gits.NewGitCLI()
-	}
-	return o.Gitter
 }
 
 func (o *JxAppsTemplateOptions) matchPrefix(prefix string) (string, error) {

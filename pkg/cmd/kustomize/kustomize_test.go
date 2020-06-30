@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/kustomize"
-	"github.com/jenkins-x/jx-gitops/pkg/testhelpers"
+	"github.com/jenkins-x/jx-helpers/pkg/testhelpers"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

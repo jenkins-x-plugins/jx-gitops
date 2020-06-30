@@ -9,7 +9,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/ingress"
-	"github.com/jenkins-x/jx/v2/pkg/util"
+	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/stretchr/testify/require"
 )
 
@@ -32,7 +32,7 @@ func AssertUpdateIngress(t *testing.T, rootDir string) {
 	tmpDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err, "could not create temp dir")
 
-	err = util.CopyDir(sourceData, tmpDir, true)
+	err = files.CopyDir(sourceData, tmpDir, true)
 	require.NoError(t, err, "failed to copy from %s to %s", sourceData, tmpDir)
 
 	_, uo := ingress.NewCmdUpdateIngress()

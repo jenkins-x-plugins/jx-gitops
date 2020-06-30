@@ -19,7 +19,7 @@ BRANCH     := $(shell git rev-parse --abbrev-ref HEAD 2> /dev/null  || echo 'unk
 BUILD_DATE := $(shell date +%Y%m%d-%H:%M:%S)
 CGO_ENABLED = 0
 
-GOPRIVATE := github.com/jenkins-x/jx-promote
+GOPRIVATE := github.com/jenkins-x/jx-apps,github.com/jenkins-x/jx-helpers,github.com/jenkins-x/jx-promote
 
 REPORTS_DIR=$(BUILD_TARGET)/reports
 
@@ -132,7 +132,7 @@ darwin: ## Build for OSX
 	chmod +x build/darwin/$(NAME)
 
 .PHONY: release
-release: clean linux test promoter
+release: clean linux test
 
 release-all: release linux win darwin
 

@@ -5,10 +5,10 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/jenkins-x/jx-gitops/pkg/common"
 	"github.com/jenkins-x/jx-gitops/pkg/kyamls"
-	"github.com/jenkins-x/jx/v2/pkg/cmd/helper"
-	"github.com/jenkins-x/jx/v2/pkg/cmd/templates"
+	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
+	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/kustomize/kyaml/yaml"
@@ -42,7 +42,7 @@ func NewCmdUpdateAnnotate() (*cobra.Command, *Options) {
 		Use:     "annotate",
 		Short:   "Annotates all kubernetes resources in the given directory tree",
 		Long:    annotateLong,
-		Example: fmt.Sprintf(annotateExample, common.BinaryName, common.BinaryName),
+		Example: fmt.Sprintf(annotateExample, rootcmd.BinaryName, rootcmd.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
 			err := UpdateAnnotateInYamlFiles(o.Dir, args, o.Filter)
 			helper.CheckErr(err)

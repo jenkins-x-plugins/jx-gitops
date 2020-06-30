@@ -3,11 +3,12 @@ package repository
 import (
 	"fmt"
 
-	"github.com/jenkins-x/jx-gitops/pkg/common"
 	"github.com/jenkins-x/jx-gitops/pkg/kyamls"
+	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
+	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
+	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
 	"github.com/jenkins-x/jx-logging/pkg/log"
-	"github.com/jenkins-x/jx/v2/pkg/cmd/helper"
-	"github.com/jenkins-x/jx/v2/pkg/cmd/templates"
 	"github.com/jenkins-x/jx/v2/pkg/gits"
 	"github.com/jenkins-x/jx/v2/pkg/util"
 	"github.com/pkg/errors"
@@ -45,7 +46,7 @@ func NewCmdUpdateRepository() (*cobra.Command, *Options) {
 		Use:     "repository",
 		Short:   "Updates the git repository URL for the cluster/environment",
 		Long:    labelLong,
-		Example: fmt.Sprintf(labelExample, common.BinaryName, common.BinaryName),
+		Example: fmt.Sprintf(labelExample, rootcmd.BinaryName, rootcmd.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
 			err := o.Run(args)
 			helper.CheckErr(err)
@@ -81,7 +82,7 @@ func (o *Options) Run(args []string) error {
 	if discovered {
 		o.gitURL = o.gitInfo.URL
 
-		log.Logger().Infof("discovered git URL %s replacing it in the dev Environment and Source Repository in dir %s", util.ColorInfo(o.gitURL), util.ColorInfo(o.Dir))
+		log.Logger().Infof("discovered git URL %s replacing it in the dev Environment and Source Repository in dir %s", termcolor.ColorInfo(o.gitURL), termcolor.ColorInfo(o.Dir))
 	}
 
 	modifyFn := func(node *yaml.RNode, path string) (bool, error) {

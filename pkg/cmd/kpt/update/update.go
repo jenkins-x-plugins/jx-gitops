@@ -7,10 +7,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jenkins-x/jx-gitops/pkg/common"
+	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner"
+	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
+	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
+	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
 	"github.com/jenkins-x/jx-logging/pkg/log"
-	"github.com/jenkins-x/jx/v2/pkg/cmd/helper"
-	"github.com/jenkins-x/jx/v2/pkg/cmd/templates"
 	"github.com/jenkins-x/jx/v2/pkg/gits"
 	"github.com/jenkins-x/jx/v2/pkg/util"
 	"github.com/pkg/errors"
@@ -40,7 +42,7 @@ type Options struct {
 	RepositoryURL   string
 	RepositoryOwner string
 	RepositoryName  string
-	CommandRunner   common.CommandRunner
+	CommandRunner   cmdrunner.CommandRunner
 }
 
 // NewCmdKptUpdate creates a command object for the command
@@ -51,7 +53,7 @@ func NewCmdKptUpdate() (*cobra.Command, *Options) {
 		Use:     "update",
 		Short:   "Updates the kpt packages in the given directory",
 		Long:    kptLong,
-		Example: fmt.Sprintf(kptExample, common.BinaryName),
+		Example: fmt.Sprintf(kptExample, rootcmd.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
 			err := o.Run()
 			helper.CheckErr(err)
@@ -77,7 +79,7 @@ func (o *Options) Run() error {
 	}
 
 	if o.CommandRunner == nil {
-		o.CommandRunner = common.DefaultCommandRunner
+		o.CommandRunner = cmdrunner.DefaultCommandRunner
 	}
 
 	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
@@ -105,12 +107,12 @@ func (o *Options) Run() error {
 
 		folderExpression := fmt.Sprintf("%s@%s", rel, o.Version)
 		args := []string{"pkg", "update", folderExpression, "--strategy", o.Strategy}
-		c := &util.Command{
+		c := &cmdrunner.Command{
 			Name: "kpt",
 			Args: args,
 			Dir:  dir,
 		}
-		log.Logger().Infof("about to run %s in dir %s", util.ColorInfo(c.String()), util.ColorInfo(c.Dir))
+		log.Logger().Infof("about to run %s in dir %s", termcolor.ColorInfo(c.String()), termcolor.ColorInfo(c.Dir))
 		text, err := o.CommandRunner(c)
 		log.Logger().Infof(text)
 		if err != nil {
