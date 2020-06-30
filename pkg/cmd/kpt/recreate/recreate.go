@@ -11,8 +11,8 @@ import (
 	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
+	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/jenkins-x/jx-logging/pkg/log"
-	"github.com/jenkins-x/jx/v2/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -87,7 +87,7 @@ func (o *Options) Run() error {
 		o.CommandRunner = cmdrunner.DefaultCommandRunner
 	}
 
-	err = util.CopyDirOverwrite(dir, o.OutDir)
+	err = files.CopyDirOverwrite(dir, o.OutDir)
 	if err != nil {
 		return errors.Wrapf(err, "failed to copy %s to %s", dir, o.OutDir)
 	}

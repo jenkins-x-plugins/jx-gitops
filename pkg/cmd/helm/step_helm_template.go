@@ -19,7 +19,6 @@ import (
 	"github.com/jenkins-x/jx-helpers/pkg/options"
 	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
 	"github.com/jenkins-x/jx-logging/pkg/log"
-	"github.com/jenkins-x/jx/v2/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -218,7 +217,7 @@ func (o *TemplateOptions) Run() error {
 		return errors.Wrapf(err, "failed to check if crds dir was generated")
 	}
 	if exists {
-		err = util.CopyDirOverwrite(crdsDir, outDir)
+		err = files.CopyDirOverwrite(crdsDir, outDir)
 		if err != nil {
 			return errors.Wrapf(err, "failed to copy generated crds at %s to %s", crdsDir, outDir)
 		}

@@ -11,7 +11,6 @@ import (
 	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner/fakerunner"
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient/cli"
-	"github.com/jenkins-x/jx/v2/pkg/util"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -28,7 +27,7 @@ func TestStepHelmStream(t *testing.T) {
 	srcDir := filepath.Join(tmpDir2, "versionstream")
 	fromSrcDir := filepath.Join("test_data", "versionstream")
 
-	err = util.CopyDir(fromSrcDir, srcDir, false)
+	err = files.CopyDir(fromSrcDir, srcDir, false)
 	require.NoError(t, err, "failed to copy from %s to %s", fromSrcDir, srcDir)
 
 	t.Logf("generating charts to %s\n", tmpDir)

@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/split"
+	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/jenkins-x/jx-helpers/pkg/testhelpers"
-	"github.com/jenkins-x/jx/v2/pkg/util"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -20,7 +20,7 @@ func TestSplitYamlFiles(t *testing.T) {
 	tmpDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err, "could not create temp dir")
 
-	err = util.CopyDirOverwrite(srcFile, tmpDir)
+	err = files.CopyDirOverwrite(srcFile, tmpDir)
 	require.NoError(t, err, "failed to copy %s to %s", srcFile, tmpDir)
 
 	o := &split.Options{
@@ -53,7 +53,7 @@ func TestSplitHelmTemplateYamlFiles(t *testing.T) {
 	tmpDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err, "could not create temp dir")
 
-	err = util.CopyDirOverwrite(srcFile, tmpDir)
+	err = files.CopyDirOverwrite(srcFile, tmpDir)
 	require.NoError(t, err, "failed to copy %s to %s", srcFile, tmpDir)
 
 	o := &split.Options{
