@@ -69,7 +69,7 @@ func NewCmdHelmTemplate() (*cobra.Command, *TemplateOptions) {
 	cmd.Flags().StringVarP(&o.ReleaseName, "name", "n", "", "the name of the helm release to template. Defaults to $APP_NAME if not specified")
 	cmd.Flags().StringVarP(&o.Namespace, "namespace", "", "", "specifies the namespace to use to generate the templates in")
 	cmd.Flags().StringVarP(&o.Chart, "chart", "c", "", "the chart name to template. Defaults to 'charts/$name'")
-	cmd.Flags().StringArrayVarP(&o.ValuesFiles, "values", "f", []string{""}, "the helm values.yaml file used to template values in the generated template")
+	cmd.Flags().StringArrayVarP(&o.ValuesFiles, "values", "f", nil, "the helm values.yaml file used to template values in the generated template")
 	cmd.Flags().StringVarP(&o.Version, "version", "v", "", "the version of the helm chart to use. If not specified then the latest one is used")
 	cmd.Flags().StringVarP(&o.Repository, "repository", "r", "", "the helm chart repository to locate the chart")
 	cmd.Flags().StringVarP(&o.GitCommitMessage, "commit-message", "", "chore: generated kubernetes resources from helm chart", "the git commit message used")
