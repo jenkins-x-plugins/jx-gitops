@@ -4,7 +4,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 
-	"github.com/jenkins-x/jx/v2/pkg/util"
+	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/pkg/errors"
 	"sigs.k8s.io/kustomize/api/types"
 	"sigs.k8s.io/kustomize/kyaml/yaml"
@@ -22,7 +22,7 @@ func LazyCreate(k *types.Kustomization) *types.Kustomization {
 // LoadKustomization loads the kustomization yaml file from the given directory
 func LoadKustomization(dir string) (*types.Kustomization, error) {
 	fileName := filepath.Join(dir, "kustomization.yaml")
-	exists, err := util.FileExists(fileName)
+	exists, err := files.FileExists(fileName)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to check if file exists %s", fileName)
 	}
@@ -51,7 +51,7 @@ func SaveKustomization(kustomization *types.Kustomization, dir string) error {
 		return errors.Wrapf(err, "failed to marshal Kustomization")
 	}
 	fileName := filepath.Join(dir, "kustomization.yaml")
-	err = ioutil.WriteFile(fileName, data, util.DefaultFileWritePermissions)
+	err = ioutil.WriteFile(fileName, data, files.DefaultFileWritePermissions)
 	if err != nil {
 		return errors.Wrapf(err, "failed write file %s", fileName)
 	}

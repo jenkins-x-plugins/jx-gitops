@@ -13,6 +13,9 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
+	"github.com/jenkins-x/jx-helpers/pkg/files"
+	"github.com/jenkins-x/jx-helpers/pkg/options"
+	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
 	"github.com/jenkins-x/jx-logging/pkg/log"
 	"github.com/jenkins-x/jx/v2/pkg/util"
 	"github.com/pkg/errors"
@@ -71,7 +74,7 @@ func NewCmdKustomize() (*cobra.Command, *Options) {
 func (o *Options) Run() error {
 	target := o.TargetDir
 	if target == "" {
-		return util.MissingOption("target")
+		return options.MissingOption("target")
 	}
 	dir := o.SourceDir
 
@@ -80,7 +83,7 @@ func (o *Options) Run() error {
 
 	var err error
 	if o.OutputDir != "" {
-		err = os.MkdirAll(o.OutputDir, util.DefaultWritePermissions)
+		err = os.MkdirAll(o.OutputDir, files.DefaultDirWritePermissions)
 		if err != nil {
 			return errors.Wrapf(err, "failed to create dir %s", o.OutputDir)
 		}
@@ -116,7 +119,7 @@ func (o *Options) Run() error {
 		}
 
 		targetFile := filepath.Join(target, rel)
-		exists, err := util.FileExists(targetFile)
+		exists, err := files.FileExists(targetFile)
 		if err != nil {
 			return errors.Wrapf(err, "failed to check if file exists %s", targetFile)
 		}
@@ -149,7 +152,7 @@ func (o *Options) Run() error {
 
 		overlayFile := filepath.Join(o.OutputDir, rel)
 		overlayDir := filepath.Dir(overlayFile)
-		err = os.MkdirAll(overlayDir, util.DefaultWritePermissions)
+		err = os.MkdirAll(overlayDir, files.DefaultDirWritePermissions)
 		if err != nil {
 			return errors.Wrapf(err, "failed to create output dir %s", overlayDir)
 		}
@@ -165,7 +168,7 @@ func (o *Options) Run() error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to generate kustomize overlays to dir %s", dir)
 	}
-	log.Logger().Infof("created kustomize overlay files at %s", util.ColorInfo(o.OutputDir))
+	log.Logger().Infof("created kustomize overlay files at %s", termcolor.ColorInfo(o.OutputDir))
 
 	err = kustomizes.SaveKustomization(o.BaseKustomization, dir)
 	if err != nil {

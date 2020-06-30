@@ -13,8 +13,11 @@ import (
 	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
+	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient/cli"
+	"github.com/jenkins-x/jx-helpers/pkg/options"
+	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
 	"github.com/jenkins-x/jx-logging/pkg/log"
 	"github.com/jenkins-x/jx/v2/pkg/util"
 	"github.com/pkg/errors"
@@ -110,7 +113,7 @@ func (o *TemplateOptions) Run() error {
 		if name == "" {
 			name = os.Getenv("REPO_NAME")
 			if name == "" {
-				return util.MissingOption("name")
+				return options.MissingOption("name")
 			}
 		}
 	}
@@ -120,7 +123,7 @@ func (o *TemplateOptions) Run() error {
 	}
 
 	if o.Repository == "" {
-		exists, err := util.DirExists(chart)
+		exists, err := files.DirExists(chart)
 		if err != nil {
 			return errors.Wrapf(err, "failed to check if dir exists %s", chart)
 		}
@@ -136,7 +139,7 @@ func (o *TemplateOptions) Run() error {
 	if outDir == "" {
 		outDir = filepath.Join(chart, "resources")
 	}
-	err = os.MkdirAll(outDir, util.DefaultWritePermissions)
+	err = os.MkdirAll(outDir, files.DefaultDirWritePermissions)
 	if err != nil {
 		return errors.Wrapf(err, "failed to ensure output directory exists %s", outDir)
 	}
@@ -167,7 +170,7 @@ func (o *TemplateOptions) Run() error {
 			Out:  os.Stdout,
 			Err:  os.Stderr,
 		}
-		log.Logger().Infof("about to run %s", util.ColorInfo(c.CLI()))
+		log.Logger().Infof("about to run %s", termcolor.ColorInfo(c.CLI()))
 		_, err = o.CommandRunner(c)
 		if err != nil {
 			return errors.Wrapf(err, "failed to run %s", c.CLI())
@@ -202,7 +205,7 @@ func (o *TemplateOptions) Run() error {
 		Out:  os.Stdout,
 		Err:  os.Stderr,
 	}
-	log.Logger().Infof("about to run %s", util.ColorInfo(c.CLI()))
+	log.Logger().Infof("about to run %s", termcolor.ColorInfo(c.CLI()))
 	results, err := o.CommandRunner(c)
 	if err != nil {
 		return errors.Wrapf(err, "failed to run %s got: %s", c.CLI(), results)
@@ -210,7 +213,7 @@ func (o *TemplateOptions) Run() error {
 
 	// now lets copy the templates from the temp dir to the outDir
 	crdsDir := filepath.Join(tmpDir, name, "crds")
-	exists, err := util.DirExists(crdsDir)
+	exists, err := files.DirExists(crdsDir)
 	if err != nil {
 		return errors.Wrapf(err, "failed to check if crds dir was generated")
 	}
@@ -221,14 +224,14 @@ func (o *TemplateOptions) Run() error {
 		}
 	}
 	templatesDir := filepath.Join(tmpDir, name, "templates")
-	exists, err = util.DirExists(templatesDir)
+	exists, err = files.DirExists(templatesDir)
 	if err != nil {
 		return errors.Wrapf(err, "failed to check if templates dir was generated")
 	}
 	if !exists {
 		return errors.Errorf("no templates directory was created at %s", templatesDir)
 	}
-	err = util.CopyDirOverwrite(templatesDir, outDir)
+	err = files.CopyDirOverwrite(templatesDir, outDir)
 	if err != nil {
 		return errors.Wrapf(err, "failed to copy generated templates at %s to %s", templatesDir, outDir)
 	}

@@ -11,7 +11,7 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
-	"github.com/jenkins-x/jx/v2/pkg/util"
+	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -79,7 +79,7 @@ func ProcessYamlFiles(dir string) error {
 		sections := strings.Split(input, "\n"+resourcesSeparator)
 
 		count := 0
-		var files []string
+		var fileNames []string
 		buf := strings.Builder{}
 		for _, section := range sections {
 			if buf.Len() > 0 {
@@ -97,18 +97,18 @@ func ProcessYamlFiles(dir string) error {
 					}
 					text = strings.TrimPrefix(text, "\n")
 				}
-				files = append(files, text)
+				fileNames = append(fileNames, text)
 				buf.Reset()
 			}
 		}
 		if count >= 1 {
-			for i, text := range files {
+			for i, text := range fileNames {
 				name := path
 				if i > 0 {
 					ex := filepath.Ext(path)
 					name = strings.TrimSuffix(path, ex) + strconv.Itoa(i+1) + ex
 				}
-				err = ioutil.WriteFile(name, []byte(text), util.DefaultFileWritePermissions)
+				err = ioutil.WriteFile(name, []byte(text), files.DefaultFileWritePermissions)
 				if err != nil {
 					return errors.Wrapf(err, "failed to save %s", name)
 				}

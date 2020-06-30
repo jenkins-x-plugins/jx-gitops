@@ -9,7 +9,7 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
-	"github.com/jenkins-x/jx/v2/pkg/util"
+	"github.com/jenkins-x/jx-helpers/pkg/options"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/kustomize/kyaml/yaml"
@@ -67,7 +67,7 @@ func (o *Options) Run() error {
 	ns := o.Namespace
 	if !o.DirMode {
 		if ns == "" {
-			return util.MissingOption("namespace")
+			return options.MissingOption("namespace")
 		}
 		return UpdateNamespaceInYamlFiles(o.Dir, ns, o.Filter)
 	}

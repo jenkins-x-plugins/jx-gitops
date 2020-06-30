@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
-	"github.com/jenkins-x/jx/v2/pkg/util"
+	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/pkg/errors"
 	"sigs.k8s.io/yaml"
 )
@@ -23,7 +23,7 @@ func LoadSecretMapping(dir string, failIfMissing bool) (*v1alpha1.SecretMapping,
 		fileName := filepath.Join(absolute, relPath)
 		absolute = filepath.Dir(absolute)
 
-		exists, err := util.FileExists(fileName)
+		exists, err := files.FileExists(fileName)
 		if err != nil {
 			return nil, "", err
 		}

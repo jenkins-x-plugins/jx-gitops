@@ -11,6 +11,7 @@ import (
 	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
+	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
 	"github.com/jenkins-x/jx-logging/pkg/log"
 	"github.com/jenkins-x/jx/v2/pkg/gits"
 	"github.com/jenkins-x/jx/v2/pkg/util"
@@ -111,7 +112,7 @@ func (o *Options) Run() error {
 			Args: args,
 			Dir:  dir,
 		}
-		log.Logger().Infof("about to run %s in dir %s", util.ColorInfo(c.String()), util.ColorInfo(c.Dir))
+		log.Logger().Infof("about to run %s in dir %s", termcolor.ColorInfo(c.String()), termcolor.ColorInfo(c.Dir))
 		text, err := o.CommandRunner(c)
 		log.Logger().Infof(text)
 		if err != nil {

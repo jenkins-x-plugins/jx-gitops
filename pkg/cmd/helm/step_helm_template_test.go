@@ -19,8 +19,7 @@ func TestStepHelmTemplate(t *testing.T) {
 	helmBin := "helm"
 	hasHelm := HasHelmBinary(t, helmBin)
 	if !hasHelm {
-		runner := &fakerunner.FakeRunner{}
-		o.CommandRunner = runner.Run
+		return
 	}
 
 	tmpDir, err := ioutil.TempDir("", "")

@@ -9,6 +9,7 @@ import (
 
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helm"
 	"github.com/jenkins-x/jx-helpers/pkg/files"
+	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
 	"github.com/jenkins-x/jx-helpers/pkg/versionstream/versionstreamrepo"
 
 	"github.com/jenkins-x/jx-apps/pkg/jxapps"
@@ -19,7 +20,6 @@ import (
 	"github.com/jenkins-x/jx-helpers/pkg/versionstream"
 	"github.com/jenkins-x/jx-logging/pkg/log"
 	"github.com/jenkins-x/jx/v2/pkg/config"
-	"github.com/jenkins-x/jx/v2/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -91,7 +91,7 @@ func (o *JxAppsTemplateOptions) Run() error {
 		outDir = "config-root"
 	}
 
-	err = os.MkdirAll(outDir, util.DefaultWritePermissions)
+	err = os.MkdirAll(outDir, files.DefaultDirWritePermissions)
 	if err != nil {
 		return errors.Wrapf(err, "failed to ensure output directory exists %s", outDir)
 	}
@@ -106,7 +106,7 @@ func (o *JxAppsTemplateOptions) Run() error {
 			o.VersionStreamURL = requirements.VersionStream.URL
 		}
 		if o.VersionStreamURL == "" {
-			return errors.Errorf("Missing option:  --%s ", util.ColorInfo("url"))
+			return errors.Errorf("Missing option:  --%s ", termcolor.ColorInfo("url"))
 		}
 
 		var err error
@@ -211,13 +211,13 @@ func (o *JxAppsTemplateOptions) Run() error {
 		ho.Repository = repository
 
 		valuesDir := filepath.Join(absVersionDir, "charts", prefix, chartName)
-		err = os.MkdirAll(valuesDir, util.DefaultWritePermissions)
+		err = os.MkdirAll(valuesDir, files.DefaultDirWritePermissions)
 		if err != nil {
 			return errors.Wrapf(err, "failed to create values dir for chart %s", fullChartName)
 		}
 
 		templateValuesFile := filepath.Join(valuesDir, "template-values.yaml")
-		exists, err := util.FileExists(templateValuesFile)
+		exists, err := files.FileExists(templateValuesFile)
 		if err != nil {
 			return errors.Wrapf(err, "failed to check if template values file exists %s", templateValuesFile)
 		}
@@ -228,7 +228,7 @@ func (o *JxAppsTemplateOptions) Run() error {
 
 		// find any extra values files
 		valuesFile := filepath.Join(appsCfgDir, "apps", chartName, "values.yaml")
-		exists, err = util.FileExists(valuesFile)
+		exists, err = files.FileExists(valuesFile)
 		if err != nil {
 			return errors.Wrapf(err, "failed to find values file %s", valuesFile)
 		}
@@ -251,7 +251,7 @@ func (o *JxAppsTemplateOptions) Run() error {
 		}
 
 		appValuesFile := filepath.Join(absDir, appSubfolder, ho.ReleaseName, "values.yaml")
-		exists, err = util.FileExists(appValuesFile)
+		exists, err = files.FileExists(appValuesFile)
 		if err != nil {
 			return errors.Wrapf(err, "failed to check if app values file exists %s", appValuesFile)
 		}

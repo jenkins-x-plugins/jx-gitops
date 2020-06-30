@@ -7,6 +7,7 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
+	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
 	"github.com/jenkins-x/jx-logging/pkg/log"
 	"github.com/jenkins-x/jx/v2/pkg/gits"
 	"github.com/jenkins-x/jx/v2/pkg/util"
@@ -81,7 +82,7 @@ func (o *Options) Run(args []string) error {
 	if discovered {
 		o.gitURL = o.gitInfo.URL
 
-		log.Logger().Infof("discovered git URL %s replacing it in the dev Environment and Source Repository in dir %s", util.ColorInfo(o.gitURL), util.ColorInfo(o.Dir))
+		log.Logger().Infof("discovered git URL %s replacing it in the dev Environment and Source Repository in dir %s", termcolor.ColorInfo(o.gitURL), termcolor.ColorInfo(o.Dir))
 	}
 
 	modifyFn := func(node *yaml.RNode, path string) (bool, error) {

@@ -14,10 +14,10 @@ import (
 	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient/cli"
+	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
 	"github.com/jenkins-x/jx-helpers/pkg/versionstream"
 	"github.com/jenkins-x/jx-helpers/pkg/versionstream/versionstreamrepo"
 	"github.com/jenkins-x/jx-logging/pkg/log"
-	"github.com/jenkins-x/jx/v2/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -82,7 +82,7 @@ func (o *StreamOptions) Run() error {
 	versionsDir := o.Dir
 	if o.Dir == "" {
 		if o.VersionStreamURL == "" {
-			return errors.Errorf("Missing option: --%s or --%s ", util.ColorInfo("dir"), util.ColorInfo("url"))
+			return errors.Errorf("Missing option: --%s or --%s ", termcolor.ColorInfo("dir"), termcolor.ColorInfo("url"))
 		}
 
 		var err error
@@ -101,7 +101,7 @@ func (o *StreamOptions) Run() error {
 	}
 
 	chartsDir := filepath.Join(versionsDir, "charts")
-	exists, err := util.DirExists(chartsDir)
+	exists, err := files.DirExists(chartsDir)
 	if err != nil {
 		return errors.Wrapf(err, "failed to check of charts dir %s exists", chartsDir)
 	}
@@ -186,7 +186,7 @@ func (o *StreamOptions) Run() error {
 		ho.Repository = repoURLs[0]
 
 		valuesDir := filepath.Join(absVersionDir, "charts", chartName)
-		err = os.MkdirAll(valuesDir, util.DefaultWritePermissions)
+		err = os.MkdirAll(valuesDir, files.DefaultDirWritePermissions)
 		if err != nil {
 			return errors.Wrapf(err, "failed to create values dir for chart %s", chartName)
 		}
@@ -224,7 +224,7 @@ func (o *StreamOptions) Run() error {
 }
 
 func (o *StreamOptions) lazyCreateValuesFile(valuesFile string) error {
-	exists, err := util.FileExists(valuesFile)
+	exists, err := files.FileExists(valuesFile)
 	if err != nil {
 		return errors.Wrapf(err, "failed to check if values file exists %s", valuesFile)
 	}
@@ -232,12 +232,12 @@ func (o *StreamOptions) lazyCreateValuesFile(valuesFile string) error {
 		text := fmt.Sprintf(defaultValuesYaml, o.DefaultDomain)
 		dir := filepath.Dir(valuesFile)
 		if dir != "" && dir != "." {
-			err = os.MkdirAll(dir, util.DefaultWritePermissions)
+			err = os.MkdirAll(dir, files.DefaultDirWritePermissions)
 			if err != nil {
 				return errors.Wrapf(err, "failed to ensure that values file directory %s can be created", dir)
 			}
 		}
-		err = ioutil.WriteFile(valuesFile, []byte(text), util.DefaultFileWritePermissions)
+		err = ioutil.WriteFile(valuesFile, []byte(text), files.DefaultFileWritePermissions)
 		if err != nil {
 			return errors.Wrapf(err, "failed to save default values file %s", valuesFile)
 		}
