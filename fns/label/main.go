@@ -5,8 +5,8 @@ import (
 	"os"
 
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-logging/pkg/log"
-	"github.com/jenkins-x/jx/v2/pkg/cmd/templates"
 	"sigs.k8s.io/kustomize/kyaml/fn/framework"
 	"sigs.k8s.io/kustomize/kyaml/yaml"
 )

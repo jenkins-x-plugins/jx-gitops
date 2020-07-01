@@ -1,0 +1,17 @@
+webhook:
+  enabled: false
+
+auth:
+  git:
+    username: "todo"
+    password: "todo"
+    url: https://github.com
+  docker:
+    username: "todo"
+    password: "todo"
+    url: ""
+serviceaccount:
+  annotations:
+    iam.gke.io/gcp-service-account: mycluster-tk@myproject.iam.gserviceaccount.com
+
+tillerNamespace: ""

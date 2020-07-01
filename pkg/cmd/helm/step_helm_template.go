@@ -17,7 +17,6 @@ import (
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient/cli"
 	"github.com/jenkins-x/jx-helpers/pkg/options"
-	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
 	"github.com/jenkins-x/jx-logging/pkg/log"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -169,7 +168,6 @@ func (o *TemplateOptions) Run() error {
 			Out:  os.Stdout,
 			Err:  os.Stderr,
 		}
-		log.Logger().Infof("about to run %s", termcolor.ColorInfo(c.CLI()))
 		_, err = o.CommandRunner(c)
 		if err != nil {
 			return errors.Wrapf(err, "failed to run %s", c.CLI())
@@ -204,7 +202,6 @@ func (o *TemplateOptions) Run() error {
 		Out:  os.Stdout,
 		Err:  os.Stderr,
 	}
-	log.Logger().Infof("about to run %s", termcolor.ColorInfo(c.CLI()))
 	results, err := o.CommandRunner(c)
 	if err != nil {
 		return errors.Wrapf(err, "failed to run %s got: %s", c.CLI(), results)

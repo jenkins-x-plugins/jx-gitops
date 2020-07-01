@@ -7,13 +7,13 @@ require (
 	github.com/jenkins-x/jx-apps v0.0.1
 	github.com/jenkins-x/jx-helpers v1.0.15
 	github.com/jenkins-x/jx-logging v0.0.10
-	github.com/jenkins-x/jx/v2 v2.1.90
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.6.1
 	k8s.io/api v0.17.2
 	k8s.io/apimachinery v0.17.2
+	k8s.io/helm v2.7.2+incompatible
 	sigs.k8s.io/kustomize/api v0.4.1
 	sigs.k8s.io/kustomize/kyaml v0.2.0
 	sigs.k8s.io/yaml v1.2.0

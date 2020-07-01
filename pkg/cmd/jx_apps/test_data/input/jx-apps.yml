@@ -1,6 +1,7 @@
 apps:
   - name: bitnami/external-dns
     namespace: foo
+  - name: jenkins-x/tekton
 #  - name: gsm-controller
 #    phase: apps
 #    repository: https://storage.googleapis.com/jenkinsxio-labs/charts
