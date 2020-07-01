@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helm"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/jx_apps/templater"
 	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
 	"github.com/jenkins-x/jx-helpers/pkg/versionstream/versionstreamrepo"
@@ -38,12 +39,13 @@ var (
 // JxAppsTemplateOptions the options for the command
 type JxAppsTemplateOptions struct {
 	helm.TemplateOptions
-	Dir              string
-	VersionStreamDir string
-	VersionStreamURL string
-	VersionStreamRef string
-	prefixes         *versionstream.RepositoryPrefixes
-	IOFileHandles    *files.IOFileHandles
+	Dir                 string
+	VersionStreamDir    string
+	VersionStreamURL    string
+	VersionStreamRef    string
+	TemplateValuesFiles []string
+	prefixes            *versionstream.RepositoryPrefixes
+	IOFileHandles       *files.IOFileHandles
 }
 
 // NewCmdJxAppsTemplate creates a command object for the command
@@ -67,6 +69,7 @@ func NewCmdJxAppsTemplate() (*cobra.Command, *JxAppsTemplateOptions) {
 	cmd.Flags().StringVarP(&o.VersionStreamURL, "url", "n", "", "the git clone URL of the version stream")
 	cmd.Flags().StringVarP(&o.VersionStreamRef, "ref", "c", "master", "the git ref (branch, tag, revision) to git clone")
 	cmd.Flags().StringVarP(&o.Namespace, "namespace", "", "jx", "the default namespace if none is specified in the jx-apps.yml or jx-requirements.yml")
+	cmd.Flags().StringArrayVarP(&o.TemplateValuesFiles, "template-values", "", nil, "provide extra values.yaml files passed into evaluating any values.yaml.gotmpl files such as for generating dummy secret values")
 	o.AddFlags(cmd)
 	return cmd, o
 }
@@ -139,6 +142,16 @@ func (o *JxAppsTemplateOptions) Run() error {
 
 	appsCfgDir := filepath.Dir(appsCfgFile)
 
+	jxReqValuesFile, err := ioutil.TempFile("", "jx-req-values-yaml-")
+	if err != nil {
+		return errors.Wrap(err, "failed to create tempo file for jx requirements values")
+	}
+	jxReqValuesFileName := jxReqValuesFile.Name()
+	err = SaveRequirementsValuesFile(requirements, jxReqValuesFileName)
+	if err != nil {
+		return errors.Wrapf(err, "failed to save tempo file for jx requirements values file %s", jxReqValuesFileName)
+	}
+
 	count := 0
 	for _, app := range appsCfg.Apps {
 		repository := app.Repository
@@ -209,6 +222,7 @@ func (o *JxAppsTemplateOptions) Run() error {
 		}
 
 		ho.Repository = repository
+		ho.ValuesFiles = append(ho.ValuesFiles, jxReqValuesFileName)
 
 		valuesDir := filepath.Join(absVersionDir, "charts", prefix, chartName)
 		err = os.MkdirAll(valuesDir, files.DefaultDirWritePermissions)
@@ -216,14 +230,43 @@ func (o *JxAppsTemplateOptions) Run() error {
 			return errors.Wrapf(err, "failed to create values dir for chart %s", fullChartName)
 		}
 
-		templateValuesFile := filepath.Join(valuesDir, "template-values.yaml")
-		exists, err := files.FileExists(templateValuesFile)
+		verisonStreamAppsDir := filepath.Join(absVersionDir, "apps")
+		foundAppsFile := false
+		appValuesFile := filepath.Join(verisonStreamAppsDir, prefix, chartName, "values.yaml")
+		exists, err := files.FileExists(appValuesFile)
 		if err != nil {
-			return errors.Wrapf(err, "failed to check if template values file exists %s", templateValuesFile)
+			return errors.Wrapf(err, "failed to check if app values file exists %s", appValuesFile)
+		}
+		if exists {
+			foundAppsFile = true
+			ho.ValuesFiles = append(ho.ValuesFiles, appValuesFile)
 		}
 
+		appValuesFile = filepath.Join(verisonStreamAppsDir, prefix, chartName, "values.yaml.gotmpl")
+		exists, err = files.FileExists(appValuesFile)
+		if err != nil {
+			return errors.Wrapf(err, "failed to check if app values file exists %s", appValuesFile)
+		}
 		if exists {
-			ho.ValuesFiles = append(ho.ValuesFiles, templateValuesFile)
+			tmpFilePrefix := strings.ReplaceAll(chartName, "/", "-")
+			generatedValuesFile, err := o.templateValuesFile(requirements, appValuesFile, tmpFilePrefix, o.TemplateValuesFiles)
+			if err != nil {
+				return errors.Wrapf(err, "failed to generate templated values file %s", appValuesFile)
+			}
+			foundAppsFile = true
+			ho.ValuesFiles = append(ho.ValuesFiles, generatedValuesFile)
+		}
+
+		if !foundAppsFile {
+			templateValuesFile := filepath.Join(valuesDir, "template-values.yaml")
+			exists, err := files.FileExists(templateValuesFile)
+			if err != nil {
+				return errors.Wrapf(err, "failed to check if template values file exists %s", templateValuesFile)
+			}
+
+			if exists {
+				ho.ValuesFiles = append(ho.ValuesFiles, templateValuesFile)
+			}
 		}
 
 		// find any extra values files
@@ -238,26 +281,6 @@ func (o *JxAppsTemplateOptions) Run() error {
 				return errors.Wrapf(err, "failed to get absolute path of %s", valuesFile)
 			}
 			ho.ValuesFiles = append(ho.ValuesFiles, absValuesFile)
-		}
-
-		appSubfolder := "apps"
-		if app.Phase != "" {
-			appSubfolder = string(app.Phase)
-		}
-
-		absDir, err := filepath.Abs(o.Dir)
-		if err != nil {
-			return errors.Wrapf(err, "failed to find the absolute dir for %s", o.Dir)
-		}
-
-		appValuesFile := filepath.Join(absDir, appSubfolder, ho.ReleaseName, "values.yaml")
-		exists, err = files.FileExists(appValuesFile)
-		if err != nil {
-			return errors.Wrapf(err, "failed to check if app values file exists %s", appValuesFile)
-		}
-
-		if exists {
-			ho.ValuesFiles = append(ho.ValuesFiles, appValuesFile)
 		}
 
 		log.Logger().Infof("generating chart %s version %s to dir %s", fullChartName, version, ho.OutDir)
@@ -292,4 +315,30 @@ func (o *JxAppsTemplateOptions) matchPrefix(prefix string) (string, error) {
 		return "", errors.Errorf("no matching repository for for prefix %s", prefix)
 	}
 	return repoURL[0], nil
+}
+
+func (o *JxAppsTemplateOptions) templateValuesFile(requirements *config.RequirementsConfig, valuesTemplateFile string, chartName string, valuesFiles []string) (string, error) {
+	absValuesFiles := []string{}
+	for _, f := range valuesFiles {
+		af, err := filepath.Abs(f)
+		if err != nil {
+			return "", errors.Wrapf(err, "failed to find the absolute file for %s", f)
+		}
+		absValuesFiles = append(absValuesFiles, af)
+	}
+
+	t := templater.NewTemplater(requirements, absValuesFiles)
+	log.Logger().Infof("templating the values file %s", termcolor.ColorInfo(absValuesFiles))
+
+	tmpFile, err := ioutil.TempFile("", chartName+"-")
+	if err != nil {
+		return "", errors.Wrapf(err, "failed to create temp file for values template %s", valuesTemplateFile)
+	}
+	tmpFileName := tmpFile.Name()
+
+	err = t.Generate(valuesTemplateFile, tmpFileName)
+	if err != nil {
+		return tmpFileName, errors.Wrapf(err, "failed to template file %s", valuesTemplateFile)
+	}
+	return tmpFileName, nil
 }

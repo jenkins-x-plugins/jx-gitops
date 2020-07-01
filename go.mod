@@ -14,6 +14,7 @@ require (
 	github.com/stretchr/testify v1.6.1
 	k8s.io/api v0.17.2
 	k8s.io/apimachinery v0.17.2
+	k8s.io/helm v2.7.2+incompatible
 	sigs.k8s.io/kustomize/api v0.4.1
 	sigs.k8s.io/kustomize/kyaml v0.2.0
 	sigs.k8s.io/yaml v1.2.0
