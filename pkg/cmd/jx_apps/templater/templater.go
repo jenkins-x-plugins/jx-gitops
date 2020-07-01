@@ -90,7 +90,7 @@ func (o *Templater) renderTemplate(templateFile string, funcMap template.FuncMap
 	}
 
 	for k, v := range valuesMap {
-		log.Logger().Infof("loaded value %s = %#v", k, v)
+		log.Logger().Debugf("loaded value %s = %#v", k, v)
 	}
 
 	templateData := map[string]interface{}{
