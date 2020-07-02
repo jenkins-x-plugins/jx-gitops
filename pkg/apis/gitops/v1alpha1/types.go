@@ -25,6 +25,9 @@ type SecretMapping struct {
 type SecretMappingSpec struct {
 	// Secrets rules for each secret
 	Secrets []SecretRule `json:"secrets,omitempty"`
+
+	// Default the default rule to match if there is no name specific rule
+	Default SecretRule `json:"default,omitempty"`
 }
 
 // SecretMappingList contains a list of SecretMapping
@@ -41,6 +44,8 @@ type SecretMappingList struct {
 type SecretRule struct {
 	// Name name of the secret
 	Name string `json:"name,omitempty"`
+	// Namespace name of the secret
+	Namespace string `json:"namespace,omitempty"`
 	// BackendType for the secret
 	BackendType BackendType `json:"backendType"`
 	// Project for the secret
@@ -57,6 +62,8 @@ const (
 	BackendTypeVault BackendType = "vault"
 	// BackendTypeGSM Google Secrets Manager is the Backed service
 	BackendTypeGSM BackendType = "gsm"
+	// BackendTypeNone if none is configured
+	BackendTypeNone BackendType = ""
 )
 
 // Mapping the predicates which must be true to invoke the associated tasks/pipelines
@@ -71,6 +78,16 @@ type Mapping struct {
 	// Property the Vault property on the key to load the secret value
 	// +optional
 	Property string `json:"property,omitempty"`
+}
+
+// FindRule finds a secret rule for the given secret name
+func (c *SecretMapping) FindRule(namespace string, secretName string) *SecretRule {
+	for i, m := range c.Spec.Secrets {
+		if m.Name == secretName && (m.Namespace == "" || m.Namespace == namespace) {
+			return &c.Spec.Secrets[i]
+		}
+	}
+	return &c.Spec.Default
 }
 
 // Find finds a secret rule for the given secret name

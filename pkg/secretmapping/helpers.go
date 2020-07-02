@@ -38,7 +38,16 @@ func LoadSecretMapping(dir string, failIfMissing bool) (*v1alpha1.SecretMapping,
 	if failIfMissing {
 		return nil, "", errors.Errorf("%s file not found", relPath)
 	}
-	return nil, "", nil
+
+	// lets return a default
+	defaultMapping := &v1alpha1.SecretMapping{
+		Spec: v1alpha1.SecretMappingSpec{
+			Default: v1alpha1.SecretRule{
+				BackendType: v1alpha1.BackendTypeVault,
+			},
+		},
+	}
+	return defaultMapping, "", nil
 }
 
 // LoadSecretMappingFile loads a specific secret mapping YAML file
