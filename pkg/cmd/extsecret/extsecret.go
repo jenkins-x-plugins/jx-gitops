@@ -75,9 +75,6 @@ func (o *Options) Run() error {
 		name := kyamls.GetName(node, path)
 
 		secret := o.SecretMapping.FindRule(namespace, name)
-		if secret == nil {
-			return false, errors.Errorf("no secret mapping found for Secret namespace %s name %s", namespace, name)
-		}
 		err := kyamls.SetStringValue(node, path, "kubernetes-client.io/v1", "apiVersion")
 		if err != nil {
 			return false, err

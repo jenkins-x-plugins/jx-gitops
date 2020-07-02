@@ -42,9 +42,7 @@ func LoadSecretMapping(dir string, failIfMissing bool) (*v1alpha1.SecretMapping,
 	// lets return a default
 	defaultMapping := &v1alpha1.SecretMapping{
 		Spec: v1alpha1.SecretMappingSpec{
-			Default: v1alpha1.SecretRule{
-				BackendType: v1alpha1.BackendTypeVault,
-			},
+			DefaultBackendType: v1alpha1.BackendTypeVault,
 		},
 	}
 	return defaultMapping, "", nil

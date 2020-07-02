@@ -26,8 +26,8 @@ type SecretMappingSpec struct {
 	// Secrets rules for each secret
 	Secrets []SecretRule `json:"secrets,omitempty"`
 
-	// Default the default rule to match if there is no name specific rule
-	Default SecretRule `json:"default,omitempty"`
+	// DefaultBackendType the default back end to use if there's no specific mapping
+	DefaultBackendType BackendType `json:"defaultBackendType,omitempty"`
 }
 
 // SecretMappingList contains a list of SecretMapping
@@ -81,13 +81,15 @@ type Mapping struct {
 }
 
 // FindRule finds a secret rule for the given secret name
-func (c *SecretMapping) FindRule(namespace string, secretName string) *SecretRule {
-	for i, m := range c.Spec.Secrets {
+func (c *SecretMapping) FindRule(namespace string, secretName string) SecretRule {
+	for _, m := range c.Spec.Secrets {
 		if m.Name == secretName && (m.Namespace == "" || m.Namespace == namespace) {
-			return &c.Spec.Secrets[i]
+			return m
 		}
 	}
-	return &c.Spec.Default
+	return SecretRule{
+		BackendType: c.Spec.DefaultBackendType,
+	}
 }
 
 // Find finds a secret rule for the given secret name
