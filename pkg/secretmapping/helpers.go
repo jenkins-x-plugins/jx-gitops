@@ -54,6 +54,5 @@ func LoadSecretMappingFile(fileName string) (*v1alpha1.SecretMapping, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal YAML file %s due to %s", fileName, err)
 	}
-
 	return config, nil
 }

@@ -1,0 +1,21 @@
+# Source: lighthouse/templates/oauthsecret.yaml
+apiVersion: kubernetes-client.io/v1
+kind: ExternalSecret
+metadata:
+  name: lighthouse-oauth-token1
+spec:
+  backendType: vault
+  vaultMountPoint: kubernetes
+  vaultRole: vault-infra
+  data:
+  - name: oauth
+    key: secret/data/jx/pipelineUser
+    property: token
+  template:
+    metadata:
+      labels:
+        app: lighthouse-lighthouse
+        chart: "lighthouse-0.0.633"
+        release: "lighthouse"
+        heritage: "Helm"
+    type: Opaque
