@@ -24,6 +24,11 @@ func GetName(node *yaml.RNode, path string) string {
 	return GetStringField(node, path, "metadata", "name")
 }
 
+// GetNamespace returns the namespace from the metadata
+func GetNamespace(node *yaml.RNode, path string) string {
+	return GetStringField(node, path, "metadata", "namespace")
+}
+
 /// GetStringField returns the given field from the node or returns a blank string if the field cannot be found
 func GetStringField(node *yaml.RNode, path string, fields ...string) string {
 	answer := ""

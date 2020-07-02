@@ -70,46 +70,58 @@ func (o *Options) Run() error {
 		}
 	}
 
-	for _, secret := range o.SecretMapping.Spec.Secrets {
-		modifyFn := func(node *yaml.RNode, path string) (bool, error) {
-			err := kyamls.SetStringValue(node, path, "kubernetes-client.io/v1", "apiVersion")
-			if err != nil {
-				return false, err
-			}
-			err = kyamls.SetStringValue(node, path, "ExternalSecret", "kind")
-			if err != nil {
-				return false, err
-			}
-			err = kyamls.SetStringValue(node, path, string(secret.BackendType), "spec", "backendType")
-			if err != nil {
-				return false, err
-			}
+	modifyFn := func(node *yaml.RNode, path string) (bool, error) {
+		namespace := kyamls.GetNamespace(node, path)
+		name := kyamls.GetName(node, path)
 
-			if secret.BackendType == v1alpha1.BackendTypeVault {
-				err = kyamls.SetStringValue(node, path, o.VaultMountPoint, "spec", "vaultMountPoint")
-				if err != nil {
-					return false, err
-				}
-				err = kyamls.SetStringValue(node, path, o.VaultRole, "spec", "vaultRole")
-				if err != nil {
-					return false, err
-				}
-			}
-
-			flag, err := o.convertData(node, path)
-			if err != nil {
-				return flag, err
-			}
-			flag, err = o.moveMetadataToTemplate(node, path)
-			if err != nil {
-				return flag, err
-			}
-			return true, nil
+		secret := o.SecretMapping.FindRule(namespace, name)
+		if secret == nil {
+			return false, errors.Errorf("no secret mapping found for Secret namespace %s name %s", namespace, name)
 		}
-		err := kyamls.ModifyFiles(dir, modifyFn, secretFilter)
+		err := kyamls.SetStringValue(node, path, "kubernetes-client.io/v1", "apiVersion")
 		if err != nil {
-			return errors.Wrapf(err, "failed to modify files for secret %s", secret.Name)
+			return false, err
 		}
+		err = kyamls.SetStringValue(node, path, "ExternalSecret", "kind")
+		if err != nil {
+			return false, err
+		}
+
+		if secret.BackendType == v1alpha1.BackendTypeNone {
+			// lets default to vault for now
+			secret.BackendType = v1alpha1.BackendTypeVault
+		}
+
+		err = kyamls.SetStringValue(node, path, string(secret.BackendType), "spec", "backendType")
+		if err != nil {
+			return false, err
+		}
+
+		if secret.BackendType == v1alpha1.BackendTypeVault {
+			err = kyamls.SetStringValue(node, path, o.VaultMountPoint, "spec", "vaultMountPoint")
+			if err != nil {
+				return false, err
+			}
+			err = kyamls.SetStringValue(node, path, o.VaultRole, "spec", "vaultRole")
+			if err != nil {
+				return false, err
+			}
+		}
+
+		flag, err := o.convertData(node, path)
+		if err != nil {
+			return flag, err
+		}
+		flag, err = o.moveMetadataToTemplate(node, path)
+		if err != nil {
+			return flag, err
+		}
+		return true, nil
+	}
+
+	err := kyamls.ModifyFiles(dir, modifyFn, secretFilter)
+	if err != nil {
+		return errors.Wrapf(err, "failed to modify files")
 	}
 	return nil
 }
