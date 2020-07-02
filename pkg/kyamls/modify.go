@@ -37,6 +37,7 @@ func ModifyFiles(dir string, modifyFn func(node *yaml.RNode, path string) (bool,
 				return nil
 			}
 		}
+
 		modified, err := modifyFn(node, path)
 		if err != nil {
 			return errors.Wrapf(err, "failed to modify file %s", path)

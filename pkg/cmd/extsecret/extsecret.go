@@ -15,12 +15,6 @@ import (
 	"sigs.k8s.io/kustomize/kyaml/yaml"
 )
 
-const (
-
-	// BackendVault when using vault as the backend
-	BackendVault = "vault"
-)
-
 var (
 	labelLong = templates.LongDesc(`
 		Converts all Secret resources in the path to ExternalSecret CRDs
@@ -61,7 +55,6 @@ func NewCmdExtSecrets() (*cobra.Command, *Options) {
 		},
 	}
 	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the directory to recursively look for the *.yaml or *.yml files")
-	cmd.Flags().StringVarP(&o.Backend, "backend", "b", BackendVault, "the kind of external secret")
 	cmd.Flags().StringVarP(&o.VaultMountPoint, "vault-mount-point", "m", "kubernetes", "the vault authentication mount point")
 	cmd.Flags().StringVarP(&o.VaultRole, "vault-role", "r", "vault-infra", "the vault role that will be used to fetch the secrets. This role will need to be bound to kubernetes-external-secret's ServiceAccount; see Vault's documentation: https://www.vaultproject.io/docs/auth/kubernetes.html")
 	return cmd, o
@@ -69,8 +62,6 @@ func NewCmdExtSecrets() (*cobra.Command, *Options) {
 
 func (o *Options) Run() error {
 	dir := o.Dir
-	backend := o.Backend
-
 	if o.SecretMapping == nil {
 		var err error
 		o.SecretMapping, _, err = secretmapping.LoadSecretMapping(dir, false)
@@ -79,42 +70,48 @@ func (o *Options) Run() error {
 		}
 	}
 
-	modifyFn := func(node *yaml.RNode, path string) (bool, error) {
-		err := kyamls.SetStringValue(node, path, "kubernetes-client.io/v1", "apiVersion")
-		if err != nil {
-			return false, err
-		}
-		err = kyamls.SetStringValue(node, path, "ExternalSecret", "kind")
-		if err != nil {
-			return false, err
-		}
-		err = kyamls.SetStringValue(node, path, BackendVault, "spec", "backendType")
-		if err != nil {
-			return false, err
-		}
-
-		if backend == BackendVault {
-			err = kyamls.SetStringValue(node, path, o.VaultMountPoint, "spec", "vaultMountPoint")
+	for _, secret := range o.SecretMapping.Spec.Secrets {
+		modifyFn := func(node *yaml.RNode, path string) (bool, error) {
+			err := kyamls.SetStringValue(node, path, "kubernetes-client.io/v1", "apiVersion")
 			if err != nil {
 				return false, err
 			}
-			err = kyamls.SetStringValue(node, path, o.VaultRole, "spec", "vaultRole")
+			err = kyamls.SetStringValue(node, path, "ExternalSecret", "kind")
 			if err != nil {
 				return false, err
 			}
-		}
+			err = kyamls.SetStringValue(node, path, string(secret.BackendType), "spec", "backendType")
+			if err != nil {
+				return false, err
+			}
 
-		flag, err := o.convertData(node, path)
-		if err != nil {
-			return flag, err
+			if secret.BackendType == v1alpha1.BackendTypeVault {
+				err = kyamls.SetStringValue(node, path, o.VaultMountPoint, "spec", "vaultMountPoint")
+				if err != nil {
+					return false, err
+				}
+				err = kyamls.SetStringValue(node, path, o.VaultRole, "spec", "vaultRole")
+				if err != nil {
+					return false, err
+				}
+			}
+
+			flag, err := o.convertData(node, path)
+			if err != nil {
+				return flag, err
+			}
+			flag, err = o.moveMetadataToTemplate(node, path)
+			if err != nil {
+				return flag, err
+			}
+			return true, nil
 		}
-		flag, err = o.moveMetadataToTemplate(node, path)
+		err := kyamls.ModifyFiles(dir, modifyFn, secretFilter)
 		if err != nil {
-			return flag, err
+			return errors.Wrapf(err, "failed to modify files for secret %s", secret.Name)
 		}
-		return true, nil
 	}
-	return kyamls.ModifyFiles(dir, modifyFn, secretFilter)
+	return nil
 }
 
 func (o *Options) convertData(node *yaml.RNode, path string) (bool, error) {

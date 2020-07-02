@@ -41,10 +41,23 @@ type SecretMappingList struct {
 type SecretRule struct {
 	// Name name of the secret
 	Name string `json:"name,omitempty"`
-
+	// BackendType for the secret
+	BackendType BackendType `json:"backendType"`
+	// Project for the secret
+	Project string `json:"project,omitempty"`
 	// Mappings one more mappings
 	Mappings []Mapping `json:"mappings,omitempty"`
 }
+
+// BackendType describes a secrets backend
+type BackendType string
+
+const (
+	// BackendTypeVault Vault is the Backed service
+	BackendTypeVault BackendType = "vault"
+	// BackendTypeGSM Google Secrets Manager is the Backed service
+	BackendTypeGSM BackendType = "gsm"
+)
 
 // Mapping the predicates which must be true to invoke the associated tasks/pipelines
 type Mapping struct {
