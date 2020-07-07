@@ -61,5 +61,10 @@ func LoadSecretMappingFile(fileName string) (*v1alpha1.SecretMapping, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal YAML file %s due to %s", fileName, err)
 	}
+
+	err = config.Validate()
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to validate secret mapping YAML file %s", fileName)
+	}
 	return config, nil
 }

@@ -2,6 +2,7 @@ package secretmapping_test
 
 import (
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/jenkins-x/jx-gitops/pkg/secretmapping"
@@ -53,4 +54,11 @@ func TestSecretMappingFind(t *testing.T) {
 			assert.Nil(t, m, "should not have found Mapping for secret %s", secretName)
 		}
 	}
+}
+
+func TestMissingDefaultBackendType(t *testing.T) {
+	sourceData := filepath.Join("test_data", "missing_default_backend_type")
+	_, _, err := secretmapping.LoadSecretMapping(sourceData, true)
+	require.Error(t, err, "failed did not receive error validating missing backend type")
+	assert.True(t, strings.Contains(err.Error(), "Spec.DefaultBackendType: zero value"))
 }

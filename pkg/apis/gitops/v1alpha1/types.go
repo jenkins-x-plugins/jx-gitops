@@ -1,6 +1,7 @@
 package v1alpha1
 
 import (
+	"gopkg.in/validator.v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -27,7 +28,7 @@ type SecretMappingSpec struct {
 	Secrets []SecretRule `json:"secrets,omitempty"`
 
 	// DefaultBackendType the default back end to use if there's no specific mapping
-	DefaultBackendType BackendType `json:"defaultBackendType,omitempty"`
+	DefaultBackendType BackendType `json:"defaultBackendType,omitempty" validate:"nonzero"`
 }
 
 // SecretMappingList contains a list of SecretMapping
@@ -110,4 +111,9 @@ func (r *SecretRule) Find(dataKey string) *Mapping {
 		}
 	}
 	return nil
+}
+
+// validate the secrete mapping fields
+func (c *SecretMapping) Validate() error {
+	return validator.Validate(c)
 }

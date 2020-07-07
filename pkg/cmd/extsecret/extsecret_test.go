@@ -79,15 +79,6 @@ func TestToExtSecrets(t *testing.T) {
 	}
 }
 
-func TestInvalidSecretMapping(t *testing.T) {
-	t.Skip("see https://github.com/jenkins-x/jx-gitops/issues/15")
-	_, eo := extsecret.NewCmdExtSecrets()
-	var err error
-	sourceData := filepath.Join("test_data", "invalid_secret_mappings")
-	eo.SecretMapping, _, err = secretmapping.LoadSecretMapping(sourceData, true)
-	require.Error(t, err, "failed did not receive error validating missing backend type")
-}
-
 func TestMultipleBackendTypes(t *testing.T) {
 	sourceData := filepath.Join("test_data", "backend_types")
 	fileNames, err := ioutil.ReadDir(sourceData)
