@@ -2,13 +2,15 @@
 apiVersion: kubernetes-client.io/v1
 kind: ExternalSecret
 metadata:
-  name: lighthouse-oauth-token2
+  name: my-kubernetes-secret-name
 spec:
-  backendType: gsm
+  backendType: gcpSecretsManager
+  projectId: foo
   data:
-  - name: oauth
-    key: secret/data/jx/pipelineUser
-    property: token
+  - name: my-kubernetes-secret-name
+    key: my-gsm-secret-name
+    property: oauth
+    version: 1
   template:
     metadata:
       labels:

@@ -132,7 +132,6 @@ func TestMultipleBackendTypes(t *testing.T) {
 	for _, tc := range testCases {
 		resultData, err := ioutil.ReadFile(tc.ResultFile)
 		require.NoError(t, err, "failed to load results %s", tc.ResultFile)
-
 		expectData, err := ioutil.ReadFile(tc.ExpectedFile)
 		require.NoError(t, err, "failed to load results %s", tc.ExpectedFile)
 
