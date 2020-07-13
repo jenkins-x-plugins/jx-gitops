@@ -34,9 +34,10 @@ var (
 
 // IngressOptions the options for the command
 type Options struct {
-	Dir           string
-	ReplaceDomain string
-	BatchMode     bool
+	Dir                  string
+	ReplaceDomain        string
+	BatchMode            bool
+	FailOnYAMLParseError bool
 }
 
 // NewCmdUpdate creates a command object for the command
@@ -55,6 +56,7 @@ func NewCmdUpdateIngress() (*cobra.Command, *Options) {
 	}
 	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the directory to look for a 'jx-apps.yml' file")
 	cmd.Flags().StringVarP(&o.ReplaceDomain, "domain", "n", "cluster.local", "the domain to replace with whats in jx-requirements.yml")
+	cmd.Flags().BoolVarP(&o.FailOnYAMLParseError, "fail-on-parse-error", "", false, "if enabled we fail if we cannot parse a yaml file as a kubernetes resource")
 	return cmd, o
 }
 
@@ -115,7 +117,7 @@ func (o *Options) Run() error {
 		}
 		return modified, nil
 	}
-	return UpdateIngresses(o.Dir, fn)
+	return o.updateIngresses(o.Dir, fn)
 }
 
 // modifyHost modifies the host name if it matches the predicate otherwise return an empty string
@@ -126,7 +128,7 @@ func (o *Options) modifyHost(host string, newDomain string) (string, error) {
 	return "", nil
 }
 
-func UpdateIngresses(dir string, fn func(ing *v1beta1.Ingress, path string) (bool, error)) error {
+func (o *Options) updateIngresses(dir string, fn func(ing *v1beta1.Ingress, path string) (bool, error)) error {
 	return filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if info == nil || info.IsDir() {
 			return nil
@@ -150,7 +152,11 @@ func UpdateIngresses(dir string, fn func(ing *v1beta1.Ingress, path string) (boo
 		obj := &unstructured.Unstructured{}
 		err = yaml.Unmarshal(data, obj)
 		if err != nil {
-			return errors.Wrapf(err, "failed to unmarshal YAML in file %s", path)
+			if o.FailOnYAMLParseError {
+				return errors.Wrapf(err, "failed to unmarshal YAML in file %s", path)
+			}
+			log.Logger().Infof("could not parse YAML file %s", path)
+			return nil
 		}
 		if obj.GetKind() != "Ingress" {
 			return nil
