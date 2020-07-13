@@ -46,7 +46,7 @@ type TemplateOptions struct {
 	Version          string
 	Repository       string
 	BatchMode        bool
-	NoGitCommit      bool
+	DoGitCommit      bool
 	NoSplit          bool
 	NoExtSecrets     bool
 	IncludeCRDs      bool
@@ -84,7 +84,7 @@ func NewCmdHelmTemplate() (*cobra.Command, *TemplateOptions) {
 
 func (o *TemplateOptions) AddFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&o.DefaultDomain, "domain", "", "cluster.local", "the default domain name in the generated ingress")
-	cmd.Flags().BoolVarP(&o.NoGitCommit, "no-git-commit", "", false, "if set then the command will not git add/commit the generated resources")
+	cmd.Flags().BoolVarP(&o.DoGitCommit, "git-commit", "", false, "if set then the template command will git commit any changed files")
 	cmd.Flags().BoolVarP(&o.NoSplit, "no-split", "", false, "if set then disable splitting of multiple resources into separate files")
 	cmd.Flags().BoolVarP(&o.NoExtSecrets, "no-external-secrets", "", false, "if set then disable converting Secret resources to ExternalSecrets")
 	cmd.Flags().BoolVarP(&o.IncludeCRDs, "include-crds", "", true, "if CRDs should be included in the output")
@@ -252,7 +252,7 @@ func (o *TemplateOptions) Run() error {
 			return errors.Wrapf(err, "failed to convert to external Secrets at %s", outDir)
 		}
 	}
-	if o.NoGitCommit {
+	if !o.DoGitCommit {
 		return nil
 	}
 	return o.GitCommit(outDir, o.GitCommitMessage)
