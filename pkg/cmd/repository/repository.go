@@ -3,6 +3,7 @@ package repository
 import (
 	"fmt"
 
+	"github.com/jenkins-x/jx-api/pkg/config"
 	"github.com/jenkins-x/jx-gitops/pkg/kyamls"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
@@ -34,9 +35,10 @@ var (
 // LabelOptions the options for the command
 type Options struct {
 	kyamls.Filter
-	Dir     string
-	gitURL  string
-	gitInfo *giturl.GitRepository
+	Dir             string
+	UseRequirements bool
+	gitURL          string
+	gitInfo         *giturl.GitRepository
 }
 
 // NewCmdUpdateRepository creates a command object for the command
@@ -53,6 +55,7 @@ func NewCmdUpdateRepository() (*cobra.Command, *Options) {
 			helper.CheckErr(err)
 		},
 	}
+	cmd.Flags().BoolVarP(&o.UseRequirements, "jx-requirements", "", false, "if enabled lets update the dev environment in the 'jx-requirements.yml' file")
 	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the directory to recursively look for the *.yaml or *.yml files")
 	o.Filter.AddFlags(cmd)
 	return cmd, o
@@ -80,6 +83,10 @@ func (o *Options) Run(args []string) error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to parse git URL: %s", o.gitURL)
 	}
+	if o.UseRequirements {
+		return o.modifyRequirements()
+	}
+
 	if discovered {
 		o.gitURL = o.gitInfo.URL
 
@@ -144,6 +151,36 @@ func (o *Options) modifySourceRepository(node *yaml.RNode, path string) (bool, e
 		return false, errors.Wrapf(err, "failed to set the git repository URL to %s for %s", o.gitURL, path)
 	}
 	return true, nil
+}
+
+func (o *Options) modifyRequirements() error {
+	requirements, fileName, err := config.LoadRequirementsConfig(o.Dir, true)
+	if err != nil {
+		return errors.Wrapf(err, "failed to load jx-requirements.yml file in dir %s", o.Dir)
+	}
+
+	repository := o.gitInfo.Name
+	owner := o.gitInfo.Organisation
+	log.Logger().Infof("modifying jx-requirements.yml to set the dev environment git repository to be %s/%s", owner, repository)
+
+	modified := false
+	for i, env := range requirements.Environments {
+		if env.Key == "dev" {
+			requirements.Environments[i].Repository = repository
+			requirements.Environments[i].Owner = owner
+			modified = true
+		}
+	}
+	if !modified {
+		return errors.Errorf("could not find a 'dev' environment in the file %s", fileName)
+	}
+	log.Logger().Infof("saving %s", fileName)
+	err = requirements.SaveConfig(fileName)
+	if err != nil {
+		return errors.Wrapf(err, "failed to save file %s", fileName)
+	}
+
+	return nil
 }
 
 func findGitURLFromDir(dir string) (string, error) {
