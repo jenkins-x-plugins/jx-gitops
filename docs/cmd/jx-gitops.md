@@ -22,6 +22,7 @@ GitOps utility commands
 
 * [jx-gitops annotate](jx-gitops_annotate.md)	 - Annotates all kubernetes resources in the given directory tree
 * [jx-gitops extsecret](jx-gitops_extsecret.md)	 - Converts all Secret resources in the path to ExternalSecret CRDs
+* [jx-gitops hash](jx-gitops_hash.md)	 - Annotates the given files with a hash of the given source files for ConfigMaps/Secrets
 * [jx-gitops helm](jx-gitops_helm.md)	 - Commands for working with helm charts
 * [jx-gitops ingress](jx-gitops_ingress.md)	 - Updates Ingress resources with the current ingress domain
 * [jx-gitops jx-apps](jx-gitops_jx-apps.md)	 - Commands for working with jx-apps.yml

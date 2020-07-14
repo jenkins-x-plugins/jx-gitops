@@ -22,10 +22,11 @@ Updates the git repository URL for the cluster/environment
 ### Options
 
 ```
-  -d, --dir string                the directory to recursively look for the *.yaml or *.yml files (default ".")
+  -d, --dir string                the directory look for the 'jx-requirements.yml` file (default ".")
   -h, --help                      help for repository
   -k, --kind stringArray          adds Kubernetes resource kinds to filter on. For kind expressions see: https://github.com/jenkins-x/jx-gitops/tree/master/docs/kind_filters.md
       --kind-ignore stringArray   adds Kubernetes resource kinds to exclude. For kind expressions see: https://github.com/jenkins-x/jx-gitops/tree/master/docs/kind_filters.md
+  -s, --source-dir string         the directory to recursively look for the *.yaml or *.yml source Environment/SourceRepository files (default ".")
 ```
 
 ### SEE ALSO

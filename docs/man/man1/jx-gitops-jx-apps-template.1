@@ -32,6 +32,10 @@ Generate the kubernetes resources from a jx\-apps.yml
     the default domain name in the generated ingress
 
 .PP
+\fB\-\-git\-commit\fP[=false]
+    if set then the template command will git commit any changed files
+
+.PP
 \fB\-h\fP, \fB\-\-help\fP[=false]
     help for template
 
@@ -48,12 +52,12 @@ Generate the kubernetes resources from a jx\-apps.yml
     if set then disable converting Secret resources to ExternalSecrets
 
 .PP
-\fB\-\-no\-git\-commit\fP[=false]
-    if set then the command will not git add/commit the generated resources
-
-.PP
 \fB\-\-no\-split\fP[=false]
     if set then disable splitting of multiple resources into separate files
+
+.PP
+\fB\-\-optional\fP[=false]
+    check if there is a charts dir and if not do nothing if it does not exist
 
 .PP
 \fB\-o\fP, \fB\-\-output\-dir\fP=""

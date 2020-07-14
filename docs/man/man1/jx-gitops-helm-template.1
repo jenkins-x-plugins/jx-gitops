@@ -32,6 +32,10 @@ Generate the kubernetes resources from a helm chart
     the default domain name in the generated ingress
 
 .PP
+\fB\-\-git\-commit\fP[=false]
+    if set then the template command will git commit any changed files
+
+.PP
 \fB\-h\fP, \fB\-\-help\fP[=false]
     help for template
 
@@ -50,10 +54,6 @@ Generate the kubernetes resources from a helm chart
 .PP
 \fB\-\-no\-external\-secrets\fP[=false]
     if set then disable converting Secret resources to ExternalSecrets
-
-.PP
-\fB\-\-no\-git\-commit\fP[=false]
-    if set then the command will not git add/commit the generated resources
 
 .PP
 \fB\-\-no\-split\fP[=false]

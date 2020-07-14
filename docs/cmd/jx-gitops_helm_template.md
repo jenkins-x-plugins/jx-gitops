@@ -23,12 +23,12 @@ Generate the kubernetes resources from a helm chart
   -c, --chart string            the chart name to template. Defaults to 'charts/$name'
       --commit-message string   the git commit message used (default "chore: generated kubernetes resources from helm chart")
       --domain string           the default domain name in the generated ingress (default "cluster.local")
+      --git-commit              if set then the template command will git commit any changed files
   -h, --help                    help for template
       --include-crds            if CRDs should be included in the output (default true)
   -n, --name string             the name of the helm release to template. Defaults to $APP_NAME if not specified
       --namespace string        specifies the namespace to use to generate the templates in
       --no-external-secrets     if set then disable converting Secret resources to ExternalSecrets
-      --no-git-commit           if set then the command will not git add/commit the generated resources
       --no-split                if set then disable splitting of multiple resources into separate files
       --optional                check if there is a charts dir and if not do nothing if it does not exist
   -o, --output-dir string       the output directory to generate the templates to. Defaults to charts/$name/resources

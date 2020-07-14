@@ -299,5 +299,5 @@ string
 <hr/>
 <p><em>
 Generated with <code>gen-crd-api-reference-docs</code>
-on git commit <code>64a67d0</code>.
+on git commit <code>7b4c432</code>.
 </em></p>

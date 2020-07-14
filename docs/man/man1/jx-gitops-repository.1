@@ -21,7 +21,7 @@ Updates the git repository URL for the cluster/environment
 .SH OPTIONS
 .PP
 \fB\-d\fP, \fB\-\-dir\fP="."
-    the directory to recursively look for the *.yaml or *.yml files
+    the directory look for the 'jx\-requirements.yml` file
 
 .PP
 \fB\-h\fP, \fB\-\-help\fP[=false]
@@ -36,6 +36,10 @@ Updates the git repository URL for the cluster/environment
 \fB\-\-kind\-ignore\fP=[]
     adds Kubernetes resource kinds to exclude. For kind expressions see: 
 \[la]https://github.com/jenkins-x/jx-gitops/tree/master/docs/kind_filters.md\[ra]
+
+.PP
+\fB\-s\fP, \fB\-\-source\-dir\fP="."
+    the directory to recursively look for the *.yaml or *.yml source Environment/SourceRepository files
 
 
 .SH EXAMPLE

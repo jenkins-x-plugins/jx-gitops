@@ -20,9 +20,10 @@ Updates Ingress resources with the current ingress domain
 ### Options
 
 ```
-  -d, --dir string      the directory to look for a 'jx-apps.yml' file (default ".")
-  -n, --domain string   the domain to replace with whats in jx-requirements.yml (default "cluster.local")
-  -h, --help            help for ingress
+  -d, --dir string            the directory to look for a 'jx-apps.yml' file (default ".")
+  -n, --domain string         the domain to replace with whats in jx-requirements.yml (default "cluster.local")
+      --fail-on-parse-error   if enabled we fail if we cannot parse a yaml file as a kubernetes resource
+  -h, --help                  help for ingress
 ```
 
 ### SEE ALSO
