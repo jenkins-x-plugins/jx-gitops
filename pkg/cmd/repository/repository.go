@@ -2,8 +2,10 @@ package repository
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/jenkins-x/jx-api/pkg/config"
+	"github.com/jenkins-x/jx-api/pkg/util"
 	"github.com/jenkins-x/jx-gitops/pkg/kyamls"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
@@ -35,10 +37,10 @@ var (
 // LabelOptions the options for the command
 type Options struct {
 	kyamls.Filter
-	Dir             string
-	UseRequirements bool
-	gitURL          string
-	gitInfo         *giturl.GitRepository
+	Dir       string
+	SourceDir string
+	gitURL    string
+	gitInfo   *giturl.GitRepository
 }
 
 // NewCmdUpdateRepository creates a command object for the command
@@ -55,8 +57,8 @@ func NewCmdUpdateRepository() (*cobra.Command, *Options) {
 			helper.CheckErr(err)
 		},
 	}
-	cmd.Flags().BoolVarP(&o.UseRequirements, "jx-requirements", "", false, "if enabled lets update the dev environment in the 'jx-requirements.yml' file")
-	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the directory to recursively look for the *.yaml or *.yml files")
+	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the directory look for the 'jx-requirements.yml` file")
+	cmd.Flags().StringVarP(&o.SourceDir, "source-dir", "s", ".", "the directory to recursively look for the *.yaml or *.yml source Environment/SourceRepository files")
 	o.Filter.AddFlags(cmd)
 	return cmd, o
 }
@@ -70,9 +72,9 @@ func (o *Options) Run(args []string) error {
 	}
 	if len(args) == 0 {
 		// lets try discover the git url
-		o.gitURL, err = findGitURLFromDir(o.Dir)
+		o.gitURL, err = findGitURLFromDir(o.SourceDir)
 		if err != nil {
-			return errors.Wrapf(err, "failed to discover git URL in dir %s. you could try pass the git URL as an argument", o.Dir)
+			return errors.Wrapf(err, "failed to discover git URL in dir %s. you could try pass the git URL as an argument", o.SourceDir)
 		}
 		if o.gitURL == "" {
 			return options.MissingOption("git-url")
@@ -83,14 +85,16 @@ func (o *Options) Run(args []string) error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to parse git URL: %s", o.gitURL)
 	}
-	if o.UseRequirements {
-		return o.modifyRequirements()
+
+	err = o.modifyRequirements()
+	if err != nil {
+		return errors.Wrapf(err, "failed to modify 'jx-requirements.yml'")
 	}
 
 	if discovered {
 		o.gitURL = o.gitInfo.URL
 
-		log.Logger().Infof("discovered git URL %s replacing it in the dev Environment and Source Repository in dir %s", termcolor.ColorInfo(o.gitURL), termcolor.ColorInfo(o.Dir))
+		log.Logger().Infof("discovered git URL %s replacing it in the dev Environment and Source Repository in dir %s", termcolor.ColorInfo(o.gitURL), termcolor.ColorInfo(o.SourceDir))
 	}
 
 	modifyFn := func(node *yaml.RNode, path string) (bool, error) {
@@ -116,7 +120,7 @@ func (o *Options) Run(args []string) error {
 		}
 		return answer, nil
 	}
-	return kyamls.ModifyFiles(o.Dir, modifyFn, o.Filter)
+	return kyamls.ModifyFiles(o.SourceDir, modifyFn, o.Filter)
 }
 
 func (o *Options) modifyEnvironment(node *yaml.RNode, path string) (bool, error) {
@@ -154,14 +158,25 @@ func (o *Options) modifySourceRepository(node *yaml.RNode, path string) (bool, e
 }
 
 func (o *Options) modifyRequirements() error {
-	requirements, fileName, err := config.LoadRequirementsConfig(o.Dir, true)
+	dir := o.Dir
+	fileName := filepath.Join(dir, config.RequirementsConfigFileName)
+	exists, err := util.FileExists(fileName)
 	if err != nil {
-		return errors.Wrapf(err, "failed to load jx-requirements.yml file in dir %s", o.Dir)
+		return errors.Wrapf(err, "failed to check if file exists %s", fileName)
+	}
+	if !exists {
+		log.Logger().Infof("no jx requirements file at %s", fileName)
+			return nil
+	}
+
+	requirements, err := config.LoadRequirementsConfigFile(fileName, true)
+	if err != nil {
+		return errors.Wrapf(err, "failed to load file %s", fileName)
 	}
 
 	repository := o.gitInfo.Name
 	owner := o.gitInfo.Organisation
-	log.Logger().Infof("modifying jx-requirements.yml to set the dev environment git repository to be %s/%s", owner, repository)
+	log.Logger().Infof("modifying jx-requirements.yml in dir %s to set the dev environment git repository to be %s/%s", dir, owner, repository)
 
 	modified := false
 	for i, env := range requirements.Environments {
