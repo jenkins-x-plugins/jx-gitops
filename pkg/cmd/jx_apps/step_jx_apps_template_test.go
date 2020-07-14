@@ -65,4 +65,8 @@ func TestStepJxAppsTemplate(t *testing.T) {
 	message := fmt.Sprintf("tekton SA for file %s", tektonSAFile)
 
 	testhelpers.AssertAnnotation(t, "iam.gke.io/gcp-service-account", "mycluster-tk@myproject.iam.gserviceaccount.com", sa.ObjectMeta, message)
+
+	// verify we generated the chart and its dependencies
+	assert.FileExists(t, filepath.Join(templateDir, "jx", "jxboot-helmfile-resources", "docker-cfg-secret.yaml"))
+	assert.FileExists(t, filepath.Join(templateDir, "jx", "jxboot-helmfile-resources", "controllerbuild", "serviceaccount.yaml"))
 }

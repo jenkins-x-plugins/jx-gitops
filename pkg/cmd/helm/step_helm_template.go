@@ -231,6 +231,34 @@ func (o *TemplateOptions) Run() error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to copy generated templates at %s to %s", templatesDir, outDir)
 	}
+
+	// lets copy all dependent chart templates folders
+	dependentChartsDir := filepath.Join(tmpDir, name, "charts")
+	exists, err = files.DirExists(dependentChartsDir)
+	if err != nil {
+		return errors.Wrapf(err, "failed to check if charts dir was generated")
+	}
+	if exists {
+		depChartDirs, err := ioutil.ReadDir(dependentChartsDir)
+		if err != nil {
+			return errors.Wrapf(err, "failed to read sub chart dirs in %s", dependentChartsDir)
+		}
+		for _, f := range depChartDirs {
+			depTemplateDir := filepath.Join(dependentChartsDir, f.Name(), "templates")
+			exists, err = files.DirExists(depTemplateDir)
+			if err != nil {
+				return errors.Wrapf(err, "failed to check if templates dir was generated for %s", depTemplateDir)
+			}
+			if exists {
+				depOutDir := filepath.Join(outDir, f.Name())
+				err = files.CopyDirOverwrite(depTemplateDir, depOutDir)
+				if err != nil {
+					return errors.Wrapf(err, "failed to copy generated templates at %s to %s", depTemplateDir, depOutDir)
+				}
+			}
+		}
+	}
+
 	err = os.RemoveAll(tmpDir)
 	if err != nil {
 		return errors.Wrapf(err, "failed to remove tmp dir %s", tmpDir)
