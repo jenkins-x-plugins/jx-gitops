@@ -47,7 +47,7 @@ func NewCmdHashAnnotate() (*cobra.Command, *Options) {
 		Use:     "hash",
 		Short:   "Annotates the given files with a hash of the given source files for ConfigMaps/Secrets",
 		Long:    cmdLong,
-		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName, rootcmd.BinaryName),
+		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
 			err := o.Run()
 			helper.CheckErr(err)

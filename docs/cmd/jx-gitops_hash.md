@@ -15,7 +15,7 @@ Annotates the given files with a hash of the given source files for ConfigMaps/S
 ### Examples
 
   # annotates the Deployments in a dir from some source ConfigMaps
-  jx-gitops hash -s foo/configmap.yaml -s another/configmap.yaml -d someDir%!(EXTRA string=jx-gitops)
+  jx-gitops hash -s foo/configmap.yaml -s another/configmap.yaml -d someDir
 
 ### Options
 
