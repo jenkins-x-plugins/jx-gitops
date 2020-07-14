@@ -44,6 +44,10 @@ Generate the kubernetes resources from a helm chart
     the name of the helm release to template. Defaults to $APP\_NAME if not specified
 
 .PP
+\fB\-\-namespace\fP=""
+    specifies the namespace to use to generate the templates in
+
+.PP
 \fB\-\-no\-external\-secrets\fP[=false]
     if set then disable converting Secret resources to ExternalSecrets
 
@@ -56,6 +60,10 @@ Generate the kubernetes resources from a helm chart
     if set then disable splitting of multiple resources into separate files
 
 .PP
+\fB\-\-optional\fP[=false]
+    check if there is a charts dir and if not do nothing if it does not exist
+
+.PP
 \fB\-o\fP, \fB\-\-output\-dir\fP=""
     the output directory to generate the templates to. Defaults to charts/$name/resources
 
@@ -64,7 +72,7 @@ Generate the kubernetes resources from a helm chart
     the helm chart repository to locate the chart
 
 .PP
-\fB\-\-values\fP="charts/template\-values.yaml"
+\fB\-f\fP, \fB\-\-values\fP=[]
     the helm values.yaml file used to template values in the generated template
 
 .PP
