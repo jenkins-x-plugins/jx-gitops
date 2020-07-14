@@ -36,6 +36,10 @@ var (
 	`)
 )
 
+var (
+	phases = []string{"apps", "system"}
+)
+
 // JxAppsTemplateOptions the options for the command
 type JxAppsTemplateOptions struct {
 	helm.TemplateOptions
@@ -261,18 +265,37 @@ func (o *JxAppsTemplateOptions) Run() error {
 			}
 		}
 
-		// find any extra values files
-		valuesFile := filepath.Join(appsCfgDir, "apps", chartName, "values.yaml")
-		exists, err = files.FileExists(valuesFile)
-		if err != nil {
-			return errors.Wrapf(err, "failed to find values file %s", valuesFile)
-		}
-		if exists {
-			absValuesFile, err := filepath.Abs(valuesFile)
+		for _, phase := range phases {
+
+			// find any extra values files
+			valuesFile := filepath.Join(appsCfgDir, phase, ho.ReleaseName, "values.yaml")
+			exists, err = files.FileExists(valuesFile)
 			if err != nil {
-				return errors.Wrapf(err, "failed to get absolute path of %s", valuesFile)
+				return errors.Wrapf(err, "failed to find values file %s", valuesFile)
 			}
-			ho.ValuesFiles = append(ho.ValuesFiles, absValuesFile)
+			if exists {
+				absValuesFile, err := filepath.Abs(valuesFile)
+				if err != nil {
+					return errors.Wrapf(err, "failed to get absolute path of %s", valuesFile)
+				}
+				ho.ValuesFiles = append(ho.ValuesFiles, absValuesFile)
+			}
+
+			// find any extra gotmpl values files in each phase
+			appValuesFile = filepath.Join(appsCfgDir, phase, ho.ReleaseName, "values.yaml.gotmpl")
+			exists, err = files.FileExists(appValuesFile)
+			if err != nil {
+				return errors.Wrapf(err, "failed to check if app values file exists %s", appValuesFile)
+			}
+			if exists {
+				tmpFilePrefix := strings.ReplaceAll(ho.ReleaseName, "/", "-")
+				generatedValuesFile, err := o.templateValuesFile(requirements, appValuesFile, tmpFilePrefix, o.TemplateValuesFiles)
+				if err != nil {
+					return errors.Wrapf(err, "failed to generate templated values file %s", appValuesFile)
+				}
+				foundAppsFile = true
+				ho.ValuesFiles = append(ho.ValuesFiles, generatedValuesFile)
+			}
 		}
 
 		log.Logger().Infof("generating chart %s version %s to dir %s", fullChartName, version, ho.OutDir)

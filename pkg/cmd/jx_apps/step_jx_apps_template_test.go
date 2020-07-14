@@ -58,15 +58,26 @@ func TestStepJxAppsTemplate(t *testing.T) {
 	tektonSAFile := filepath.Join(templateDir, "jx", "tekton", "251-bot-serviceaccount.yaml")
 	assert.FileExists(t, tektonSAFile)
 
-	sa := &corev1.ServiceAccount{}
-	err = yamls.LoadFile(tektonSAFile, sa)
+	tektonSA := &corev1.ServiceAccount{}
+	err = yamls.LoadFile(tektonSAFile, tektonSA)
 
 	require.NoError(t, err, "failed to load file %s", tektonSAFile)
 	message := fmt.Sprintf("tekton SA for file %s", tektonSAFile)
 
-	testhelpers.AssertAnnotation(t, "iam.gke.io/gcp-service-account", "mycluster-tk@myproject.iam.gserviceaccount.com", sa.ObjectMeta, message)
+	testhelpers.AssertAnnotation(t, "iam.gke.io/gcp-service-account", "mycluster-tk@myproject.iam.gserviceaccount.com", tektonSA.ObjectMeta, message)
 
 	// verify we generated the chart and its dependencies
 	assert.FileExists(t, filepath.Join(templateDir, "jx", "jxboot-helmfile-resources", "docker-cfg-secret.yaml"))
 	assert.FileExists(t, filepath.Join(templateDir, "jx", "jxboot-helmfile-resources", "controllerbuild", "serviceaccount.yaml"))
+
+	externalSecretsSAFile := filepath.Join(templateDir, "external-secrets", "kubernetes-external-secrets", "serviceaccount.yaml")
+	assert.FileExists(t, externalSecretsSAFile)
+
+	externalSecretsSA := &corev1.ServiceAccount{}
+	err = yamls.LoadFile(externalSecretsSAFile, externalSecretsSA)
+
+	require.NoError(t, err, "failed to load file %s", externalSecretsSAFile)
+	message = fmt.Sprintf("external secrets SA for file %s", externalSecretsSAFile)
+
+	testhelpers.AssertAnnotation(t, "iam.gke.io/gcp-service-account", "mycluster-es@myproject.iam.gserviceaccount.com", externalSecretsSA.ObjectMeta, message)
 }
