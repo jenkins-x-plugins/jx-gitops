@@ -1,0 +1,76 @@
+# Source: lighthouse/templates/webhooks-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lighthouse-webhooks
+  labels:
+    draft: draft-app
+    chart: "lighthouse-0.0.633"
+    app: lighthouse-webhooks
+    gitops.jenkins-x.io/pipeline: 'environment'
+  namespace: jx
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      draft: draft-app
+      app: lighthouse-webhooks
+  template:
+    metadata:
+      labels:
+        draft: draft-app
+        app: lighthouse-webhooks
+    spec:
+      serviceAccountName: lighthouse-webhooks
+      containers:
+      - name: lighthouse-webhooks
+        image: gcr.io/jenkinsxio/lighthouse-webhooks:0.0.633
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: "GIT_KIND"
+          value: "github"
+        - name: "GIT_SERVER"
+          value: "https://github.com"
+        - name: "GIT_USER"
+          value: todo
+        - name: "GIT_TOKEN"
+          valueFrom:
+            secretKeyRef:
+              name: lighthouse-oauth-token
+              key: oauth
+        - name: "HMAC_TOKEN"
+          valueFrom:
+            secretKeyRef:
+              name: "lighthouse-hmac-token"
+              key: hmac
+        - name: "JX_LOG_FORMAT"
+          value: "json"
+        - name: "LOGRUS_FORMAT"
+          value: "json"
+        - name: JX_DEFAULT_IMAGE
+          value: "gcr.io/jenkinsxio-labs-private/jxl:0.0.208"
+        ports:
+        - containerPort: 8080
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          limits:
+            cpu: 100m
+            memory: 256Mi
+          requests:
+            cpu: 80m
+            memory: 128Mi
+      terminationGracePeriodSeconds: 180
