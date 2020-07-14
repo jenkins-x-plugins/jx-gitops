@@ -24,12 +24,24 @@ Updates the kpt packages in the given directory
     the directory to recursively look for the *.yaml or *.yml files
 
 .PP
+\fB\-\-dry\-run\fP[=false]
+    just output the commands to be executed
+
+.PP
 \fB\-h\fP, \fB\-\-help\fP[=false]
     help for recreate
 
 .PP
+\fB\-i\fP, \fB\-\-ignore\-errors\fP[=false]
+    if enabled we continue processing on kpt errors
+
+.PP
 \fB\-o\fP, \fB\-\-out\-dir\fP=""
     the output directory to generate the output
+
+.PP
+\fB\-\-version\fP=""
+    if specified overrides the versions used in the kpt packages (e.g. to 'master')
 
 
 .SH EXAMPLE

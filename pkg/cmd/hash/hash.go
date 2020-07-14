@@ -17,6 +17,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// DefaultAnnotation the default annotation used for sha256 hashes
+const DefaultAnnotation = "jenkins-x.io/hash"
+
 var (
 	cmdLong = templates.LongDesc(`
 		Annotates the given files with a hash of the given source files for ConfigMaps/Secrets
@@ -44,15 +47,15 @@ func NewCmdHashAnnotate() (*cobra.Command, *Options) {
 		Use:     "hash",
 		Short:   "Annotates the given files with a hash of the given source files for ConfigMaps/Secrets",
 		Long:    cmdLong,
-		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName, rootcmd.BinaryName),
+		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
-			err := o.Run(args)
+			err := o.Run()
 			helper.CheckErr(err)
 		},
 	}
 	cmd.Flags().StringArrayVarP(&o.SourceFiles, "source", "s", nil, "the source files to hash")
 	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the directory to recursively look for the *.yaml or *.yml files")
-	cmd.Flags().StringVarP(&o.Annotation, "annotation", "a", "jenkins-x.io/hash", "the annotation for the hash to add to the files")
+	cmd.Flags().StringVarP(&o.Annotation, "annotation", "a", DefaultAnnotation, "the annotation for the hash to add to the files")
 
 	f := &o.Filter
 	cmd.Flags().StringArrayVarP(&f.Kinds, "kind", "k", []string{"Deployment"}, "adds Kubernetes resource kinds to filter on to annotate. For kind expressions see: https://github.com/jenkins-x/jx-gitops/tree/master/docs/kind_filters.md")
@@ -62,7 +65,7 @@ func NewCmdHashAnnotate() (*cobra.Command, *Options) {
 }
 
 // Run run the command
-func (o *Options) Run(args []string) error {
+func (o *Options) Run() error {
 	if o.Annotation == "" {
 		return options.MissingOption("annotation")
 

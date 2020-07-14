@@ -1,0 +1,73 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config
+  namespace: jx
+  labels:
+    gitops.jenkins-x.io/pipeline: 'environment'
+data:
+  config.yaml: |-
+    branch-protection:
+      orgs:
+        jstrachan:
+          repos:
+            env-mycluster-dev:
+              required_status_checks:
+                contexts:
+                - pr-build
+      protect-tested-repos: true
+    deck:
+      spyglass: {}
+    gerrit: {}
+    owners_dir_blacklist:
+      default: null
+      repos: null
+    plank: {}
+    pod_namespace: jx
+    postsubmits:
+      jstrachan/env-mycluster-dev:
+      - agent: tekton
+        branches:
+        - master
+        context: ""
+        name: release
+    presubmits:
+      jstrachan/env-mycluster-dev:
+      - agent: tekton
+        always_run: true
+        context: pr-build
+        name: pr-build
+        rerun_command: /test this
+        trigger: (?m)^/test( all| this),?(\s+|$)
+    prowjob_namespace: jx
+    push_gateway: {}
+    sinker: {}
+    tide:
+      context_options:
+        from-branch-protection: true
+        required-if-present-contexts: []
+        skip-unknown-contexts: false
+      merge_method:
+        jstrachan/env-mycluster-dev: merge
+      queries:
+      - labels:
+        - approved
+        missingLabels:
+        - do-not-merge
+        - do-not-merge/hold
+        - do-not-merge/work-in-progress
+        - needs-ok-to-test
+        - needs-rebase
+        repos:
+        - jstrachan/env-mycluster-dev
+      - labels:
+        - updatebot
+        missingLabels:
+        - do-not-merge
+        - do-not-merge/hold
+        - do-not-merge/work-in-progress
+        - needs-ok-to-test
+        - needs-rebase
+        repos:
+        - jstrachan/env-mycluster-dev
+      target_url: http://deck-jx.34.77.176.97.nip.io

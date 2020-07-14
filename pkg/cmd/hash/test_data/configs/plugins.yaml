@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: plugins
+  namespace: jx
+  labels:
+    gitops.jenkins-x.io/pipeline: 'environment'
+data:
+  plugins.yaml: |
+    approve:
+    - lgtm_acts_as_approve: true
+      repos:
+      - jstrachan/env-mycluster-dev
+      require_self_approval: true
+    blunderbuss: {}
+    cat: {}
+    cherry_pick_unapproved: {}
+    config_updater:
+      maps:
+        env/prow/config.yaml:
+          name: config
+        env/prow/plugins.yaml:
+          name: plugins
+    heart: {}
+    owners: {}
+    plugins:
+      jstrachan/env-mycluster-dev:
+      - config-updater
+      - approve
+      - assign
+      - blunderbuss
+      - help
+      - hold
+      - lgtm
+      - lifecycle
+      - override
+      - size
+      - trigger
+      - wip
+      - heart
+      - cat
+      - dog
+      - pony
+    requiresig: {}
+    sigmention: {}
+    slack: {}
+    triggers:
+    - repos:
+      - jstrachan/env-mycluster-dev
+      trusted_org: jstrachan
