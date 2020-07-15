@@ -11,6 +11,7 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/kustomize"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/label"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/namespace"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/pr"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/repository"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/scheduler"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/split"
@@ -36,6 +37,7 @@ func Main() *cobra.Command {
 	cmd.AddCommand(helm.NewCmdHelm())
 	cmd.AddCommand(jx_apps.NewCmdJxApps())
 	cmd.AddCommand(kpt.NewCmdKpt())
+	cmd.AddCommand(pr.NewCmdPR())
 	cmd.AddCommand(cobras.SplitCommand(annotate.NewCmdUpdateAnnotate()))
 	cmd.AddCommand(cobras.SplitCommand(extsecret.NewCmdExtSecrets()))
 	cmd.AddCommand(cobras.SplitCommand(hash.NewCmdHashAnnotate()))
