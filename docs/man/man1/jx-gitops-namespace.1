@@ -20,8 +20,12 @@ Updates all kubernetes resources in the given directory to the given namespace
 
 .SH OPTIONS
 .PP
-\fB\-\-dir\fP="."
+\fB\-\-cluster\-dir\fP=""
     the directory to recursively look for the *.yaml or *.yml files
+
+.PP
+\fB\-\-dir\fP="."
+    the directory to recursively look for the namespaced *.yaml or *.yml files to set the namespace on
 
 .PP
 \fB\-\-dir\-mode\fP[=false]
