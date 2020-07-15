@@ -1,24 +1,12 @@
 apps:
-  - name: jenkins-x/jxboot-helmfile-resources
-  - name: bitnami/external-dns
-    namespace: foo
-  - name: jenkins-x/tekton
-  - name: external-secrets/kubernetes-external-secrets
-    namespace: external-secrets
-#  - name: gsm-controller
-#    phase: apps
-#    repository: https://storage.googleapis.com/jenkinsxio-labs/charts
-#  - name: feature-infra-secrets
-#    phase: apps
-#    repository: gs://jenkinsxio-labs-private/charts
-#  - name: repositories
-#    repository: ".."
-#  - name: jx-app-replicator
-#    repository: https://storage.googleapis.com/chartmuseum.jenkins-x.io
-#    version: 1.0.16
-#    phase: apps
-#  - name: kuberhealthy
-#    repository: https://comcast.github.io/kuberhealthy/helm-repos
-#    version: 2.1.0
-#    phase: apps
-#    namespace: kuberhealthy
+- name: jenkins-x/tekton
+- name: jenkins-x/jxboot-helmfile-resources
+- name: bitnami/external-dns
+  namespace: foo
+- name: external-secrets/kubernetes-external-secrets
+  namespace: external-secrets
+# test using a local repo prefix and URL
+- name: doesnotexist/bucketrepo
+repositories:
+- name: doesnotexist
+  url: https://storage.googleapis.com/chartmuseum.jenkins-x.io
