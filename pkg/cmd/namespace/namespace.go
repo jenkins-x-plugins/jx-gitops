@@ -77,7 +77,7 @@ func (o *Options) Run() error {
 	ns := o.Namespace
 	if o.ClusterDir == "" {
 		// lets navigate relative to the namespaces dir
-		o.ClusterDir = filepath.Join(o.Dir, "..", "clusters", "namespaces")
+		o.ClusterDir = filepath.Join(o.Dir, "..", "cluster", "namespaces")
 		err := os.MkdirAll(o.ClusterDir, files.DefaultDirWritePermissions)
 		if err != nil {
 			return errors.Wrapf(err, "failed to create cluster namespaces dir %s", o.ClusterDir)

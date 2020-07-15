@@ -135,7 +135,7 @@ func TestNamespaceDirMode(t *testing.T) {
 	})
 	require.NoError(t, err, "failed to find results")
 
-	clusterNamespacesDir := filepath.Join(rootTmpDir, "clusters", "namespaces")
+	clusterNamespacesDir := filepath.Join(rootTmpDir, "cluster", "namespaces")
 	assert.DirExists(t, clusterNamespacesDir, "should have created folder for the lazy created Namespace resources")
 
 	for k, v := range found {
