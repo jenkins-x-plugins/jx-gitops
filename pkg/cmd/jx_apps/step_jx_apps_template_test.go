@@ -51,6 +51,7 @@ func TestStepJxAppsTemplate(t *testing.T) {
 
 	t.Logf("generated templates to %s", templateDir)
 
+	assert.FileExists(t, filepath.Join(templateDir, "jx", "bucketrepo", "deployment.yaml"))
 	assert.FileExists(t, filepath.Join(templateDir, "foo", "external-dns", "deployment.yaml"))
 	assert.FileExists(t, filepath.Join(templateDir, "foo", "external-dns", "service.yaml"))
 	assert.FileExists(t, filepath.Join(templateDir, "foo", "external-dns", "clusterrolebinding.yaml"))

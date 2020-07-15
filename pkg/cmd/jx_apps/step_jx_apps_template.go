@@ -159,12 +159,22 @@ func (o *JxAppsTemplateOptions) Run() error {
 		prefix := parts[0]
 		chartName := parts[1]
 
+		// lets resolve the chart prefix from a local repository from the file or from a
+		// prefix in the versions stream
+		if repository == "" && prefix != "" {
+			for _, r := range appsCfg.Repositories {
+				if r.Name == prefix {
+					repository = r.URL
+				}
+			}
+		}
 		if repository == "" && prefix != "" {
 			repository, err = o.matchPrefix(prefix)
 			if err != nil {
 				return errors.Wrapf(err, "failed to match prefix %s with repositories from versionstream %s", prefix, o.VersionStreamURL)
 			}
-		} else {
+		}
+		if repository == "" && prefix != "" {
 			return errors.Wrapf(err, "failed to find repository URL, not defined in jx-apps.yml or versionstream %s", o.VersionStreamURL)
 		}
 
