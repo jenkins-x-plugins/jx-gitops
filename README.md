@@ -16,4 +16,12 @@ There will be an `app` you can install soon too...
 
 ## Commands
 
-See the [jx-gitops command reference](https://github.com/jenkins-x/jx-gitops/blob/master/docs/cmd/jx-gitops.md#see-also)
+See the [jx-gitops command reference](docs/cmd/jx-gitops.md#see-also)
+
+
+## Documentation
+
+* [Git Repository Layout](docs/git_layout.md) on how to structure the source code of a GitOps repository
+* [Secret Mapping](docs/secret_mapping.md) for mapping Secrets to External Secrets and underlying storage
+    * [Secret Mapping Reference](docs/config.md) reference guide for configuring secret mappings
+* [Kind Filters](docs/kind_filters.md) for how to filter resources by `kind` with some of the [commands](docs/cmd/jx-gitops.md)   
