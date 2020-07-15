@@ -2,7 +2,7 @@
 
 Generates the Lighthouse configuration from the SourceRepository and Scheduler resources
 
-***Aliases**: schedulers,extsec*
+***Aliases**: schedulers,lighthouse*
 
 ### Usage
 
