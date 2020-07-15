@@ -75,8 +75,12 @@ func TestNamespaceDirMode(t *testing.T) {
 	srcFile := filepath.Join("test_data", "dirmode")
 	require.DirExists(t, srcFile)
 
-	tmpDir, err := ioutil.TempDir("", "")
+	rootTmpDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err, "could not create temp dir")
+
+	tmpDir := filepath.Join(rootTmpDir, "namespaces")
+	err = os.MkdirAll(tmpDir, files.DefaultDirWritePermissions)
+	require.NoError(t, err, "failed to make namespaces dir")
 
 	err = files.CopyDirOverwrite(srcFile, tmpDir)
 	require.NoError(t, err, "failed to copy %s to %s", srcFile, tmpDir)
@@ -131,9 +135,18 @@ func TestNamespaceDirMode(t *testing.T) {
 	})
 	require.NoError(t, err, "failed to find results")
 
+	clusterNamespacesDir := filepath.Join(rootTmpDir, "clusters", "namespaces")
+	assert.DirExists(t, clusterNamespacesDir, "should have created folder for the lazy created Namespace resources")
+
 	for k, v := range found {
 		t.Logf("found files for namespace %s = %#v", k, v)
 		assert.Len(t, v, 1, "files in namespace %s", k)
+
+		// lets assert we have a namespace file
+		nsFile := filepath.Join(clusterNamespacesDir, k+".yaml")
+		if assert.FileExists(t, nsFile) {
+			t.Logf("lazy created the namespace file %s", nsFile)
+		}
 	}
 	assert.Len(t, found, 2, "found namespaces")
 }
