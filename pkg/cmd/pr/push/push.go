@@ -7,6 +7,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/jenkins-x/jx-logging/pkg/log"
+	"k8s.io/client-go/rest"
+
 	"github.com/jenkins-x/go-scm/scm"
 	"github.com/jenkins-x/go-scm/scm/factory"
 	"github.com/jenkins-x/jx-gitops/pkg/authhelpers"
@@ -82,6 +85,9 @@ func NewCmdPullRequestPush() (*cobra.Command, *Options) {
 // Run implements the command
 func (o *Options) Run() error {
 	o.BatchMode = true
+	if o.CommandRunner == nil {
+		o.CommandRunner = cmdrunner.DefaultCommandRunner
+	}
 	repo, err := o.discoverGitServerURLAndRepository()
 	if err != nil {
 		return errors.Wrapf(err, "failed to discover git server URL")
@@ -114,9 +120,6 @@ func (o *Options) Run() error {
 }
 
 func (o *Options) pushToBranch() error {
-	if o.CommandRunner == nil {
-		o.CommandRunner = cmdrunner.DefaultCommandRunner
-	}
 	argSlices := [][]string{
 		{
 			"pull",
@@ -231,6 +234,12 @@ func (o *Options) discoverGitToken() (string, error) {
 
 // CreateScmClient creates a new scm client
 func (o *Options) createScmClient(gitServer, owner, gitKind string) (*scm.Client, string, error) {
+	if IsInCluster() {
+		err := o.InitGitConfigAndUser()
+		if err != nil {
+			return nil, "", errors.Wrapf(err, "failed to init git")
+		}
+	}
 	af, err := authhelpers.NewAuthFacadeWithArgs(o.AuthConfigService, o.Git(), o.IOFileHandles, o.BatchMode, o.UseGitHubOAuth)
 	if err != nil {
 		return nil, "", errors.Wrapf(err, "failed to create git auth facade")
@@ -247,4 +256,38 @@ func (o *Options) Git() gits.Gitter {
 		o.gitter = gits.NewGitCLI()
 	}
 	return o.gitter
+}
+
+// IsInCluster tells if we are running incluster
+func IsInCluster() bool {
+	_, err := rest.InClusterConfig()
+	return err == nil
+}
+
+func (o *Options) InitGitConfigAndUser() error {
+	// lets make sure the home dir exists
+	dir := util.HomeDir()
+	err := os.MkdirAll(dir, util.DefaultWritePermissions)
+	if err != nil {
+		return errors.Wrapf(err, "failed to make sure the home directory %s was created", dir)
+	}
+
+	// lets validate we have git configured
+	_, _, err = gits.EnsureUserAndEmailSetup(o.Git())
+	if err != nil {
+		return err
+	}
+
+	c := &cmdrunner.Command{
+		Name: "git",
+		Args: []string{"config", "--global", "credential.helper", "store"},
+	}
+	_, err = o.CommandRunner(c)
+	if err != nil {
+		return errors.Wrapf(err, "failed to setup git")
+	}
+	if os.Getenv("XDG_CONFIG_HOME") == "" {
+		log.Logger().Warnf("Note that the environment variable $XDG_CONFIG_HOME is not defined so we may not be able to push to git!")
+	}
+	return nil
 }
