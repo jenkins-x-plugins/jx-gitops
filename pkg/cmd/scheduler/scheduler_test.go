@@ -5,9 +5,11 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/go-yaml/yaml"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/scheduler"
 	"github.com/jenkins-x/jx-helpers/pkg/testhelpers"
 	"github.com/jenkins-x/jx-helpers/pkg/yamls"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 )
@@ -41,6 +43,24 @@ func TestScheduler(t *testing.T) {
 	err = yamls.LoadFile(pluginFile, pluginsCM)
 	require.NoError(t, err, "failed to load config file %s", pluginFile)
 
-	testhelpers.AssertConfigMapHasEntry(t, configCM, scheduler.ConfigKey, configFile)
-	testhelpers.AssertConfigMapHasEntry(t, pluginsCM, scheduler.PluginsKey, pluginFile)
+	yamlText := testhelpers.AssertConfigMapHasEntry(t, configCM, scheduler.ConfigKey, configFile)
+	ym := AssertYamlMap(t, yamlText, configFile)
+	for _, k := range []string{"branch-protection", "postsubmits", "presubmits", "tide"} {
+		assert.Contains(t, ym, k, configFile)
+	}
+
+	yamlText = testhelpers.AssertConfigMapHasEntry(t, pluginsCM, scheduler.PluginsKey, pluginFile)
+	ym = AssertYamlMap(t, yamlText, pluginFile)
+	for _, k := range []string{"approve", "plugins", "triggers"} {
+		assert.Contains(t, ym, k, pluginFile)
+	}
+}
+
+func AssertYamlMap(t *testing.T, text string, message string) map[string]interface{} {
+	require.NotEmpty(t, text, "no YAML text for %s", message)
+
+	m := map[string]interface{}{}
+	err := yaml.Unmarshal([]byte(text), &m)
+	require.NoError(t, err, "failed to parse YAML %s for %s", text, message)
+	return m
 }

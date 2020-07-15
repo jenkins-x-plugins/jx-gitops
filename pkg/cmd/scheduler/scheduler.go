@@ -24,6 +24,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/kustomize/kyaml/yaml"
+
+	gyaml "github.com/ghodss/yaml"
 )
 
 const (
@@ -207,7 +209,7 @@ func (o *Options) Run() error {
 }
 
 func createConfigMap(resource interface{}, ns string, name string, key string) (*corev1.ConfigMap, error) {
-	data, err := yaml.Marshal(resource)
+	data, err := gyaml.Marshal(resource)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to marshal resource to YAML")
 	}
