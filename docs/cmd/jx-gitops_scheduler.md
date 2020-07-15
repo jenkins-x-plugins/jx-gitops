@@ -12,12 +12,12 @@ jx-gitops scheduler
 
 ### Synopsis
 
-Converts all Secret resources in the path to ExternalSecret CRDs
+Generates the Lighthouse configuration from the SourceRepository and Scheduler resources
 
 ### Examples
 
-  # updates recursively labels all resources in the current directory
-  jx-gitops scheduler --dir=.
+  # regenerate the lighthouse configuration from the Environment, Scheduler, SourceRepository resources
+  jx-gitops scheduler --dir config-root/namespaces/jx -out src/base/namespaces/jx/lighthouse-config
 
 ### Options
 

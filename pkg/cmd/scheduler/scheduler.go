@@ -42,12 +42,13 @@ const (
 
 var (
 	cmdLong = templates.LongDesc(`
-		Converts all Secret resources in the path to ExternalSecret CRDs
+		Generates the Lighthouse configuration from the SourceRepository and Scheduler resources
 `)
 
 	cmdExample = templates.Examples(`
-		# updates recursively labels all resources in the current directory 
-		%s scheduler --dir=.
+		# regenerate the lighthouse configuration from the Environment, Scheduler, SourceRepository resources
+		%s scheduler --dir config-root/namespaces/jx -out src/base/namespaces/jx/lighthouse-config
+
 	`)
 
 	schedulerResourceFilter = kyamls.Filter{
@@ -68,7 +69,7 @@ func NewCmdScheduler() (*cobra.Command, *Options) {
 
 	cmd := &cobra.Command{
 		Use:     "scheduler",
-		Aliases: []string{"schedulers", "extsec"},
+		Aliases: []string{"schedulers", "lighthouse"},
 		Short:   "Generates the Lighthouse configuration from the SourceRepository and Scheduler resources",
 		Long:    cmdLong,
 		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
