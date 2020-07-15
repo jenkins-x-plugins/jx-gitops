@@ -32,6 +32,8 @@ pipelineConfig:
               value: "true"
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: ""
+            - name: DOCKER_REGISTRY_ORG
+              value: jenkinsxio-labs-private
           - name: changelog
             command: jx step changelog --verbose --header-file=hack/changelog-header.md --version=$VERSION --rev=$PULL_BASE_SHA --output-markdown=changelog.md --update-release=false
           - name: upload-binaries
