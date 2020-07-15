@@ -10,8 +10,7 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
-	"github.com/jenkins-x/jx-helpers/pkg/gitclient"
-	"github.com/jenkins-x/jx-helpers/pkg/gitclient/gitconfig"
+	"github.com/jenkins-x/jx-helpers/pkg/gitclient/gitdiscovery"
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient/giturl"
 	"github.com/jenkins-x/jx-helpers/pkg/options"
 	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
@@ -72,7 +71,7 @@ func (o *Options) Run(args []string) error {
 	}
 	if len(args) == 0 {
 		// lets try discover the git url
-		o.gitURL, err = findGitURLFromDir(o.SourceDir)
+		o.gitURL, err = gitdiscovery.FindGitURLFromDir(o.SourceDir)
 		if err != nil {
 			return errors.Wrapf(err, "failed to discover git URL in dir %s. you could try pass the git URL as an argument", o.SourceDir)
 		}
@@ -166,7 +165,7 @@ func (o *Options) modifyRequirements() error {
 	}
 	if !exists {
 		log.Logger().Infof("no jx requirements file at %s", fileName)
-			return nil
+		return nil
 	}
 
 	requirements, err := config.LoadRequirementsConfigFile(fileName, true)
@@ -194,18 +193,5 @@ func (o *Options) modifyRequirements() error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to save file %s", fileName)
 	}
-
 	return nil
-}
-
-func findGitURLFromDir(dir string) (string, error) {
-	_, gitConfDir, err := gitclient.FindGitConfigDir(dir)
-	if err != nil {
-		return "", errors.Wrapf(err, "there was a problem obtaining the git config dir of directory %s", dir)
-	}
-
-	if gitConfDir == "" {
-		return "", fmt.Errorf("no .git directory could be found from dir %s", dir)
-	}
-	return gitconfig.DiscoverUpstreamGitURL(gitConfDir)
 }

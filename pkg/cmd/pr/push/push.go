@@ -13,6 +13,7 @@ import (
 	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
+	"github.com/jenkins-x/jx-helpers/pkg/gitclient/gitdiscovery"
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient/giturl"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -37,6 +38,9 @@ type Options struct {
 	Branch        string
 	Repository    string
 	SourceURL     string
+	GitServerURL  string
+	GitKind       string
+	GitToken      string
 	Number        int
 	CommandRunner cmdrunner.CommandRunner
 	ScmClient     *scm.Client
@@ -60,17 +64,20 @@ func NewCmdPullRequestPush() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.SourceURL, "source", "s", "", "the git source URL of the current git clone")
 	cmd.Flags().StringVarP(&o.Repository, "repo", "r", "", "the full git repository name of the form 'owner/name' for the Pull Request")
 	cmd.Flags().StringVarP(&o.Branch, " branch", "b", "", "the git branch to push to. If not specified we will find the branch from the PullRequest.Source property")
+	cmd.Flags().StringVarP(&o.GitServerURL, " git-server", "", "", "the git server URL to create the git provider client. If not specified its defaulted from the current source URL")
+	cmd.Flags().StringVarP(&o.GitKind, " git-kind", "", "", "the kind of git server to connect to")
+	cmd.Flags().StringVarP(&o.GitToken, " git-token", "", "", "the git oauth token used to query the Pull Request to discover the branch name")
 	return cmd, o
 }
 
 // Run implements the command
 func (o *Options) Run() error {
-	var err error
+	repo, err := o.discoverGitServerURLAndRepository()
+	if err != nil {
+		return errors.Wrapf(err, "failed to discover git server URL")
+	}
 	if o.Repository == "" {
-		o.Repository, err = o.discoverRepository()
-		if err != nil {
-			return errors.Wrapf(err, "failed to discover the Repository name. Consider specifying the --repo option")
-		}
+		o.Repository = repo
 		if o.Repository == "" {
 			return errors.Errorf("could not to discover the Repository name. Consider specifying the --repo option")
 		}
@@ -126,9 +133,27 @@ func (o *Options) pushToBranch() error {
 	return nil
 }
 
-func (o *Options) discoverRepository() (string, error) {
+func (o *Options) discoverGitServerURLAndRepository() (string, error) {
 	if o.SourceURL == "" {
 		o.SourceURL = os.Getenv("SOURCE_URL")
+	}
+	if o.SourceURL == "" {
+		// lets try find the git URL from the current git clone
+		var err error
+		o.SourceURL, err = gitdiscovery.FindGitURLFromDir(o.Dir)
+		if err != nil {
+			return "", errors.Wrapf(err, "failed to discover git URL in dir %s. you could try pass the git URL as an argument", o.Dir)
+		}
+	}
+	if o.SourceURL != "" {
+		gitInfo, err := giturl.ParseGitURL(o.SourceURL)
+		if err != nil {
+			return "", errors.Wrapf(err, "failed to parse git URL %s", o.SourceURL)
+		}
+		if o.GitServerURL == "" {
+			o.GitServerURL = gitInfo.HostURL()
+		}
+		return scm.Join(gitInfo.Organisation, gitInfo.Name), nil
 	}
 	if o.SourceURL == "" {
 		owner := os.Getenv("REPO_OWNER")
@@ -136,15 +161,6 @@ func (o *Options) discoverRepository() (string, error) {
 		if owner != "" && repo != "" {
 			return scm.Join(owner, repo), nil
 		}
-
-		// TODO lets try find the git URL from the current git clone
-	}
-	if o.SourceURL != "" {
-		gitInfo, err := giturl.ParseGitURL(o.SourceURL)
-		if err != nil {
-			return "", errors.Wrapf(err, "failed to parse git URL %s", o.SourceURL)
-		}
-		return scm.Join(gitInfo.Organisation, gitInfo.Name), nil
 	}
 	return "", nil
 }
@@ -160,7 +176,6 @@ func (o *Options) discoverPullRequest() (int, error) {
 				return n, errors.Wrapf(err, "failed to parse %s from $BRANCH_NAME", prefix)
 			}
 			return n, nil
-
 		}
 	}
 	return 0, nil
@@ -169,7 +184,17 @@ func (o *Options) discoverPullRequest() (int, error) {
 func (o *Options) discoverPullRequestBranch() (string, error) {
 	if o.ScmClient == nil {
 		var err error
-		o.ScmClient, err = factory.NewClientFromEnvironment()
+		if o.GitServerURL == "" {
+			return "", errors.Errorf("could not deduce the git server URL. Try specifying --source")
+		}
+		oauthToken, err := o.discoverGitToken()
+		if err != nil {
+			return "", errors.Wrapf(err, "failed to discover git auth token")
+		}
+		if oauthToken == "" {
+			return "", errors.Errorf("could not deduce the git auth token. Try specifying --git-token")
+		}
+		o.ScmClient, err = factory.NewClient(o.GitKind, o.GitServerURL, oauthToken)
 		if err != nil {
 			return "", errors.Wrapf(err, "failed to create Scm client")
 		}
@@ -180,5 +205,15 @@ func (o *Options) discoverPullRequestBranch() (string, error) {
 		return "", errors.Wrapf(err, "failed to find PR %d in repo %s", o.Number, o.Repository)
 	}
 	return pr.Source, nil
+}
 
+func (o *Options) discoverGitToken() (string, error) {
+	oauthToken := o.GitToken
+	if oauthToken == "" {
+		oauthToken = os.Getenv("GIT_TOKEN")
+	}
+	if oauthToken == "" {
+		// TODO discover via secret...
+	}
+	return oauthToken, nil
 }
