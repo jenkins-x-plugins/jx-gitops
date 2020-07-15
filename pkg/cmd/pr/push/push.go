@@ -9,12 +9,16 @@ import (
 
 	"github.com/jenkins-x/go-scm/scm"
 	"github.com/jenkins-x/go-scm/scm/factory"
+	"github.com/jenkins-x/jx-gitops/pkg/authhelpers"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient/gitdiscovery"
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient/giturl"
+	"github.com/jenkins-x/jx/v2/pkg/auth"
+	"github.com/jenkins-x/jx/v2/pkg/gits"
+	"github.com/jenkins-x/jx/v2/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -34,16 +38,21 @@ var (
 
 // KptOptions the options for the command
 type Options struct {
-	Dir           string
-	Branch        string
-	Repository    string
-	SourceURL     string
-	GitServerURL  string
-	GitKind       string
-	GitToken      string
-	Number        int
-	CommandRunner cmdrunner.CommandRunner
-	ScmClient     *scm.Client
+	Dir               string
+	Branch            string
+	Repository        string
+	SourceURL         string
+	GitServerURL      string
+	GitKind           string
+	GitToken          string
+	Number            int
+	BatchMode         bool
+	UseGitHubOAuth    bool
+	CommandRunner     cmdrunner.CommandRunner
+	ScmClient         *scm.Client
+	AuthConfigService auth.ConfigService
+	IOFileHandles     *util.IOFileHandles
+	gitter            gits.Gitter
 }
 
 // NewCmdPullRequestPush creates a command object for the command
@@ -72,6 +81,7 @@ func NewCmdPullRequestPush() (*cobra.Command, *Options) {
 
 // Run implements the command
 func (o *Options) Run() error {
+	o.BatchMode = true
 	repo, err := o.discoverGitServerURLAndRepository()
 	if err != nil {
 		return errors.Wrapf(err, "failed to discover git server URL")
@@ -191,10 +201,11 @@ func (o *Options) discoverPullRequestBranch() (string, error) {
 		if err != nil {
 			return "", errors.Wrapf(err, "failed to discover git auth token")
 		}
-		if oauthToken == "" {
-			return "", errors.Errorf("could not deduce the git auth token. Try specifying --git-token")
+		if oauthToken != "" {
+			o.ScmClient, err = factory.NewClient(o.GitKind, o.GitServerURL, oauthToken)
+		} else {
+			o.ScmClient, _, err = o.createScmClient(o.GitServerURL, "", o.GitKind)
 		}
-		o.ScmClient, err = factory.NewClient(o.GitKind, o.GitServerURL, oauthToken)
 		if err != nil {
 			return "", errors.Wrapf(err, "failed to create Scm client")
 		}
@@ -216,4 +227,24 @@ func (o *Options) discoverGitToken() (string, error) {
 		// TODO discover via secret...
 	}
 	return oauthToken, nil
+}
+
+// CreateScmClient creates a new scm client
+func (o *Options) createScmClient(gitServer, owner, gitKind string) (*scm.Client, string, error) {
+	af, err := authhelpers.NewAuthFacadeWithArgs(o.AuthConfigService, o.Git(), o.IOFileHandles, o.BatchMode, o.UseGitHubOAuth)
+	if err != nil {
+		return nil, "", errors.Wrapf(err, "failed to create git auth facade")
+	}
+	scmClient, token, _, err := af.ScmClient(gitServer, owner, gitKind)
+	if err != nil {
+		return scmClient, token, errors.Wrapf(err, "failed to create SCM client for server %s", gitServer)
+	}
+	return scmClient, token, nil
+}
+
+func (o *Options) Git() gits.Gitter {
+	if o.gitter == nil {
+		o.gitter = gits.NewGitCLI()
+	}
+	return o.gitter
 }
