@@ -7,6 +7,7 @@ require (
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/google/go-cmp v0.4.0
 	github.com/jenkins-x/gen-crd-api-reference-docs v0.1.6 // indirect
+	github.com/jenkins-x/go-scm v1.5.141
 	github.com/jenkins-x/jx-api v0.0.16
 	github.com/jenkins-x/jx-apps v0.0.1
 	github.com/jenkins-x/jx-helpers v1.0.28
