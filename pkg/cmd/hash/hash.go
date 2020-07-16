@@ -11,6 +11,7 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
+	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/jenkins-x/jx-helpers/pkg/options"
 	"github.com/jenkins-x/jx-logging/pkg/log"
 	"github.com/pkg/errors"
@@ -75,6 +76,14 @@ func (o *Options) Run() error {
 	}
 	buff := bytes.Buffer{}
 	for _, s := range o.SourceFiles {
+		exists, err := files.FileExists(s)
+		if err != nil {
+			return errors.Wrapf(err, "failed to check if file exists %s", s)
+		}
+		if !exists {
+			log.Logger().Warnf("the file to hash %s does not exist so ignoring it from the hash calculation", s)
+			continue
+		}
 		data, err := ioutil.ReadFile(s)
 		if err != nil {
 			return errors.Wrapf(err, "failed to load source file %s", s)
