@@ -39,9 +39,6 @@ func TestPullRequestPush(t *testing.T) {
 
 	runner.ExpectResults(t,
 		fakerunner.FakeResult{
-			CLI: "git pull",
-		},
-		fakerunner.FakeResult{
 			CLI: "git checkout -b " + prBranch,
 		},
 		fakerunner.FakeResult{
