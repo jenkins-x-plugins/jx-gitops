@@ -283,6 +283,7 @@ func (o *TemplateOptions) Run() error {
 	if !o.DoGitCommit {
 		return nil
 	}
+	log.Logger().Infof("performing git commit: %s", o.GitCommitMessage)
 	return o.GitCommit(outDir, o.GitCommitMessage)
 }
 

@@ -196,6 +196,7 @@ func (o *JxAppsTemplateOptions) Run() error {
 		ho := o.TemplateOptions
 		ho.Gitter = o.Git()
 		ho.GitCommitMessage = o.GitCommitMessage
+		ho.DoGitCommit = false
 		ho.Version = version
 		ho.Chart = chartName
 
@@ -319,7 +320,11 @@ func (o *JxAppsTemplateOptions) Run() error {
 
 	log.Logger().Infof("processed %d charts", count)
 
+	if !o.TemplateOptions.DoGitCommit {
+		return nil
+	}
 	if count > 0 {
+		log.Logger().Infof("committing changes: %s", o.GitCommitMessage)
 		err = o.TemplateOptions.GitCommit(outDir, o.GitCommitMessage)
 		if err != nil {
 			log.Logger().Warnf("failed to commit in dir %s due to: %s", outDir, err.Error())
