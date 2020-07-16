@@ -122,9 +122,6 @@ func (o *Options) Run() error {
 func (o *Options) pushToBranch() error {
 	argSlices := [][]string{
 		{
-			"pull",
-		},
-		{
 			"checkout", "-b", o.Branch,
 		},
 		{
