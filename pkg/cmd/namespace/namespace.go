@@ -161,6 +161,7 @@ func (o *Options) lazyCreateNamespaceResource(ns string) error {
 
 	namespace := &corev1.Namespace{
 		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v1",
 			Kind: "Namespace",
 		},
 		ObjectMeta: metav1.ObjectMeta{
