@@ -31,6 +31,20 @@ func TestStringFilters(t *testing.T) {
 		},
 		{
 			filter: filters.StringFilter{
+				Prefix: "!Merge pull request",
+			},
+			value:    "Merge pull request #1234",
+			expected: false,
+		},
+		{
+			filter: filters.StringFilter{
+				Prefix: "!Merge pull request",
+			},
+			value:    "something else",
+			expected: true,
+		},
+		{
+			filter: filters.StringFilter{
 				Suffix: "awesome",
 			},
 			value:    "something else awesome",
@@ -42,6 +56,34 @@ func TestStringFilters(t *testing.T) {
 			},
 			value:    "something else",
 			expected: false,
+		},
+		{
+			filter: filters.StringFilter{
+				Contains: "awesome",
+			},
+			value:    "something awesome thingy",
+			expected: true,
+		},
+		{
+			filter: filters.StringFilter{
+				Contains: "awesome",
+			},
+			value:    "something thingy",
+			expected: false,
+		},
+		{
+			filter: filters.StringFilter{
+				Contains: "!awesome",
+			},
+			value:    "something awesome thingy",
+			expected: false,
+		},
+		{
+			filter: filters.StringFilter{
+				Contains: "!awesome",
+			},
+			value:    "something thingy",
+			expected: true,
 		},
 		{
 			filter: filters.StringFilter{

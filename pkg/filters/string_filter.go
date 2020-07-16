@@ -21,21 +21,42 @@ type StringFilter struct {
 // Matches returns true if the given filter matches the value
 func (f *StringFilter) Matches(value string) bool {
 	if f.Prefix != "" {
-		if !strings.HasPrefix(value, f.Prefix) {
+		if !HasPrefix(value, f.Prefix) {
 			return false
 		}
 	}
 	if f.Suffix != "" {
-		if !strings.HasSuffix(value, f.Suffix) {
+		if !HasSuffix(value, f.Suffix) {
 			return false
 		}
 	}
 	if f.Contains != "" {
-		if !strings.Contains(value, f.Contains) {
+		if !Contains(value, f.Contains) {
 			return false
 		}
 	}
 	return true
+}
+
+func HasPrefix(s string, arg string) bool {
+	if strings.HasPrefix(arg, "!") {
+		return !HasPrefix(s, arg[1:])
+	}
+	return strings.HasPrefix(s, arg)
+}
+
+func HasSuffix(s string, arg string) bool {
+	if strings.HasPrefix(arg, "!") {
+		return !HasSuffix(s, arg[1:])
+	}
+	return strings.HasSuffix(s, arg)
+}
+
+func Contains(s string, arg string) bool {
+	if strings.HasPrefix(arg, "!") {
+		return !Contains(s, arg[1:])
+	}
+	return strings.Contains(s, arg)
 }
 
 func (f *StringFilter) String() string {
