@@ -1,4 +1,4 @@
-package jx_apps
+package apps
 
 import (
 	"fmt"
@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/apps/templater"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helm"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/jx_apps/templater"
 	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
 	"github.com/jenkins-x/jx-helpers/pkg/versionstream/versionstreamrepo"

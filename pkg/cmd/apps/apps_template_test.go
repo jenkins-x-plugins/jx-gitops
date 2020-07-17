@@ -1,4 +1,4 @@
-package jx_apps_test
+package apps_test
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/jx_apps"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/apps"
 	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner/fakerunner"
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient/cli"
@@ -22,7 +22,7 @@ func TestStepJxAppsTemplate(t *testing.T) {
 	secretsYaml := filepath.Join("test_data", "input", "secrets.yaml")
 	require.FileExists(t, secretsYaml)
 
-	_, o := jx_apps.NewCmdJxAppsTemplate()
+	_, o := apps.NewCmdJxAppsTemplate()
 
 	tmpDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err, "failed to create tmp dir")

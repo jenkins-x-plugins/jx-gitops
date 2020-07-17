@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/jenkins-x/jx-api/pkg/config"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/jx_apps/templater"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/apps/templater"
 	"github.com/jenkins-x/jx-helpers/pkg/testhelpers"
 	"github.com/stretchr/testify/require"
 )
