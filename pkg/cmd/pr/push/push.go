@@ -7,7 +7,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jenkins-x/jx-logging/pkg/log"
+	"github.com/jenkins-x/jx-helpers/pkg/gitclient"
+	"github.com/jenkins-x/jx-helpers/pkg/gitclient/cli"
+	"github.com/jenkins-x/jx/v2/pkg/gits"
 	"k8s.io/client-go/rest"
 
 	"github.com/jenkins-x/go-scm/scm"
@@ -20,7 +22,6 @@ import (
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient/gitdiscovery"
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient/giturl"
 	"github.com/jenkins-x/jx/v2/pkg/auth"
-	"github.com/jenkins-x/jx/v2/pkg/gits"
 	"github.com/jenkins-x/jx/v2/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -48,6 +49,8 @@ type Options struct {
 	GitServerURL      string
 	GitKind           string
 	GitToken          string
+	UserName          string
+	UserEmail         string
 	Number            int
 	BatchMode         bool
 	UseGitHubOAuth    bool
@@ -56,6 +59,7 @@ type Options struct {
 	AuthConfigService auth.ConfigService
 	IOFileHandles     *util.IOFileHandles
 	gitter            gits.Gitter
+	gitClient         gitclient.Interface
 }
 
 // NewCmdPullRequestPush creates a command object for the command
@@ -79,6 +83,8 @@ func NewCmdPullRequestPush() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.GitServerURL, " git-server", "", "", "the git server URL to create the git provider client. If not specified its defaulted from the current source URL")
 	cmd.Flags().StringVarP(&o.GitKind, " git-kind", "", "", "the kind of git server to connect to")
 	cmd.Flags().StringVarP(&o.GitToken, " git-token", "", "", "the git oauth token used to query the Pull Request to discover the branch name")
+	cmd.Flags().StringVarP(&o.UserName, "name", "", "", "the git user name to use if one is not setup")
+	cmd.Flags().StringVarP(&o.UserEmail, "email", "", "", "the git user email to use if one is not setup")
 	return cmd, o
 }
 
@@ -255,6 +261,13 @@ func (o *Options) Git() gits.Gitter {
 	return o.gitter
 }
 
+func (o *Options) GitClient() gitclient.Interface {
+	if o.gitClient == nil {
+		o.gitClient = cli.NewCLIClient("", o.CommandRunner)
+	}
+	return o.gitClient
+}
+
 // IsInCluster tells if we are running incluster
 func IsInCluster() bool {
 	_, err := rest.InClusterConfig()
@@ -262,29 +275,14 @@ func IsInCluster() bool {
 }
 
 func (o *Options) InitGitConfigAndUser() error {
-	// lets make sure the home dir exists
-	dir := util.HomeDir()
-	err := os.MkdirAll(dir, util.DefaultWritePermissions)
+	gitClient := o.GitClient()
+	_, _, err := gitclient.EnsureUserAndEmailSetup(gitClient, o.Dir, o.UserName, o.UserEmail)
 	if err != nil {
-		return errors.Wrapf(err, "failed to make sure the home directory %s was created", dir)
+		return errors.Wrapf(err, "failed to setup git user and email")
 	}
-
-	// lets validate we have git configured
-	_, _, err = gits.EnsureUserAndEmailSetup(o.Git())
+	err = gitclient.SetCredentialHelper(gitClient, "")
 	if err != nil {
-		return err
-	}
-
-	c := &cmdrunner.Command{
-		Name: "git",
-		Args: []string{"config", "--global", "credential.helper", "store"},
-	}
-	_, err = o.CommandRunner(c)
-	if err != nil {
-		return errors.Wrapf(err, "failed to setup git")
-	}
-	if os.Getenv("XDG_CONFIG_HOME") == "" {
-		log.Logger().Warnf("Note that the environment variable $XDG_CONFIG_HOME is not defined so we may not be able to push to git!")
+		return errors.Wrapf(err, "failed to setup credential store")
 	}
 	return nil
 }
