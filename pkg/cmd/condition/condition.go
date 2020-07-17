@@ -2,6 +2,7 @@ package condition
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
@@ -42,6 +43,8 @@ type Options struct {
 	LastCommitMessageFilter filters.StringFilter
 	BatchMode               bool
 	CommandRunner           cmdrunner.CommandRunner
+	Out                     io.Writer
+	Err                     io.Writer
 }
 
 // NewCmdCondition creates a command object for the command
@@ -88,16 +91,23 @@ func (o *Options) Run() error {
 	log.Logger().Infof("found last commit message: %s", termcolor.ColorStatus(lastCommitMessage))
 
 	if o.LastCommitMessageFilter.Matches(lastCommitMessage) {
+		if o.Out == nil {
+			o.Out = os.Stdout
+		}
+		if o.Err == nil {
+			o.Err = os.Stderr
+		}
 		c = &cmdrunner.Command{
 			Dir:  o.Dir,
 			Name: o.Args[0],
 			Args: o.Args[1:],
+			Out:  o.Out,
+			Err:  o.Err,
 		}
 		_, err = o.CommandRunner(c)
 		if err != nil {
 			return errors.Wrapf(err, "failed to run %s", c.CLI())
 		}
-
 	}
 	return nil
 }
