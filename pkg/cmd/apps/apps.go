@@ -1,4 +1,4 @@
-package jx_apps
+package apps
 
 import (
 	"github.com/jenkins-x/jx-helpers/pkg/cobras"
@@ -6,11 +6,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// NewCmdJxApps creates the new command
-func NewCmdJxApps() *cobra.Command {
+// NewCmdApps creates the new command
+func NewCmdApps() *cobra.Command {
 	command := &cobra.Command{
-		Use:   "jx-apps",
-		Short: "Commands for working with jx-apps.yml",
+		Use:     "apps",
+		Short:   "Commands for working with jx-apps.yml",
+		Aliases: []string{"jx-apps", "app"},
 		Run: func(command *cobra.Command, args []string) {
 			err := command.Help()
 			if err != nil {

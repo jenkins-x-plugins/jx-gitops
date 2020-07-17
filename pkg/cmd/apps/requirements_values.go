@@ -1,4 +1,4 @@
-package jx_apps
+package apps
 
 import (
 	"github.com/jenkins-x/jx-api/pkg/config"
