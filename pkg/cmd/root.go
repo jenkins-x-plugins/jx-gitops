@@ -5,6 +5,7 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/apps"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/condition"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/extsecret"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/git"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/hash"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helm"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/ingress"
@@ -37,6 +38,7 @@ func Main() *cobra.Command {
 	}
 	cmd.AddCommand(helm.NewCmdHelm())
 	cmd.AddCommand(apps.NewCmdApps())
+	cmd.AddCommand(git.NewCmdGit())
 	cmd.AddCommand(kpt.NewCmdKpt())
 	cmd.AddCommand(pr.NewCmdPR())
 	cmd.AddCommand(cobras.SplitCommand(annotate.NewCmdUpdateAnnotate()))
