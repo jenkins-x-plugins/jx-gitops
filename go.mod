@@ -11,7 +11,7 @@ require (
 	github.com/jenkins-x/jx-apps v0.0.1
 	github.com/jenkins-x/jx-helpers v1.0.33
 	github.com/jenkins-x/jx-logging v0.0.11
-	github.com/jenkins-x/jx/v2 v2.1.90
+	github.com/jenkins-x/jx/v2 v2.1.101
 	github.com/jenkins-x/lighthouse-config v0.0.6
 	github.com/pborman/uuid v1.2.0
 	github.com/pkg/errors v0.9.1
