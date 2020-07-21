@@ -6,7 +6,7 @@ before:
     - go mod download
 
 builds:
-  - id: jx-gitops-linux
+  - id: jx-gitops
     # Path to main.go file or main package.
     # Default is `.`.
     main: ./cmd/main.go
@@ -25,6 +25,8 @@ builds:
     # For more info refer to: https://golang.org/doc/install/source#environment
     # Defaults are darwin and linux.
     goos:
+      - windows
+      - darwin
       - linux
 
     # GOARCH to build for.
@@ -32,61 +34,8 @@ builds:
     # Defaults are 386 and amd64.
     goarch:
       - amd64
-
-  - id: jx-gitops-amd64
-    # Path to main.go file or main package.
-    # Default is `.`.
-    main: ./cmd/main.go
-
-    # Binary name.
-    # Can be a path (e.g. `bin/app`) to wrap the binary in a directory.
-    # Default is the name of the project directory.
-    binary: jx-gitops
-
-    # Custom ldflags templates.
-    # Default is `-s -w -X main.version={{.Version}} -X main.commit={{.ShortCommit}} -X main.date={{.Date}} -X main.builtBy=goreleaser`.
-    ldflags:
-     - -X "github.com/jenkins-x/jx-gitops/pkg/version.Version={{.Env.VERSION}}" -X "{{.Env.ROOTPACKAGE}}/pkg/version.Version={{.Env.VERSION}}" -X "{{.Env.ROOTPACKAGE}}/pkg/version.Revision={{.Env.REV}}" -X "{{.Env.ROOTPACKAGE}}/pkg/version.Branch={{.Env.BRANCH}}" -X "{{.Env.ROOTPACKAGE}}/pkg/version.BuildDate={{.Env.BUILDDATE}}" -X "{{.Env.ROOTPACKAGE}}/pkg/version.GoVersion={{.Env.GOVERSION}}"
-
-    # GOOS list to build for.
-    # For more info refer to: https://golang.org/doc/install/source#environment
-    # Defaults are darwin and linux.
-    goos:
-      - darwin
-
-    # GOARCH to build for.
-    # For more info refer to: https://golang.org/doc/install/source#environment
-    # Defaults are 386 and amd64.
-    goarch:
-      - amd64
-
-  - id: jx-gitops-windows-amd64
-    # Path to main.go file or main package.
-    # Default is `.`.
-    main: ./cmd/main.go
-
-    # Binary name.
-    # Can be a path (e.g. `bin/app`) to wrap the binary in a directory.
-    # Default is the name of the project directory.
-    binary: jx-gitops
-
-    # Custom ldflags templates.
-    # Default is `-s -w -X main.version={{.Version}} -X main.commit={{.ShortCommit}} -X main.date={{.Date}} -X main.builtBy=goreleaser`.
-    ldflags:
-     - -X "github.com/jenkins-x/jx-gitops/pkg/version.Version={{.Env.VERSION}}" -X "{{.Env.ROOTPACKAGE}}/pkg/version.Version={{.Env.VERSION}}" -X "{{.Env.ROOTPACKAGE}}/pkg/version.Revision={{.Env.REV}}" -X "{{.Env.ROOTPACKAGE}}/pkg/version.Branch={{.Env.BRANCH}}" -X "{{.Env.ROOTPACKAGE}}/pkg/version.BuildDate={{.Env.BUILDDATE}}" -X "{{.Env.ROOTPACKAGE}}/pkg/version.GoVersion={{.Env.GOVERSION}}"
-
-    # GOOS list to build for.
-    # For more info refer to: https://golang.org/doc/install/source#environment
-    # Defaults are darwin and linux.
-    goos:
-      - windows
-
-    # GOARCH to build for.
-    # For more info refer to: https://golang.org/doc/install/source#environment
-    # Defaults are 386 and amd64.
-    goarch:
-      - amd64
-
+      - arm
+      - arm64
 archives:
   - name_template: "jx-gitops-{{ .Os }}-{{ .Arch }}"
     format_overrides:
