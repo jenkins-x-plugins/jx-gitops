@@ -1,6 +1,7 @@
 package pr
 
 import (
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/pr/get"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/pr/push"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras"
 	"github.com/jenkins-x/jx-logging/pkg/log"
@@ -21,5 +22,6 @@ func NewCmdPR() *cobra.Command {
 		},
 	}
 	command.AddCommand(cobras.SplitCommand(push.NewCmdPullRequestPush()))
+	command.AddCommand(cobras.SplitCommand(get.NewCmdPullRequestGet()))
 	return command
 }
