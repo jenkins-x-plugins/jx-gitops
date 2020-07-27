@@ -1,4 +1,4 @@
-package push
+package get
 
 import (
 	"context"
@@ -9,8 +9,10 @@ import (
 
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient/cli"
+	"github.com/jenkins-x/jx-logging/pkg/log"
 	"github.com/jenkins-x/jx/v2/pkg/gits"
 	"k8s.io/client-go/rest"
+	"sigs.k8s.io/yaml"
 
 	"github.com/jenkins-x/go-scm/scm"
 	"github.com/jenkins-x/go-scm/scm/factory"
@@ -29,12 +31,12 @@ import (
 
 var (
 	cmdLong = templates.LongDesc(`
-		Pushes the current git directory to the branch used to create the Pull Request
+		Gets a pull request and displays fields from it
 `)
 
 	cmdExample = templates.Examples(`
-		# pushes the current directories git contents to the branch used to create the current PR via $BRANCH_NAME
-		%s pr push 
+		# display the head source URL
+		%s pr get --head-url 
 	`)
 
 	pathSeparator = string(os.PathSeparator)
@@ -43,7 +45,6 @@ var (
 // KptOptions the options for the command
 type Options struct {
 	Dir               string
-	Branch            string
 	Repository        string
 	SourceURL         string
 	GitServerURL      string
@@ -52,23 +53,25 @@ type Options struct {
 	UserName          string
 	UserEmail         string
 	Number            int
+	ShowHeadURL       bool
 	BatchMode         bool
 	UseGitHubOAuth    bool
 	CommandRunner     cmdrunner.CommandRunner
 	ScmClient         *scm.Client
 	AuthConfigService auth.ConfigService
 	IOFileHandles     *util.IOFileHandles
+	Result            *scm.PullRequest
 	gitter            gits.Gitter
 	gitClient         gitclient.Interface
 }
 
 // NewCmdPullRequestPush creates a command object for the command
-func NewCmdPullRequestPush() (*cobra.Command, *Options) {
+func NewCmdPullRequestGet() (*cobra.Command, *Options) {
 	o := &Options{}
 
 	cmd := &cobra.Command{
-		Use:     "push",
-		Short:   "Pushes the current git directory to the branch used to create the Pull Request",
+		Use:     "get",
+		Short:   "Gets a pull request and displays fields from it",
 		Long:    cmdLong,
 		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
@@ -76,15 +79,12 @@ func NewCmdPullRequestPush() (*cobra.Command, *Options) {
 			helper.CheckErr(err)
 		},
 	}
-	cmd.Flags().StringVarP(&o.Dir, "dir", "d", "", "the directory to run the git push command from")
-	cmd.Flags().StringVarP(&o.SourceURL, "source", "s", "", "the git source URL of the current git clone")
 	cmd.Flags().StringVarP(&o.Repository, "repo", "r", "", "the full git repository name of the form 'owner/name' for the Pull Request")
-	cmd.Flags().StringVarP(&o.Branch, "branch", "b", "", "the git branch to push to. If not specified we will find the branch from the PullRequest.Source property")
+	cmd.Flags().IntVarP(&o.Number, "pr", "", 0, "the Pull Request number. If not specified we will use $BRANCH_NAME")
 	cmd.Flags().StringVarP(&o.GitServerURL, "git-server", "", "", "the git server URL to create the git provider client. If not specified its defaulted from the current source URL")
 	cmd.Flags().StringVarP(&o.GitKind, "git-kind", "", "", "the kind of git server to connect to")
 	cmd.Flags().StringVarP(&o.GitToken, "git-token", "", "", "the git oauth token used to query the Pull Request to discover the branch name")
-	cmd.Flags().StringVarP(&o.UserName, "name", "", "", "the git user name to use if one is not setup")
-	cmd.Flags().StringVarP(&o.UserEmail, "email", "", "", "the git user email to use if one is not setup")
+	cmd.Flags().BoolVarP(&o.ShowHeadURL, "head-url", "", false, "show the head clone URL of the PR")
 	return cmd, o
 }
 
@@ -105,7 +105,7 @@ func (o *Options) Run() error {
 		}
 	}
 	if o.Number == 0 {
-		o.Number, err = o.discoverPullRequest()
+		o.Number, err = o.discoverPullRequestNumber()
 		if err != nil {
 			return errors.Wrapf(err, "failed to discover the Pull Request number. Consider specifying the --number option")
 		}
@@ -113,40 +113,14 @@ func (o *Options) Run() error {
 			return errors.Errorf("could not to discover the Pull Request number. Consider specifying the --number option")
 		}
 	}
-	if o.Branch == "" {
-		o.Branch, err = o.discoverPullRequestBranch()
-		if err != nil {
-			return errors.Wrapf(err, "failed to discover the pull request branch. Consider specifying the --branch option")
-		}
-		if o.Branch == "" {
-			return errors.Errorf("could not find branch fpr PR %d in repo %s", o.Number, o.Repository)
-		}
+	pr, err := o.discoverPullRequest()
+	if err != nil {
+		return errors.Wrapf(err, "failed to discover the pull request")
 	}
-	return o.pushToBranch()
-}
-
-func (o *Options) pushToBranch() error {
-	argSlices := [][]string{
-		{
-			"checkout", "-b", o.Branch,
-		},
-		{
-			"push", "origin", o.Branch,
-		},
+	if pr == nil {
+		return errors.Errorf("no Pull Request could be found for %d in repository %s", o.Number, o.Repository)
 	}
-
-	for _, args := range argSlices {
-		c := &cmdrunner.Command{
-			Dir:  o.Dir,
-			Name: "git",
-			Args: args,
-		}
-		_, err := o.CommandRunner(c)
-		if err != nil {
-			return errors.Wrapf(err, "failed to run command %s", c.CLI())
-		}
-	}
-	return nil
+	return o.displayPullRequest(pr)
 }
 
 func (o *Options) discoverGitServerURLAndRepository() (string, error) {
@@ -181,7 +155,7 @@ func (o *Options) discoverGitServerURLAndRepository() (string, error) {
 	return "", nil
 }
 
-func (o *Options) discoverPullRequest() (int, error) {
+func (o *Options) discoverPullRequestNumber() (int, error) {
 	branchName := strings.ToUpper(os.Getenv("BRANCH_NAME"))
 	prPrefix := "PR-"
 	if strings.HasPrefix(branchName, prPrefix) {
@@ -197,15 +171,15 @@ func (o *Options) discoverPullRequest() (int, error) {
 	return 0, nil
 }
 
-func (o *Options) discoverPullRequestBranch() (string, error) {
+func (o *Options) discoverPullRequest() (*scm.PullRequest, error) {
 	if o.ScmClient == nil {
 		var err error
 		if o.GitServerURL == "" {
-			return "", errors.Errorf("could not deduce the git server URL. Try specifying --source")
+			return nil, errors.Errorf("could not deduce the git server URL. Try specifying --source")
 		}
 		oauthToken, err := o.discoverGitToken()
 		if err != nil {
-			return "", errors.Wrapf(err, "failed to discover git auth token")
+			return nil, errors.Wrapf(err, "failed to discover git auth token")
 		}
 		if oauthToken != "" {
 			o.ScmClient, err = factory.NewClient(o.GitKind, o.GitServerURL, oauthToken)
@@ -213,15 +187,15 @@ func (o *Options) discoverPullRequestBranch() (string, error) {
 			o.ScmClient, _, err = o.createScmClient(o.GitServerURL, "", o.GitKind)
 		}
 		if err != nil {
-			return "", errors.Wrapf(err, "failed to create Scm client")
+			return nil, errors.Wrapf(err, "failed to create Scm client")
 		}
 	}
 	ctx := context.Background()
 	pr, _, err := o.ScmClient.PullRequests.Find(ctx, o.Repository, o.Number)
 	if err != nil {
-		return "", errors.Wrapf(err, "failed to find PR %d in repo %s", o.Number, o.Repository)
+		return nil, errors.Wrapf(err, "failed to find PR %d in repo %s", o.Number, o.Repository)
 	}
-	return pr.Source, nil
+	return pr, nil
 }
 
 func (o *Options) discoverGitToken() (string, error) {
@@ -230,7 +204,8 @@ func (o *Options) discoverGitToken() (string, error) {
 		oauthToken = os.Getenv("GIT_TOKEN")
 	}
 	if oauthToken == "" {
-		// TODO discover via secret...
+		// TODO discover via secret?...
+		return "", util.MissingOption("git-token")
 	}
 	return oauthToken, nil
 }
@@ -254,20 +229,6 @@ func (o *Options) createScmClient(gitServer, owner, gitKind string) (*scm.Client
 	return scmClient, token, nil
 }
 
-func (o *Options) Git() gits.Gitter {
-	if o.gitter == nil {
-		o.gitter = gits.NewGitCLI()
-	}
-	return o.gitter
-}
-
-func (o *Options) GitClient() gitclient.Interface {
-	if o.gitClient == nil {
-		o.gitClient = cli.NewCLIClient("", o.CommandRunner)
-	}
-	return o.gitClient
-}
-
 // IsInCluster tells if we are running incluster
 func IsInCluster() bool {
 	_, err := rest.InClusterConfig()
@@ -285,4 +246,36 @@ func (o *Options) InitGitConfigAndUser() error {
 		return errors.Wrapf(err, "failed to setup credential store")
 	}
 	return nil
+}
+
+func (o *Options) Git() gits.Gitter {
+	if o.gitter == nil {
+		o.gitter = gits.NewGitCLI()
+	}
+	return o.gitter
+}
+func (o *Options) GitClient() gitclient.Interface {
+	if o.gitClient == nil {
+		o.gitClient = cli.NewCLIClient("", o.CommandRunner)
+	}
+	return o.gitClient
+}
+
+func (o *Options) displayPullRequest(pr *scm.PullRequest) error {
+	o.Result = pr
+
+	if o.ShowHeadURL {
+		log.Logger().Info(pr.Head.Repo.Clone)
+		return nil
+	}
+
+	data, err := yaml.Marshal(pr)
+	if err != nil {
+		if err != nil {
+			return errors.Wrapf(err, "failed to marshal PullRequest as YAML")
+		}
+	}
+	log.Logger().Info(string(data))
+	return nil
+
 }
