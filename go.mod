@@ -8,7 +8,7 @@ require (
 	github.com/google/go-cmp v0.4.0
 	github.com/jenkins-x/go-scm v1.5.141
 	github.com/jenkins-x/jx-api v0.0.16
-	github.com/jenkins-x/jx-apps v0.0.1
+	github.com/jenkins-x/jx-apps v0.0.2
 	github.com/jenkins-x/jx-helpers v1.0.33
 	github.com/jenkins-x/jx-logging v0.0.11
 	github.com/jenkins-x/jx/v2 v2.1.101
