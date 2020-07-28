@@ -20,8 +20,12 @@ Generate the kubernetes resources from a jx\-apps.yml
 
 .SH OPTIONS
 .PP
-\fB\-\-commit\-message\fP="chore: generated kubernetes resources from helm chart"
+\fB\-\-apps\-commit\-message\fP="chore: generated kubernetes resources from helm chart"
     the git commit message used
+
+.PP
+\fB\-\-apps\-git\-commit\fP[=false]
+    if set then the template command will git commit the modified jx\-apps.yml files
 
 .PP
 \fB\-d\fP, \fB\-\-dir\fP="."
@@ -52,6 +56,10 @@ Generate the kubernetes resources from a jx\-apps.yml
     if set then disable converting Secret resources to ExternalSecrets
 
 .PP
+\fB\-\-no\-resolve\fP[=false]
+    disables running the resolve command to resolve any versions of values from the version stream in jx\-apps.yml
+
+.PP
 \fB\-\-no\-split\fP[=false]
     if set then disable splitting of multiple resources into separate files
 
@@ -64,16 +72,20 @@ Generate the kubernetes resources from a jx\-apps.yml
     the output directory to generate the templates to. Defaults to charts/$name/resources
 
 .PP
-\fB\-c\fP, \fB\-\-ref\fP="master"
-    the git ref (branch, tag, revision) to git clone
+\fB\-c\fP, \fB\-\-ref\fP=""
+    the git ref (branch, tag, revision) of the version stream to git clone. If not specified it defaults to the value in the jx\-requirements.yml
 
 .PP
 \fB\-\-template\-values\fP=[]
-    provide extra values.yaml files passed into evaluating any values.yaml.gotmpl files such as for generating dummy secret values
+    provide extra values.yaml files passed into evaluating any values.yaml.gotmpl files before passing them into Helm \- such as for generating dummy secret values
+
+.PP
+\fB\-\-update\fP[=false]
+    updates versions from the version stream if they have changed
 
 .PP
 \fB\-n\fP, \fB\-\-url\fP=""
-    the git clone URL of the version stream
+    the git clone URL of the version stream. If not specified it defaults to the value in the jx\-requirements.yml
 
 .PP
 \fB\-\-version\-stream\-dir\fP=""
@@ -83,7 +95,7 @@ Generate the kubernetes resources from a jx\-apps.yml
 .SH EXAMPLE
 .PP
 # generates the resources from a jx\-apps.yml
-  jx\-gitops step jx\-apps template
+  jx\-gitops step apps template
 
 
 .SH SEE ALSO
