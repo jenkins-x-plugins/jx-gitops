@@ -20,28 +20,36 @@ Pushes the current git directory to the branch used to create the Pull Request
 
 .SH OPTIONS
 .PP
-\fB\-b\fP, \fB\-\- branch\fP=""
+\fB\-b\fP, \fB\-\-branch\fP=""
     the git branch to push to. If not specified we will find the branch from the PullRequest.Source property
-
-.PP
-\fB\-\- git\-kind\fP=""
-    the kind of git server to connect to
-
-.PP
-\fB\-\- git\-server\fP=""
-    the git server URL to create the git provider client. If not specified its defaulted from the current source URL
-
-.PP
-\fB\-\- git\-token\fP=""
-    the git oauth token used to query the Pull Request to discover the branch name
 
 .PP
 \fB\-d\fP, \fB\-\-dir\fP=""
     the directory to run the git push command from
 
 .PP
+\fB\-\-email\fP=""
+    the git user email to use if one is not setup
+
+.PP
+\fB\-\-git\-kind\fP=""
+    the kind of git server to connect to
+
+.PP
+\fB\-\-git\-server\fP=""
+    the git server URL to create the git provider client. If not specified its defaulted from the current source URL
+
+.PP
+\fB\-\-git\-token\fP=""
+    the git oauth token used to query the Pull Request to discover the branch name
+
+.PP
 \fB\-h\fP, \fB\-\-help\fP[=false]
     help for push
+
+.PP
+\fB\-\-name\fP=""
+    the git user name to use if one is not setup
 
 .PP
 \fB\-r\fP, \fB\-\-repo\fP=""
