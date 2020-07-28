@@ -1,4 +1,4 @@
-package apps
+package template
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/apps/reqvalues"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/apps/templater"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helm"
 	"github.com/jenkins-x/jx-helpers/pkg/files"
@@ -26,13 +27,13 @@ import (
 )
 
 var (
-	jxAppsTemplateLong = templates.LongDesc(`
+	cmdLong = templates.LongDesc(`
 		Generate the kubernetes resources from a jx-apps.yml
 `)
 
-	jxAppsTemplateExample = templates.Examples(`
+	cmdExample = templates.Examples(`
 		# generates the resources from a jx-apps.yml
-		%s step jx-apps template
+		%s step apps template
 	`)
 )
 
@@ -40,8 +41,8 @@ var (
 	phases = []string{"apps", "system"}
 )
 
-// JxAppsTemplateOptions the options for the command
-type JxAppsTemplateOptions struct {
+// Options the options for the command
+type Options struct {
 	helm.TemplateOptions
 	Dir                 string
 	VersionStreamDir    string
@@ -53,14 +54,14 @@ type JxAppsTemplateOptions struct {
 }
 
 // NewCmdJxAppsTemplate creates a command object for the command
-func NewCmdJxAppsTemplate() (*cobra.Command, *JxAppsTemplateOptions) {
-	o := &JxAppsTemplateOptions{}
+func NewCmdJxAppsTemplate() (*cobra.Command, *Options) {
+	o := &Options{}
 
 	cmd := &cobra.Command{
 		Use:     "template",
 		Short:   "Generate the kubernetes resources from a jx-apps.yml",
-		Long:    jxAppsTemplateLong,
-		Example: fmt.Sprintf(jxAppsTemplateExample, rootcmd.BinaryName),
+		Long:    cmdLong,
+		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
 			err := o.Run()
 			helper.CheckErr(err)
@@ -79,7 +80,7 @@ func NewCmdJxAppsTemplate() (*cobra.Command, *JxAppsTemplateOptions) {
 }
 
 // Run implements the command
-func (o *JxAppsTemplateOptions) Run() error {
+func (o *Options) Run() error {
 	appsCfg, appsCfgFile, err := jxapps.LoadAppConfig(o.Dir)
 	if err != nil {
 		return errors.Wrap(err, "failed to load jx-apps.yml")
@@ -143,7 +144,7 @@ func (o *JxAppsTemplateOptions) Run() error {
 		return errors.Wrap(err, "failed to create tempo file for jx requirements values")
 	}
 	jxReqValuesFileName := jxReqValuesFile.Name()
-	err = SaveRequirementsValuesFile(requirements, jxReqValuesFileName)
+	err = reqvalues.SaveRequirementsValuesFile(requirements, jxReqValuesFileName)
 	if err != nil {
 		return errors.Wrapf(err, "failed to save tempo file for jx requirements values file %s", jxReqValuesFileName)
 	}
@@ -334,7 +335,7 @@ func (o *JxAppsTemplateOptions) Run() error {
 
 }
 
-func (o *JxAppsTemplateOptions) matchPrefix(prefix string) (string, error) {
+func (o *Options) matchPrefix(prefix string) (string, error) {
 	if o.prefixes == nil {
 		return "", errors.Errorf("no repository prefixes found in version stream")
 	}
@@ -347,7 +348,7 @@ func (o *JxAppsTemplateOptions) matchPrefix(prefix string) (string, error) {
 	return repoURL[0], nil
 }
 
-func (o *JxAppsTemplateOptions) templateValuesFile(requirements *config.RequirementsConfig, valuesTemplateFile string, chartName string, valuesFiles []string) (string, error) {
+func (o *Options) templateValuesFile(requirements *config.RequirementsConfig, valuesTemplateFile string, chartName string, valuesFiles []string) (string, error) {
 	absValuesFiles := []string{}
 	for _, f := range valuesFiles {
 		af, err := filepath.Abs(f)

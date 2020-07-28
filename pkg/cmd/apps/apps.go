@@ -1,6 +1,8 @@
 package apps
 
 import (
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/apps/resolve"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/apps/template"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras"
 	"github.com/jenkins-x/jx-logging/pkg/log"
 	"github.com/spf13/cobra"
@@ -19,6 +21,7 @@ func NewCmdApps() *cobra.Command {
 			}
 		},
 	}
-	command.AddCommand(cobras.SplitCommand(NewCmdJxAppsTemplate()))
+	command.AddCommand(cobras.SplitCommand(resolve.NewCmdJxAppsResolve()))
+	command.AddCommand(cobras.SplitCommand(template.NewCmdJxAppsTemplate()))
 	return command
 }

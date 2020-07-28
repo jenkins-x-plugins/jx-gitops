@@ -1,4 +1,4 @@
-package apps
+package reqvalues
 
 import (
 	"github.com/jenkins-x/jx-api/pkg/config"
