@@ -2,19 +2,17 @@ package resolve_test
 
 import (
 	"io/ioutil"
-	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/jenkins-x/jx-apps/pkg/jxapps"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/apps/resolve"
+	"github.com/jenkins-x/jx-gitops/pkg/fakekpt"
 	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner/fakerunner"
 	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient/cli"
 	"github.com/jenkins-x/jx-helpers/pkg/testhelpers"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -41,21 +39,8 @@ func TestStepJxAppsResolve(t *testing.T) {
 				return cmdrunner.DefaultCommandRunner(c)
 			}
 			t.Logf("running command %s in dir %s\n", c.CLI(), c.Dir)
-			if c.Name == "kpt" && len(c.Args) > 3 {
-				valuesDir := c.Args[3]
-
-				// lets trim the versionStream folder from the valuesDir
-				dirs := strings.Split(valuesDir, string(os.PathSeparator))
-				srcValuesDir := filepath.Join(o.VersionStreamDir, filepath.Join(dirs[1:]...))
-
-				// lets copy the file from the src dir to the target to simulate kpt
-				targetValuesDir := filepath.Join(tmpDir, valuesDir)
-				t.Logf("copying version stream dir %s to %s\n", srcValuesDir, targetValuesDir)
-
-				err = files.CopyDirOverwrite(srcValuesDir, targetValuesDir)
-				if err != nil {
-					return "", errors.Wrapf(err, "failed to copy %s to %s", srcValuesDir, targetValuesDir)
-				}
+			if c.Name == "kpt" {
+				return fakekpt.FakeKpt(t, c, o.VersionStreamDir, tmpDir)
 			}
 			return "", nil
 		},

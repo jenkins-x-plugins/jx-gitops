@@ -7,7 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/apps/reqvalues"
+	"github.com/jenkins-x/jx-apps/pkg/helmfile"
+	"github.com/jenkins-x/jx-gitops/pkg/jxtmpl/reqvalues"
 	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient"
@@ -43,20 +44,29 @@ var (
 
 // Options the options for the command
 type Options struct {
-	Namespace           string
-	GitCommitMessage    string
-	Dir                 string
-	VersionStreamDir    string
-	VersionStreamURL    string
-	VersionStreamRef    string
-	BatchMode           bool
-	UpdateMode          bool
-	DoGitCommit         bool
-	TemplateValuesFiles []string
-	IOFileHandles       *files.IOFileHandles
-	Gitter              gitclient.Interface
-	CommandRunner       cmdrunner.CommandRunner
-	prefixes            *versionstream.RepositoryPrefixes
+	Namespace        string
+	GitCommitMessage string
+	Dir              string
+	VersionStreamDir string
+	VersionStreamURL string
+	VersionStreamRef string
+	BatchMode        bool
+	UpdateMode       bool
+	DoGitCommit      bool
+	IOFileHandles    *files.IOFileHandles
+	Gitter           gitclient.Interface
+	CommandRunner    cmdrunner.CommandRunner
+	prefixes         *versionstream.RepositoryPrefixes
+	Results          Results
+}
+
+type Results struct {
+	AppsCfg                    *jxapps.AppConfig
+	AppsCfgFile                string
+	VersionsDir                string
+	RequirementsValuesFileName string
+	Resolver                   *versionstream.VersionResolver
+	Requirements               *config.RequirementsConfig
 }
 
 // NewCmdJxAppsTemplate creates a command object for the command
@@ -73,22 +83,25 @@ func NewCmdJxAppsResolve() (*cobra.Command, *Options) {
 			helper.CheckErr(err)
 		},
 	}
-	cmd.Flags().BoolVarP(&o.UpdateMode, "update", "", false, "updates versions from the version stream if they have changed")
-	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the directory that contains the jx-apps.yml")
-	cmd.Flags().StringVarP(&o.VersionStreamDir, "version-stream-dir", "", "", "optional directory that contains a version stream")
-	cmd.Flags().StringVarP(&o.GitCommitMessage, "commit-message", "", "chore: generated kubernetes resources from helm chart", "the git commit message used")
-	cmd.Flags().StringVarP(&o.VersionStreamURL, "url", "n", "", "the git clone URL of the version stream. If not specified it defaults to the value in the jx-requirements.yml")
-	cmd.Flags().StringVarP(&o.VersionStreamRef, "ref", "c", "", "the git ref (branch, tag, revision) of the version stream to git clone. If not specified it defaults to the value in the jx-requirements.yml")
-	cmd.Flags().StringVarP(&o.Namespace, "namespace", "", "jx", "the default namespace if none is specified in the jx-apps.yml or jx-requirements.yml")
-	cmd.Flags().StringArrayVarP(&o.TemplateValuesFiles, "template-values", "", nil, "provide extra values.yaml files passed into evaluating any values.yaml.gotmpl files such as for generating dummy secret values")
-
-	// git commit stuff....
-	cmd.Flags().BoolVarP(&o.DoGitCommit, "git-commit", "", false, "if set then the template command will git commit any changed files")
+	o.AddFlags(cmd, "")
 	return cmd, o
 }
 
-// Run implements the command
-func (o *Options) Run() error {
+func (o *Options) AddFlags(cmd *cobra.Command, prefix string) {
+	cmd.Flags().BoolVarP(&o.UpdateMode, "update", "", false, "updates versions from the version stream if they have changed")
+	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the directory that contains the jx-apps.yml")
+	cmd.Flags().StringVarP(&o.VersionStreamDir, "version-stream-dir", "", "", "optional directory that contains a version stream")
+	cmd.Flags().StringVarP(&o.GitCommitMessage, prefix+"commit-message", "", "chore: generated kubernetes resources from helm chart", "the git commit message used")
+	cmd.Flags().StringVarP(&o.VersionStreamURL, "url", "n", "", "the git clone URL of the version stream. If not specified it defaults to the value in the jx-requirements.yml")
+	cmd.Flags().StringVarP(&o.VersionStreamRef, "ref", "c", "", "the git ref (branch, tag, revision) of the version stream to git clone. If not specified it defaults to the value in the jx-requirements.yml")
+	cmd.Flags().StringVarP(&o.Namespace, "namespace", "", "jx", "the default namespace if none is specified in the jx-apps.yml or jx-requirements.yml")
+
+	// git commit stuff....
+	cmd.Flags().BoolVarP(&o.DoGitCommit, prefix+"git-commit", "", false, "if set then the template command will git commit the modified jx-apps.yml files")
+}
+
+// Validate validates the options and populates any missing values
+func (o *Options) Validate() error {
 	if o.CommandRunner == nil {
 		o.CommandRunner = cmdrunner.DefaultCommandRunner
 	}
@@ -97,11 +110,15 @@ func (o *Options) Run() error {
 		return errors.Wrap(err, "failed to load jx-apps.yml")
 	}
 
+	o.Results.AppsCfg = appsCfg
+	o.Results.AppsCfgFile = appsCfgFile
+
 	versionsDir := o.VersionStreamDir
 	requirements, _, err := config.LoadRequirementsConfig(o.Dir, false)
 	if err != nil {
 		return errors.Wrapf(err, "failed to load jx-requirements.yml")
 	}
+	o.Results.Requirements = requirements
 	if o.VersionStreamURL == "" {
 		o.VersionStreamURL = requirements.VersionStream.URL
 		if o.VersionStreamURL == "" {
@@ -134,25 +151,49 @@ func (o *Options) Run() error {
 		o.GitCommitMessage = "chore: resolved applications from the version stream"
 	}
 
-	resolver := &versionstream.VersionResolver{
-		VersionsDir: versionsDir,
+	if o.Results.Resolver == nil {
+		o.Results.Resolver = &versionstream.VersionResolver{
+			VersionsDir: versionsDir,
+		}
 	}
-	o.prefixes, err = resolver.GetRepositoryPrefixes()
+	o.prefixes, err = o.Results.Resolver.GetRepositoryPrefixes()
 	if err != nil {
 		return errors.Wrapf(err, "failed to load repository prefixes at %s", versionsDir)
 	}
 
-	appsCfgDir := filepath.Dir(appsCfgFile)
-	jxReqValuesFile, err := ioutil.TempFile("", "jx-req-values-yaml-")
-	if err != nil {
-		return errors.Wrap(err, "failed to create tempo file for jx requirements values")
-	}
-	jxReqValuesFileName := jxReqValuesFile.Name()
+	jxReqValuesFileName := filepath.Join(o.Dir, reqvalues.RequirementsValuesFileName)
+	o.Results.RequirementsValuesFileName = reqvalues.RequirementsValuesFileName
 	err = reqvalues.SaveRequirementsValuesFile(requirements, jxReqValuesFileName)
 	if err != nil {
 		return errors.Wrapf(err, "failed to save tempo file for jx requirements values file %s", jxReqValuesFileName)
 	}
+	return nil
+}
 
+// Run implements the command
+func (o *Options) Run() error {
+	err := o.Validate()
+	if err != nil {
+		return errors.Wrapf(err, "failed to ")
+	}
+	appsCfg := o.Results.AppsCfg
+	if appsCfg == nil {
+		return errors.Errorf("failed to load the jx-apps.yml")
+	}
+	resolver := o.Results.Resolver
+	if resolver == nil {
+		return errors.Errorf("failed to create the VersionResolver")
+	}
+	versionsDir := resolver.VersionsDir
+	appsCfgFile := o.Results.AppsCfgFile
+	appsCfgDir := filepath.Dir(appsCfgFile)
+
+	requirementsValuesFiles := o.Results.RequirementsValuesFileName
+	if requirementsValuesFiles != "" {
+		if stringhelpers.StringArrayIndex(appsCfg.Values, requirementsValuesFiles) < 0 {
+			appsCfg.Values = append(appsCfg.Values, requirementsValuesFiles)
+		}
+	}
 	count := 0
 	for i, app := range appsCfg.Apps {
 		repository := app.Repository
@@ -182,7 +223,25 @@ func (o *Options) Run() error {
 		if repository == "" && prefix != "" {
 			return errors.Wrapf(err, "failed to find repository URL, not defined in jx-apps.yml or versionstream %s", o.VersionStreamURL)
 		}
-
+		if repository != "" && prefix != "" {
+			// lets ensure we've got a repository for this URL in the apps file
+			found := false
+			for _, r := range appsCfg.Repositories {
+				if r.Name == prefix {
+					if r.URL != repository {
+						return errors.Errorf("app %s has prefix %s for repository URL %s which is also mapped to prefix %s", app.Name, prefix, r.URL, r.Name)
+					}
+					found = true
+					break
+				}
+			}
+			if !found {
+				appsCfg.Repositories = append(appsCfg.Repositories, helmfile.RepositorySpec{
+					Name: prefix,
+					URL:  repository,
+				})
+			}
+		}
 		version, err := resolver.StableVersionNumber(versionstream.KindChart, fullChartName)
 		if err != nil {
 			return errors.Wrapf(err, "failed to find version number for chart %s", fullChartName)
@@ -218,8 +277,8 @@ func (o *Options) Run() error {
 			app.Namespace = defaults.Namespace
 		}
 
-		if app.Namespace == "" {
-			app.Namespace = requirements.Cluster.Namespace
+		if app.Namespace == "" && o.Results.Requirements != nil {
+			app.Namespace = o.Results.Requirements.Cluster.Namespace
 			if app.Namespace == "" {
 				app.Namespace = o.Namespace
 			}
@@ -246,6 +305,8 @@ func (o *Options) Run() error {
 					if err != nil {
 						return errors.Wrapf(err, "failed to create dir %s", d)
 					}
+					log.Logger().Infof("created dir %s", d)
+
 					if o.VersionStreamURL == "" {
 						return errors.Errorf("cannot use kpt to get the helm versions file %s from the version stream as no version stream git URL provided", path)
 					}

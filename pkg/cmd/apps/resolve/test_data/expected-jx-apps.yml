@@ -22,3 +22,11 @@ apps:
 repositories:
 - name: doesnotexist
   url: https://storage.googleapis.com/chartmuseum.jenkins-x.io
+- name: jenkins-x
+  url: https://storage.googleapis.com/chartmuseum.jenkins-x.io
+- name: bitnami
+  url: https://charts.bitnami.com/bitnami
+- name: external-secrets
+  url: https://godaddy.github.io/kubernetes-external-secrets
+values:
+- jx-requirements.values.yaml  

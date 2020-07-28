@@ -7,8 +7,10 @@ import (
 	"testing"
 
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/apps/template"
+	"github.com/jenkins-x/jx-gitops/pkg/fakekpt"
 	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner/fakerunner"
+	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient/cli"
 	"github.com/jenkins-x/jx-helpers/pkg/testhelpers"
 	"github.com/jenkins-x/jx-helpers/pkg/yamls"
@@ -27,9 +29,19 @@ func TestStepJxAppsTemplate(t *testing.T) {
 	tmpDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err, "failed to create tmp dir")
 
-	o.Dir = filepath.Join("test_data", "input")
-	o.OutDir = tmpDir
-	o.VersionStreamDir = filepath.Join("test_data", "versionstream")
+	testSrcDir := filepath.Join("test_data", "input")
+
+	o.Dir = filepath.Join(tmpDir, "src")
+	err = files.CopyDirOverwrite(testSrcDir, o.Dir)
+	require.NoError(t, err, "failed to copy %s to %s", testSrcDir, o.Dir)
+
+	templateDir := filepath.Join(tmpDir, "config-root")
+
+	t.Logf("resolving source in %s", o.Dir)
+	t.Logf("generated templates to %s", templateDir)
+
+	o.OutDir = templateDir
+	o.Options.VersionStreamDir = filepath.Join("test_data", "versionstream")
 
 	o.TemplateValuesFiles = []string{secretsYaml}
 	runner := &fakerunner.FakeRunner{
@@ -38,18 +50,19 @@ func TestStepJxAppsTemplate(t *testing.T) {
 				// lets really git clone but then fake out all other commands
 				return cmdrunner.DefaultCommandRunner(c)
 			}
+			if c.Name == "kpt" {
+				srcDir := o.Options.VersionStreamDir
+				destDir := o.Dir
+				return fakekpt.FakeKpt(t, c, srcDir, destDir)
+			}
 			return "", nil
 		},
 	}
-	o.Gitter = cli.NewCLIClient("", runner.Run)
+	o.Options.CommandRunner = runner.Run
+	o.TemplateOptions.Gitter = cli.NewCLIClient("", runner.Run)
 
 	err = o.Run()
 	require.NoError(t, err, "failed to run the command")
-
-	templateDir := tmpDir
-	require.DirExists(t, templateDir)
-
-	t.Logf("generated templates to %s", templateDir)
 
 	assert.FileExists(t, filepath.Join(templateDir, "jx", "bucketrepo", "deployment.yaml"))
 	assert.FileExists(t, filepath.Join(templateDir, "foo", "external-dns", "deployment.yaml"))
