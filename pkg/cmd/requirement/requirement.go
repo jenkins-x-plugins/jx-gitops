@@ -1,6 +1,7 @@
 package requirement
 
 import (
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/requirement/edit"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/requirement/resolve"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras"
 	"github.com/jenkins-x/jx-logging/pkg/log"
@@ -21,5 +22,6 @@ func NewCmdRequirement() *cobra.Command {
 		},
 	}
 	command.AddCommand(cobras.SplitCommand(resolve.NewCmdRequirementsResolve()))
+	command.AddCommand(cobras.SplitCommand(edit.NewCmdRequirementsEdit()))
 	return command
 }
