@@ -105,7 +105,12 @@ func (o *Options) ResolveGKE() error {
 	if o.NoCommit {
 		return nil
 	}
-	err = gitclient.CommitIfChanges(o.GitClient(), o.Dir, "chore: default GKE project, cluster and location metadata")
+	gitter := o.GitClient()
+	_, err = gitter.Command(o.Dir, "add", "*")
+	if err != nil {
+		return errors.Wrapf(err, "failed to add to git")
+	}
+	err = gitclient.CommitIfChanges(gitter, o.Dir, "chore: default GKE project, cluster and location metadata")
 	if err != nil {
 		return errors.Wrapf(err, "failed to git commit the changes to the GKE project, cluster and location")
 	}
