@@ -9,8 +9,9 @@ import (
 )
 
 const (
-	// RequirementsValuesFileName is the name of the requirements configuration file
-	RequirementsValuesFileName = "jx-requirements.values.yaml"
+	// RequirementsValuesFileName is the name of the helm values.yaml configuration file for common Jenkins X values
+	// such as cluster information, environments and ingress
+	RequirementsValuesFileName = "jx-values.yaml"
 )
 
 // RequirementsValues contains the logical installation requirements in the `jx-requirements.yml` file as helm values

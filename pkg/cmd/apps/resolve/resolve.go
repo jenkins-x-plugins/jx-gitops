@@ -113,7 +113,6 @@ func (o *Options) Validate() error {
 	o.Results.AppsCfg = appsCfg
 	o.Results.AppsCfgFile = appsCfgFile
 
-	versionsDir := o.VersionStreamDir
 	requirements, _, err := config.LoadRequirementsConfig(o.Dir, false)
 	if err != nil {
 		return errors.Wrapf(err, "failed to load jx-requirements.yml")
@@ -142,7 +141,7 @@ func (o *Options) Validate() error {
 			return errors.Wrap(err, "failed to create temp dir")
 		}
 
-		versionsDir, _, err = versionstreamrepo.CloneJXVersionsRepoToDir(o.Dir, o.VersionStreamURL, o.VersionStreamRef, nil, o.Git(), true, false, files.GetIOFileHandles(o.IOFileHandles))
+		o.VersionStreamDir, _, err = versionstreamrepo.CloneJXVersionsRepoToDir(o.VersionStreamDir, o.VersionStreamURL, o.VersionStreamRef, nil, o.Git(), true, false, files.GetIOFileHandles(o.IOFileHandles))
 		if err != nil {
 			return errors.Wrapf(err, "failed to clone version stream to %s", o.Dir)
 		}
@@ -153,12 +152,12 @@ func (o *Options) Validate() error {
 
 	if o.Results.Resolver == nil {
 		o.Results.Resolver = &versionstream.VersionResolver{
-			VersionsDir: versionsDir,
+			VersionsDir: o.VersionStreamDir,
 		}
 	}
 	o.prefixes, err = o.Results.Resolver.GetRepositoryPrefixes()
 	if err != nil {
-		return errors.Wrapf(err, "failed to load repository prefixes at %s", versionsDir)
+		return errors.Wrapf(err, "failed to load repository prefixes at %s", o.VersionStreamDir)
 	}
 
 	jxReqValuesFileName := filepath.Join(o.Dir, reqvalues.RequirementsValuesFileName)
@@ -187,6 +186,8 @@ func (o *Options) Run() error {
 	versionsDir := resolver.VersionsDir
 	appsCfgFile := o.Results.AppsCfgFile
 	appsCfgDir := filepath.Dir(appsCfgFile)
+
+	log.Logger().Infof("resolving versions and values files from the version stream %s ref %s in dir %s", o.VersionStreamURL, o.VersionStreamRef, o.VersionStreamDir)
 
 	requirementsValuesFiles := o.Results.RequirementsValuesFileName
 	if requirementsValuesFiles != "" {
@@ -284,12 +285,9 @@ func (o *Options) Run() error {
 			}
 		}
 
-		// TODO where to put the jx requirements values file? common area?
-		// ho.ValuesFiles = append(ho.ValuesFiles, jxReqValuesFileName)
-
 		for _, valueFileName := range valueFileNames {
-			versionStreamPath := filepath.Join("apps", prefix, chartName, valueFileName)
-			appValuesFile := filepath.Join(versionsDir, versionStreamPath)
+			versionStreamPath := filepath.Join("apps", prefix, chartName)
+			appValuesFile := filepath.Join(versionsDir, versionStreamPath, valueFileName)
 			exists, err := files.FileExists(appValuesFile)
 			if err != nil {
 				return errors.Wrapf(err, "failed to check if app values file exists %s", appValuesFile)

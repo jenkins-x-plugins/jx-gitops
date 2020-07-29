@@ -29,4 +29,4 @@ repositories:
 - name: external-secrets
   url: https://godaddy.github.io/kubernetes-external-secrets
 values:
-- jx-requirements.values.yaml  
+- jx-values.yaml
