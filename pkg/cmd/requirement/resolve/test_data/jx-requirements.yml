@@ -1,0 +1,8 @@
+cluster:
+  provider: gke
+gitops: true
+webhook: lighthouse
+versionStream:
+  ref: "master"
+  url: https://github.com/jenkins-x/jxr-versions.git
+

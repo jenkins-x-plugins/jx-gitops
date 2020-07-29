@@ -271,9 +271,7 @@ func (o *Options) displayPullRequest(pr *scm.PullRequest) error {
 
 	data, err := yaml.Marshal(pr)
 	if err != nil {
-		if err != nil {
-			return errors.Wrapf(err, "failed to marshal PullRequest as YAML")
-		}
+		return errors.Wrapf(err, "failed to marshal PullRequest as YAML")
 	}
 	log.Logger().Info(string(data))
 	return nil
