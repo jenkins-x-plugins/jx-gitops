@@ -21,6 +21,9 @@ require (
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.6.1
+	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
+	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
+	google.golang.org/api v0.15.0
 	gopkg.in/validator.v2 v2.0.0-20200605151824-2b28d334fa05
 	k8s.io/api v0.17.2
 	k8s.io/apimachinery v0.17.2

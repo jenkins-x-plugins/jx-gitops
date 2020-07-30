@@ -3,7 +3,7 @@
 apiVersion: v1
 kind: Secret
 metadata:
-  name: lighthouse-oauth-token2
+  name: my-kubernetes-secret-name
   labels:
     app: lighthouse-lighthouse
     chart: "lighthouse-0.0.633"

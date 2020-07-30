@@ -49,10 +49,10 @@ type SecretRule struct {
 	Namespace string `json:"namespace,omitempty"`
 	// BackendType for the secret
 	BackendType BackendType `json:"backendType"`
-	// Project for the secret
-	Project string `json:"project,omitempty"`
 	// Mappings one more mappings
 	Mappings []Mapping `json:"mappings,omitempty"`
+	// GcpSecretsManager config
+	GcpSecretsManager *GcpSecretsManager `json:"gcpSecretsManager,omitempty"`
 }
 
 // BackendType describes a secrets backend
@@ -62,10 +62,18 @@ const (
 	// BackendTypeVault Vault is the Backed service
 	BackendTypeVault BackendType = "vault"
 	// BackendTypeGSM Google Secrets Manager is the Backed service
-	BackendTypeGSM BackendType = "gsm"
+	BackendTypeGSM BackendType = "gcpSecretsManager"
 	// BackendTypeNone if none is configured
 	BackendTypeNone BackendType = ""
 )
+
+// GcpSecretsManager the predicates which must be true to invoke the associated tasks/pipelines
+type GcpSecretsManager struct {
+	// Version of the referenced secret
+	Version string `json:"version,omitempty"`
+	// ProjectId for the secret
+	ProjectId string `json:"projectId,omitempty"`
+}
 
 // Mapping the predicates which must be true to invoke the associated tasks/pipelines
 type Mapping struct {
@@ -98,6 +106,16 @@ func (c *SecretMapping) Find(secretName string, dataKey string) *Mapping {
 	for i, m := range c.Spec.Secrets {
 		if m.Name == secretName {
 			return c.Spec.Secrets[i].Find(dataKey)
+		}
+	}
+	return nil
+}
+
+// Find finds a secret rule for the given secret name
+func (c *SecretMapping) FindSecret(secretName string) *SecretRule {
+	for i, m := range c.Spec.Secrets {
+		if m.Name == secretName {
+			return &c.Spec.Secrets[i]
 		}
 	}
 	return nil

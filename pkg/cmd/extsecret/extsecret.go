@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/extsecret/gsm"
+
 	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
 	"github.com/jenkins-x/jx-gitops/pkg/kyamls"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
@@ -37,6 +39,7 @@ type Options struct {
 	VaultMountPoint string
 	VaultRole       string
 	SecretMapping   *v1alpha1.SecretMapping
+	GCPProjectID    string
 }
 
 // NewCmdExtSecrets creates a command object for the command
@@ -84,14 +87,36 @@ func (o *Options) Run() error {
 			return false, err
 		}
 
-		if secret.BackendType == v1alpha1.BackendTypeNone {
-			// lets default to vault for now
-			secret.BackendType = v1alpha1.BackendTypeVault
-		}
-
 		err = kyamls.SetStringValue(node, path, string(secret.BackendType), "spec", "backendType")
 		if err != nil {
 			return false, err
+		}
+
+		if secret.BackendType == "" {
+			secret.BackendType = o.SecretMapping.Spec.DefaultBackendType
+		}
+
+		if secret.BackendType == v1alpha1.BackendTypeGSM {
+			if secret.GcpSecretsManager != nil && secret.GcpSecretsManager.ProjectId != "" {
+				err = kyamls.SetStringValue(node, path, secret.GcpSecretsManager.ProjectId, "spec", "projectId")
+				if err != nil {
+					return false, err
+				}
+
+			} else {
+				if o.GCPProjectID == "" {
+					// if no project id set in the mapping file default to the current gcp project
+					o.GCPProjectID, err = gsm.GetCurrentGCPProject()
+					if err != nil || o.GCPProjectID == "" {
+						return false, errors.Wrap(err, "failed to find current google cloud project ID, authenticate with your gcp project using `gcloud auth login`")
+					}
+				}
+				err = kyamls.SetStringValue(node, path, o.GCPProjectID, "spec", "projectId")
+				if err != nil {
+					return false, err
+				}
+			}
+
 		}
 
 		if secret.BackendType == v1alpha1.BackendTypeVault {
@@ -105,7 +130,7 @@ func (o *Options) Run() error {
 			}
 		}
 
-		flag, err := o.convertData(node, path)
+		flag, err := o.convertData(node, path, secret.BackendType)
 		if err != nil {
 			return flag, err
 		}
@@ -123,7 +148,7 @@ func (o *Options) Run() error {
 	return nil
 }
 
-func (o *Options) convertData(node *yaml.RNode, path string) (bool, error) {
+func (o *Options) convertData(node *yaml.RNode, path string, backendType v1alpha1.BackendType) (bool, error) {
 	secretName := kyamls.GetStringField(node, path, "metadata", "name")
 
 	data, err := node.Pipe(yaml.Lookup("data"))
@@ -147,38 +172,21 @@ func (o *Options) convertData(node *yaml.RNode, path string) (bool, error) {
 
 			rNode := yaml.NewRNode(newNode)
 
-			// trim the suffix from the name and use it on the property?
-			property := field
-			secretPath := strings.ReplaceAll(secretName, "-", "/")
-			names := strings.Split(secretPath, "/")
-			if len(names) > 1 && names[len(names)-1] == property {
-				secretPath = strings.Join(names[0:len(names)-1], "/")
-			}
-			key := "secret/data/" + secretPath
+			switch backendType {
+			case v1alpha1.BackendTypeVault:
+				{
+					err = o.modifyVault(field, secretName, err, rNode, path)
 
-			if o.SecretMapping != nil {
-				mapping := o.SecretMapping.Find(secretName, field)
-				if mapping != nil {
-					if mapping.Key != "" {
-						key = mapping.Key
-					}
-					if mapping.Property != "" {
-						property = mapping.Property
-					}
+				}
+			case v1alpha1.BackendTypeGSM:
+				{
+					err = o.modifyGSM(field, secretName, err, rNode, path)
+
 				}
 			}
 
-			err = kyamls.SetStringValue(rNode, path, field, "name")
 			if err != nil {
-				return false, err
-			}
-			err = kyamls.SetStringValue(rNode, path, key, "key")
-			if err != nil {
-				return false, err
-			}
-			err = kyamls.SetStringValue(rNode, path, property, "property")
-			if err != nil {
-				return false, err
+				return false, errors.Wrapf(err, "failed to modify ExternalSecret with configuration")
 			}
 			contents = append(contents, newNode)
 		}
@@ -201,6 +209,95 @@ func (o *Options) convertData(node *yaml.RNode, path string) (bool, error) {
 		Style:   style,
 	})
 	return true, nil
+}
+
+func (o *Options) modifyVault(field string, secretName string, err error, rNode *yaml.RNode, path string) error {
+	// trim the suffix from the name and use it on the property?
+	property := field
+	secretPath := strings.ReplaceAll(secretName, "-", "/")
+	names := strings.Split(secretPath, "/")
+	if len(names) > 1 && names[len(names)-1] == property {
+		secretPath = strings.Join(names[0:len(names)-1], "/")
+	}
+	key := "secret/data/" + secretPath
+
+	if o.SecretMapping != nil {
+		mapping := o.SecretMapping.Find(secretName, field)
+		if mapping != nil {
+			if mapping.Key != "" {
+				key = mapping.Key
+			}
+			if mapping.Property != "" {
+				property = mapping.Property
+			}
+		}
+	}
+
+	err = kyamls.SetStringValue(rNode, path, field, "name")
+	if err != nil {
+		return err
+	}
+	err = kyamls.SetStringValue(rNode, path, key, "key")
+	if err != nil {
+		return err
+	}
+	err = kyamls.SetStringValue(rNode, path, property, "property")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (o *Options) modifyGSM(field string, secretName string, err error, rNode *yaml.RNode, path string) error {
+
+	property := field
+	key := secretName
+	version := "latest"
+	if o.SecretMapping != nil {
+		mapping := o.SecretMapping.Find(secretName, field)
+		if mapping != nil {
+			if mapping.Key != "" {
+				key = mapping.Key
+			}
+			if mapping.Property != "" {
+				property = mapping.Property
+			}
+
+		}
+		secret := o.SecretMapping.FindSecret(secretName)
+		if secret != nil {
+			if secret.GcpSecretsManager != nil && secret.GcpSecretsManager.Version != "" {
+				version = secret.GcpSecretsManager.Version
+			}
+		}
+
+	}
+
+	if key == "" {
+		return fmt.Errorf("no key found when mapping secret %s", secretName)
+	}
+
+	if property == "" {
+		return fmt.Errorf("no property found when mapping secret %s", secretName)
+	}
+
+	err = kyamls.SetStringValue(rNode, path, secretName, "name")
+	if err != nil {
+		return err
+	}
+	err = kyamls.SetStringValue(rNode, path, key, "key")
+	if err != nil {
+		return err
+	}
+	err = kyamls.SetStringValue(rNode, path, field, "property")
+	if err != nil {
+		return err
+	}
+	err = kyamls.SetStringValue(rNode, path, version, "version")
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (o *Options) moveMetadataToTemplate(node *yaml.RNode, path string) (bool, error) {
