@@ -15,11 +15,11 @@ import (
 )
 
 var (
-	labelLong = templates.LongDesc(`
+	cmdLong = templates.LongDesc(`
 		Updates all kubernetes resources in the given directory tree to add/override the given label
 `)
 
-	labelExample = templates.Examples(`
+	cmdExample = templates.Examples(`
 		# updates recursively labels all resources in the current directory 
 		%s label mylabel=cheese another=thing
 		# updates recursively all resources 
@@ -27,7 +27,7 @@ var (
 	`)
 )
 
-// LabelOptions the options for the command
+// Options the options for the command
 type Options struct {
 	kyamls.Filter
 	Dir   string
@@ -41,8 +41,8 @@ func NewCmdUpdateLabel() (*cobra.Command, *Options) {
 	cmd := &cobra.Command{
 		Use:     "label",
 		Short:   "Updates all kubernetes resources in the given directory tree to add/override the given label",
-		Long:    labelLong,
-		Example: fmt.Sprintf(labelExample, rootcmd.BinaryName, rootcmd.BinaryName),
+		Long:    cmdLong,
+		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName, rootcmd.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
 			err := UpdateLabelInYamlFiles(o.Dir, args, o.Filter)
 			helper.CheckErr(err)
