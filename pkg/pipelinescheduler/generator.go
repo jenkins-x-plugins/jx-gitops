@@ -10,8 +10,8 @@ import (
 	"github.com/jenkins-x/jx-logging/pkg/log"
 	"github.com/jenkins-x/jx/v2/pkg/prow"
 
-	"github.com/jenkins-x/lighthouse-config/pkg/config"
-	"github.com/jenkins-x/lighthouse-config/pkg/plugins"
+	"github.com/jenkins-x/lighthouse/pkg/config"
+	"github.com/jenkins-x/lighthouse/pkg/plugins"
 	v1 "k8s.io/api/core/v1"
 	kubeerrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/kubernetes"
