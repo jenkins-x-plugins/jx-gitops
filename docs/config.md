@@ -119,6 +119,47 @@ BackendType
 <p>
 <p>BackendType describes a secrets backend</p>
 </p>
+<h3 id="gitops.jenkins-x.io/v1alpha1.GcpSecretsManager">GcpSecretsManager
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#gitops.jenkins-x.io/v1alpha1.SecretRule">SecretRule</a>)
+</p>
+<p>
+<p>GcpSecretsManager the predicates which must be true to invoke the associated tasks/pipelines</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>version</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Version of the referenced secret</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>projectId</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>ProjectId for the secret</p>
+</td>
+</tr>
+</tbody>
+</table>
 <h3 id="gitops.jenkins-x.io/v1alpha1.Mapping">Mapping
 </h3>
 <p>
@@ -272,17 +313,6 @@ BackendType
 </tr>
 <tr>
 <td>
-<code>project</code></br>
-<em>
-string
-</em>
-</td>
-<td>
-<p>Project for the secret</p>
-</td>
-</tr>
-<tr>
-<td>
 <code>mappings</code></br>
 <em>
 <a href="#gitops.jenkins-x.io/v1alpha1.Mapping">
@@ -294,10 +324,23 @@ string
 <p>Mappings one more mappings</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>gcpSecretsManager</code></br>
+<em>
+<a href="#gitops.jenkins-x.io/v1alpha1.GcpSecretsManager">
+GcpSecretsManager
+</a>
+</em>
+</td>
+<td>
+<p>GcpSecretsManager config</p>
+</td>
+</tr>
 </tbody>
 </table>
 <hr/>
 <p><em>
 Generated with <code>gen-crd-api-reference-docs</code>
-on git commit <code>308f1c3</code>.
+on git commit <code>3e27e20</code>.
 </em></p>
