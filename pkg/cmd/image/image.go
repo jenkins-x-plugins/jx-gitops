@@ -18,15 +18,49 @@ import (
 
 var (
 	cmdLong = templates.LongDesc(`
-		Updates the git repository URL for the cluster/environment
+		Updates images in the kubernetes resources from the version stream
 `)
 
 	cmdExample = templates.Examples(`
-		# updates git repository URL for the resources in the current directory 
-		%s repository https://github.com/myorg/myrepo.git
-		# updates git repository URL for the resources in some directory 
-		%s repository --dir something https://github.com/myorg/myrepo.git
+		# modify the images in the content-root folder using the current version stream
+		%s image
+		# modify the images in the ./src dir using the current dir to find the version stream
+		%s image --source-dir ./src --dir . 
 	`)
+
+	kindToPaths = map[string][][]string{
+		"Deployment": {
+			{
+				"spec", "template", "spec", "initContainers", "image",
+			},
+			{
+				"spec", "template", "spec", "containers", "image",
+			},
+		},
+		"Job": {
+			{
+				"spec", "template", "spec", "initContainers", "image",
+			},
+			{
+				"spec", "template", "spec", "containers", "image",
+			},
+		},
+		"Pipeline": {
+			{
+				"spec", "tasks", "taskSpec", "steps", "image",
+			},
+		},
+		"PipelineRun": {
+			{
+				"spec", "pipelineSpec", "tasks", "taskSpec", "steps", "image",
+			},
+		},
+		"Task": {
+			{
+				"spec", "steps", "image",
+			},
+		},
+	}
 )
 
 // Options the options for the command
@@ -44,7 +78,8 @@ func NewCmdUpdateImage() (*cobra.Command, *Options) {
 	o := &Options{}
 
 	cmd := &cobra.Command{
-		Use:     "image",
+		Use: "image",
+
 		Short:   "Updates images in the kubernetes resources from the version stream",
 		Long:    cmdLong,
 		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName, rootcmd.BinaryName),
@@ -53,7 +88,7 @@ func NewCmdUpdateImage() (*cobra.Command, *Options) {
 			helper.CheckErr(err)
 		},
 	}
-	cmd.Flags().StringVarP(&o.SourceDir, "source-dir", "s", ".", "the directory to recursively look for the *.yaml files to modify")
+	cmd.Flags().StringVarP(&o.SourceDir, "source-dir", "s", "content-root", "the directory to recursively look for the *.yaml files to modify")
 	o.Filter.AddFlags(cmd)
 	o.VersionStreamer.AddFlags(cmd)
 	return cmd, o
@@ -76,21 +111,17 @@ func (o *Options) Run() error {
 	modifyFn := func(node *yaml.RNode, path string) (bool, error) {
 		kind := kyamls.GetKind(node, path)
 		answer := false
-		switch kind {
-		case "Deployment":
-			flag, err := o.modifyImages(node, path, "", "spec", "template", "spec", "initContainers", "image")
-			if err != nil {
-				return flag, err
+		pathsSlice := kindToPaths[kind]
+		if len(pathsSlice) > 0 {
+			for _, jsonNames := range pathsSlice {
+				flag, err := o.modifyImages(node, path, "", jsonNames...)
+				if err != nil {
+					return flag, err
+				}
+				if flag {
+					answer = true
+				}
 			}
-			flag, err = o.modifyImages(node, path, "", "spec", "template", "spec", "containers", "image")
-			if err != nil {
-				return flag, err
-			}
-			if flag {
-				answer = true
-			}
-			// TODO
-			// case "Job":
 		}
 		return answer, nil
 	}

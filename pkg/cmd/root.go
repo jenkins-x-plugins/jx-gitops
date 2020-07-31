@@ -8,6 +8,7 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/git"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/hash"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helm"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/image"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/ingress"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/kpt"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/kustomize"
@@ -48,6 +49,7 @@ func Main() *cobra.Command {
 	cmd.AddCommand(cobras.SplitCommand(extsecret.NewCmdExtSecrets()))
 	cmd.AddCommand(cobras.SplitCommand(condition.NewCmdCondition()))
 	cmd.AddCommand(cobras.SplitCommand(hash.NewCmdHashAnnotate()))
+	cmd.AddCommand(cobras.SplitCommand(image.NewCmdUpdateImage()))
 	cmd.AddCommand(cobras.SplitCommand(ingress.NewCmdUpdateIngress()))
 	cmd.AddCommand(cobras.SplitCommand(kustomize.NewCmdKustomize()))
 	cmd.AddCommand(cobras.SplitCommand(label.NewCmdUpdateLabel()))
