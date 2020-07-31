@@ -1,0 +1,24 @@
+# this is a comment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mydeployment
+spec:
+  selector:
+    matchLabels:
+      app: mydeployment
+  template:
+    spec:
+      containers:
+      - image: gcr.io/jenkinsxio/dontchange:1.2.3
+        name: something
+      - image: gcr.io/jenkinsxio/jx-cli:3.0.1
+        name: thingy
+      - image: gcr.io/jenkinsxio/jx-cli:3.0.1
+        name: another
+      initContainers:
+      - image: gcr.io/jenkinsxio/dontchange:1.2.3
+        name: init-one
+      - image: gcr.io/jenkinsxio/jx-cli:3.0.1
+        name: init-two
+

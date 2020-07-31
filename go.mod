@@ -5,28 +5,25 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/go-yaml/yaml v2.1.0+incompatible
-	github.com/google/go-cmp v0.4.0
+	github.com/google/go-cmp v0.4.1
 	github.com/h2non/gock v1.0.9
 	github.com/jenkins-x/gen-crd-api-reference-docs v0.1.6 // indirect
-	github.com/jenkins-x/go-scm v1.5.141
+	github.com/jenkins-x/go-scm v1.5.151
 	github.com/jenkins-x/jx-api v0.0.17
-	github.com/jenkins-x/jx-apps v0.0.3
-	github.com/jenkins-x/jx-helpers v1.0.33
+	github.com/jenkins-x/jx-apps v0.0.4
+	github.com/jenkins-x/jx-helpers v1.0.34
 	github.com/jenkins-x/jx-logging v0.0.11
-	github.com/jenkins-x/jx/v2 v2.1.101
-	github.com/jenkins-x/lighthouse-config v0.0.10
+	github.com/jenkins-x/jx/v2 v2.1.121
+	github.com/jenkins-x/lighthouse v0.0.693
 	github.com/pborman/uuid v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/rollout/rox-go v0.0.0-20181220111955-29ddae74a8c4
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.6.1
-	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
-	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
-	google.golang.org/api v0.15.0
 	gopkg.in/validator.v2 v2.0.0-20200605151824-2b28d334fa05
-	k8s.io/api v0.17.2
-	k8s.io/apimachinery v0.17.2
+	k8s.io/api v0.18.1
+	k8s.io/apimachinery v0.18.1
 	k8s.io/client-go v11.0.1-0.20190805182717-6502b5e7b1b5+incompatible
 	k8s.io/helm v2.7.2+incompatible
 	sigs.k8s.io/kustomize/api v0.4.1
