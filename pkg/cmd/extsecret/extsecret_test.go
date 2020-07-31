@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/jenkins-x/jx-logging/pkg/log"
+
 	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
 
 	"github.com/google/go-cmp/cmp"
@@ -138,8 +140,15 @@ func TestMultipleBackendTypes(t *testing.T) {
 		result := strings.TrimSpace(string(resultData))
 		expectedText := strings.TrimSpace(string(expectData))
 		if d := cmp.Diff(result, expectedText); d != "" {
-			t.Errorf("Generated Pipeline for file %s did not match expected: %s", tc.SourceFile, d)
+			t.Errorf("Generated external secret for file %s did not match expected: %s", tc.SourceFile, d)
 		}
 		t.Logf("generated for file %s file\n%s\n", tc.SourceFile, result)
 	}
+}
+
+func TestGCPProjectIDValidation(t *testing.T) {
+	_, _, err := secretmapping.LoadSecretMapping(filepath.Join("test_data", "validation"), true)
+	require.Error(t, err, "failed to get validation error")
+	log.Logger().Infof("%s", err.Error())
+	assert.True(t, strings.Contains(err.Error(), "Spec.Secrets[1].GcpSecretsManager.ProjectId: zero value"), "failed to get correct validation error")
 }

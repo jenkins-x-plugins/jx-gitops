@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/extsecret/gsm"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/extsecret/edit"
+	"github.com/jenkins-x/jx-helpers/pkg/cobras"
 
 	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
 	"github.com/jenkins-x/jx-gitops/pkg/kyamls"
@@ -39,7 +40,8 @@ type Options struct {
 	VaultMountPoint string
 	VaultRole       string
 	SecretMapping   *v1alpha1.SecretMapping
-	GCPProjectID    string
+
+	prefix string
 }
 
 // NewCmdExtSecrets creates a command object for the command
@@ -47,8 +49,8 @@ func NewCmdExtSecrets() (*cobra.Command, *Options) {
 	o := &Options{}
 
 	cmd := &cobra.Command{
-		Use:     "extsecret",
-		Aliases: []string{"extsecrets", "extsec"},
+		Use:     "secretmapping",
+		Aliases: []string{"sm"},
 		Short:   "Converts all Secret resources in the path to ExternalSecret CRDs",
 		Long:    labelLong,
 		Example: fmt.Sprintf(labelExample, rootcmd.BinaryName),
@@ -60,6 +62,8 @@ func NewCmdExtSecrets() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the directory to recursively look for the *.yaml or *.yml files")
 	cmd.Flags().StringVarP(&o.VaultMountPoint, "vault-mount-point", "m", "kubernetes", "the vault authentication mount point")
 	cmd.Flags().StringVarP(&o.VaultRole, "vault-role", "r", "vault-infra", "the vault role that will be used to fetch the secrets. This role will need to be bound to kubernetes-external-secret's ServiceAccount; see Vault's documentation: https://www.vaultproject.io/docs/auth/kubernetes.html")
+
+	cmd.AddCommand(cobras.SplitCommand(edit.NewCmdSecretMappingEdit()))
 	return cmd, o
 }
 
@@ -67,7 +71,7 @@ func (o *Options) Run() error {
 	dir := o.Dir
 	if o.SecretMapping == nil {
 		var err error
-		o.SecretMapping, _, err = secretmapping.LoadSecretMapping(dir, false)
+		o.SecretMapping, _, err = secretmapping.LoadSecretMapping(dir, true)
 		if err != nil {
 			return errors.Wrapf(err, "failed to load secret mapping file")
 		}
@@ -95,28 +99,15 @@ func (o *Options) Run() error {
 		if secret.BackendType == "" {
 			secret.BackendType = o.SecretMapping.Spec.DefaultBackendType
 		}
-
 		if secret.BackendType == v1alpha1.BackendTypeGSM {
 			if secret.GcpSecretsManager != nil && secret.GcpSecretsManager.ProjectId != "" {
 				err = kyamls.SetStringValue(node, path, secret.GcpSecretsManager.ProjectId, "spec", "projectId")
 				if err != nil {
 					return false, err
 				}
-
 			} else {
-				if o.GCPProjectID == "" {
-					// if no project id set in the mapping file default to the current gcp project
-					o.GCPProjectID, err = gsm.GetCurrentGCPProject()
-					if err != nil || o.GCPProjectID == "" {
-						return false, errors.Wrap(err, "failed to find current google cloud project ID, authenticate with your gcp project using `gcloud auth login`")
-					}
-				}
-				err = kyamls.SetStringValue(node, path, o.GCPProjectID, "spec", "projectId")
-				if err != nil {
-					return false, err
-				}
+				return false, errors.New("missing secret mapping secret.GcpSecretsManager.ProjectId")
 			}
-
 		}
 
 		if secret.BackendType == v1alpha1.BackendTypeVault {
@@ -251,7 +242,14 @@ func (o *Options) modifyVault(field string, secretName string, err error, rNode 
 func (o *Options) modifyGSM(field string, secretName string, err error, rNode *yaml.RNode, path string) error {
 
 	property := field
-	key := secretName
+
+	var key string
+	if o.prefix != "" {
+		key = o.prefix + "-" + secretName
+	} else {
+		key = secretName
+	}
+
 	version := "latest"
 	if o.SecretMapping != nil {
 		mapping := o.SecretMapping.Find(secretName, field)

@@ -1,8 +1,18 @@
 package v1alpha1
 
 import (
+	"io/ioutil"
+
+	"github.com/jenkins-x/jx-api/pkg/util"
+
+	"github.com/pkg/errors"
 	"gopkg.in/validator.v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/yaml"
+)
+
+const (
+	SecretMappingFileName = "secret-mappings.yaml"
 )
 
 // +genclient
@@ -70,9 +80,11 @@ const (
 // GcpSecretsManager the predicates which must be true to invoke the associated tasks/pipelines
 type GcpSecretsManager struct {
 	// Version of the referenced secret
-	Version string `json:"version,omitempty"`
-	// ProjectId for the secret
-	ProjectId string `json:"projectId,omitempty"`
+	Version string `json:"version,omitempty"  validate:"nonzero"`
+	// ProjectId for the secret, defaults to the current GCP project
+	ProjectId string `json:"projectId,omitempty"  validate:"nonzero"`
+	// UniquePrefix needs to be a unique prefix in the GCP project where the secret resides, defaults to cluster name
+	UniquePrefix string `json:"uniquePrefix,omitempty"`
 }
 
 // Mapping the predicates which must be true to invoke the associated tasks/pipelines
@@ -134,4 +146,18 @@ func (r *SecretRule) Find(dataKey string) *Mapping {
 // validate the secrete mapping fields
 func (c *SecretMapping) Validate() error {
 	return validator.Validate(c)
+}
+
+// SaveConfig saves the configuration file to the given project directory
+func (c *SecretMapping) SaveConfig(fileName string) error {
+	data, err := yaml.Marshal(c)
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile(fileName, data, util.DefaultWritePermissions)
+	if err != nil {
+		return errors.Wrapf(err, "failed to save file %s", fileName)
+	}
+
+	return nil
 }

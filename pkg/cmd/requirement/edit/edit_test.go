@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/requirement/edit"
+	"github.com/jenkins-x/jx-gitops/pkg/secretmapping"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -92,14 +93,14 @@ func TestCmdRequirementsEdit(t *testing.T) {
 		err = os.MkdirAll(dir, util.DefaultWritePermissions)
 		require.NoError(t, err, "failed to create dir %s", dir)
 
-		localReqFile := filepath.Join(dir, config.RequirementsConfigFileName)
+		localSecretMappingFile := filepath.Join(dir, config.RequirementsConfigFileName)
 		if tt.initialFile != "" {
 			err = util.CopyFile(tt.initialFile, localReqFile)
 			require.NoError(t, err, "failed to copy %s to %s", tt.initialFile, localReqFile)
 			require.FileExists(t, localReqFile, "file should have been copied")
 		}
 
-		cmd, _ := edit.NewCmdRequirementsEdit()
+		cmd, _ := edit.NewCmdSecretMappingEdit()
 		args := append(tt.args, "--dir", dir)
 
 		err := cmd.ParseFlags(args)
@@ -119,10 +120,10 @@ func TestCmdRequirementsEdit(t *testing.T) {
 		os.Args = old
 
 		// now lets parse the requirements
-		file := localReqFile
-		require.FileExists(t, file, "should have generated the requirements file")
+		file := localSecretMappingFile
+		require.FileExists(t, file, "should have updated the secretdmapping file")
 
-		req, _, err := config.LoadRequirementsConfig(dir, config.DefaultFailOnValidationError)
+		secretMapping, fileName, err := secretmapping.LoadSecretMapping(o.Dir, false)
 		require.NoError(t, err, "failed to load requirements from dir %s", dir)
 
 		if tt.callback != nil {
