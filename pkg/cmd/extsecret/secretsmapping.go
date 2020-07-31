@@ -49,7 +49,7 @@ func NewCmdExtSecrets() (*cobra.Command, *Options) {
 	o := &Options{}
 
 	cmd := &cobra.Command{
-		Use:     "secretmapping",
+		Use:     "secretsmapping",
 		Aliases: []string{"sm"},
 		Short:   "Converts all Secret resources in the path to ExternalSecret CRDs",
 		Long:    labelLong,

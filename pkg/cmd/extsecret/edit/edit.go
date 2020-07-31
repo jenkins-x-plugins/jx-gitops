@@ -8,7 +8,6 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
 	"github.com/jenkins-x/jx-gitops/pkg/secretmapping"
 
-	"github.com/jenkins-x/jx-api/pkg/config"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
@@ -36,8 +35,8 @@ type SecretMappingOverrides struct {
 }
 
 const (
-	flagGCPProjectID = "gcp-project-id"
-	flagClusterName  = "cluster-name"
+	flagGCPProjectID    = "gcp-project-id"
+	flagGCPUniquePrefix = "gcp-unique-prefix"
 )
 
 var (
@@ -47,7 +46,7 @@ var (
 
 	cmdExample = templates.Examples(`
 		# edits the local 'secret-mappings.yaml' file 
-		%s extsecrets edit --gcp-project-id foo --cluster-name
+		%s secretsmapping edit --gcp-project-id foo --cluster-name
 `)
 )
 
@@ -71,8 +70,8 @@ func NewCmdSecretMappingEdit() (*cobra.Command, *Options) {
 			return options.Run()
 		},
 	}
-	cmd.Flags().StringVarP(&options.Dir, "dir", "", "", "override the default '.jx/gitops/' dir to find the 'secret-mappings.yaml' file")
-	cmd.Flags().StringVarP(&options.Flags.ClusterName, flagClusterName, "", "", "the cluster name")
+	cmd.Flags().StringVarP(&options.Dir, "dir", "", "", "base directory containing '.jx/gitops/secret-mappings.yaml' file")
+	cmd.Flags().StringVarP(&options.Flags.ClusterName, flagGCPUniquePrefix, "", "", "the cluster name")
 	cmd.Flags().StringVarP(&options.Flags.GCPProjectID, flagGCPProjectID, "", "", "if GCP this is the project ID that hosts GSM secrets")
 
 	return cmd, options
@@ -128,7 +127,7 @@ func (o *Options) applyDefaults() error {
 		}
 		if secret.GcpSecretsManager.UniquePrefix == "" {
 			if o.Flags.ClusterName == "" {
-				return fmt.Errorf("found an empty gcp unique prefix and no %s flag", flagClusterName)
+				return fmt.Errorf("found an empty gcp unique prefix and no %s flag", flagGCPUniquePrefix)
 			}
 			secret.GcpSecretsManager.UniquePrefix = o.Flags.ClusterName
 		}
@@ -138,21 +137,4 @@ func (o *Options) applyDefaults() error {
 		s.Spec.Secrets[k] = secret
 	}
 	return nil
-}
-
-// FlagChanged returns true if the given flag was supplied on the command line
-func (o *Options) FlagChanged(name string) bool {
-	if o.Cmd != nil {
-		f := o.Cmd.Flag(name)
-		if f != nil {
-			return f.Changed
-		}
-	}
-	return false
-}
-
-func (o *Options) defaultStorage(storage *config.StorageEntryConfig) {
-	if storage.URL != "" {
-		storage.Enabled = true
-	}
 }
