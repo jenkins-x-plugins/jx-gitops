@@ -1,0 +1,46 @@
+autoUpdate:
+  enabled: false
+  schedule: ""
+cluster:
+  clusterName: "tf-jx-sweet-lemur"
+  devEnvApprovers: []
+  environmentGitOwner: ""
+  project: "jenkins-x-labs-bdd"
+  provider: gke
+  zone: "us-central1-a"
+gitops: true
+environments:
+- key: dev
+- key: staging
+- key: production
+ingress:
+  domain: ""
+  externalDNS: false
+  tls:
+    email: ""
+    enabled: false
+    production: true
+kaniko: true
+storage:
+  backup:
+    enabled: false
+  logs:
+    enabled: true
+    url: gs://logs-tf-jx-sweet-lemur-9f71113659fb
+  reports:
+    enabled: true
+    url: gs://reports-tf-jx-sweet-lemur-9f71113659fb
+  repository:
+    enabled: true
+    url: gs://repository-tf-jx-sweet-lemur-9f71113659fb
+secretStorage: vault
+vault:
+  name: tf-jx-sweet-lemur
+  bucket: vault-tf-jx-sweet-lemur-9f71113659fb
+  key: crypto-key-tf-jx-sweet-lemur-9f71113659fb
+  keyring: keyring-tf-jx-sweet-lemur-9f71113659fb
+  serviceAccount: tf-jx-sweet-lemur-vt
+versionStream:
+  ref: master
+  url: https://github.com/jenkins-x/jenkins-x-versions.git
+webhook: "lighthouse"
