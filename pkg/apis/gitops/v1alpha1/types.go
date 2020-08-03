@@ -1,8 +1,18 @@
 package v1alpha1
 
 import (
+	"io/ioutil"
+
+	"github.com/jenkins-x/jx-api/pkg/util"
+
+	"github.com/pkg/errors"
 	"gopkg.in/validator.v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/yaml"
+)
+
+const (
+	SecretMappingFileName = "secret-mappings.yaml"
 )
 
 // +genclient
@@ -27,8 +37,15 @@ type SecretMappingSpec struct {
 	// Secrets rules for each secret
 	Secrets []SecretRule `json:"secrets,omitempty"`
 
+	Defaults `json:"defaults,omitempty" validate:"nonzero"`
+}
+
+// Defaults contains default mapping configuration for any Kubernetes secrets to External Secrets
+type Defaults struct {
 	// DefaultBackendType the default back end to use if there's no specific mapping
-	DefaultBackendType BackendType `json:"defaultBackendType,omitempty" validate:"nonzero"`
+	BackendType BackendType `json:"backendType,omitempty" validate:"nonzero"`
+	// GcpSecretsManager config
+	GcpSecretsManager GcpSecretsManager `json:"gcpSecretsManager,omitempty"`
 }
 
 // SecretMappingList contains a list of SecretMapping
@@ -52,7 +69,7 @@ type SecretRule struct {
 	// Mappings one more mappings
 	Mappings []Mapping `json:"mappings,omitempty"`
 	// GcpSecretsManager config
-	GcpSecretsManager *GcpSecretsManager `json:"gcpSecretsManager,omitempty"`
+	GcpSecretsManager GcpSecretsManager `json:"gcpSecretsManager,omitempty"`
 }
 
 // BackendType describes a secrets backend
@@ -71,8 +88,10 @@ const (
 type GcpSecretsManager struct {
 	// Version of the referenced secret
 	Version string `json:"version,omitempty"`
-	// ProjectId for the secret
+	// ProjectId for the secret, defaults to the current GCP project
 	ProjectId string `json:"projectId,omitempty"`
+	// UniquePrefix needs to be a unique prefix in the GCP project where the secret resides, defaults to cluster name
+	UniquePrefix string `json:"uniquePrefix,omitempty"`
 }
 
 // Mapping the predicates which must be true to invoke the associated tasks/pipelines
@@ -97,7 +116,7 @@ func (c *SecretMapping) FindRule(namespace string, secretName string) SecretRule
 		}
 	}
 	return SecretRule{
-		BackendType: c.Spec.DefaultBackendType,
+		BackendType: c.Spec.Defaults.BackendType,
 	}
 }
 
@@ -134,4 +153,18 @@ func (r *SecretRule) Find(dataKey string) *Mapping {
 // validate the secrete mapping fields
 func (c *SecretMapping) Validate() error {
 	return validator.Validate(c)
+}
+
+// SaveConfig saves the configuration file to the given project directory
+func (c *SecretMapping) SaveConfig(fileName string) error {
+	data, err := yaml.Marshal(c)
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile(fileName, data, util.DefaultWritePermissions)
+	if err != nil {
+		return errors.Wrapf(err, "failed to save file %s", fileName)
+	}
+
+	return nil
 }

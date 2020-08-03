@@ -56,7 +56,6 @@ func NewCmdRequirementsEdit() (*cobra.Command, *Options) {
 		Short:   "Edits the local 'jx-requirements.yml file",
 		Long:    cmdLong,
 		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
-		Aliases: []string{"modify", "set", "update"},
 		Run: func(cmd *cobra.Command, args []string) {
 			options.Cmd = cmd
 			options.Args = args

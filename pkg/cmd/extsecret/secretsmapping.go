@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/extsecret/gsm"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/extsecret/edit"
+	"github.com/jenkins-x/jx-helpers/pkg/cobras"
 
 	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
 	"github.com/jenkins-x/jx-gitops/pkg/kyamls"
@@ -24,7 +25,7 @@ var (
 
 	labelExample = templates.Examples(`
 		# updates recursively labels all resources in the current directory 
-		%s extsecret --dir=.
+		%s secretsmapping --dir=.
 	`)
 
 	secretFilter = kyamls.Filter{
@@ -39,7 +40,8 @@ type Options struct {
 	VaultMountPoint string
 	VaultRole       string
 	SecretMapping   *v1alpha1.SecretMapping
-	GCPProjectID    string
+
+	Prefix string
 }
 
 // NewCmdExtSecrets creates a command object for the command
@@ -47,8 +49,8 @@ func NewCmdExtSecrets() (*cobra.Command, *Options) {
 	o := &Options{}
 
 	cmd := &cobra.Command{
-		Use:     "extsecret",
-		Aliases: []string{"extsecrets", "extsec"},
+		Use:     "secretsmapping",
+		Aliases: []string{"sm"},
 		Short:   "Converts all Secret resources in the path to ExternalSecret CRDs",
 		Long:    labelLong,
 		Example: fmt.Sprintf(labelExample, rootcmd.BinaryName),
@@ -60,6 +62,8 @@ func NewCmdExtSecrets() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the directory to recursively look for the *.yaml or *.yml files")
 	cmd.Flags().StringVarP(&o.VaultMountPoint, "vault-mount-point", "m", "kubernetes", "the vault authentication mount point")
 	cmd.Flags().StringVarP(&o.VaultRole, "vault-role", "r", "vault-infra", "the vault role that will be used to fetch the secrets. This role will need to be bound to kubernetes-external-secret's ServiceAccount; see Vault's documentation: https://www.vaultproject.io/docs/auth/kubernetes.html")
+
+	cmd.AddCommand(cobras.SplitCommand(edit.NewCmdSecretMappingEdit()))
 	return cmd, o
 }
 
@@ -87,36 +91,35 @@ func (o *Options) Run() error {
 			return false, err
 		}
 
+		if secret.BackendType == "" {
+			secret.BackendType = o.SecretMapping.Spec.Defaults.BackendType
+		}
 		err = kyamls.SetStringValue(node, path, string(secret.BackendType), "spec", "backendType")
 		if err != nil {
 			return false, err
 		}
 
-		if secret.BackendType == "" {
-			secret.BackendType = o.SecretMapping.Spec.DefaultBackendType
-		}
-
 		if secret.BackendType == v1alpha1.BackendTypeGSM {
-			if secret.GcpSecretsManager != nil && secret.GcpSecretsManager.ProjectId != "" {
+			if secret.GcpSecretsManager.ProjectId != "" {
 				err = kyamls.SetStringValue(node, path, secret.GcpSecretsManager.ProjectId, "spec", "projectId")
 				if err != nil {
 					return false, err
 				}
-
-			} else {
-				if o.GCPProjectID == "" {
-					// if no project id set in the mapping file default to the current gcp project
-					o.GCPProjectID, err = gsm.GetCurrentGCPProject()
-					if err != nil || o.GCPProjectID == "" {
-						return false, errors.Wrap(err, "failed to find current google cloud project ID, authenticate with your gcp project using `gcloud auth login`")
-					}
-				}
-				err = kyamls.SetStringValue(node, path, o.GCPProjectID, "spec", "projectId")
+			} else if o.SecretMapping.Spec.Defaults.GcpSecretsManager.ProjectId != "" {
+				err = kyamls.SetStringValue(node, path, o.SecretMapping.Spec.Defaults.GcpSecretsManager.ProjectId, "spec", "projectId")
 				if err != nil {
 					return false, err
 				}
+			} else {
+				return false, errors.New("missing secret mapping secret.GcpSecretsManager.ProjectId")
 			}
 
+			// if we have a unique prefix for the specific secret or a default one then set it to use as a gsm secret prefix later
+			if secret.GcpSecretsManager.UniquePrefix != "" {
+				o.Prefix = secret.GcpSecretsManager.UniquePrefix
+			} else if o.SecretMapping.Spec.Defaults.GcpSecretsManager.UniquePrefix != "" {
+				o.Prefix = o.SecretMapping.Spec.Defaults.GcpSecretsManager.UniquePrefix
+			}
 		}
 
 		if secret.BackendType == v1alpha1.BackendTypeVault {
@@ -250,14 +253,25 @@ func (o *Options) modifyVault(field string, secretName string, err error, rNode 
 
 func (o *Options) modifyGSM(field string, secretName string, err error, rNode *yaml.RNode, path string) error {
 
-	property := field
-	key := secretName
+	var property string
+	var key string
+
+	if o.Prefix != "" {
+		key = o.Prefix + "-" + secretName
+	} else {
+		key = secretName
+	}
+
 	version := "latest"
 	if o.SecretMapping != nil {
 		mapping := o.SecretMapping.Find(secretName, field)
 		if mapping != nil {
 			if mapping.Key != "" {
-				key = mapping.Key
+				if o.Prefix != "" {
+					key = o.Prefix + "-" + mapping.Key
+				} else {
+					key = mapping.Key
+				}
 			}
 			if mapping.Property != "" {
 				property = mapping.Property
@@ -266,22 +280,20 @@ func (o *Options) modifyGSM(field string, secretName string, err error, rNode *y
 		}
 		secret := o.SecretMapping.FindSecret(secretName)
 		if secret != nil {
-			if secret.GcpSecretsManager != nil && secret.GcpSecretsManager.Version != "" {
+			if secret.GcpSecretsManager.Version != "" {
 				version = secret.GcpSecretsManager.Version
 			}
 		}
 
 	}
 
+	key = strings.ToLower(key)
+
 	if key == "" {
 		return fmt.Errorf("no key found when mapping secret %s", secretName)
 	}
 
-	if property == "" {
-		return fmt.Errorf("no property found when mapping secret %s", secretName)
-	}
-
-	err = kyamls.SetStringValue(rNode, path, secretName, "name")
+	err = kyamls.SetStringValue(rNode, path, field, "name")
 	if err != nil {
 		return err
 	}
@@ -289,9 +301,11 @@ func (o *Options) modifyGSM(field string, secretName string, err error, rNode *y
 	if err != nil {
 		return err
 	}
-	err = kyamls.SetStringValue(rNode, path, field, "property")
-	if err != nil {
-		return err
+	if property != "" {
+		err = kyamls.SetStringValue(rNode, path, property, "property")
+		if err != nil {
+			return err
+		}
 	}
 	err = kyamls.SetStringValue(rNode, path, version, "version")
 	if err != nil {

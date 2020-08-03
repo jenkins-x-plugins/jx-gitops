@@ -60,5 +60,5 @@ func TestMissingDefaultBackendType(t *testing.T) {
 	sourceData := filepath.Join("test_data", "missing_default_backend_type")
 	_, _, err := secretmapping.LoadSecretMapping(sourceData, true)
 	require.Error(t, err, "failed did not receive error validating missing backend type")
-	assert.True(t, strings.Contains(err.Error(), "Spec.DefaultBackendType: zero value"))
+	assert.True(t, strings.Contains(err.Error(), "Spec.Defaults.BackendType: zero value"))
 }

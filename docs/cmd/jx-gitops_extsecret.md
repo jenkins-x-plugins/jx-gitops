@@ -1,8 +1,8 @@
-## jx-gitops extsecret
+## jx-gitops secretsmapping
 
 Converts all Secret resources in the path to ExternalSecret CRDs
 
-***Aliases**: extsecrets,extsec*
+***Aliases**: sm
 
 ### Usage
 

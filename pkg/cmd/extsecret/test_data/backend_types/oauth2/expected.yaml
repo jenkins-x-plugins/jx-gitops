@@ -7,9 +7,9 @@ spec:
   backendType: gcpSecretsManager
   projectId: foo
   data:
-  - name: my-kubernetes-secret-name
-    key: my-gsm-secret-name
-    property: oauth
+  - name: oauth
+    key: bar-my-gsm-secret-name
+    property: gsm-secret-property
     version: 1
   template:
     metadata:
