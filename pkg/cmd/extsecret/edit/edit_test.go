@@ -28,7 +28,7 @@ func TestCmdSecretsMappingEdit(t *testing.T) {
 	}{
 		{
 			name: "gsm_defaults_add",
-			args: []string{"--gcp-project-id=foo", "--cluster-name=bar"},
+			args: []string{"--gcp-project-id=foo", "--gcp-unique-prefix=bar"},
 			callback: func(t *testing.T, sm *v1alpha1.SecretMapping) {
 				assert.Equal(t, 2, len(sm.Spec.Secrets), "should have found 2 mappings")
 				for _, secret := range sm.Spec.Secrets {
@@ -36,11 +36,15 @@ func TestCmdSecretsMappingEdit(t *testing.T) {
 					assert.Equal(t, "bar", secret.GcpSecretsManager.UniquePrefix, "secret.GcpSecretsManager.UniquePrefix")
 					assert.Equal(t, "latest", secret.GcpSecretsManager.Version, "secret.GcpSecretsManager.Version")
 				}
+
+				assert.Equal(t, "foo", sm.Spec.Defaults.GcpSecretsManager.ProjectId, "sm.Spec.Defaults.GcpSecretsManager.ProjectId")
+				assert.Equal(t, "bar", sm.Spec.Defaults.GcpSecretsManager.UniquePrefix, "secret.GcpSecretsManager.UniquePrefix")
+
 			},
 		},
 		{
 			name: "gsm_defaults_dont_replace",
-			args: []string{"--gcp-project-id=foo", "--cluster-name=bar"},
+			args: []string{"--gcp-project-id=foo", "--gcp-unique-prefix=bar"},
 			callback: func(t *testing.T, sm *v1alpha1.SecretMapping) {
 				assert.Equal(t, 2, len(sm.Spec.Secrets), "should have found 2 mappings")
 				assert.Equal(t, "phill", sm.Spec.Secrets[0].GcpSecretsManager.ProjectId, "secret.GcpSecretsManager.ProjectId")
@@ -48,7 +52,6 @@ func TestCmdSecretsMappingEdit(t *testing.T) {
 				assert.Equal(t, "1", sm.Spec.Secrets[0].GcpSecretsManager.Version, "secret.GcpSecretsManager.Version")
 				assert.Equal(t, "foo", sm.Spec.Secrets[1].GcpSecretsManager.ProjectId, "secret.GcpSecretsManager.ProjectId")
 				assert.Equal(t, "latest", sm.Spec.Secrets[1].GcpSecretsManager.Version, "secret.GcpSecretsManager.Version")
-
 			},
 		},
 	}

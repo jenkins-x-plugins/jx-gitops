@@ -37,8 +37,15 @@ type SecretMappingSpec struct {
 	// Secrets rules for each secret
 	Secrets []SecretRule `json:"secrets,omitempty"`
 
+	Defaults `json:"defaults,omitempty" validate:"nonzero"`
+}
+
+// Defaults contains default mapping configuration for any Kubernetes secrets to External Secrets
+type Defaults struct {
 	// DefaultBackendType the default back end to use if there's no specific mapping
-	DefaultBackendType BackendType `json:"defaultBackendType,omitempty" validate:"nonzero"`
+	BackendType BackendType `json:"backendType,omitempty" validate:"nonzero"`
+	// GcpSecretsManager config
+	GcpSecretsManager GcpSecretsManager `json:"gcpSecretsManager,omitempty"`
 }
 
 // SecretMappingList contains a list of SecretMapping
@@ -62,7 +69,7 @@ type SecretRule struct {
 	// Mappings one more mappings
 	Mappings []Mapping `json:"mappings,omitempty"`
 	// GcpSecretsManager config
-	GcpSecretsManager *GcpSecretsManager `json:"gcpSecretsManager,omitempty"`
+	GcpSecretsManager GcpSecretsManager `json:"gcpSecretsManager,omitempty"`
 }
 
 // BackendType describes a secrets backend
@@ -80,9 +87,9 @@ const (
 // GcpSecretsManager the predicates which must be true to invoke the associated tasks/pipelines
 type GcpSecretsManager struct {
 	// Version of the referenced secret
-	Version string `json:"version,omitempty"  validate:"nonzero"`
+	Version string `json:"version,omitempty"`
 	// ProjectId for the secret, defaults to the current GCP project
-	ProjectId string `json:"projectId,omitempty"  validate:"nonzero"`
+	ProjectId string `json:"projectId,omitempty"`
 	// UniquePrefix needs to be a unique prefix in the GCP project where the secret resides, defaults to cluster name
 	UniquePrefix string `json:"uniquePrefix,omitempty"`
 }
@@ -109,7 +116,7 @@ func (c *SecretMapping) FindRule(namespace string, secretName string) SecretRule
 		}
 	}
 	return SecretRule{
-		BackendType: c.Spec.DefaultBackendType,
+		BackendType: c.Spec.Defaults.BackendType,
 	}
 }
 

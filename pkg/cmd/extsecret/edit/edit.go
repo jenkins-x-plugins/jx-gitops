@@ -115,26 +115,44 @@ func (o *Options) Run() error {
 
 func (o *Options) applyDefaults() error {
 	s := &o.SecretMapping
+
+	if s.Spec.Defaults.BackendType == v1alpha1.BackendTypeGSM {
+		err := o.applyGSMDefaults(&s.Spec.Defaults.GcpSecretsManager)
+		if err != nil {
+			return errors.Wrapf(err, "failed to apply defaults to GcpSecretsManager")
+		}
+	}
+
 	for k, secret := range s.Spec.Secrets {
-		if secret.GcpSecretsManager == nil {
-			secret.GcpSecretsManager = &v1alpha1.GcpSecretsManager{}
-		}
-		if secret.GcpSecretsManager.ProjectId == "" {
-			if o.Flags.GCPProjectID == "" {
-				return fmt.Errorf("found an empty gcp project id and no %s flag", flagGCPProjectID)
+		if secret.BackendType == v1alpha1.BackendTypeGSM {
+			err := o.applyGSMDefaults(&secret.GcpSecretsManager)
+			if err != nil {
+				return errors.Wrapf(err, "failed to apply defaults to GcpSecretsManager for secret %s", secret.Name)
 			}
-			secret.GcpSecretsManager.ProjectId = o.Flags.GCPProjectID
+			s.Spec.Secrets[k] = secret
 		}
-		if secret.GcpSecretsManager.UniquePrefix == "" {
-			if o.Flags.ClusterName == "" {
-				return fmt.Errorf("found an empty gcp unique prefix and no %s flag", flagGCPUniquePrefix)
-			}
-			secret.GcpSecretsManager.UniquePrefix = o.Flags.ClusterName
+	}
+	return nil
+}
+
+func (o *Options) applyGSMDefaults(gsmConfig *v1alpha1.GcpSecretsManager) error {
+	if gsmConfig == nil {
+		gsmConfig = &v1alpha1.GcpSecretsManager{}
+	}
+	if gsmConfig.ProjectId == "" {
+		if o.Flags.GCPProjectID == "" {
+			return fmt.Errorf("found an empty gcp project id and no %s flag", flagGCPProjectID)
 		}
-		if secret.GcpSecretsManager.Version == "" {
-			secret.GcpSecretsManager.Version = "latest"
+		gsmConfig.ProjectId = o.Flags.GCPProjectID
+	}
+	if gsmConfig.UniquePrefix == "" {
+		if o.Flags.ClusterName == "" {
+			return fmt.Errorf("found an empty gcp unique prefix and no %s flag", flagGCPUniquePrefix)
 		}
-		s.Spec.Secrets[k] = secret
+		gsmConfig.UniquePrefix = o.Flags.ClusterName
+	}
+	if gsmConfig.Version == "" {
+		gsmConfig.Version = "latest"
 	}
 	return nil
 }

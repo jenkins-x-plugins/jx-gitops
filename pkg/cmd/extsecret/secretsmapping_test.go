@@ -150,5 +150,5 @@ func TestGCPProjectIDValidation(t *testing.T) {
 	_, _, err := secretmapping.LoadSecretMapping(filepath.Join("test_data", "validation"), true)
 	require.Error(t, err, "failed to get validation error")
 	log.Logger().Infof("%s", err.Error())
-	assert.True(t, strings.Contains(err.Error(), "Spec.Secrets[1].GcpSecretsManager.ProjectId: zero value"), "failed to get correct validation error")
+	assert.True(t, strings.Contains(err.Error(), "Spec.Defaults.BackendType: zero value"), "failed to get correct validation error")
 }

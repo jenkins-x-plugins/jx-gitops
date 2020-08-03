@@ -25,7 +25,7 @@ var (
 
 	labelExample = templates.Examples(`
 		# updates recursively labels all resources in the current directory 
-		%s extsecret --dir=.
+		%s secretsmapping --dir=.
 	`)
 
 	secretFilter = kyamls.Filter{
@@ -41,7 +41,7 @@ type Options struct {
 	VaultRole       string
 	SecretMapping   *v1alpha1.SecretMapping
 
-	prefix string
+	Prefix string
 }
 
 // NewCmdExtSecrets creates a command object for the command
@@ -71,7 +71,7 @@ func (o *Options) Run() error {
 	dir := o.Dir
 	if o.SecretMapping == nil {
 		var err error
-		o.SecretMapping, _, err = secretmapping.LoadSecretMapping(dir, true)
+		o.SecretMapping, _, err = secretmapping.LoadSecretMapping(dir, false)
 		if err != nil {
 			return errors.Wrapf(err, "failed to load secret mapping file")
 		}
@@ -91,22 +91,34 @@ func (o *Options) Run() error {
 			return false, err
 		}
 
+		if secret.BackendType == "" {
+			secret.BackendType = o.SecretMapping.Spec.Defaults.BackendType
+		}
 		err = kyamls.SetStringValue(node, path, string(secret.BackendType), "spec", "backendType")
 		if err != nil {
 			return false, err
 		}
 
-		if secret.BackendType == "" {
-			secret.BackendType = o.SecretMapping.Spec.DefaultBackendType
-		}
 		if secret.BackendType == v1alpha1.BackendTypeGSM {
-			if secret.GcpSecretsManager != nil && secret.GcpSecretsManager.ProjectId != "" {
+			if secret.GcpSecretsManager.ProjectId != "" {
 				err = kyamls.SetStringValue(node, path, secret.GcpSecretsManager.ProjectId, "spec", "projectId")
+				if err != nil {
+					return false, err
+				}
+			} else if o.SecretMapping.Spec.Defaults.GcpSecretsManager.ProjectId != "" {
+				err = kyamls.SetStringValue(node, path, o.SecretMapping.Spec.Defaults.GcpSecretsManager.ProjectId, "spec", "projectId")
 				if err != nil {
 					return false, err
 				}
 			} else {
 				return false, errors.New("missing secret mapping secret.GcpSecretsManager.ProjectId")
+			}
+
+			// if we have a unique prefix for the specific secret or a default one then set it to use as a gsm secret prefix later
+			if secret.GcpSecretsManager.UniquePrefix != "" {
+				o.Prefix = secret.GcpSecretsManager.UniquePrefix
+			} else if o.SecretMapping.Spec.Defaults.GcpSecretsManager.UniquePrefix != "" {
+				o.Prefix = o.SecretMapping.Spec.Defaults.GcpSecretsManager.UniquePrefix
 			}
 		}
 
@@ -241,11 +253,11 @@ func (o *Options) modifyVault(field string, secretName string, err error, rNode 
 
 func (o *Options) modifyGSM(field string, secretName string, err error, rNode *yaml.RNode, path string) error {
 
-	property := field
-
+	var property string
 	var key string
-	if o.prefix != "" {
-		key = o.prefix + "-" + secretName
+
+	if o.Prefix != "" {
+		key = o.Prefix + "-" + secretName
 	} else {
 		key = secretName
 	}
@@ -255,7 +267,11 @@ func (o *Options) modifyGSM(field string, secretName string, err error, rNode *y
 		mapping := o.SecretMapping.Find(secretName, field)
 		if mapping != nil {
 			if mapping.Key != "" {
-				key = mapping.Key
+				if o.Prefix != "" {
+					key = o.Prefix + "-" + mapping.Key
+				} else {
+					key = mapping.Key
+				}
 			}
 			if mapping.Property != "" {
 				property = mapping.Property
@@ -264,22 +280,20 @@ func (o *Options) modifyGSM(field string, secretName string, err error, rNode *y
 		}
 		secret := o.SecretMapping.FindSecret(secretName)
 		if secret != nil {
-			if secret.GcpSecretsManager != nil && secret.GcpSecretsManager.Version != "" {
+			if secret.GcpSecretsManager.Version != "" {
 				version = secret.GcpSecretsManager.Version
 			}
 		}
 
 	}
 
+	key = strings.ToLower(key)
+
 	if key == "" {
 		return fmt.Errorf("no key found when mapping secret %s", secretName)
 	}
 
-	if property == "" {
-		return fmt.Errorf("no property found when mapping secret %s", secretName)
-	}
-
-	err = kyamls.SetStringValue(rNode, path, secretName, "name")
+	err = kyamls.SetStringValue(rNode, path, field, "name")
 	if err != nil {
 		return err
 	}
@@ -287,9 +301,11 @@ func (o *Options) modifyGSM(field string, secretName string, err error, rNode *y
 	if err != nil {
 		return err
 	}
-	err = kyamls.SetStringValue(rNode, path, field, "property")
-	if err != nil {
-		return err
+	if property != "" {
+		err = kyamls.SetStringValue(rNode, path, property, "property")
+		if err != nil {
+			return err
+		}
 	}
 	err = kyamls.SetStringValue(rNode, path, version, "version")
 	if err != nil {
