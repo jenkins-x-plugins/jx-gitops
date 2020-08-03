@@ -1,0 +1,64 @@
+autoUpdate:
+  enabled: false
+  schedule: ""
+bootConfigURL: https://github.com/jenkins-x/jx3-boot-config
+buildPacks:
+  buildPackLibrary:
+    gitRef: master
+    gitURL: https://github.com/jenkins-x/jxr-packs-kubernetes.git
+cluster:
+  clusterName: ""
+  devEnvApprovers:
+  - todo
+  environmentGitOwner: "todo"
+  gitKind: github
+  gitName: github
+  gitServer: https://github.com
+  namespace: jx
+  project:  ""
+  provider: gke
+  registry: gcr.io
+  zone: ""
+environments:
+- key: dev
+  owner: ""
+  repository: ""
+- key: staging
+  owner: ""
+  repository: ""
+- key: production
+  owner: ""
+  repository: ""
+gitops: true
+ingress:
+  domain: ""
+  externalDNS: false
+  namespaceSubDomain: -jx.
+  tls:
+    email: ""
+    enabled: false
+    production: false
+kaniko: true
+repository: nexus
+secretStorage: vault
+storage:
+  backup:
+    enabled: false
+    url: ""
+  logs:
+    enabled: false
+    url: ""
+  reports:
+    enabled: false
+    url: ""
+  repository:
+    enabled: false
+    url: ""
+vault: {}
+velero:
+  schedule: ""
+  ttl: ""
+versionStream:
+  ref: master
+  url: https://github.com/jenkins-x/jxr-versions.git
+webhook: lighthouse

@@ -1,0 +1,87 @@
+autoUpdate:
+  enabled: false
+  schedule: ""
+bootConfigURL: https://github.com/jenkins-x/jx3-boot-config
+buildPacks:
+  buildPackLibrary:
+    gitRef: master
+    gitURL: https://github.com/jenkins-x/jxr-packs-kubernetes.git
+cluster:
+  clusterName: tf-jx-sweet-lemur
+  environmentGitOwner: todo
+  gitKind: github
+  gitName: github
+  gitServer: https://github.com
+  namespace: jx
+  project: jenkins-x-labs-bdd
+  provider: gke
+  registry: gcr.io
+  vaultName: tf-jx-sweet-lemur
+  vaultSAName: tf-jx-sweet-lemur-vt
+  zone: us-central1-a
+environments:
+- ingress:
+    domain: ""
+    externalDNS: false
+    namespaceSubDomain: ""
+    tls:
+      email: ""
+      enabled: false
+      production: false
+  key: dev
+- ingress:
+    domain: ""
+    externalDNS: false
+    namespaceSubDomain: ""
+    tls:
+      email: ""
+      enabled: false
+      production: false
+  key: staging
+- ingress:
+    domain: ""
+    externalDNS: false
+    namespaceSubDomain: ""
+    tls:
+      email: ""
+      enabled: false
+      production: false
+  key: production
+gitops: true
+ingress:
+  domain: ""
+  externalDNS: false
+  namespaceSubDomain: -jx.
+  tls:
+    email: ""
+    enabled: false
+    production: true
+kaniko: true
+repository: nexus
+secretStorage: vault
+storage:
+  backup:
+    enabled: false
+    url: ""
+  logs:
+    enabled: true
+    url: gs://logs-tf-jx-sweet-lemur-9f71113659fb
+  reports:
+    enabled: true
+    url: gs://reports-tf-jx-sweet-lemur-9f71113659fb
+  repository:
+    enabled: true
+    url: gs://repository-tf-jx-sweet-lemur-9f71113659fb
+vault:
+  bucket: vault-tf-jx-sweet-lemur-9f71113659fb
+  key: crypto-key-tf-jx-sweet-lemur-9f71113659fb
+  keyring: keyring-tf-jx-sweet-lemur-9f71113659fb
+  name: tf-jx-sweet-lemur
+  serviceAccount: tf-jx-sweet-lemur-vt
+velero:
+  schedule: ""
+  ttl: ""
+versionStream:
+  ref: master
+  url: https://github.com/jenkins-x/jxr-versions.git
+webhook: lighthouse
