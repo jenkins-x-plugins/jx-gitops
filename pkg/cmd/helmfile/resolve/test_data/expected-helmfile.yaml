@@ -1,0 +1,45 @@
+helmDefaults:
+  atomic: false
+  devel: false
+  force: false
+  recreatePods: false
+  tillerless: false
+  timeout: 0
+  tls: false
+  verify: false
+  wait: false
+releases:
+- chart: jenkins-x/tekton
+  name: tekton
+  namespace: jx
+  values:
+  - versionStream/apps/jenkins-x/tekton/values.yaml.gotmpl
+  version: 0.0.56
+- chart: jenkins-x/jxboot-helmfile-resources
+  name: jxboot-helmfile-resources
+  namespace: jx
+  version: 0.0.255
+- chart: bitnami/external-dns
+  name: external-dns
+  namespace: foo
+  values:
+  - apps/external-dns/values.yaml
+  version: 3.1.2
+- chart: external-secrets/kubernetes-external-secrets
+  name: kubernetes-external-secrets
+  namespace: external-secrets
+  values:
+  - apps/kubernetes-external-secrets/values.yaml.gotmpl
+  version: 4.0.0
+- chart: doesnotexist/bucketrepo
+  name: bucketrepo
+  namespace: jx
+repositories:
+- name: doesnotexist
+  url: https://storage.googleapis.com/chartmuseum.jenkins-x.io
+- name: jenkins-x
+  url: https://storage.googleapis.com/chartmuseum.jenkins-x.io
+- name: bitnami
+  url: https://charts.bitnami.com/bitnami
+- name: external-secrets
+  url: https://godaddy.github.io/kubernetes-external-secrets
