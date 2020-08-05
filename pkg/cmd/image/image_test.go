@@ -29,7 +29,6 @@ func TestUpdateImages(t *testing.T) {
 
 	o.SourceDir = filepath.Join(tmpDir, "src")
 	o.VersionStreamer.Dir = tmpDir
-	o.VersionStreamer.VersionStreamDir = filepath.Join("test_data", "versionstream")
 
 	t.Logf("modifying files at %s\n", o.SourceDir)
 
