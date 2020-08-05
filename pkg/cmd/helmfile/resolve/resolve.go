@@ -3,20 +3,18 @@ package resolve
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/jenkins-x/jx-apps/pkg/helmfile"
 	"github.com/jenkins-x/jx-gitops/pkg/jxtmpl/reqvalues"
+	"github.com/jenkins-x/jx-gitops/pkg/yamlvs"
 	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient/cli"
-	"github.com/jenkins-x/jx-helpers/pkg/stringhelpers"
 	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
 	"github.com/jenkins-x/jx-helpers/pkg/versionstream/versionstreamrepo"
-	"github.com/jenkins-x/jx-helpers/pkg/yamls"
+	"github.com/roboll/helmfile/pkg/state"
 
 	"github.com/jenkins-x/jx-apps/pkg/jxapps"
 
@@ -63,7 +61,7 @@ type Options struct {
 }
 
 type Results struct {
-	AppsCfg                    helmfile.HelmState
+	AppsCfg                    state.HelmState
 	VersionsDir                string
 	RequirementsValuesFileName string
 	Resolver                   *versionstream.VersionResolver
@@ -112,7 +110,7 @@ func (o *Options) Validate() error {
 		o.Helmfile = filepath.Join(o.Dir, "helmfile.yaml")
 	}
 
-	err := yamls.LoadFile(o.Helmfile, &o.Results.AppsCfg)
+	err := yamlvs.LoadFile(o.Helmfile, &o.Results.AppsCfg)
 	if err != nil {
 		return errors.Wrapf(err, "failed to load helmfile %s", o.Helmfile)
 	}
@@ -258,7 +256,7 @@ func (o *Options) Run() error {
 				}
 			}
 			if !found {
-				appsCfg.Repositories = append(appsCfg.Repositories, helmfile.RepositorySpec{
+				appsCfg.Repositories = append(appsCfg.Repositories, state.RepositorySpec{
 					Name: prefix,
 					URL:  repository,
 				})
@@ -310,37 +308,8 @@ func (o *Options) Run() error {
 				return errors.Wrapf(err, "failed to check if app values file exists %s", appValuesFile)
 			}
 			if exists {
-				chartAppsParentDir := filepath.Join("versionStream", "apps", prefix)
-				chartAppsDir := filepath.Join(chartAppsParentDir, chartName)
-				path := filepath.Join(chartAppsDir, valueFileName)
-				if stringhelpers.StringArrayIndex(app.Values, path) < 0 {
-					// lets make sure the parent dir exists
-					d := filepath.Join(o.Dir, chartAppsParentDir)
-					err = os.MkdirAll(d, files.DefaultDirWritePermissions)
-					if err != nil {
-						return errors.Wrapf(err, "failed to create dir %s", d)
-					}
-					log.Logger().Infof("created dir %s", d)
-
-					if o.VersionStreamURL == "" {
-						return errors.Errorf("cannot use kpt to get the helm versions file %s from the version stream as no version stream git URL provided", path)
-					}
-
-					// lets use kpt to copy the values file from the version stream locally
-					c := &cmdrunner.Command{
-						Dir:  o.Dir,
-						Name: "kpt",
-						Args: []string{
-							"pkg",
-							"get",
-							fmt.Sprintf("%s/%s@%s", o.VersionStreamURL, versionStreamPath, o.VersionStreamRef),
-							chartAppsDir,
-						},
-					}
-					_, err = o.CommandRunner(c)
-					if err != nil {
-						return errors.Wrapf(err, "failed to run command %s", c.CLI())
-					}
+				path := filepath.Join("versionStream", "apps", prefix, chartName, valueFileName)
+				if !valuesContains(app.Values, path) {
 					app.Values = append(app.Values, path)
 				}
 			}
@@ -362,7 +331,7 @@ func (o *Options) Run() error {
 					return errors.Wrapf(err, "failed to check if app values file exists %s", appValuesFile)
 				}
 				if exists {
-					if stringhelpers.StringArrayIndex(app.Values, path) < 0 {
+					if !valuesContains(app.Values, path) {
 						app.Values = append(app.Values, path)
 					}
 					found = true
@@ -377,7 +346,7 @@ func (o *Options) Run() error {
 		appsCfg.Releases[i] = app
 	}
 
-	err = yamls.SaveFile(appsCfg, o.Helmfile)
+	err = yamlvs.SaveFile(appsCfg, o.Helmfile)
 	if err != nil {
 		return errors.Wrapf(err, "failed to save file %s", o.Helmfile)
 	}
@@ -393,6 +362,15 @@ func (o *Options) Run() error {
 		}
 	}
 	return nil
+}
+
+func valuesContains(values []interface{}, value string) bool {
+	for _, v := range values {
+		if v == value {
+			return true
+		}
+	}
+	return false
 }
 
 func (o *Options) matchPrefix(prefix string) (string, error) {
