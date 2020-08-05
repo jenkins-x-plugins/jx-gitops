@@ -1,0 +1,44 @@
+---
+# Source: jxboot-helmfile-resources/charts/gcactivities/templates/cronjob.yaml
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: jxboot-helmfile-resources-gcactivities
+  labels:
+    app: gcactivities
+    chart: gcactivities-2.0.1143
+    release: jxboot-helmfile-resources
+    heritage: Helm
+spec:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 1
+  successfulJobsHistoryLimit: 3
+  schedule: "0/30 */3 * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: gcactivities
+            release: jxboot-helmfile-resources
+        spec:
+          restartPolicy: Never
+          serviceAccountName: jxboot-helmfile-resources-gcactivities
+          containers:
+            - name: gcactivities
+              command: [jx]
+              args:
+              - gc
+              - activities
+              - --batch-mode
+              imagePullPolicy: IfNotPresent
+              image: "gcr.io/jenkinsxio-labs/jxl:0.0.127"
+              env:
+              - name: JX_LOG_FORMAT
+                value: json
+              - name: JX_LOG_LEVEL
+                value: info
+              - name: PIPELINE_KIND
+                value: dummy
+              resources:
+                {}

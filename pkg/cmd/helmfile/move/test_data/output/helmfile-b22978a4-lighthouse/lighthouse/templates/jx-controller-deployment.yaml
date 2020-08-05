@@ -1,0 +1,55 @@
+---
+# Source: lighthouse/templates/jx-controller-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lighthouse-jx-controller
+  labels:
+    draft: draft-app
+    chart: "lighthouse-0.0.683"
+    app: lighthouse-jx-controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      draft: draft-app
+      app: lighthouse-jx-controller
+  template:
+    metadata:
+      labels:
+        draft: draft-app
+        app: lighthouse-jx-controller
+    spec:
+      serviceAccountName: lighthouse-jx-controller
+      containers:
+      - name: lighthouse-jx-controller
+        image: gcr.io/jenkinsxio/lighthouse-jx-controller:0.0.683
+        imagePullPolicy: IfNotPresent
+        args:
+          - "--namespace=jx"
+        env:
+          - name: "GIT_KIND"
+            value: "github"
+          - name: "GIT_SERVER"
+            value: "https://github.com"
+          - name: "GIT_USER"
+            value: todo
+          - name: "GIT_TOKEN"
+            valueFrom:
+              secretKeyRef:
+                name: lighthouse-oauth-token
+                key: oauth
+          - name: "JX_LOG_FORMAT"
+            value: "json"
+          - name: "LOGRUS_FORMAT"
+            value: "json"
+          - name: JX_DEFAULT_IMAGE
+            value: "gcr.io/jenkinsxio-labs-private/jxl:0.0.208"
+        resources:
+            limits:
+              cpu: 100m
+              memory: 256Mi
+            requests:
+              cpu: 80m
+              memory: 128Mi
+      terminationGracePeriodSeconds: 180

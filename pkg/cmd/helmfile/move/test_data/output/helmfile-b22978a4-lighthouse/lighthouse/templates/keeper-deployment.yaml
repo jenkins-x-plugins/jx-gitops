@@ -1,0 +1,89 @@
+---
+# Source: lighthouse/templates/keeper-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lighthouse-keeper
+  labels:
+    draft: draft-app
+    chart: "lighthouse-0.0.683"
+    app: lighthouse-keeper
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      draft: draft-app
+      app: lighthouse-keeper
+  template:
+    metadata:
+      annotations:
+        ad.datadoghq.com/keeper.logs: '[{"source":"prow","service":"tide"}]'
+      labels:
+        draft: draft-app
+        app: lighthouse-keeper
+    spec:
+      serviceAccountName: lighthouse-keeper
+      terminationGracePeriodSeconds: 30
+      containers:
+      - name: lighthouse-keeper
+        image: gcr.io/jenkinsxio/lighthouse-keeper:0.0.683
+        imagePullPolicy: IfNotPresent
+        args:
+          - "--namespace=jx"
+        ports:
+          - name: http
+            containerPort: 8888
+            protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /
+            port: http
+          initialDelaySeconds: 120
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /
+            port: http
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        env:
+        - name: "GIT_KIND"
+          value: "github"
+        - name: "GIT_SERVER"
+          value: "https://github.com"
+        - name: "GIT_USER"
+          value: todo
+        - name: "GIT_TOKEN"
+          valueFrom:
+            secretKeyRef:
+              name: lighthouse-oauth-token
+              key: oauth
+        - name: "JX_LOG_FORMAT"
+          value: "json"
+        - name: "LOGRUS_FORMAT"
+          value: "json"
+        - name: "LIGHTHOUSE_KEEPER_STATUS_CONTEXT_LABEL"
+          value: "Lighthouse Merge Status"
+        resources:
+          limits:
+            cpu: 400m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        volumeMounts:
+        - name: config
+          mountPath: /etc/config
+          readOnly: true
+      volumes:
+      - name: config
+        configMap:
+          name: config

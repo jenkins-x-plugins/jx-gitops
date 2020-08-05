@@ -134,39 +134,39 @@ func (o *Options) Run() error {
 
 	log.Logger().Infof("resolving versions and values files from the version stream %s ref %s in dir %s", o.VersionStreamURL, o.VersionStreamRef, o.VersionStreamDir)
 
-	appsCfg := o.Results.HelmState
+	helmState := o.Results.HelmState
 
 	/*
 		TODO lazily create environments file?
 		requirementsValuesFiles := o.Results.RequirementsValuesFileName
 		if requirementsValuesFiles != "" {
-			if stringhelpers.StringArrayIndex(appsCfg.Values, requirementsValuesFiles) < 0 {
-				appsCfg.Values = append(appsCfg.Values, requirementsValuesFiles)
+			if stringhelpers.StringArrayIndex(helmState.Values, requirementsValuesFiles) < 0 {
+				helmState.Values = append(helmState.Values, requirementsValuesFiles)
 			}
 		}
 
 	*/
 	count := 0
-	for i, app := range appsCfg.Releases {
+	for i, release := range helmState.Releases {
 		// TODO
-		//repository := app.Repository
+		//repository := release.Repository
 		repository := ""
-		fullChartName := app.Chart
+		fullChartName := release.Chart
 		parts := strings.Split(fullChartName, "/")
 		prefix := ""
-		chartName := app.Chart
+		chartName := release.Chart
 		if len(parts) > 1 {
 			prefix = parts[0]
 			chartName = parts[1]
 		}
-		if app.Name == "" {
-			app.Name = chartName
+		if release.Name == "" {
+			release.Name = chartName
 		}
 
 		// lets resolve the chart prefix from a local repository from the file or from a
 		// prefix in the versions stream
 		if repository == "" && prefix != "" {
-			for _, r := range appsCfg.Repositories {
+			for _, r := range helmState.Repositories {
 				if r.Name == prefix {
 					repository = r.URL
 				}
@@ -184,17 +184,17 @@ func (o *Options) Run() error {
 		if repository != "" && prefix != "" {
 			// lets ensure we've got a repository for this URL in the apps file
 			found := false
-			for _, r := range appsCfg.Repositories {
+			for _, r := range helmState.Repositories {
 				if r.Name == prefix {
 					if r.URL != repository {
-						return errors.Errorf("app %s has prefix %s for repository URL %s which is also mapped to prefix %s", app.Name, prefix, r.URL, r.Name)
+						return errors.Errorf("release %s has prefix %s for repository URL %s which is also mapped to prefix %s", release.Name, prefix, r.URL, r.Name)
 					}
 					found = true
 					break
 				}
 			}
 			if !found {
-				appsCfg.Repositories = append(appsCfg.Repositories, state.RepositorySpec{
+				helmState.Repositories = append(helmState.Repositories, state.RepositorySpec{
 					Name: prefix,
 					URL:  repository,
 				})
@@ -206,11 +206,11 @@ func (o *Options) Run() error {
 		}
 
 		versionChanged := false
-		if app.Version == "" {
-			app.Version = version
+		if release.Version == "" {
+			release.Version = version
 			versionChanged = true
-		} else if o.UpdateMode && app.Version != version {
-			app.Version = version
+		} else if o.UpdateMode && release.Version != version {
+			release.Version = version
 			versionChanged = true
 		}
 		if versionChanged {
@@ -227,14 +227,14 @@ func (o *Options) Run() error {
 			log.Logger().Warnf("could not find version for chart %s so using latest found in helm repository %s", fullChartName, repository)
 		}
 
-		if app.Namespace == "" && defaults.Namespace != "" {
-			app.Namespace = defaults.Namespace
+		if release.Namespace == "" && defaults.Namespace != "" {
+			release.Namespace = defaults.Namespace
 		}
 
-		if app.Namespace == "" && o.Options.Requirements != nil {
-			app.Namespace = o.Options.Requirements.Cluster.Namespace
-			if app.Namespace == "" {
-				app.Namespace = o.Namespace
+		if release.Namespace == "" && o.Options.Requirements != nil {
+			release.Namespace = o.Options.Requirements.Cluster.Namespace
+			if release.Namespace == "" {
+				release.Namespace = o.Namespace
 			}
 		}
 
@@ -243,19 +243,19 @@ func (o *Options) Run() error {
 			appValuesFile := filepath.Join(versionsDir, versionStreamPath, valueFileName)
 			exists, err := files.FileExists(appValuesFile)
 			if err != nil {
-				return errors.Wrapf(err, "failed to check if app values file exists %s", appValuesFile)
+				return errors.Wrapf(err, "failed to check if release values file exists %s", appValuesFile)
 			}
 			if exists {
 				path := filepath.Join("versionStream", "apps", prefix, chartName, valueFileName)
-				if !valuesContains(app.Values, path) {
-					app.Values = append(app.Values, path)
+				if !valuesContains(release.Values, path) {
+					release.Values = append(release.Values, path)
 				}
 			}
 		}
 
 		releaseNames := []string{chartName}
-		if app.Name != "" && app.Name != chartName {
-			releaseNames = []string{app.Name, chartName}
+		if release.Name != "" && release.Name != chartName {
+			releaseNames = []string{release.Name, chartName}
 		}
 
 		// lets try discover any local files
@@ -266,11 +266,11 @@ func (o *Options) Run() error {
 				appValuesFile := filepath.Join(appsCfgDir, path)
 				exists, err := files.FileExists(appValuesFile)
 				if err != nil {
-					return errors.Wrapf(err, "failed to check if app values file exists %s", appValuesFile)
+					return errors.Wrapf(err, "failed to check if release values file exists %s", appValuesFile)
 				}
 				if exists {
-					if !valuesContains(app.Values, path) {
-						app.Values = append(app.Values, path)
+					if !valuesContains(release.Values, path) {
+						release.Values = append(release.Values, path)
 					}
 					found = true
 					break
@@ -281,10 +281,10 @@ func (o *Options) Run() error {
 			}
 		}
 
-		appsCfg.Releases[i] = app
+		helmState.Releases[i] = release
 	}
 
-	err = yaml2s.SaveFile(appsCfg, o.Helmfile)
+	err = yaml2s.SaveFile(helmState, o.Helmfile)
 	if err != nil {
 		return errors.Wrapf(err, "failed to save file %s", o.Helmfile)
 	}

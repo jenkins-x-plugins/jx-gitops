@@ -1,0 +1,49 @@
+---
+# Source: jxboot-helmfile-resources/charts/gcpods/templates/release.yaml
+apiVersion: jenkins.io/v1
+kind: Release
+metadata:
+  creationTimestamp: "2020-01-22T19:35:41Z"
+  deletionTimestamp: null
+  name: 'gcpods-2.0.1143'
+spec:
+  commits:
+  - author: {}
+    branch: master
+    committer: {}
+    message: |
+      fix: go doc
+
+      Signed-off-by: Neha Gupta <gneha21@yahoo.in>
+    sha: a74467a488ad6a14a3d1024930c95d5b473c9c07
+  - author: {}
+    branch: master
+    committer: {}
+    message: |
+      fix: Removed content copying
+
+      Signed-off-by: Neha Gupta <gneha21@yahoo.in>
+    sha: 4bbf64a6a8d958a2ff21d3bd0afcaa2446abe739
+  - author: {}
+    branch: master
+    committer: {}
+    message: |
+      fix: cmd_helper
+
+      Signed-off-by: Neha Gupta <gneha21@yahoo.in>
+    sha: ca4e4cc1f552d1e0d9f2836f60b9a910eafe7a30
+  - author: {}
+    branch: master
+    committer: {}
+    message: |
+      fix: cmd_test_helpers - CreateTestJxHomeDir() returns empty string if gitAuth.yaml is not present.
+
+      Signed-off-by: jx-helloworld <gneha21@yahoo.in>
+    sha: 0771ba7fe095b115d463e0b2a616408da59bd42c
+  gitCloneUrl: https://github.com/jenkins-x/jx.git
+  gitHttpUrl: https://github.com/jenkins-x/jx
+  gitOwner: jenkins-x
+  gitRepository: jx
+  name: 'gcpods'
+  version: 2.0.1143
+status: {}

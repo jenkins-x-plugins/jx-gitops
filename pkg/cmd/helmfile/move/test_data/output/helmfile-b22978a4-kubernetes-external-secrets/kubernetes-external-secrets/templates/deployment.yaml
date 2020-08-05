@@ -1,0 +1,59 @@
+---
+# Source: kubernetes-external-secrets/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubernetes-external-secrets
+  labels:
+    app.kubernetes.io/name: kubernetes-external-secrets
+    helm.sh/chart: kubernetes-external-secrets-4.0.0
+    app.kubernetes.io/instance: kubernetes-external-secrets
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kubernetes-external-secrets
+      app.kubernetes.io/instance: kubernetes-external-secrets
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kubernetes-external-secrets
+        app.kubernetes.io/instance: kubernetes-external-secrets
+    spec:
+      serviceAccountName: kubernetes-external-secrets
+      containers:
+        - name: kubernetes-external-secrets
+          image: "godaddy/kubernetes-external-secrets:4.0.0"
+          ports:
+          - name: prometheus
+            containerPort: 3001
+          imagePullPolicy: IfNotPresent
+          resources:
+            {}
+          env:
+          - name: "AWS_DEFAULT_REGION"
+            value: "us-west-2"
+          - name: "AWS_REGION"
+            value: "us-west-2"
+          - name: "LOG_LEVEL"
+            value: "info"
+          - name: "METRICS_PORT"
+            value: "3001"
+          - name: "NODE_EXTRA_CA_CERTS"
+            value: "/usr/local/share/ca-certificates/ca.crt"
+          - name: "POLLER_INTERVAL_MILLISECONDS"
+            value: "10000"
+          - name: "VAULT_ADDR"
+            value: "https://vault:8200"
+          # Params for env vars populated from k8s secrets
+          volumeMounts:
+          - name: vault-ca
+            mountPath: /usr/local/share/ca-certificates
+            readOnly: true
+      securityContext:
+        runAsNonRoot: true
+      volumes:
+      - name: vault-ca
+        secret:
+          secretName: vault-tls

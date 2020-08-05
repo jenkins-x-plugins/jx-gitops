@@ -1,0 +1,15 @@
+---
+# Source: jxboot-helmfile-resources/charts/gcpreviews/templates/clusterrolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: gcpreviews-jx
+  namespace: jx
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: gcpreviews-jx
+subjects:
+- kind: ServiceAccount
+  name: jxboot-helmfile-resources-gcpreviews
+  namespace: jx

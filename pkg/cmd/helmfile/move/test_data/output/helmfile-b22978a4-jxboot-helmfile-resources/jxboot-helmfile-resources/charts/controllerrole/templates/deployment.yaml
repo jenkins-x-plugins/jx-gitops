@@ -1,0 +1,45 @@
+---
+# Source: jxboot-helmfile-resources/charts/controllerrole/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jxboot-helmfile-resources-controllerrole
+  labels:
+    app: controllerrole
+    chart: controllerrole-2.0.1143
+    release: jxboot-helmfile-resources
+    heritage: Helm
+spec:
+  selector:
+    matchLabels:
+      app: controllerrole
+      release: jxboot-helmfile-resources
+  template:
+    metadata:
+      labels:
+        app: controllerrole
+        release: jxboot-helmfile-resources
+    spec:
+      restartPolicy: Always
+      serviceAccountName: jxboot-helmfile-resources-controllerrole
+      containers:
+        - name: controllerrole
+          command: [jx]
+          args:
+          - controller
+          - role
+          imagePullPolicy: IfNotPresent
+          image: "gcr.io/jenkinsxio-labs-private/jxl:0.0.208"
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          env:
+          - name: JX_LOG_FORMAT
+            value: json
+          - name: JX_LOG_LEVEL
+            value: info
+          - name: PIPELINE_KIND
+            value: dummy
+          resources:
+            {}

@@ -1,0 +1,13 @@
+---
+# Source: lighthouse/templates/gc-jobs-rb.yaml
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: lighthouse-gc-jobs
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: lighthouse-gc-jobs
+subjects:
+- kind: ServiceAccount
+  name: lighthouse-gc-jobs
