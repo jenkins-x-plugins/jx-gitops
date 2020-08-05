@@ -1,0 +1,19 @@
+---
+# Source: kubernetes-external-secrets/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubernetes-external-secrets
+  labels:
+    app.kubernetes.io/name: kubernetes-external-secrets
+    helm.sh/chart: kubernetes-external-secrets-4.0.0
+    app.kubernetes.io/instance: kubernetes-external-secrets
+    app.kubernetes.io/managed-by: Helm
+spec:
+  selector:
+    app.kubernetes.io/name: kubernetes-external-secrets
+  ports:
+    - protocol: TCP
+      port: 3001
+      name: prometheus
+      targetPort: prometheus

@@ -1,0 +1,15 @@
+---
+# Source: lighthouse/templates/keeper-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: lighthouse-keeper
+spec:
+  type: ClusterIP
+  selector:
+    app: lighthouse-keeper
+  ports:
+  - port: 80
+    targetPort: 8888
+    protocol: TCP
+    name: http

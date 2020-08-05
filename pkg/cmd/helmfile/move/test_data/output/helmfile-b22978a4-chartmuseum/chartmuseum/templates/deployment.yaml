@@ -1,0 +1,97 @@
+---
+# Source: chartmuseum/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jenkins-x-chartmuseum
+  annotations:
+    {}
+  labels:
+    app: chartmuseum
+    chart: chartmuseum-1.1.7
+    heritage: "Helm"
+    release: "chartmuseum"
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+    type: RollingUpdate
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: chartmuseum
+  template:
+    metadata:
+      name: jenkins-x-chartmuseum
+      annotations:
+        {}
+      labels:
+        app: chartmuseum
+        release: "chartmuseum"
+    spec:
+      containers:
+      - name: chartmuseum
+        image: chartmuseum/chartmuseum:v0.7.1
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: "AUTH_ANONYMOUS_GET"
+          value: "true"
+        - name: "CHART_POST_FORM_FIELD_NAME"
+          value: "chart"
+        - name: "DISABLE_METRICS"
+          value: "true"
+        - name: "LOG_JSON"
+          value: "true"
+        - name: "PROV_POST_FORM_FIELD_NAME"
+          value: "prov"
+        - name: "STORAGE"
+          value: "local"
+        - name: "BASIC_AUTH_PASS"
+          valueFrom:
+            secretKeyRef:
+              name: jenkins-x-chartmuseum
+              key: "BASIC_AUTH_PASS"
+        - name: "BASIC_AUTH_USER"
+          valueFrom:
+            secretKeyRef:
+              name: jenkins-x-chartmuseum
+              key: "BASIC_AUTH_USER"
+        args:
+        - --port=8080
+        - --storage-local-rootdir=/storage
+        ports:
+        - name: http
+          containerPort: 8080
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 3
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 3
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        volumeMounts:
+        - mountPath: /storage
+          name: storage-volume
+        resources:
+          limits:
+            cpu: 200m
+            memory: 256Mi
+          requests:
+            cpu: 160m
+            memory: 128Mi
+      volumes:
+      - name: storage-volume
+        persistentVolumeClaim:
+          claimName: jenkins-x-chartmuseum

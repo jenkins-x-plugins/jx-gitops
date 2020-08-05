@@ -1,0 +1,13 @@
+---
+# Source: lighthouse/templates/foghorn-rb.yaml
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: lighthouse-foghorn
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: lighthouse-foghorn
+subjects:
+- kind: ServiceAccount
+  name: lighthouse-foghorn

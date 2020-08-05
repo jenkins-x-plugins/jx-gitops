@@ -1,0 +1,55 @@
+---
+# Source: jxboot-helmfile-resources/charts/controllerbuild/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jxboot-helmfile-resources-controllerbuild
+  labels:
+    app: controllerbuild
+    chart: controllerbuild-2.0.1143
+    release: jxboot-helmfile-resources
+    heritage: Helm
+spec:
+  selector:
+    matchLabels:
+      app: controllerbuild
+      release: jxboot-helmfile-resources
+  template:
+    metadata:
+      labels:
+        app: controllerbuild
+        release: jxboot-helmfile-resources
+    spec:
+      restartPolicy: Always
+      serviceAccountName: jxboot-helmfile-resources-controllerbuild
+      containers:
+        - name: controllerbuild
+          command: [jx]
+          args:
+          - controller
+          - build
+          - --batch-mode
+          - --git-credentials
+          - --git-reporting
+          - --verbose
+          imagePullPolicy: IfNotPresent
+          image: "gcr.io/jenkinsxio-labs-private/jxl:0.0.208"
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          env:
+          - name: GIT_AUTHOR_EMAIL
+            value: jenkins-x@googlegroups.com
+          - name: GIT_AUTHOR_NAME
+            value: jenkins-x-bot
+          - name: JX_LOG_FORMAT
+            value: json
+          - name: JX_LOG_LEVEL
+            value: info
+          - name: PIPELINE_KIND
+            value: dummy
+          - name: XDG_CONFIG_HOME
+            value: /home/jenkins
+          resources:
+            {}

@@ -1,0 +1,17 @@
+---
+# Source: nexus/templates/pvc.yaml
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: nexus-nexus
+  labels:
+    app: nexus
+    chart: "nexus-0.1.30"
+    release: "nexus"
+    heritage: "Helm"
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  resources:
+    requests:
+      storage: "8Gi"

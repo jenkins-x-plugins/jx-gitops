@@ -1,0 +1,67 @@
+---
+# Source: jxboot-helmfile-resources/templates/release-only-scheduler.yaml
+apiVersion: jenkins.io/v1
+kind: Scheduler
+metadata:
+  creationTimestamp: null
+  name: release-only
+spec:
+  approve:
+    issueRequired: false
+    lgtmActsAsApprove: true
+    requireSelfApproval: true
+  merger:
+    blockerLabel: ""
+    maxGoroutines: 0
+    mergeMethod: merge
+    policy:
+      fromBranchProtection: true
+      optionalContexts: {}
+      requiredContexts: {}
+      requiredIfPresentContexts: {}
+      skipUnknownContexts: false
+    prStatusBaseUrl: ""
+    squashLabel: ""
+    targetUrl: http://deck-jx.
+  plugins:
+    entries:
+    - approve
+    - assign
+    - blunderbuss
+    - help
+    - hold
+    - lgtm
+    - lifecycle
+    - override
+    - size
+    - trigger
+    - wip
+    - heart
+    - cat
+    - dog
+    - pony
+  policy:
+    protectTested: true
+  postsubmits:
+    entries:
+    - agent: tekton
+      branches:
+        entries:
+        - master
+      cluster: ""
+      context: ""
+      labels: {}
+      maxConcurrency: 0
+      name: release
+      report: false
+      runIfChanged: ""
+      skipBranches: {}
+  schedulerAgent:
+    agent: tekton
+  trigger:
+    ignoreOkToTest: false
+    joinOrgUrl: ""
+    onlyOrgMembers: false
+    trustedOrg: myorg
+  welcome:
+  - message_template: Welcome

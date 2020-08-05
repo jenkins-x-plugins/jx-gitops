@@ -1,0 +1,41 @@
+---
+# Source: jxboot-helmfile-resources/templates/environments.yaml
+apiVersion: jenkins.io/v1
+kind: Environment
+metadata:
+  labels:
+    env: "dev"
+    team: jx
+  name: "dev"
+spec:
+  source:
+    ref: "master"
+    url: https://github.com/myorg/environment-mycluster-dev.git
+  kind: Development
+  label: Development
+  namespace: jx
+  promotionStrategy: Never
+  webHookEngine: "Lighthouse"
+  teamSettings:
+    appsRepository: http://chartmuseum.jenkins-x.io
+    buildPackRef: "master"
+    buildPackUrl: "https://github.com/jenkins-x/jxr-packs-kubernetes.git"
+    defaultScheduler:
+      apiVersion: jenkins.io/v1
+      kind: Scheduler
+      name: default
+    dockerRegistryOrg: "myproject"
+    envOrganisation: myorg
+    gitServer: https://github.com
+    gitPublic: true
+    helmTemplate: true
+    kubeProvider: "gke"
+    pipelineUsername: "jenkins-x-labs-bot"
+    pipelineUserEmail: "jenkins-x@googlegroups.com"
+    prowConfig: Scheduler
+    importMode: YAML
+    promotionEngine: Prow
+    prowEngine: Tekton
+    versionStreamUrl: "https://github.com/jenkins-x/jenkins-x-versions.git"
+    versionStreamRef: "master"
+    useGitOps: true

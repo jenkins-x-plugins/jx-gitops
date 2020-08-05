@@ -1,0 +1,110 @@
+---
+# Source: jxboot-helmfile-resources/charts/gcpreviews/templates/role.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: gcpreviews
+rules:
+- apiGroups:
+  - jenkins.io
+  resources:
+  - environments
+  - releases
+  - facts
+  - pipelineactivities
+  - commitstatuses
+  - schedulers
+  - extensions
+  - users
+  - teams
+  - pipelinestructures
+  - plugins
+  - buildpacks
+  - apps
+  - sourcerepositories
+  - gitservices
+  - workflows
+  - environmentrolebindings
+  - sourcerepositorygroups
+  verbs:
+  - list
+  - get
+  - patch
+  - update
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  - services
+  - replicationcontrollers
+  - persistentvolumeclaims
+  - configmaps
+  - serviceaccounts
+  verbs:
+  - list
+  - get
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - daemonsets
+  - deployments
+  - replicasets
+  - statefulsets
+  verbs:
+  - list
+  - get
+  - watch
+- apiGroups:
+  - autoscaling
+  resources:
+  - horizontalpodautoscalers
+  verbs:
+  - list
+  - get
+  - watch
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  - cronjobs
+  verbs:
+  - list
+  - get
+  - watch
+- apiGroups:
+  - tekton.dev
+  resources:
+  - pipelines
+  - taskruns
+  - tasks
+  - clustertasks
+  - pipelineresources
+  - pipelineruns
+  verbs:
+  - list
+  - get
+  - watch
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - roles
+  - rolebindings
+  verbs:
+  - list
+  - get
+- apiGroups:
+  - vault.banzaicloud.com
+  resources:
+  - vaults
+  verbs:
+  - list
+  - get
+- apiGroups:
+  - extensions
+  resources:
+  - ingresses
+  verbs:
+  - list
+  - get

@@ -1,0 +1,74 @@
+---
+# Source: tekton/templates/controller.yaml
+# Copyright 2018 The Knative Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tekton-pipelines-controller
+  namespace: jx
+  labels:
+    app.kubernetes.io/name: tekton-pipelines
+    app.kubernetes.io/component: controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tekton-pipelines-controller
+  template:
+    metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
+      labels:
+        app: tekton-pipelines-controller
+        app.kubernetes.io/name: tekton-pipelines
+        app.kubernetes.io/component: controller
+    spec:
+      serviceAccountName: tekton-pipelines
+      containers:
+      - name: tekton-pipelines
+        image: gcr.io/abayer-pipeline-crd/tekton-for-jx/controller:v20200414-2b72e7c6
+        args: [
+          "-logtostderr",
+          "-stderrthreshold", "INFO",
+          "-kubeconfig-writer-image", "gcr.io/abayer-pipeline-crd/tekton-for-jx/kubeconfigwriter:v20200414-2b72e7c6",
+          "-creds-image", "gcr.io/abayer-pipeline-crd/tekton-for-jx/creds-init:v20200414-2b72e7c6",
+          "-git-image", "gcr.io/abayer-pipeline-crd/tekton-for-jx/git-init:v20200414-2b72e7c6",
+          "-nop-image", "gcr.io/abayer-pipeline-crd/tekton-for-jx/nop:v20200414-2b72e7c6",
+          "-bash-noop-image", "gcr.io/abayer-pipeline-crd/tekton-for-jx/bash:v20200414-2b72e7c6",
+          "-gsutil-image", "gcr.io/abayer-pipeline-crd/tekton-for-jx/gsutil:v20200414-2b72e7c6",
+          "-entrypoint-image", "gcr.io/abayer-pipeline-crd/tekton-for-jx/entrypoint:v20200414-2b72e7c6",
+          "-pr-image", "gcr.io/abayer-pipeline-crd/tekton-for-jx/pullrequest-init:v20200414-2b72e7c6",
+          "-imagedigest-exporter-image", "gcr.io/abayer-pipeline-crd/tekton-for-jx/imagedigestexporter.v20200414-2b72e7c6",
+          "-build-gcs-fetcher-image", "gcr.io/tekton-releases/github.com/tektoncd/pipeline/vendor/github.com/googlecloudplatform/cloud-builders/gcs-fetcher/cmd/gcs-fetcher:v0.8.0",
+          "-namespace", "jx",
+        ]
+        env:
+          - name: SYSTEM_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: CONFIG_LOGGING_NAME
+            value: config-logging
+          - name: CONFIG_OBSERVABILITY_NAME
+            value: config-observability
+          - name: METRICS_DOMAIN
+            value: tekton.dev/pipeline
+        volumeMounts:
+        - name: config-logging
+          mountPath: /etc/config-logging
+      volumes:
+        - name: config-logging
+          configMap:
+            name: config-logging

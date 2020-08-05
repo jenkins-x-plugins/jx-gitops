@@ -59,7 +59,7 @@ func TrimSpaceAndQuotes(answer string) string {
 
 // IsClusterKind returns true if the kind is a cluster kind
 func IsClusterKind(kind string) bool {
-	return kind == "" || kind == "Namespace" || strings.HasPrefix(kind, "Cluster")
+	return kind == "" || kind == "CustomResourceDefinition" || kind == "Namespace" || strings.HasPrefix(kind, "Cluster")
 }
 
 // JSONPath returns the fields separated by dots

@@ -1,0 +1,78 @@
+---
+# Source: nexus/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexus-nexus
+  labels:
+    app: nexus
+    chart: nexus-0.1.30
+    release: nexus
+    heritage: Helm
+  annotations:
+    configmap.fabric8.io/update-on-change: nexus
+spec:
+  selector:
+    matchLabels:
+      app: nexus
+      release: nexus
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: nexus
+        release: nexus
+    spec:
+      containers:
+      - name: nexus
+        image: "gcr.io/jenkinsxio/nexus:0.1.30"
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: NEXUS_CONTEXT
+          valueFrom:
+            configMapKeyRef:
+              name: nexus
+              key: context.path
+        - name: ENABLE_ANONYMOUS_ACCESS
+          value: "false"
+        - name: NEXUS_SECURITY_RANDOMPASSWORD
+          value: "false"
+        lifecycle:
+          postStart:
+            exec:
+              command:
+              - /opt/sonatype/nexus/postStart.sh
+        ports:
+          - containerPort: 8081
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8081
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8081
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          failureThreshold: 6
+        resources:
+            null
+        volumeMounts:
+          - mountPath: /nexus-data
+            name: nexus-data-volume
+          - mountPath: /opt/sonatype/nexus/config
+            name: nexus
+
+      volumes:
+        - name: nexus
+          secret:
+            secretName: nexus
+        - name: nexus-data-volume
+          persistentVolumeClaim:
+            claimName: nexus-nexus
+      securityContext:
+        fsGroup: 2000

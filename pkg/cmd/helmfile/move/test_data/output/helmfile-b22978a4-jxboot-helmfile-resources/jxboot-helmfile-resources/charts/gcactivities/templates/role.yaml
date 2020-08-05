@@ -1,0 +1,54 @@
+---
+# Source: jxboot-helmfile-resources/charts/gcactivities/templates/role.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: gcactivities
+rules:
+- apiGroups:
+  - jenkins.io
+  resources:
+  - pipelineactivities
+  verbs:
+  - list
+  - delete
+- apiGroups:
+  - jenkins.io
+  resources:
+  - environments
+  verbs:
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - jenkins.io
+  resources:
+  - plugins
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  - services
+  verbs:
+  - get
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - get
+- apiGroups:
+  - tekton.dev
+  resources:
+  - pipelineruns
+  verbs:
+  - get
+  - list
+  - watch
+  - delete
