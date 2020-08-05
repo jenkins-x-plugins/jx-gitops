@@ -7,13 +7,13 @@ import (
 	"strings"
 
 	"github.com/jenkins-x/jx-gitops/pkg/jxtmpl/reqvalues"
-	"github.com/jenkins-x/jx-gitops/pkg/yamlvs"
 	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient/cli"
 	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
 	"github.com/jenkins-x/jx-helpers/pkg/versionstream/versionstreamrepo"
+	"github.com/jenkins-x/jx-helpers/pkg/yaml2s"
 	"github.com/roboll/helmfile/pkg/state"
 
 	"github.com/jenkins-x/jx-apps/pkg/jxapps"
@@ -110,7 +110,7 @@ func (o *Options) Validate() error {
 		o.Helmfile = filepath.Join(o.Dir, "helmfile.yaml")
 	}
 
-	err := yamlvs.LoadFile(o.Helmfile, &o.Results.AppsCfg)
+	err := yaml2s.LoadFile(o.Helmfile, &o.Results.AppsCfg)
 	if err != nil {
 		return errors.Wrapf(err, "failed to load helmfile %s", o.Helmfile)
 	}
@@ -346,7 +346,7 @@ func (o *Options) Run() error {
 		appsCfg.Releases[i] = app
 	}
 
-	err = yamlvs.SaveFile(appsCfg, o.Helmfile)
+	err = yaml2s.SaveFile(appsCfg, o.Helmfile)
 	if err != nil {
 		return errors.Wrapf(err, "failed to save file %s", o.Helmfile)
 	}
