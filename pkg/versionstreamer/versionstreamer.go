@@ -56,6 +56,9 @@ func (o *Options) Validate() error {
 	if o.VersionStreamDir == "" {
 		o.VersionStreamDir = filepath.Join(o.Dir, "versionStream")
 	}
+	if o.CommandRunner == nil {
+		o.CommandRunner = cmdrunner.DefaultCommandRunner
+	}
 	err = o.ResolveVersionStream()
 	if err != nil {
 		return errors.Wrapf(err, "failed to resolve the version stream")
