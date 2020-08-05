@@ -8,6 +8,7 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/git"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/hash"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helm"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/image"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/ingress"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/kpt"
@@ -38,8 +39,9 @@ func Main() *cobra.Command {
 			}
 		},
 	}
-	cmd.AddCommand(helm.NewCmdHelm())
 	cmd.AddCommand(apps.NewCmdApps())
+	cmd.AddCommand(helm.NewCmdHelm())
+	cmd.AddCommand(helmfile.NewCmdHelmfile())
 	cmd.AddCommand(git.NewCmdGit())
 	cmd.AddCommand(kpt.NewCmdKpt())
 	cmd.AddCommand(pr.NewCmdPR())
