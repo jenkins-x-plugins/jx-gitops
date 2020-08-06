@@ -238,31 +238,40 @@ func (o *Options) Run() error {
 			}
 		}
 
-		for _, valueFileName := range valueFileNames {
-			versionStreamPath := filepath.Join("apps", prefix, chartName)
-			appValuesFile := filepath.Join(versionsDir, versionStreamPath, valueFileName)
-			exists, err := files.FileExists(appValuesFile)
-			if err != nil {
-				return errors.Wrapf(err, "failed to check if release values file exists %s", appValuesFile)
-			}
-			if exists {
-				path := filepath.Join("versionStream", "apps", prefix, chartName, valueFileName)
-				if !valuesContains(release.Values, path) {
-					release.Values = append(release.Values, path)
-				}
-			}
-		}
-
 		releaseNames := []string{chartName}
 		if release.Name != "" && release.Name != chartName {
 			releaseNames = []string{release.Name, chartName}
 		}
 
-		// lets try discover any local files
+		// lets try resolve any values files in the version stream
 		found := false
+		// TODO lets deprecate the "apps" folder ASAP"
+		for _, folderName := range []string{"values", "apps"} {
+			for _, valueFileName := range valueFileNames {
+				versionStreamValuesFile := filepath.Join(versionsDir, folderName, prefix, chartName, valueFileName)
+				exists, err := files.FileExists(versionStreamValuesFile)
+				if err != nil {
+					return errors.Wrapf(err, "failed to check if version stream values file exists %s", versionStreamValuesFile)
+				}
+				if exists {
+					path := filepath.Join("versionStream", folderName, prefix, chartName, valueFileName)
+					if !valuesContains(release.Values, path) {
+						release.Values = append(release.Values, path)
+					}
+					found = true
+					break
+				}
+				if found {
+					break
+				}
+			}
+		}
+
+		// lets try discover any local files
+		found = false
 		for _, releaseName := range releaseNames {
 			for _, valueFileName := range valueFileNames {
-				path := filepath.Join("apps", releaseName, valueFileName)
+				path := filepath.Join("values", releaseName, valueFileName)
 				appValuesFile := filepath.Join(appsCfgDir, path)
 				exists, err := files.FileExists(appValuesFile)
 				if err != nil {

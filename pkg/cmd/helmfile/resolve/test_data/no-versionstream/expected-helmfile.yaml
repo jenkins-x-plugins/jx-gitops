@@ -14,7 +14,7 @@ releases:
   name: tekton
   namespace: jx
   values:
-  - versionStream/apps/jenkins-x/tekton/values.yaml.gotmpl
+  - versionStream/values/jenkins-x/tekton/values.yaml.gotmpl
 - chart: jenkins-x/jxboot-helmfile-resources
   version: 0.0.255
   name: jxboot-helmfile-resources
@@ -24,13 +24,13 @@ releases:
   name: external-dns
   namespace: foo
   values:
-  - apps/external-dns/values.yaml
+  - values/external-dns/values.yaml
 - chart: external-secrets/kubernetes-external-secrets
   version: 4.0.0
   name: kubernetes-external-secrets
   namespace: external-secrets
   values:
-  - apps/kubernetes-external-secrets/values.yaml.gotmpl
+  - values/kubernetes-external-secrets/values.yaml.gotmpl
 - chart: doesnotexist/bucketrepo
   name: bucketrepo
   namespace: jx
