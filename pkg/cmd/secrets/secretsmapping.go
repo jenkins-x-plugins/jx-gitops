@@ -1,10 +1,10 @@
-package extsecret
+package secrets
 
 import (
 	"fmt"
 	"strings"
 
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/extsecret/edit"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/secrets/edit"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras"
 
 	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
@@ -44,13 +44,13 @@ type Options struct {
 	Prefix string
 }
 
-// NewCmdExtSecrets creates a command object for the command
-func NewCmdExtSecrets() (*cobra.Command, *Options) {
+// NewCmdSecretsMapping creates a command object for the command
+func NewCmdSecretsMapping() (*cobra.Command, *Options) {
 	o := &Options{}
 
 	cmd := &cobra.Command{
 		Use:     "secretsmapping",
-		Aliases: []string{"sm"},
+		Aliases: []string{"sm", "secretmapping"},
 		Short:   "Converts all Secret resources in the path to ExternalSecret CRDs",
 		Long:    labelLong,
 		Example: fmt.Sprintf(labelExample, rootcmd.BinaryName),
@@ -137,7 +137,7 @@ func (o *Options) Run() error {
 		if err != nil {
 			return flag, err
 		}
-		flag, err = o.moveMetadataToTemplate(node, path)
+		flag, err = o.moveMetadataToTemplate(node, path, secret)
 		if err != nil {
 			return flag, err
 		}
@@ -177,15 +177,10 @@ func (o *Options) convertData(node *yaml.RNode, path string, backendType v1alpha
 
 			switch backendType {
 			case v1alpha1.BackendTypeVault:
-				{
-					err = o.modifyVault(field, secretName, err, rNode, path)
+				err = o.modifyVault(field, secretName, err, rNode, path)
 
-				}
 			case v1alpha1.BackendTypeGSM:
-				{
-					err = o.modifyGSM(field, secretName, err, rNode, path)
-
-				}
+				err = o.modifyGSM(field, secretName, err, rNode, path)
 			}
 
 			if err != nil {
@@ -314,7 +309,7 @@ func (o *Options) modifyGSM(field string, secretName string, err error, rNode *y
 	return nil
 }
 
-func (o *Options) moveMetadataToTemplate(node *yaml.RNode, path string) (bool, error) {
+func (o *Options) moveMetadataToTemplate(node *yaml.RNode, path string, secret v1alpha1.SecretRule) (bool, error) {
 	// lets move annotations/labels/type  over to the template field
 	typeValue := kyamls.GetStringField(node, path, "type")
 
@@ -375,5 +370,14 @@ func (o *Options) moveMetadataToTemplate(node *yaml.RNode, path string) (bool, e
 			}
 		}
 	}
+
+	// now lets add any optional annotations
+	if secret.Mandatory {
+		err := node.PipeE(yaml.SetAnnotation(KindAnnotation, KindValueMandatory))
+		if err != nil {
+		  return false, errors.Wrapf(err, "failed to add mandatory annotation to file %s", path)
+		}
+	}
+
 	return true, nil
 }

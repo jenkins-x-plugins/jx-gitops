@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/extsecret/edit"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/secrets/edit"
 	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/stretchr/testify/assert"
 

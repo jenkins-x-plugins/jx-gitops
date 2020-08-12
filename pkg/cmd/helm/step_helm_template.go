@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/extsecret"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/secrets"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/split"
 	"github.com/jenkins-x/jx-gitops/pkg/plugins"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
@@ -273,7 +273,7 @@ func (o *TemplateOptions) Run() error {
 		}
 	}
 	if !o.NoExtSecrets {
-		_, eo := extsecret.NewCmdExtSecrets()
+		_, eo := secrets.NewCmdSecretsMapping()
 		eo.Dir = outDir
 		err = eo.Run()
 		if err != nil {
