@@ -11,6 +11,7 @@ import (
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient/cli"
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient/credentialhelper"
+	"github.com/jenkins-x/jx-helpers/pkg/gitclient/giturl"
 	"github.com/jenkins-x/jx-helpers/pkg/homedir"
 	"github.com/jenkins-x/jx-helpers/pkg/kube"
 	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
@@ -142,9 +143,16 @@ func (o *Options) findCredentials() ([]credentialhelper.GitCredential, error) {
 			log.Logger().Warnf("secret %s in namespace %s does not have a url entry", name, ns)
 			return nil, nil
 		}
+		// lets convert the git URL into a provider URL
+		gitInfo, err := giturl.ParseGitURL(gitURL)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to parse git URL %s", gitURL)
+		}
+		gitProviderURL := gitInfo.HostURL()
+
 		username := string(data["username"])
 		password := string(data["password"])
-		credential, err := credentialhelper.CreateGitCredentialFromURL(gitURL, username, password)
+		credential, err := credentialhelper.CreateGitCredentialFromURL(gitProviderURL, username, password)
 		if err != nil {
 			return nil, errors.Wrapf(err, "invalid git auth information")
 		}
