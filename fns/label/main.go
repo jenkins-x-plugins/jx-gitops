@@ -26,12 +26,6 @@ var (
 	`)
 )
 
-// LabelOptions the options for the command
-type Options struct {
-	Dir   string
-	Label string
-}
-
 func main() {
 	//o := &Options{}
 

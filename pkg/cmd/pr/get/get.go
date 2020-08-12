@@ -39,8 +39,6 @@ var (
 		# display the head source URL
 		%s pr get --head-url 
 	`)
-
-	pathSeparator = string(os.PathSeparator)
 )
 
 // KptOptions the options for the command
