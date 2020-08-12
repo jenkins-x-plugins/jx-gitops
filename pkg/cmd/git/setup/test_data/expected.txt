@@ -1,1 +1,1 @@
-https://myuser:mypwd@github.com/myorg/myrepo.git
+https://myuser:mypwd@github.com
