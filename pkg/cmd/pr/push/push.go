@@ -36,8 +36,6 @@ var (
 		# pushes the current directories git contents to the branch used to create the current PR via $BRANCH_NAME
 		%s pr push 
 	`)
-
-	pathSeparator = string(os.PathSeparator)
 )
 
 // KptOptions the options for the command

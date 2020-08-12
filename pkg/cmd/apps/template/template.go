@@ -33,10 +33,6 @@ var (
 	`)
 )
 
-var (
-	phases = []string{"apps", "system"}
-)
-
 // Options the options for the command
 type Options struct {
 	resolve.Options
@@ -197,7 +193,7 @@ func (o *Options) Run() error {
 func (o *Options) addAbsValuesFile(valuesFiles []string, files ...string) ([]string, error) {
 	for _, f := range files {
 		path, err := filepath.Abs(filepath.Join(o.Dir, f))
-		absValuesFile, err := path, err
+		absValuesFile := path
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to get absolute path of %s", path)
 		}
@@ -210,7 +206,7 @@ func (o *Options) addAbsValuesFile(valuesFiles []string, files ...string) ([]str
 }
 
 func (o *Options) templateValuesFile(requirements *config.RequirementsConfig, valuesTemplateFile string, chartName string, valuesFiles []string) (string, error) {
-	absValuesFiles := []string{}
+	var absValuesFiles []string
 	for _, f := range valuesFiles {
 		af, err := filepath.Abs(f)
 		if err != nil {

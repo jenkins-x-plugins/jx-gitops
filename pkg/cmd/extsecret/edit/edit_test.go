@@ -8,13 +8,12 @@ import (
 	"testing"
 
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/extsecret/edit"
+	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
 	"github.com/jenkins-x/jx-gitops/pkg/secretmapping"
 	"github.com/stretchr/testify/require"
-
-	"github.com/jenkins-x/jx/v2/pkg/util"
 )
 
 func TestCmdSecretsMappingEdit(t *testing.T) {
@@ -66,11 +65,11 @@ func TestCmdSecretsMappingEdit(t *testing.T) {
 		t.Logf("running test %s", tt.name)
 		dir := filepath.Join(tmpDir)
 
-		err = os.MkdirAll(dir, util.DefaultWritePermissions)
+		err = os.MkdirAll(dir, files.DefaultDirWritePermissions)
 		require.NoError(t, err, "failed to create dir %s", dir)
 
 		localSecretsFile := filepath.Join("test_data", tt.name)
-		err = util.CopyDir(localSecretsFile, dir, true)
+		err = files.CopyDir(localSecretsFile, dir, true)
 		require.NoError(t, err, "failed to copy %s to %s", localSecretsFile, dir)
 
 		cmd, _ := edit.NewCmdSecretMappingEdit()

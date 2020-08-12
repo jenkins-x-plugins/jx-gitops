@@ -195,7 +195,6 @@ func (o *Options) Run() error {
 			appsCfg.Values = append(appsCfg.Values, requirementsValuesFiles)
 		}
 	}
-	count := 0
 	for i, app := range appsCfg.Apps {
 		repository := app.Repository
 		fullChartName := app.Name
@@ -367,12 +366,10 @@ func (o *Options) Run() error {
 	if !o.DoGitCommit {
 		return nil
 	}
-	if count > 0 {
-		log.Logger().Infof("committing changes: %s", o.GitCommitMessage)
-		err = o.GitCommit(o.Dir, o.GitCommitMessage)
-		if err != nil {
-			return errors.Wrapf(err, "failed to commit changes")
-		}
+	log.Logger().Infof("committing changes: %s", o.GitCommitMessage)
+	err = o.GitCommit(o.Dir, o.GitCommitMessage)
+	if err != nil {
+		return errors.Wrapf(err, "failed to commit changes")
 	}
 	return nil
 }

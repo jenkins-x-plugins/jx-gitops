@@ -9,15 +9,15 @@ import (
 	"github.com/jenkins-x/jx-api/pkg/config"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
+	"github.com/jenkins-x/jx-helpers/pkg/gitclient/giturl"
+	"github.com/jenkins-x/jx-helpers/pkg/options"
+	"github.com/jenkins-x/jx-helpers/pkg/stringhelpers"
 	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
-	"github.com/jenkins-x/jx/v2/pkg/gits"
-
 	"github.com/jenkins-x/jx-logging/pkg/log"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
-	"github.com/jenkins-x/jx/v2/pkg/util"
 )
 
 // Options the CLI options for this command
@@ -101,7 +101,7 @@ func NewCmdRequirementsEdit() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&options.Requirements.Cluster.HelmMajorVersion, "helm-version", "", "", "configures the Helm major version. e.g. 3 to try helm 3")
 
 	// git
-	cmd.Flags().StringVarP(&options.Requirements.Cluster.GitKind, "git-kind", "", "", fmt.Sprintf("the kind of git repository to use. Possible values: %s", strings.Join(gits.KindGits, ", ")))
+	cmd.Flags().StringVarP(&options.Requirements.Cluster.GitKind, "git-kind", "", "", fmt.Sprintf("the kind of git repository to use. Possible values: %s", strings.Join(giturl.KindGits, ", ")))
 	cmd.Flags().StringVarP(&options.Requirements.Cluster.GitName, "git-name", "", "", "the name of the git repository")
 	cmd.Flags().StringVarP(&options.Requirements.Cluster.GitServer, "git-server", "", "", "the git server host such as https://github.com or https://gitlab.com")
 	cmd.Flags().StringVarP(&options.Requirements.Cluster.EnvironmentGitOwner, "env-git-owner", "", "", "the git owner (organisation or user) used to own the git repositories for the environments")
@@ -168,8 +168,8 @@ func (o *Options) applyDefaults() error {
 	r := &o.Requirements
 
 	gitKind := r.Cluster.GitKind
-	if gitKind != "" && util.StringArrayIndex(gits.KindGits, gitKind) < 0 {
-		return util.InvalidOption("git-kind", gitKind, gits.KindGits)
+	if gitKind != "" && stringhelpers.StringArrayIndex(giturl.KindGits, gitKind) < 0 {
+		return options.InvalidOption("git-kind", gitKind, giturl.KindGits)
 	}
 
 	// override boolean flags if specified
@@ -203,7 +203,7 @@ func (o *Options) applyDefaults() error {
 		case "vault":
 			r.SecretStorage = config.SecretStorageTypeVault
 		default:
-			return util.InvalidOption("secret", o.SecretStorage, config.SecretStorageTypeValues)
+			return options.InvalidOption("secret", o.SecretStorage, config.SecretStorageTypeValues)
 		}
 	}
 	if o.Webhook != "" {
@@ -215,7 +215,7 @@ func (o *Options) applyDefaults() error {
 		case "prow":
 			r.Webhook = config.WebhookTypeProw
 		default:
-			return util.InvalidOption("webhook", o.Webhook, config.WebhookTypeValues)
+			return options.InvalidOption("webhook", o.Webhook, config.WebhookTypeValues)
 		}
 	}
 
