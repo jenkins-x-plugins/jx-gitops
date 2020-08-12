@@ -9,6 +9,7 @@ import (
 
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient/cli"
+	"github.com/jenkins-x/jx-helpers/pkg/options"
 	"github.com/jenkins-x/jx-logging/pkg/log"
 	"github.com/jenkins-x/jx/v2/pkg/gits"
 	"k8s.io/client-go/rest"
@@ -205,7 +206,7 @@ func (o *Options) discoverGitToken() (string, error) {
 	}
 	if oauthToken == "" {
 		// TODO discover via secret?...
-		return "", util.MissingOption("git-token")
+		return "", options.MissingOption("git-token")
 	}
 	return oauthToken, nil
 }

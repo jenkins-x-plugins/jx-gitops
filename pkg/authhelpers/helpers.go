@@ -5,6 +5,7 @@ import (
 
 	"github.com/jenkins-x/go-scm/scm"
 	"github.com/jenkins-x/go-scm/scm/factory"
+	"github.com/jenkins-x/jx-helpers/pkg/gitclient/giturl"
 	"github.com/jenkins-x/jx-helpers/pkg/kube"
 	"github.com/jenkins-x/jx/v2/pkg/auth"
 	"github.com/jenkins-x/jx/v2/pkg/gits"
@@ -102,7 +103,7 @@ func (f *AuthFacade) FindGitUserTokenForServer(serverURL string, owner string) (
 	server := cfg.GetOrCreateServer(serverURL)
 	kind = server.Kind
 	if kind == "" {
-		kind = gits.SaasGitKind(serverURL)
+		kind = giturl.SaasGitKind(serverURL)
 	}
 
 	ioHandles := GetIOFileHandles(f.IOFileHandles)

@@ -8,13 +8,13 @@ require (
 	github.com/google/go-cmp v0.4.1
 	github.com/h2non/gock v1.0.9
 	github.com/jenkins-x/gen-crd-api-reference-docs v0.1.6 // indirect
-	github.com/jenkins-x/go-scm v1.5.155
+	github.com/jenkins-x/go-scm v1.5.156
 	github.com/jenkins-x/jx-api v0.0.17
 	github.com/jenkins-x/jx-apps v0.0.4
-	github.com/jenkins-x/jx-helpers v1.0.36
+	github.com/jenkins-x/jx-helpers v1.0.40
 	github.com/jenkins-x/jx-logging v0.0.11
-	github.com/jenkins-x/jx/v2 v2.1.126
-	github.com/jenkins-x/lighthouse v0.0.706
+	github.com/jenkins-x/jx/v2 v2.1.131
+	github.com/jenkins-x/lighthouse v0.0.713
 	github.com/jenkins-x/lighthouse-config v0.0.10 // indirect
 	github.com/pborman/uuid v1.2.0
 	github.com/pkg/errors v0.9.1
@@ -24,7 +24,6 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.6.1
 	gopkg.in/validator.v2 v2.0.0-20200605151824-2b28d334fa05
-	gopkg.in/yaml.v2 v2.3.0
 	k8s.io/api v0.18.1
 	k8s.io/apimachinery v0.18.1
 	k8s.io/client-go v11.0.1-0.20190805182717-6502b5e7b1b5+incompatible

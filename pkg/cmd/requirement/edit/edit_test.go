@@ -10,11 +10,11 @@ import (
 	"testing"
 
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/requirement/edit"
+	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/jenkins-x/jx-api/pkg/config"
-	"github.com/jenkins-x/jx/v2/pkg/util"
 )
 
 func TestCmdRequirementsEdit(t *testing.T) {
@@ -89,12 +89,12 @@ func TestCmdRequirementsEdit(t *testing.T) {
 		t.Logf("running test %s", tt.name)
 		dir := filepath.Join(tmpDir, tt.name)
 
-		err = os.MkdirAll(dir, util.DefaultWritePermissions)
+		err = os.MkdirAll(dir, files.DefaultDirWritePermissions)
 		require.NoError(t, err, "failed to create dir %s", dir)
 
 		localReqFile := filepath.Join(dir, config.RequirementsConfigFileName)
 		if tt.initialFile != "" {
-			err = util.CopyFile(tt.initialFile, localReqFile)
+			err = files.CopyFile(tt.initialFile, localReqFile)
 			require.NoError(t, err, "failed to copy %s to %s", tt.initialFile, localReqFile)
 			require.FileExists(t, localReqFile, "file should have been copied")
 		}
