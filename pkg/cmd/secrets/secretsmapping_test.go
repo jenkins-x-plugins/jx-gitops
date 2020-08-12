@@ -1,4 +1,4 @@
-package extsecret_test
+package secrets_test
 
 import (
 	"io/ioutil"
@@ -11,7 +11,7 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/extsecret"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/secrets"
 	"github.com/jenkins-x/jx-gitops/pkg/secretmapping"
 	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/stretchr/testify/assert"
@@ -56,7 +56,7 @@ func TestToExtSecrets(t *testing.T) {
 		}
 	}
 
-	_, eo := extsecret.NewCmdExtSecrets()
+	_, eo := secrets.NewCmdSecretsMapping()
 	eo.Dir = tmpDir
 
 	eo.SecretMapping, _, err = secretmapping.LoadSecretMapping(sourceData, true)
@@ -119,7 +119,7 @@ func TestMultipleBackendTypes(t *testing.T) {
 		}
 	}
 
-	_, eo := extsecret.NewCmdExtSecrets()
+	_, eo := secrets.NewCmdSecretsMapping()
 	eo.Dir = tmpDir
 
 	eo.SecretMapping, _, err = secretmapping.LoadSecretMapping(sourceData, true)

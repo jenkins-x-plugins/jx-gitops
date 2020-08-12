@@ -4,7 +4,6 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/annotate"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/apps"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/condition"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/extsecret"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/git"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/hash"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helm"
@@ -19,6 +18,7 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/repository"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/requirement"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/scheduler"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/secrets"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/split"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/version"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
@@ -48,7 +48,6 @@ func Main() *cobra.Command {
 	cmd.AddCommand(requirement.NewCmdRequirement())
 
 	cmd.AddCommand(cobras.SplitCommand(annotate.NewCmdUpdateAnnotate()))
-	cmd.AddCommand(cobras.SplitCommand(extsecret.NewCmdExtSecrets()))
 	cmd.AddCommand(cobras.SplitCommand(condition.NewCmdCondition()))
 	cmd.AddCommand(cobras.SplitCommand(hash.NewCmdHashAnnotate()))
 	cmd.AddCommand(cobras.SplitCommand(image.NewCmdUpdateImage()))
@@ -58,6 +57,7 @@ func Main() *cobra.Command {
 	cmd.AddCommand(cobras.SplitCommand(namespace.NewCmdUpdateNamespace()))
 	cmd.AddCommand(cobras.SplitCommand(repository.NewCmdUpdateRepository()))
 	cmd.AddCommand(cobras.SplitCommand(scheduler.NewCmdScheduler()))
+	cmd.AddCommand(cobras.SplitCommand(secrets.NewCmdSecretsMapping()))
 	cmd.AddCommand(cobras.SplitCommand(split.NewCmdSplit()))
 	cmd.AddCommand(cobras.SplitCommand(version.NewCmdVersion()))
 	return cmd

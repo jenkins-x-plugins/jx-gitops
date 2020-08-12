@@ -68,6 +68,8 @@ type SecretRule struct {
 	BackendType BackendType `json:"backendType"`
 	// Mappings one more mappings
 	Mappings []Mapping `json:"mappings,omitempty"`
+	// Mandatory marks this secret as being mandatory
+	Mandatory bool `json:"mandatory,omitempty"`
 	// GcpSecretsManager config
 	GcpSecretsManager GcpSecretsManager `json:"gcpSecretsManager,omitempty"`
 }
