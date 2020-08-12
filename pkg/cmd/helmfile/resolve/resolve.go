@@ -327,7 +327,7 @@ func (o *Options) matchPrefix(prefix string) (string, error) {
 	// default to first URL
 	repoURL := o.prefixes.URLsForPrefix(prefix)
 
-	if repoURL == nil || len(repoURL) == 0 {
+	if len(repoURL) == 0 {
 		return "", errors.Errorf("no matching repository for for prefix %s", prefix)
 	}
 	return repoURL[0], nil
