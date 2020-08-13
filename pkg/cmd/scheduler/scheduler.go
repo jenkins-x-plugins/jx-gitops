@@ -16,11 +16,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	"github.com/jenkins-x/jx-gitops/pkg/kyamls"
 	"github.com/jenkins-x/jx-gitops/pkg/pipelinescheduler"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
+	"github.com/jenkins-x/jx-helpers/pkg/kyamls"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/kustomize/kyaml/yaml"

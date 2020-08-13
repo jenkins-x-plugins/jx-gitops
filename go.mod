@@ -11,7 +11,7 @@ require (
 	github.com/jenkins-x/go-scm v1.5.156
 	github.com/jenkins-x/jx-api v0.0.17
 	github.com/jenkins-x/jx-apps v0.0.4
-	github.com/jenkins-x/jx-helpers v1.0.40
+	github.com/jenkins-x/jx-helpers v1.0.41
 	github.com/jenkins-x/jx-logging v0.0.11
 	github.com/jenkins-x/jx/v2 v2.1.131
 	github.com/jenkins-x/lighthouse v0.0.713
@@ -29,7 +29,7 @@ require (
 	k8s.io/client-go v11.0.1-0.20190805182717-6502b5e7b1b5+incompatible
 	k8s.io/helm v2.7.2+incompatible
 	sigs.k8s.io/kustomize/api v0.4.1
-	sigs.k8s.io/kustomize/kyaml v0.2.0
+	sigs.k8s.io/kustomize/kyaml v0.6.0
 	sigs.k8s.io/yaml v1.2.0
 
 )

@@ -23,6 +23,10 @@ This is typically used in a pipeline to ensure git can do commits.
 
 .SH OPTIONS
 .PP
+\fB\-\-credentials\-file\fP=""
+    The destination of the git credentials file to generate. If not specified uses $XDG\_CONFIG\_HOME/git/credentials or $HOME/git/credentials
+
+.PP
 \fB\-d\fP, \fB\-\-dir\fP=""
     the directory to run the git push command from
 
@@ -31,12 +35,24 @@ This is typically used in a pipeline to ensure git can do commits.
     the git user email to use if one is not setup
 
 .PP
+\fB\-\-fake\-in\-cluster\fP[=false]
+    for testing: lets you fake running this command inside a kubernetes cluster so that it can create the file: $XDG\_CONFIG\_HOME/git/credentials or $HOME/git/credentials
+
+.PP
 \fB\-h\fP, \fB\-\-help\fP[=false]
     help for setup
 
 .PP
 \fB\-n\fP, \fB\-\-name\fP=""
     the git user name to use if one is not setup
+
+.PP
+\fB\-\-namespace\fP=""
+    the namespace used to find the git operator secret for the git repository if running in cluster. Defaults to the current namespace
+
+.PP
+\fB\-\-secret\fP="jx\-boot"
+    the name of the Secret to find the git URL, username and password for creating a git credential if running inside the cluster
 
 
 .SH EXAMPLE

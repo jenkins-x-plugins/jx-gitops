@@ -7,11 +7,11 @@ import (
 	"io/ioutil"
 
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/annotate"
-	"github.com/jenkins-x/jx-gitops/pkg/kyamls"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/pkg/files"
+	"github.com/jenkins-x/jx-helpers/pkg/kyamls"
 	"github.com/jenkins-x/jx-helpers/pkg/options"
 	"github.com/jenkins-x/jx-logging/pkg/log"
 	"github.com/pkg/errors"

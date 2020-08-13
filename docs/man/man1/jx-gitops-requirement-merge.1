@@ -23,6 +23,10 @@ This lets you take requirements from, say, the output of a terraform plan and me
 
 .SH OPTIONS
 .PP
+\fB\-c\fP, \fB\-\-configmap\fP="terraform\-jx\-requirements"
+    the name of the ConfigMap to find the requirements to merge if not specifying a requirements file via \-\-file
+
+.PP
 \fB\-d\fP, \fB\-\-dir\fP="."
     the source directory to merge changes into
 
@@ -34,10 +38,19 @@ This lets you take requirements from, say, the output of a terraform plan and me
 \fB\-h\fP, \fB\-\-help\fP[=false]
     help for merge
 
+.PP
+\fB\-\-namespace\fP="default"
+    the namespace used to find the ConfigMap if using the ConfigMap mode
+
 
 .SH EXAMPLE
 .PP
-jx\-gitops requirements merge \-f /tmp/jx\-requirements.yml
+# merge requirements from a file
+  jx\-gitops requirements merge \-f /tmp/jx\-requirements.yml
+
+.PP
+# merge requirements from a ConfigMap called 'terraform\-jx\-requiremnets' in the default namespace
+  %!s(MISSING) requirements merge
 
 
 .SH SEE ALSO

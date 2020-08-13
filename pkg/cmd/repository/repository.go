@@ -6,12 +6,12 @@ import (
 
 	"github.com/jenkins-x/jx-api/pkg/config"
 	"github.com/jenkins-x/jx-api/pkg/util"
-	"github.com/jenkins-x/jx-gitops/pkg/kyamls"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient/gitdiscovery"
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient/giturl"
+	"github.com/jenkins-x/jx-helpers/pkg/kyamls"
 	"github.com/jenkins-x/jx-helpers/pkg/options"
 	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
 	"github.com/jenkins-x/jx-logging/pkg/log"
