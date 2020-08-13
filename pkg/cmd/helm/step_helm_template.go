@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/secrets"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/split"
 	"github.com/jenkins-x/jx-gitops/pkg/plugins"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
@@ -270,14 +269,6 @@ func (o *TemplateOptions) Run() error {
 		err = so.Run()
 		if err != nil {
 			return errors.Wrapf(err, "failed to split YAML files at %s", outDir)
-		}
-	}
-	if !o.NoExtSecrets {
-		_, eo := secrets.NewCmdSecretsMapping()
-		eo.Dir = outDir
-		err = eo.Run()
-		if err != nil {
-			return errors.Wrapf(err, "failed to convert to external Secrets at %s", outDir)
 		}
 	}
 	if !o.DoGitCommit {

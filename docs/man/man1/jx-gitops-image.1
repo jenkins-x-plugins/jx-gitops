@@ -30,28 +30,28 @@ Updates images in the kubernetes resources from the version stream
 .PP
 \fB\-k\fP, \fB\-\-kind\fP=[]
     adds Kubernetes resource kinds to filter on. For kind expressions see: 
-\[la]https://github.com/jenkins-x/jx-gitops/tree/master/docs/kind_filters.md\[ra]
+\[la]https://github.com/jenkins-x/jx-helpers/tree/master/docs/kind_filters.md\[ra]
 
 .PP
 \fB\-\-kind\-ignore\fP=[]
     adds Kubernetes resource kinds to exclude. For kind expressions see: 
-\[la]https://github.com/jenkins-x/jx-gitops/tree/master/docs/kind_filters.md\[ra]
-
-.PP
-\fB\-c\fP, \fB\-\-ref\fP=""
-    the git ref (branch, tag, revision) of the version stream to git clone. If not specified it defaults to the value in the jx\-requirements.yml
+\[la]https://github.com/jenkins-x/jx-helpers/tree/master/docs/kind_filters.md\[ra]
 
 .PP
 \fB\-s\fP, \fB\-\-source\-dir\fP="content\-root"
     the directory to recursively look for the *.yaml files to modify
 
 .PP
-\fB\-n\fP, \fB\-\-url\fP=""
-    the git clone URL of the version stream. If not specified it defaults to the value in the jx\-requirements.yml
+\fB\-\-version\-stream\-dir\fP=""
+    the directory for the version stream. Defaults to 'versionStream' in the current \-\-dir
 
 .PP
-\fB\-\-version\-stream\-dir\fP=""
-    optional directory that contains a version stream
+\fB\-c\fP, \fB\-\-version\-stream\-ref\fP=""
+    the git ref (branch, tag, revision) of the version stream to git clone. If not specified it defaults to the value in the jx\-requirements.yml
+
+.PP
+\fB\-n\fP, \fB\-\-version\-stream\-url\fP=""
+    the git clone URL of the version stream. If not specified it defaults to the value in the jx\-requirements.yml
 
 
 .SH EXAMPLE

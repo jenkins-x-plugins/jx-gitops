@@ -18,7 +18,6 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/repository"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/requirement"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/scheduler"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/secrets"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/split"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/version"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
@@ -57,7 +56,6 @@ func Main() *cobra.Command {
 	cmd.AddCommand(cobras.SplitCommand(namespace.NewCmdUpdateNamespace()))
 	cmd.AddCommand(cobras.SplitCommand(repository.NewCmdUpdateRepository()))
 	cmd.AddCommand(cobras.SplitCommand(scheduler.NewCmdScheduler()))
-	cmd.AddCommand(cobras.SplitCommand(secrets.NewCmdSecretsMapping()))
 	cmd.AddCommand(cobras.SplitCommand(split.NewCmdSplit()))
 	cmd.AddCommand(cobras.SplitCommand(version.NewCmdVersion()))
 	return cmd

@@ -8,8 +8,8 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/annotate"
-	"github.com/jenkins-x/jx-gitops/pkg/kyamls"
 	"github.com/jenkins-x/jx-helpers/pkg/files"
+	"github.com/jenkins-x/jx-helpers/pkg/kyamls"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
