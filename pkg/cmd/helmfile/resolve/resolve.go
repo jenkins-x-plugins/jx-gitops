@@ -245,25 +245,22 @@ func (o *Options) Run() error {
 
 		// lets try resolve any values files in the version stream
 		found := false
-		// TODO lets deprecate the "apps" folder ASAP"
-		for _, folderName := range []string{"values", "apps"} {
-			for _, valueFileName := range valueFileNames {
-				versionStreamValuesFile := filepath.Join(versionsDir, folderName, prefix, chartName, valueFileName)
-				exists, err := files.FileExists(versionStreamValuesFile)
-				if err != nil {
-					return errors.Wrapf(err, "failed to check if version stream values file exists %s", versionStreamValuesFile)
+		for _, valueFileName := range valueFileNames {
+			versionStreamValuesFile := filepath.Join(versionsDir, "charts", prefix, chartName, valueFileName)
+			exists, err := files.FileExists(versionStreamValuesFile)
+			if err != nil {
+				return errors.Wrapf(err, "failed to check if version stream values file exists %s", versionStreamValuesFile)
+			}
+			if exists {
+				path := filepath.Join("versionStream", "charts", prefix, chartName, valueFileName)
+				if !valuesContains(release.Values, path) {
+					release.Values = append(release.Values, path)
 				}
-				if exists {
-					path := filepath.Join("versionStream", folderName, prefix, chartName, valueFileName)
-					if !valuesContains(release.Values, path) {
-						release.Values = append(release.Values, path)
-					}
-					found = true
-					break
-				}
-				if found {
-					break
-				}
+				found = true
+				break
+			}
+			if found {
+				break
 			}
 		}
 
