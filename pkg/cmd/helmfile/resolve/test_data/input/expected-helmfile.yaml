@@ -14,7 +14,7 @@ releases:
   name: tekton
   namespace: jx
   values:
-  - versionStream/values/jenkins-x/tekton/values.yaml.gotmpl
+  - versionStream/charts/jenkins-x/tekton/values.yaml.gotmpl
 - chart: jenkins-x/jxboot-helmfile-resources
   version: 0.0.255
   name: jxboot-helmfile-resources

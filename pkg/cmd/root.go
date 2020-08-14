@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/annotate"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/apps"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/condition"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/git"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/hash"
@@ -38,7 +37,6 @@ func Main() *cobra.Command {
 			}
 		},
 	}
-	cmd.AddCommand(apps.NewCmdApps())
 	cmd.AddCommand(helm.NewCmdHelm())
 	cmd.AddCommand(helmfile.NewCmdHelmfile())
 	cmd.AddCommand(git.NewCmdGit())
