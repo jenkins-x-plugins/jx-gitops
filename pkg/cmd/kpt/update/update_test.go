@@ -26,11 +26,11 @@ func TestUpdateKptNoFilter(t *testing.T) {
 
 	runner.ExpectResults(t,
 		fakerunner.FakeResult{
-			CLI: "kpt pkg update config-root/namespaces/app1@master --strategy alpha-git-patch",
+			CLI: "kpt pkg update config-root/namespaces/app1@master --strategy resource-merge",
 			Dir: absSourceDir,
 		},
 		fakerunner.FakeResult{
-			CLI: "kpt pkg update config-root/namespaces/app2@master --strategy alpha-git-patch",
+			CLI: "kpt pkg update config-root/namespaces/app2@master --strategy resource-merge",
 			Dir: absSourceDir,
 		},
 	)
@@ -54,7 +54,7 @@ func TestUpdateKptFilterRepositoryURL(t *testing.T) {
 
 	runner.ExpectResults(t,
 		fakerunner.FakeResult{
-			CLI: "kpt pkg update config-root/namespaces/app2@master --strategy alpha-git-patch",
+			CLI: "kpt pkg update config-root/namespaces/app2@master --strategy resource-merge",
 			Dir: absSourceDir,
 		},
 	)
@@ -77,7 +77,7 @@ func TestUpdateKptFilterRepositoryName(t *testing.T) {
 
 	runner.ExpectResults(t,
 		fakerunner.FakeResult{
-			CLI: "kpt pkg update config-root/namespaces/app1@master --strategy alpha-git-patch",
+			CLI: "kpt pkg update config-root/namespaces/app1@master --strategy resource-merge",
 			Dir: absSourceDir,
 		},
 	)

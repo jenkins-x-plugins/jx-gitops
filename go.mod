@@ -2,6 +2,7 @@ module github.com/jenkins-x/jx-gitops
 
 require (
 	github.com/cpuguy83/go-md2man v1.0.10
+	github.com/cyphar/filepath-securejoin v0.2.2 // indirect
 	github.com/davecgh/go-spew v1.1.1
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/go-yaml/yaml v2.1.0+incompatible
