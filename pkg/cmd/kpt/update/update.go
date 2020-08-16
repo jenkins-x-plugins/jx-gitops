@@ -61,7 +61,7 @@ func NewCmdKptUpdate() (*cobra.Command, *Options) {
 	}
 	cmd.Flags().StringVarP(&o.Dir, "dir", "", ".", "the directory to recursively look for the *.yaml or *.yml files")
 	cmd.Flags().StringVarP(&o.Version, "version", "v", "master", "the git version of the kpt package to upgrade to")
-	cmd.Flags().StringVarP(&o.Strategy, "strategy", "s", "alpha-git-patch", "the 'kpt pkg update' strategy to use")
+	cmd.Flags().StringVarP(&o.Strategy, "strategy", "s", "resource-merge", "the 'kpt pkg update' strategy to use")
 	cmd.Flags().StringVarP(&o.RepositoryURL, "url", "u", "", "filter on the Kptfile repository URL for which packages to update")
 	cmd.Flags().StringVarP(&o.RepositoryOwner, "owner", "o", "", "filter on the Kptfile repository owner (user/organisation) for which packages to update")
 	cmd.Flags().StringVarP(&o.RepositoryName, "repo", "r", "", "filter on the Kptfile repository name  for which packages to update")
