@@ -12,7 +12,7 @@ require (
 	github.com/jenkins-x/go-scm v1.5.156
 	github.com/jenkins-x/jx-api v0.0.17
 	github.com/jenkins-x/jx-apps v0.0.4
-	github.com/jenkins-x/jx-helpers v1.0.41
+	github.com/jenkins-x/jx-helpers v1.0.42
 	github.com/jenkins-x/jx-logging v0.0.11
 	github.com/jenkins-x/jx/v2 v2.1.131
 	github.com/jenkins-x/lighthouse v0.0.721
