@@ -1077,6 +1077,8 @@ github.com/jenkins-x/lighthouse v0.0.713 h1:mq3bt5bxsPBbD2FiKSK9He2S2BoBugeN0vHz
 github.com/jenkins-x/lighthouse v0.0.713/go.mod h1:v1AqTvMEbRv3DooL4b8tecdc9q12QapYd/cfJcYjCKs=
 github.com/jenkins-x/lighthouse v0.0.721 h1:QE3hbHm2WLfxlyqwAoqlOve+ls6OIEb4nKPVI7yqv3M=
 github.com/jenkins-x/lighthouse v0.0.721/go.mod h1:gQwbGRk96fmTVs/Z1mo8HChPcc85YzJn6usn2Bc7cRc=
+github.com/jenkins-x/lighthouse v0.0.740 h1:ImSM7lP987wwJM9l9WMBJjK6LM/Od4GtOwvzcL1fp3I=
+github.com/jenkins-x/lighthouse v0.0.740/go.mod h1:y8zsbRMPW9utN4mtfXXQekxIk1Pbijv3VMH4jbA60WE=
 github.com/jenkins-x/lighthouse-config v0.0.6 h1:s73GxzEaqsqn/9w+VnkPKLx4lSs450PMgk4rpCioOm0=
 github.com/jenkins-x/lighthouse-config v0.0.6/go.mod h1:5ax5UF79SGM+Xc3HrWR/9LsPQBWDxE+TEJMwPAikst8=
 github.com/jenkins-x/lighthouse-config v0.0.10 h1:wwbUeMYBAikpEtLTsSAB8/pHVIiiyieUnNmp0NbH+Q8=
