@@ -1,4 +1,4 @@
-package repository_test
+package resolve_test
 
 import (
 	"io/ioutil"
@@ -8,13 +8,13 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/jenkins-x/jx-api/pkg/config"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/repository"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/repository/resolve"
 	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestUpdateRepositorySourceDir(t *testing.T) {
+func TestResolveRepositorySourceDir(t *testing.T) {
 	sourceData := filepath.Join("test_data", "sourcedir")
 	fileNames, err := ioutil.ReadDir(sourceData)
 	assert.NoError(t, err)
@@ -51,7 +51,7 @@ func TestUpdateRepositorySourceDir(t *testing.T) {
 		}
 	}
 
-	_, o := repository.NewCmdUpdateRepository()
+	_, o := resolve.NewCmdResolveRepository()
 	o.Dir = tmpDir
 	o.SourceDir = tmpDir
 
@@ -76,7 +76,7 @@ func TestUpdateRepositorySourceDir(t *testing.T) {
 	}
 }
 
-func TestUpdateRepositoryInRequirements(t *testing.T) {
+func TestResolveRepositoryInRequirements(t *testing.T) {
 	srcFile := filepath.Join("test_data", "requirements", "jx-requirements.yml")
 
 	tmpDir, err := ioutil.TempDir("", "")
@@ -95,7 +95,7 @@ func TestUpdateRepositoryInRequirements(t *testing.T) {
 		ExpectedFile string
 	}
 
-	_, o := repository.NewCmdUpdateRepository()
+	_, o := resolve.NewCmdResolveRepository()
 	o.Dir = tmpDir
 	o.SourceDir = tmpDir
 
