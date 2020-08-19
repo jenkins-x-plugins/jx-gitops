@@ -10,7 +10,7 @@ jx-gitops helmfile add
 
 ### Synopsis
 
-Resolves the helmfile.yaml from the version stream to specify versions and helm values
+Adds a chart to the local 'helmfile.yaml' file
 
 ### Examples
 

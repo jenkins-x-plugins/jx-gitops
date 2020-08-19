@@ -24,15 +24,13 @@ import (
 
 var (
 	cmdLong = templates.LongDesc(`
-		Resolves the helmfile.yaml from the version stream to specify versions and helm values
+		Adds a chart to the local 'helmfile.yaml' file
 `)
 
 	cmdExample = templates.Examples(`
 		# resolves the versions and values in the helmfile.yaml
 		%s step apps resolve
 	`)
-
-	valueFileNames = []string{"values.yaml.gotmpl", "values.yaml"}
 )
 
 // Options the options for the command
