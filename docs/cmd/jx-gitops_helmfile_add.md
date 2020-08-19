@@ -14,8 +14,11 @@ Adds a chart to the local 'helmfile.yaml' file
 
 ### Examples
 
-  # resolves the versions and values in the helmfile.yaml
-  jx-gitops step apps resolve
+  # adds a chart using the currently known repositories in the verison stream or helmfile.yaml
+  jx-gitops helmfile add --chart somerepo/mychart
+  
+  # adds a chart using a new repository URL with a custom version and namespace
+  jx-gitops helmfile add --chart somerepo/mychart --repository https://acme.com/myrepo --namespace foo --version 1.2.3
 
 ### Options
 
