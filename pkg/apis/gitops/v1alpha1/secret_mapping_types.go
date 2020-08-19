@@ -12,6 +12,7 @@ import (
 )
 
 const (
+	// SecretMappingFileName default name of the secret mappings file
 	SecretMappingFileName = "secret-mappings.yaml"
 )
 

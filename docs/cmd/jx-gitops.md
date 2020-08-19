@@ -33,7 +33,7 @@ GitOps utility commands
 * [jx-gitops label](jx-gitops_label.md)	 - Updates all kubernetes resources in the given directory tree to add/override the given label
 * [jx-gitops namespace](jx-gitops_namespace.md)	 - Updates all kubernetes resources in the given directory to the given namespace
 * [jx-gitops pr](jx-gitops_pr.md)	 - Commands for working with Pull Requests
-* [jx-gitops repository](jx-gitops_repository.md)	 - Updates the git repository URL for the cluster/environment
+* [jx-gitops repository](jx-gitops_repository.md)	 - Commands for working with source repositories
 * [jx-gitops requirement](jx-gitops_requirement.md)	 - Commands for working with jx-requirements.yml
 * [jx-gitops scheduler](jx-gitops_scheduler.md)	 - Generates the Lighthouse configuration from the SourceRepository and Scheduler resources
 * [jx-gitops split](jx-gitops_split.md)	 - Splits any YAML files which define multiple resources into separate files

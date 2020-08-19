@@ -5,7 +5,7 @@
 
 .SH NAME
 .PP
-jx\-gitops\-repository \- Updates the git repository URL for the cluster/environment
+jx\-gitops\-repository \- Commands for working with source repositories
 
 
 .SH SYNOPSIS
@@ -15,46 +15,18 @@ jx\-gitops\-repository \- Updates the git repository URL for the cluster/environ
 
 .SH DESCRIPTION
 .PP
-Updates the git repository URL for the cluster/environment
+Commands for working with source repositories
 
 
 .SH OPTIONS
 .PP
-\fB\-d\fP, \fB\-\-dir\fP="."
-    the directory look for the 'jx\-requirements.yml` file
-
-.PP
 \fB\-h\fP, \fB\-\-help\fP[=false]
     help for repository
-
-.PP
-\fB\-k\fP, \fB\-\-kind\fP=[]
-    adds Kubernetes resource kinds to filter on. For kind expressions see: 
-\[la]https://github.com/jenkins-x/jx-helpers/tree/master/docs/kind_filters.md\[ra]
-
-.PP
-\fB\-\-kind\-ignore\fP=[]
-    adds Kubernetes resource kinds to exclude. For kind expressions see: 
-\[la]https://github.com/jenkins-x/jx-helpers/tree/master/docs/kind_filters.md\[ra]
-
-.PP
-\fB\-s\fP, \fB\-\-source\-dir\fP="."
-    the directory to recursively look for the *.yaml or *.yml source Environment/SourceRepository files
-
-
-.SH EXAMPLE
-.PP
-# updates git repository URL for the resources in the current directory
-  jx\-gitops repository 
-\[la]https://github.com/myorg/myrepo.git\[ra]
-  # updates git repository URL for the resources in some directory
-  jx\-gitops repository \-\-dir something 
-\[la]https://github.com/myorg/myrepo.git\[ra]
 
 
 .SH SEE ALSO
 .PP
-\fBjx\-gitops(1)\fP
+\fBjx\-gitops(1)\fP, \fBjx\-gitops\-repository\-create(1)\fP, \fBjx\-gitops\-repository\-resolve(1)\fP
 
 
 .SH HISTORY

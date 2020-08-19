@@ -43,6 +43,7 @@ func Main() *cobra.Command {
 	cmd.AddCommand(kpt.NewCmdKpt())
 	cmd.AddCommand(pr.NewCmdPR())
 	cmd.AddCommand(requirement.NewCmdRequirement())
+	cmd.AddCommand(repository.NewCmdRepository())
 
 	cmd.AddCommand(cobras.SplitCommand(annotate.NewCmdUpdateAnnotate()))
 	cmd.AddCommand(cobras.SplitCommand(condition.NewCmdCondition()))
@@ -52,7 +53,6 @@ func Main() *cobra.Command {
 	cmd.AddCommand(cobras.SplitCommand(kustomize.NewCmdKustomize()))
 	cmd.AddCommand(cobras.SplitCommand(label.NewCmdUpdateLabel()))
 	cmd.AddCommand(cobras.SplitCommand(namespace.NewCmdUpdateNamespace()))
-	cmd.AddCommand(cobras.SplitCommand(repository.NewCmdUpdateRepository()))
 	cmd.AddCommand(cobras.SplitCommand(scheduler.NewCmdScheduler()))
 	cmd.AddCommand(cobras.SplitCommand(split.NewCmdSplit()))
 	cmd.AddCommand(cobras.SplitCommand(version.NewCmdVersion()))
