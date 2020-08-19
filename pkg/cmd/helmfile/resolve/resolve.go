@@ -26,12 +26,12 @@ import (
 
 var (
 	cmdLong = templates.LongDesc(`
-		Resolves the jx-apps.yml from the version stream to specify versions and helm values
+		Resolves the helmfile.yaml from the version stream to specify versions and helm values
 `)
 
 	cmdExample = templates.Examples(`
-		# resolves the versions and values in the jx-apps.yml
-		%s step apps resolve
+		# resolves the versions and values in the helmfile.yaml
+		%s helmfile resolve
 	`)
 
 	valueFileNames = []string{"values.yaml.gotmpl", "values.yaml"}
@@ -78,10 +78,10 @@ func (o *Options) AddFlags(cmd *cobra.Command, prefix string) {
 	cmd.Flags().BoolVarP(&o.UpdateMode, "update", "", false, "updates versions from the version stream if they have changed")
 	cmd.Flags().StringVarP(&o.Helmfile, "helmfile", "", "", "the helmfile to resolve. If not specified defaults to 'helmfile.yaml' in the dir")
 	cmd.Flags().StringVarP(&o.GitCommitMessage, prefix+"commit-message", "", "chore: generated kubernetes resources from helm chart", "the git commit message used")
-	cmd.Flags().StringVarP(&o.Namespace, "namespace", "", "jx", "the default namespace if none is specified in the jx-apps.yml or jx-requirements.yml")
+	cmd.Flags().StringVarP(&o.Namespace, "namespace", "", "jx", "the default namespace if none is specified in the helmfile.yaml or jx-requirements.yml")
 
 	// git commit stuff....
-	cmd.Flags().BoolVarP(&o.DoGitCommit, prefix+"git-commit", "", false, "if set then the template command will git commit the modified jx-apps.yml files")
+	cmd.Flags().BoolVarP(&o.DoGitCommit, prefix+"git-commit", "", false, "if set then the template command will git commit the modified helmfile.yaml files")
 }
 
 // Validate validates the options and populates any missing values
@@ -173,13 +173,13 @@ func (o *Options) Run() error {
 			}
 		}
 		if repository == "" && prefix != "" {
-			repository, err = o.matchPrefix(prefix)
+			repository, err = versionstreamer.MatchRepositoryPrefix(o.prefixes, prefix)
 			if err != nil {
 				return errors.Wrapf(err, "failed to match prefix %s with repositories from versionstream %s", prefix, o.VersionStreamURL)
 			}
 		}
 		if repository == "" && prefix != "" {
-			return errors.Wrapf(err, "failed to find repository URL, not defined in jx-apps.yml or versionstream %s", o.VersionStreamURL)
+			return errors.Wrapf(err, "failed to find repository URL, not defined in helmfile.yaml or versionstream %s", o.VersionStreamURL)
 		}
 		if repository != "" && prefix != "" {
 			// lets ensure we've got a repository for this URL in the apps file
@@ -315,19 +315,6 @@ func valuesContains(values []interface{}, value string) bool {
 		}
 	}
 	return false
-}
-
-func (o *Options) matchPrefix(prefix string) (string, error) {
-	if o.prefixes == nil {
-		return "", errors.Errorf("no repository prefixes found in version stream")
-	}
-	// default to first URL
-	repoURL := o.prefixes.URLsForPrefix(prefix)
-
-	if len(repoURL) == 0 {
-		return "", errors.Errorf("no matching repository for for prefix %s", prefix)
-	}
-	return repoURL[0], nil
 }
 
 // Git returns the gitter - lazily creating one if required
