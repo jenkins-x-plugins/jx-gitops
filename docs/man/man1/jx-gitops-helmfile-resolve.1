@@ -15,7 +15,7 @@ jx\-gitops\-helmfile\-resolve \- Resolves any missing versions or values files i
 
 .SH DESCRIPTION
 .PP
-Resolves the jx\-apps.yml from the version stream to specify versions and helm values
+Resolves the helmfile.yaml from the version stream to specify versions and helm values
 
 
 .SH OPTIONS
@@ -25,7 +25,7 @@ Resolves the jx\-apps.yml from the version stream to specify versions and helm v
 
 .PP
 \fB\-\-git\-commit\fP[=false]
-    if set then the template command will git commit the modified jx\-apps.yml files
+    if set then the template command will git commit the modified helmfile.yaml files
 
 .PP
 \fB\-\-helmfile\fP=""
@@ -37,7 +37,7 @@ Resolves the jx\-apps.yml from the version stream to specify versions and helm v
 
 .PP
 \fB\-\-namespace\fP="jx"
-    the default namespace if none is specified in the jx\-apps.yml or jx\-requirements.yml
+    the default namespace if none is specified in the helmfile.yaml or jx\-requirements.yml
 
 .PP
 \fB\-\-update\fP[=false]
@@ -46,8 +46,8 @@ Resolves the jx\-apps.yml from the version stream to specify versions and helm v
 
 .SH EXAMPLE
 .PP
-# resolves the versions and values in the jx\-apps.yml
-  jx\-gitops step apps resolve
+# resolves the versions and values in the helmfile.yaml
+  jx\-gitops helmfile resolve
 
 
 .SH SEE ALSO
