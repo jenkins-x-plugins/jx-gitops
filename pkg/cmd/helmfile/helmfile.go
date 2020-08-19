@@ -1,6 +1,7 @@
 package helmfile
 
 import (
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/add"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/move"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/resolve"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras"
@@ -21,6 +22,7 @@ func NewCmdHelmfile() *cobra.Command {
 			}
 		},
 	}
+	command.AddCommand(cobras.SplitCommand(add.NewCmdHelmfileAdd()))
 	command.AddCommand(cobras.SplitCommand(move.NewCmdHelmfileMove()))
 	command.AddCommand(cobras.SplitCommand(resolve.NewCmdHelmfileResolve()))
 	return command

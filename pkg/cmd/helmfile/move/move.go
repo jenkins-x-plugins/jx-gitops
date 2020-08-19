@@ -41,7 +41,7 @@ and then moves any CRDs or cluster level resources into 'config-root/cluster/$re
 
 	namespaceExample = templates.Examples(`
 		# moves the generated files in 'tmp' to the config root dir
-		%s move --dir config-root --from tmp
+		%s helmfile move --dir config-root --from tmp
 	`)
 )
 
