@@ -1,5 +1,3 @@
-apiVersion: jenkins.io/v1
-kind: SourceRepository
 metadata:
   creationTimestamp: null
   labels:

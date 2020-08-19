@@ -1,20 +1,18 @@
-apiVersion: jenkins.io/v1
-kind: SourceRepository
 metadata:
   creationTimestamp: null
   labels:
     owner: jenkins-x
     provider: github
-    repository: jx-cli
-  name: jenkins-x-jx-cli
+    repository: jx-gitops
+  name: jenkins-x-jx-gitops
 spec:
-  httpCloneURL: https://github.com/jenkins-x/jx-cli.git
+  httpCloneURL: https://github.com/jenkins-x/jx-gitops.git
   org: jenkins-x
   provider: https://github.com
   providerKind: github
   providerName: github
-  repo: jx-cli
+  repo: jx-gitops
   scheduler:
     kind: ""
     name: cheese
-  url: https://github.com/jenkins-x/jx-cli
+  url: https://github.com/jenkins-x/jx-gitops

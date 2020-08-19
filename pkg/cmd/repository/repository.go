@@ -2,6 +2,7 @@ package repository
 
 import (
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/repository/create"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/repository/export"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/repository/resolve"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras"
 	"github.com/jenkins-x/jx-logging/pkg/log"
@@ -22,6 +23,7 @@ func NewCmdRepository() *cobra.Command {
 		},
 	}
 	command.AddCommand(cobras.SplitCommand(create.NewCmdCreateRepository()))
+	command.AddCommand(cobras.SplitCommand(export.NewCmdExportConfig()))
 	command.AddCommand(cobras.SplitCommand(resolve.NewCmdResolveRepository()))
 	return command
 }

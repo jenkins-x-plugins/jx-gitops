@@ -8,12 +8,12 @@ import (
 	v1 "github.com/jenkins-x/jx-api/pkg/apis/jenkins.io/v1"
 	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x/jx-gitops/pkg/sourceconfigs"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/jenkins-x/jx-helpers/pkg/kube/naming"
 	"github.com/jenkins-x/jx-helpers/pkg/kyamls"
-	"github.com/jenkins-x/jx-helpers/pkg/stringhelpers"
 	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
 	"github.com/jenkins-x/jx-helpers/pkg/yamls"
 	"github.com/jenkins-x/jx-logging/pkg/log"
@@ -22,11 +22,11 @@ import (
 )
 
 var (
-	labelLong = templates.LongDesc(`
+	cmdLong = templates.LongDesc(`
 		Creates any missing SourceConfig resources
 `)
 
-	labelExample = templates.Examples(`
+	cmdExample = templates.Examples(`
 		# creates any missing SourceConfig resources  
 		%s repository create https://github.com/myorg/myrepo.git
 	`)
@@ -47,8 +47,8 @@ func NewCmdCreateRepository() (*cobra.Command, *Options) {
 	cmd := &cobra.Command{
 		Use:     "create",
 		Short:   "Creates any missing SourceConfig resources",
-		Long:    labelLong,
-		Example: fmt.Sprintf(labelExample, rootcmd.BinaryName, rootcmd.BinaryName),
+		Long:    cmdLong,
+		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName, rootcmd.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
 			err := o.Run()
 			helper.CheckErr(err)
@@ -77,6 +77,7 @@ func (o *Options) Run() error {
 	}
 	if !exists {
 		log.Logger().Infof("file does not exist: %s so not defaulting any SourceConfig resources", o.ConfigFile)
+		return nil
 	}
 
 	err = os.MkdirAll(o.SourceDir, files.DefaultDirWritePermissions)
@@ -105,7 +106,7 @@ func (o *Options) Run() error {
 }
 
 func (o *Options) ensureSourceRepositoryExists(config *v1alpha1.SourceConfig, group *v1alpha1.RepositoryGroup, repo *v1alpha1.Repository) error {
-	err := o.defaultRepositoryValues(config, group, repo)
+	err := sourceconfigs.DefaultValues(config, group, repo)
 	if err != nil {
 		return errors.Wrapf(err, "failed to default values")
 	}
@@ -129,6 +130,12 @@ func (o *Options) ensureSourceRepositoryExists(config *v1alpha1.SourceConfig, gr
 
 	// lets make sure we are populated correctly
 	modified := false
+	if sr.APIVersion == "" {
+		sr.APIVersion = "jenkins.io/v1"
+	}
+	if sr.Kind == "" {
+		sr.Kind = "SourceRepository"
+	}
 	if sr.Name != name {
 		sr.Name = name
 		modified = true
@@ -202,37 +209,5 @@ func (o *Options) ensureSourceRepositoryExists(config *v1alpha1.SourceConfig, gr
 		action = "modified"
 	}
 	log.Logger().Infof("%s file %s", action, termcolor.ColorInfo(fileName))
-	return nil
-}
-
-func (o *Options) defaultRepositoryValues(config *v1alpha1.SourceConfig, group *v1alpha1.RepositoryGroup, repo *v1alpha1.Repository) error {
-	if group.Provider == "" {
-		group.Provider = "https://github.com"
-	}
-	if group.ProviderKind == "" {
-		group.ProviderKind = "github"
-	}
-	if group.ProviderName == "" {
-		group.ProviderName = "github"
-	}
-	if group.Scheduler == "" {
-		group.Scheduler = config.Spec.Scheduler
-	}
-
-	if group.Owner == "" {
-		return errors.Errorf("missing group.owner")
-	}
-	if repo.Name == "" {
-		return errors.Errorf("missing repo.name")
-	}
-	if repo.URL == "" {
-		repo.URL = stringhelpers.UrlJoin(group.Provider, group.Owner, repo.Name)
-	}
-	if repo.HTTPCloneURL == "" {
-		repo.HTTPCloneURL = stringhelpers.UrlJoin(group.Provider, group.Owner, repo.Name+".git")
-	}
-	if repo.Scheduler == "" {
-		repo.Scheduler = group.Scheduler
-	}
 	return nil
 }
