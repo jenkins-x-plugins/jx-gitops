@@ -70,12 +70,12 @@ func NewCmdHelmfileResolve() (*cobra.Command, *Options) {
 			helper.CheckErr(err)
 		},
 	}
+	cmd.Flags().BoolVarP(&o.UpdateMode, "update", "", false, "updates versions from the version stream if they have changed")
 	o.AddFlags(cmd, "")
 	return cmd, o
 }
 
 func (o *Options) AddFlags(cmd *cobra.Command, prefix string) {
-	cmd.Flags().BoolVarP(&o.UpdateMode, "update", "", false, "updates versions from the version stream if they have changed")
 	cmd.Flags().StringVarP(&o.Helmfile, "helmfile", "", "", "the helmfile to resolve. If not specified defaults to 'helmfile.yaml' in the dir")
 	cmd.Flags().StringVarP(&o.GitCommitMessage, prefix+"commit-message", "", "chore: generated kubernetes resources from helm chart", "the git commit message used")
 	cmd.Flags().StringVarP(&o.Namespace, "namespace", "", "jx", "the default namespace if none is specified in the helmfile.yaml or jx-requirements.yml")
@@ -209,7 +209,7 @@ func (o *Options) Run() error {
 		if release.Version == "" {
 			release.Version = version
 			versionChanged = true
-		} else if o.UpdateMode && release.Version != version {
+		} else if o.UpdateMode && release.Version != version && version != "" {
 			release.Version = version
 			versionChanged = true
 		}

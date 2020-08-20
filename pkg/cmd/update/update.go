@@ -1,8 +1,10 @@
 package update
 
 import (
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/resolve"
 	kptupdate "github.com/jenkins-x/jx-gitops/pkg/cmd/kpt/update"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
+	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
 	"github.com/jenkins-x/jx-logging/pkg/log"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -11,6 +13,7 @@ import (
 // ShowOptions the options for viewing running PRs
 type Options struct {
 	kptupdate.Options
+	HelmfileResolve resolve.Options
 }
 
 // NewCmdUpdate creates a command object
@@ -26,6 +29,7 @@ func NewCmdUpdate() (*cobra.Command, *Options) {
 		},
 	}
 	o.Options.AddFlags(cmd)
+	o.HelmfileResolve.AddFlags(cmd, "")
 	return cmd, o
 }
 
@@ -38,5 +42,12 @@ func (o *Options) Run() error {
 		return errors.Wrapf(err, "failed to update source using kpt")
 	}
 
+	log.Logger().Infof("\nnow checking the chart versions in %s\n\n", termcolor.ColorInfo("helmfile.yaml"))
+
+	o.HelmfileResolve.UpdateMode = true
+	err = o.HelmfileResolve.Run()
+	if err != nil {
+		return errors.Wrapf(err, "failed to update the helmfile versions")
+	}
 	return nil
 }
