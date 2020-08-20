@@ -16,6 +16,7 @@ func TestUpdateKptNoFilter(t *testing.T) {
 	require.DirExists(t, absSourceDir)
 
 	_, uk := update.NewCmdKptUpdate()
+	uk.KptBinary = "kpt"
 
 	runner := &fakerunner.FakeRunner{}
 	uk.CommandRunner = runner.Run
@@ -43,6 +44,7 @@ func TestUpdateKptFilterRepositoryURL(t *testing.T) {
 	require.DirExists(t, absSourceDir)
 
 	_, uk := update.NewCmdKptUpdate()
+	uk.KptBinary = "kpt"
 
 	runner := &fakerunner.FakeRunner{}
 	uk.CommandRunner = runner.Run
@@ -66,6 +68,7 @@ func TestUpdateKptFilterRepositoryName(t *testing.T) {
 	require.DirExists(t, absSourceDir)
 
 	_, uk := update.NewCmdKptUpdate()
+	uk.KptBinary = "kpt"
 
 	runner := &fakerunner.FakeRunner{}
 	uk.CommandRunner = runner.Run
@@ -90,6 +93,7 @@ func TestUpdateKptFilterNotMatching(t *testing.T) {
 	require.DirExists(t, absSourceDir)
 
 	_, uk := update.NewCmdKptUpdate()
+	uk.KptBinary = "kpt"
 
 	runner := &fakerunner.FakeRunner{}
 	uk.CommandRunner = runner.Run
