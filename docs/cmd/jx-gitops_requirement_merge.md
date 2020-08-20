@@ -20,7 +20,7 @@ This lets you take requirements from, say, the output of a terraform plan and me
   jx-gitops requirements merge -f /tmp/jx-requirements.yml
   
   # merge requirements from a ConfigMap called 'terraform-jx-requiremnets' in the default namespace
-  %!s(MISSING) requirements merge
+  jx-gitops requirements merge
 
 ### Options
 
