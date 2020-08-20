@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/jenkins-x/jx-gitops/pkg/plugins"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
@@ -42,6 +43,7 @@ type Options struct {
 	RepositoryURL   string
 	RepositoryOwner string
 	RepositoryName  string
+	KptBinary       string
 	CommandRunner   cmdrunner.CommandRunner
 }
 
@@ -59,13 +61,19 @@ func NewCmdKptUpdate() (*cobra.Command, *Options) {
 			helper.CheckErr(err)
 		},
 	}
+	o.AddFlags(cmd)
+	return cmd, o
+}
+
+// AddFlags adds CLI flags
+func (o *Options) AddFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&o.Dir, "dir", "", ".", "the directory to recursively look for the *.yaml or *.yml files")
 	cmd.Flags().StringVarP(&o.Version, "version", "v", "master", "the git version of the kpt package to upgrade to")
 	cmd.Flags().StringVarP(&o.Strategy, "strategy", "s", "resource-merge", "the 'kpt pkg update' strategy to use")
 	cmd.Flags().StringVarP(&o.RepositoryURL, "url", "u", "", "filter on the Kptfile repository URL for which packages to update")
 	cmd.Flags().StringVarP(&o.RepositoryOwner, "owner", "o", "", "filter on the Kptfile repository owner (user/organisation) for which packages to update")
 	cmd.Flags().StringVarP(&o.RepositoryName, "repo", "r", "", "filter on the Kptfile repository name  for which packages to update")
-	return cmd, o
+	cmd.Flags().StringVarP(&o.KptBinary, "bin", "", "", "the 'kpt' binary name to use. If not specified this command will download the jx binary plugin into ~/.jx3/plugins/bin and use that")
 }
 
 // Run implements the command
@@ -80,6 +88,14 @@ func (o *Options) Run() error {
 
 	if o.CommandRunner == nil {
 		o.CommandRunner = cmdrunner.DefaultCommandRunner
+	}
+
+	bin := o.KptBinary
+	if bin == "" {
+		bin, err = plugins.GetKptBinary(plugins.KptVersion)
+		if err != nil {
+			return err
+		}
 	}
 
 	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
@@ -108,7 +124,7 @@ func (o *Options) Run() error {
 		folderExpression := fmt.Sprintf("%s@%s", rel, o.Version)
 		args := []string{"pkg", "update", folderExpression, "--strategy", o.Strategy}
 		c := &cmdrunner.Command{
-			Name: "kpt",
+			Name: bin,
 			Args: args,
 			Dir:  dir,
 		}
