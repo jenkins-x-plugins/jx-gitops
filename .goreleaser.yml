@@ -34,8 +34,8 @@ builds:
     # Defaults are 386 and amd64.
     goarch:
       - amd64
-#      - arm
-#      - arm64
+      - arm
+      - arm64
 archives:
   - name_template: "jx-gitops-{{ .Os }}-{{ .Arch }}"
     format_overrides:
