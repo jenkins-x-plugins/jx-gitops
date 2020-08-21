@@ -1,4 +1,4 @@
-package update
+package upgrade
 
 import (
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/resolve"
@@ -16,13 +16,14 @@ type Options struct {
 	HelmfileResolve resolve.Options
 }
 
-// NewCmdUpdate creates a command object
-func NewCmdUpdate() (*cobra.Command, *Options) {
+// NewCmdUpgrade creates a command object
+func NewCmdUpgrade() (*cobra.Command, *Options) {
 	o := &Options{}
 
 	cmd := &cobra.Command{
-		Use:   "update",
-		Short: "Updates the git repository from the version stream",
+		Use:     "upgrade",
+		Aliases: []string{"update"},
+		Short:   "Upgrades the GitOps git repository with the latest configuration and versions the Version Stream",
 		Run: func(cmd *cobra.Command, args []string) {
 			err := o.Run()
 			helper.CheckErr(err)
