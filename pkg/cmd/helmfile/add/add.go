@@ -94,7 +94,7 @@ func NewCmdHelmfileAdd() (*cobra.Command, *Options) {
 func (o *Options) Validate() error {
 	err := o.Options.Validate()
 	if err != nil {
-		return errors.Wrapf(err, "failed to ")
+		return errors.Wrapf(err, "failed to validate")
 	}
 
 	if o.Chart == "" {
