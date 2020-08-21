@@ -1,16 +1,18 @@
-## jx-gitops update
+## jx-gitops upgrade
 
-Updates the git repository from the version stream
+Upgrades the GitOps git repository with the latest configuration and versions the Version Stream
+
+***Aliases**: update*
 
 ### Usage
 
 ```
-jx-gitops update
+jx-gitops upgrade
 ```
 
 ### Synopsis
 
-Updates the git repository from the version stream
+Upgrades the GitOps git repository with the latest configuration and versions the Version Stream
 
 ### Options
 
@@ -20,7 +22,7 @@ Updates the git repository from the version stream
       --dir string              the directory to recursively look for the *.yaml or *.yml files (default ".")
       --git-commit              if set then the template command will git commit the modified helmfile.yaml files
       --helmfile string         the helmfile to resolve. If not specified defaults to 'helmfile.yaml' in the dir
-  -h, --help                    help for update
+  -h, --help                    help for upgrade
       --namespace string        the default namespace if none is specified in the helmfile.yaml or jx-requirements.yml (default "jx")
   -o, --owner string            filter on the Kptfile repository owner (user/organisation) for which packages to update
   -r, --repo string             filter on the Kptfile repository name  for which packages to update

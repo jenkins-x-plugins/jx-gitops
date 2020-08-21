@@ -5,40 +5,57 @@ import (
 	"path/filepath"
 	"testing"
 
+	jenkinsio "github.com/jenkins-x/jx-api/pkg/apis/jenkins.io"
+	jenkinsv1 "github.com/jenkins-x/jx-api/pkg/apis/jenkins.io/v1"
+	"github.com/jenkins-x/jx-api/pkg/client/clientset/versioned/fake"
+	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/repository/export"
-	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/jenkins-x/jx-helpers/pkg/testhelpers"
 	"github.com/stretchr/testify/require"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestExportRepositorySourceDir(t *testing.T) {
-	// TODO
-	t.SkipNow()
-
-	sourceData := filepath.Join("test_data", "input")
-
 	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
-
-	t.Logf("generating SourceRepository files in %s", tmpDir)
-
-	err = files.CopyDirOverwrite(sourceData, tmpDir)
-	require.NoError(t, err, "failed to copy from %s to %s", sourceData, tmpDir)
+	require.NoError(t, err, "failed to create tmp dir")
 
 	_, o := export.NewCmdExportConfig()
-	o.Dir = tmpDir
+	ns := "jx"
+	o.Namespace = ns
+	o.JXClient = fake.NewSimpleClientset(
+		createGitHubSourceRepository(ns, "jenkins-x", "jx-cli"),
+		createGitHubSourceRepository(ns, "jenkins-x", "jx-gitops"),
+	)
+	generatedFile := filepath.Join(tmpDir, v1alpha1.SourceConfigFileName)
+	o.ConfigFile = generatedFile
 
 	err = o.Run()
-	require.NoError(t, err, "failed to run the command in dir %s", tmpDir)
+	require.NoError(t, err, "failed to run the export")
 
-	expectedDir := filepath.Join("test_data", "expected", "src", "base", "namespaces", "jx", "source-repositories")
-	genDir := filepath.Join(tmpDir, "src", "base", "namespaces", "jx", "source-repositories")
+	t.Logf("generated export file %s", o.ConfigFile)
 
-	for _, name := range []string{"jenkins-x-jx-cli.yaml", "jenkins-x-jx-gitops.yaml"} {
-		expectedFile := filepath.Join(expectedDir, name)
-		genFile := filepath.Join(genDir, name)
-		testhelpers.AssertTextFilesEqual(t, expectedFile, genFile, "generated SourceRepository")
+	testhelpers.AssertTextFilesEqual(t, filepath.Join("test_data", "expected.yaml"), generatedFile, "generated source config file")
+}
 
-		t.Logf("generated expected file %s\n", genFile)
+func createGitHubSourceRepository(ns, org, repo string) *jenkinsv1.SourceRepository {
+	return &jenkinsv1.SourceRepository{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "SourceRepository",
+			APIVersion: jenkinsio.GroupName + "/" + jenkinsio.Version,
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      org + "-" + repo,
+			Namespace: ns,
+		},
+		Spec: jenkinsv1.SourceRepositorySpec{
+			Provider:     "https://github.com",
+			Org:          org,
+			Repo:         repo,
+			ProviderName: "github",
+			Scheduler: jenkinsv1.ResourceReference{
+				Name: "cheese",
+			},
+		},
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 
 	jenkinsv1 "github.com/jenkins-x/jx-api/pkg/apis/jenkins.io/v1"
 	"github.com/jenkins-x/jx-api/pkg/client/clientset/versioned"
@@ -15,6 +16,7 @@ import (
 	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/jenkins-x/jx-helpers/pkg/kube/jxclient"
 	"github.com/jenkins-x/jx-helpers/pkg/kyamls"
+	"github.com/jenkins-x/jx-helpers/pkg/stringhelpers"
 	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
 	"github.com/jenkins-x/jx-helpers/pkg/yamls"
 	"github.com/jenkins-x/jx-logging/pkg/log"
@@ -38,10 +40,11 @@ var (
 // LabelOptions the options for the command
 type Options struct {
 	kyamls.Filter
-	Dir        string
-	ConfigFile string
-	Namespace  string
-	JXClient   versioned.Interface
+	Dir          string
+	ConfigFile   string
+	Namespace    string
+	ExplicitMode bool
+	JXClient     versioned.Interface
 }
 
 // NewCmdExportConfig creates a command object for the command
@@ -61,6 +64,7 @@ func NewCmdExportConfig() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the directory look for the 'jx-requirements.yml` file")
 	cmd.Flags().StringVarP(&o.Namespace, "namespace", "n", "", "the namespace to look for SourceRepository, SourceRepositoryGroup and Scheduler resources")
 	cmd.Flags().StringVarP(&o.ConfigFile, "config", "c", "", "the configuration file to load for the repository configurations. If not specified we look in ./.jx/gitops/source-repositories.yaml")
+	cmd.Flags().BoolVarP(&o.ExplicitMode, "explicit", "e", false, "Explicit mode: always populate all the fields even if they can be deduced. e.g. the git URLs for each repository are not absolutely necessary and are omitted by default are populated if this flag is enabled")
 	o.Filter.AddFlags(cmd)
 	return cmd, o
 }
@@ -112,6 +116,11 @@ func (o *Options) Run() error {
 		return errors.Wrapf(err, "failed to populate config")
 	}
 
+	if !o.ExplicitMode {
+		o.dryConfig(config)
+	}
+	SortConfig(config)
+
 	err = yamls.SaveFile(config, o.ConfigFile)
 	if err != nil {
 		return errors.Wrapf(err, "failed to save config file %s", o.ConfigFile)
@@ -162,4 +171,74 @@ func (o *Options) populateConfig(config *v1alpha1.SourceConfig, srList *jenkinsv
 		}
 	}
 	return nil
+}
+
+func (o *Options) dryConfig(config *v1alpha1.SourceConfig) {
+	// if all of the repositories in a group have the same scheduler then clear them all and set it on the group
+	for i := range config.Spec.Groups {
+		group := &config.Spec.Groups[i]
+		scheduler := ""
+		for j := range group.Repositories {
+			repo := &group.Repositories[j]
+			if repo.Scheduler == "" {
+				scheduler = ""
+				break
+			}
+			if scheduler == "" {
+				scheduler = repo.Scheduler
+			} else if scheduler != repo.Scheduler {
+				scheduler = ""
+				break
+			}
+		}
+		if scheduler != "" {
+			group.Scheduler = scheduler
+			for j := range group.Repositories {
+				group.Repositories[j].Scheduler = ""
+			}
+		}
+	}
+
+	// if the URLs can be guessed from the group, omit them
+	for i := range config.Spec.Groups {
+		group := &config.Spec.Groups[i]
+		provider := group.Provider
+		if provider == "" {
+			break
+		}
+		owner := group.Owner
+		for j := range group.Repositories {
+			repo := &group.Repositories[j]
+			name := repo.Name
+			url := stringhelpers.UrlJoin(provider, owner, name)
+			cloneURL := url + ".git"
+			description := "Imported application for " + owner + "/" + name
+			if repo.URL == url || repo.URL == cloneURL {
+				repo.URL = ""
+			}
+			if repo.HTTPCloneURL == cloneURL {
+				repo.HTTPCloneURL = ""
+			}
+			if repo.Description == description {
+				repo.Description = ""
+			}
+		}
+	}
+}
+
+// SortConfig sorts the repositories in each group
+func SortConfig(config *v1alpha1.SourceConfig) {
+	for i := range config.Spec.Groups {
+		group := &config.Spec.Groups[i]
+		SortRepositories(group.Repositories)
+	}
+}
+
+// SortRepositories sorts the repositories
+func SortRepositories(repositories []v1alpha1.Repository) {
+	sort.Slice(repositories, func(i, j int) bool {
+		r1 := repositories[i]
+		r2 := repositories[j]
+		return r1.Name < r2.Name
+	})
 }

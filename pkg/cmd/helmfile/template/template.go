@@ -35,6 +35,7 @@ var (
 
 // Options the options for the command
 type Options struct {
+	Dir           string
 	Helmfile      string
 	Args          string
 	OutputDir     string
@@ -64,7 +65,8 @@ func NewCmdHelmfileTemplate() (*cobra.Command, *Options) {
 		},
 	}
 
-	cmd.Flags().StringVarP(&o.Helmfile, "helmfile", "", "helmfile.yaml", "the helmfile to template")
+	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the directory to run the commands inside")
+	cmd.Flags().StringVarP(&o.Helmfile, "helmfile", "", "", "the helmfile to template. Defaults to 'helmfile.yaml' in the directory")
 	cmd.Flags().StringVarP(&o.Args, "args", "a", "", "the arguments passed through to helm")
 	cmd.Flags().StringVarP(&o.OutputDir, "output-dir", "o", "", "the output directory. If not specified a temporary directory is created")
 	cmd.Flags().StringVarP(&o.Namespace, "namespace", "n", "", "the default namespace if none is specified in the helmfile. Defaults to the current namespace")
@@ -75,6 +77,9 @@ func NewCmdHelmfileTemplate() (*cobra.Command, *Options) {
 
 // Validate validates the options and populates any missing values
 func (o *Options) Validate() error {
+	if o.Helmfile == "" {
+		o.Helmfile = filepath.Join(o.Dir, "helmfile.yaml")
+	}
 	var err error
 	if o.OutputDir == "" {
 		o.OutputDir, err = ioutil.TempDir("", "")
@@ -90,6 +95,13 @@ func (o *Options) Validate() error {
 	}
 	if o.CommandRunner == nil {
 		o.CommandRunner = cmdrunner.DefaultCommandRunner
+	}
+	exists, err := files.FileExists(o.Helmfile)
+	if err != nil {
+		return errors.Wrapf(err, "failed to check if file exists %s", o.Helmfile)
+	}
+	if !exists {
+		return errors.Errorf("helmfile %s does not exist", o.Helmfile)
 	}
 	return nil
 }
@@ -146,7 +158,7 @@ func (o *Options) Run() error {
 
 	// lets make a separate helmfile for each namespace and apply it
 	for ns := range namespaces {
-		fileName := "helmfile-namespace-" + ns + ".yaml"
+		fileName := filepath.Join(o.Dir, "helmfile-namespace-"+ns+".yaml")
 		helmState2 := helmState
 		helmState2.Releases = nil
 

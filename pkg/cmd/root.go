@@ -19,7 +19,7 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/requirement"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/scheduler"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/split"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/update"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/upgrade"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/version"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras"
@@ -58,7 +58,7 @@ func Main() *cobra.Command {
 	cmd.AddCommand(cobras.SplitCommand(postprocess.NewCmdPostProcess()))
 	cmd.AddCommand(cobras.SplitCommand(scheduler.NewCmdScheduler()))
 	cmd.AddCommand(cobras.SplitCommand(split.NewCmdSplit()))
-	cmd.AddCommand(cobras.SplitCommand(update.NewCmdUpdate()))
+	cmd.AddCommand(cobras.SplitCommand(upgrade.NewCmdUpgrade()))
 	cmd.AddCommand(cobras.SplitCommand(version.NewCmdVersion()))
 	return cmd
 }
