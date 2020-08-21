@@ -28,8 +28,12 @@ Runs 'helmfile template' on the helmfile for each namespace putting the results 
     enables debug logging in helmfile
 
 .PP
-\fB\-\-helmfile\fP="helmfile.yaml"
-    the helmfile to template
+\fB\-d\fP, \fB\-\-dir\fP="."
+    the directory to run the commands inside
+
+.PP
+\fB\-\-helmfile\fP=""
+    the helmfile to template. Defaults to 'helmfile.yaml' in the directory
 
 .PP
 \fB\-h\fP, \fB\-\-help\fP[=false]

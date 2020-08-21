@@ -22,7 +22,8 @@ Runs 'helmfile template' on the helmfile for each namespace putting the results 
 ```
   -a, --args string         the arguments passed through to helm
       --debug               enables debug logging in helmfile
-      --helmfile string     the helmfile to template (default "helmfile.yaml")
+  -d, --dir string          the directory to run the commands inside (default ".")
+      --helmfile string     the helmfile to template. Defaults to 'helmfile.yaml' in the directory
   -h, --help                help for template
   -n, --namespace string    the default namespace if none is specified in the helmfile. Defaults to the current namespace
   -o, --output-dir string   the output directory. If not specified a temporary directory is created
