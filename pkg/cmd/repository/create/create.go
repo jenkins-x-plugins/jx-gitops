@@ -132,9 +132,11 @@ func (o *Options) ensureSourceRepositoryExists(config *v1alpha1.SourceConfig, gr
 	modified := false
 	if sr.APIVersion == "" {
 		sr.APIVersion = "jenkins.io/v1"
+		modified = true
 	}
 	if sr.Kind == "" {
 		sr.Kind = "SourceRepository"
+		modified = true
 	}
 	if sr.Name != name {
 		sr.Name = name
