@@ -61,7 +61,8 @@ func (o *Options) ResolveGKE() error {
 	}
 
 	if !o.NoInClusterCheck && !IsInCluster() {
-		return errors.Errorf("cannot default GKE metadata as this command is not running inside the cluster")
+		log.Logger().Warnf("cannot default GKE metadata as this command is not running inside the cluster")
+		return nil
 	}
 
 	log.Logger().Infof("resolving missing GKE project and cluster metadata from endpoint %s", o.getGKEMetadataEndpoint())
