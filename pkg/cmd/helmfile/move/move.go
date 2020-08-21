@@ -54,7 +54,8 @@ type Options struct {
 	ClusterDir           string
 	ClusterNamespacesDir string
 	NamespacesDir        string
-	HelmState            state.HelmState
+	SingleNamespace      string
+	HelmState            *state.HelmState
 }
 
 // NewCmdHelmfileMove creates a command object for the command
@@ -81,14 +82,16 @@ func NewCmdHelmfileMove() (*cobra.Command, *Options) {
 
 // Run implements the command
 func (o *Options) Run() error {
-	if o.Helmfile == "" {
-		return options.MissingOption("helmfile")
+	if o.HelmState == nil {
+		o.HelmState = &state.HelmState{}
+		if o.Helmfile == "" {
+			return options.MissingOption("helmfile")
+		}
+		err := yaml2s.LoadFile(o.Helmfile, o.HelmState)
+		if err != nil {
+			return errors.Wrapf(err, "failed to load helmfile %s", o.Helmfile)
+		}
 	}
-	err := yaml2s.LoadFile(o.Helmfile, &o.HelmState)
-	if err != nil {
-		return errors.Wrapf(err, "failed to load helmfile %s", o.Helmfile)
-	}
-
 	if o.ClusterDir == "" {
 		o.ClusterDir = filepath.Join(o.OutputDir, "cluster")
 	}
@@ -147,6 +150,9 @@ func (o *Options) Run() error {
 }
 
 func (o *Options) findNamespaceForReleaseName(name string) string {
+	if o.SingleNamespace != "" {
+		return o.SingleNamespace
+	}
 	ns := ""
 	for _, r := range o.HelmState.Releases {
 		if r.Name == name {
