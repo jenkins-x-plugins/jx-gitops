@@ -1,0 +1,10 @@
+releases:
+- chart: jenkins-x/tekton
+  name: tekton
+  namespace: jx
+- chart: external-secrets/kubernetes-external-secrets
+  name: es
+  namespace: secret-infra
+- chart: external-secrets/kubernetes-external-secrets
+  name: es
+  namespace: jx-production
