@@ -33,6 +33,9 @@ var (
 	cmdExample = templates.Examples(`
 		# after applying the resources lets post process them
 		%s postprocess
+
+		# you can register some post processing commands, such as to annotate a ServiceAccount via:
+		kubectl create secret generic jx-post-process -n default  --from-literal=commands="kubectl annotate sa tekton-bot hello=world"	
 	`)
 )
 
