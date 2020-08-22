@@ -154,6 +154,8 @@ func (o *Options) Run() error {
 	        if err != nil {
 			return errors.Wrap(err, "failed to add helm repo")
 		}
+
+	        log.Logger().Infof("added helm repository %s %s", repo.Name, repo.URL)
 	}
 
 	log.Logger().Infof("generating helm templates to dir %s", o.OutputDir)
