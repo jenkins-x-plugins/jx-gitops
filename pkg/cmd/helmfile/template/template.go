@@ -145,6 +145,17 @@ func (o *Options) Run() error {
 		return nil
 	}
 
+	for _, repo := range helmState.Repositories {
+        	c := &cmdrunner.Command{
+			Name: "helm",
+			Args: []string{"repo", "add", repo.Name, repo.URL},
+        	}
+        	_, err = o.CommandRunner(c)	
+	        if err != nil {
+			return errors.Wrap(err, "failed to add helm repo")
+		}
+	}
+
 	log.Logger().Infof("generating helm templates to dir %s", o.OutputDir)
 
 	// if we only have one namespace we don't need to create a new file
