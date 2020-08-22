@@ -27,8 +27,8 @@ type Options struct {
 func (o *Options) AddFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the directory that contains the jx-requirements.yml")
 	cmd.Flags().StringVarP(&o.VersionStreamDir, "version-stream-dir", "", "", "the directory for the version stream. Defaults to 'versionStream' in the current --dir")
-	cmd.Flags().StringVarP(&o.VersionStreamURL, "version-stream-url", "n", "", "the git clone URL of the version stream. If not specified it defaults to the value in the jx-requirements.yml")
-	cmd.Flags().StringVarP(&o.VersionStreamRef, "version-stream-ref", "c", "", "the git ref (branch, tag, revision) of the version stream to git clone. If not specified it defaults to the value in the jx-requirements.yml")
+	cmd.Flags().StringVarP(&o.VersionStreamURL, "version-stream-url", "", "", "the git clone URL of the version stream. If not specified it defaults to the value in the jx-requirements.yml")
+	cmd.Flags().StringVarP(&o.VersionStreamRef, "version-stream-ref", "", "", "the git ref (branch, tag, revision) of the version stream to git clone. If not specified it defaults to the value in the jx-requirements.yml")
 }
 
 // Validate validates the options and populates any missing values
