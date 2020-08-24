@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jenkins-x/jx-apps/pkg/jxapps"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
@@ -145,17 +144,12 @@ func (o *StreamOptions) Run() error {
 			return nil
 		}
 
-		version, err := resolver.StableVersionNumber(versionstream.KindChart, chartName)
+		versionProperties, err := resolver.StableVersion(versionstream.KindChart, chartName)
 		if err != nil {
 			return errors.Wrapf(err, "failed to find version number for chart %s", chartName)
 		}
 
-		defaultsDir := filepath.Join(versionsDir, string(versionstream.KindApp), chartName)
-		defaults, _, err := jxapps.LoadAppDefaultsConfig(defaultsDir)
-		if err != nil {
-			return errors.Wrapf(err, "failed to load defaults from dir %s", defaultsDir)
-		}
-
+		version := versionProperties.Version
 		if version == "" {
 			return fmt.Errorf("could not find version for chart %s", chartName)
 		}
@@ -172,8 +166,8 @@ func (o *StreamOptions) Run() error {
 		// lets use the chart name within the chart repository
 		ho.Chart = ho.ReleaseName
 
-		if defaults.Namespace != "" {
-			ho.Namespace = defaults.Namespace
+		if versionProperties.Namespace != "" {
+			ho.Namespace = versionProperties.Namespace
 		}
 
 		// lets find the repository prefix

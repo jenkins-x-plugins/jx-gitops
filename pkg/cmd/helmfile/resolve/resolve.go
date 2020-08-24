@@ -13,8 +13,6 @@ import (
 	"github.com/jenkins-x/jx-helpers/pkg/yaml2s"
 	"github.com/roboll/helmfile/pkg/state"
 
-	"github.com/jenkins-x/jx-apps/pkg/jxapps"
-
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
@@ -200,10 +198,12 @@ func (o *Options) Run() error {
 				})
 			}
 		}
-		version, err := resolver.StableVersionNumber(versionstream.KindChart, fullChartName)
+		versionProperties, err := resolver.StableVersion(versionstream.KindChart, fullChartName)
 		if err != nil {
 			return errors.Wrapf(err, "failed to find version number for chart %s", fullChartName)
 		}
+
+		version := versionProperties.Version
 
 		versionChanged := false
 		if release.Version == "" {
@@ -217,18 +217,12 @@ func (o *Options) Run() error {
 			log.Logger().Infof("resolved chart %s version %s", fullChartName, version)
 		}
 
-		defaultsDir := filepath.Join(versionsDir, string(versionstream.KindApp), fullChartName)
-		defaults, _, err := jxapps.LoadAppDefaultsConfig(defaultsDir)
-		if err != nil {
-			return errors.Wrapf(err, "failed to load defaults from dir %s", defaultsDir)
-		}
-
 		if version == "" {
 			log.Logger().Warnf("could not find version for chart %s so using latest found in helm repository %s", fullChartName, repository)
 		}
 
-		if release.Namespace == "" && defaults.Namespace != "" {
-			release.Namespace = defaults.Namespace
+		if release.Namespace == "" && versionProperties.Namespace != "" {
+			release.Namespace = versionProperties.Namespace
 		}
 
 		if release.Namespace == "" && o.Options.Requirements != nil {
