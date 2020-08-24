@@ -78,10 +78,10 @@ func NewCmdHelmfileAdd() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.GitCommitMessage, "commit-message", "", "chore: generated kubernetes resources from helm chart", "the git commit message used")
 
 	// chart flags
-	cmd.Flags().StringVarP(&o.Chart, "chart", "", "", "the name of the helm chart to add")
-	cmd.Flags().StringVarP(&o.Namespace, "namespace", "", "", "the namespace to install the chart")
+	cmd.Flags().StringVarP(&o.Chart, "chart", "c", "", "the name of the helm chart to add")
+	cmd.Flags().StringVarP(&o.Namespace, "namespace", "n", "", "the namespace to install the chart")
 	cmd.Flags().StringVarP(&o.ReleaseName, "name", "", "", "the name of the helm release")
-	cmd.Flags().StringVarP(&o.Repository, "repository", "", "", "the helm chart repository URL of the chart")
+	cmd.Flags().StringVarP(&o.Repository, "repository", "r", "", "the helm chart repository URL of the chart")
 	cmd.Flags().StringVarP(&o.Version, "version", "v", "", "the version of the helm chart. If not specified the versionStream will be checked otherwise the latest version is used")
 
 	// git commit stuff....

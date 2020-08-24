@@ -203,9 +203,11 @@ func buildSchedulerConfigUpdater(repo string, pluginConfig *plugins.Configuratio
 					configMapSpec[location] = spec
 				}
 				return &jenkinsv1.ConfigUpdater{
+					/* TODO removed
 					PluginFile: pluginConfig.ConfigUpdater.PluginFile,
 					ConfigFile: pluginConfig.ConfigUpdater.ConfigFile,
-					Map:        configMapSpec,
+					*/
+					Map: configMapSpec,
 				}
 			}
 		}

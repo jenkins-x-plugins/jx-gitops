@@ -145,17 +145,23 @@ func (o *Options) Run() error {
 		return nil
 	}
 
+	// lets add some default repos
+	repoMap := map[string]string{
+		"jx": "http://chartmuseum.jenkins-x.io",
+	}
 	for _, repo := range helmState.Repositories {
-        	c := &cmdrunner.Command{
+		repoMap[repo.Name] = repo.URL
+	}
+	for repoName, repoURL := range repoMap {
+		c := &cmdrunner.Command{
 			Name: "helm",
-			Args: []string{"repo", "add", repo.Name, repo.URL},
-        	}
-        	_, err = o.CommandRunner(c)	
-	        if err != nil {
+			Args: []string{"repo", "add", repoName, repoURL},
+		}
+		_, err = o.CommandRunner(c)
+		if err != nil {
 			return errors.Wrap(err, "failed to add helm repo")
 		}
-
-	        log.Logger().Infof("added helm repository %s %s", repo.Name, repo.URL)
+		log.Logger().Infof("added helm repository %s %s", repoName, repoURL)
 	}
 
 	log.Logger().Infof("generating helm templates to dir %s", o.OutputDir)
