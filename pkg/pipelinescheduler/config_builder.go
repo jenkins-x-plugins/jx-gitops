@@ -106,12 +106,14 @@ func buildPlugins(answer *plugins.Configuration, scheduler *jenkinsv1.SchedulerS
 			}
 
 		}
+		/* TODO removed
 		if answer.ConfigUpdater.ConfigFile == "" {
 			answer.ConfigUpdater.ConfigFile = scheduler.ConfigUpdater.ConfigFile
 		}
 		if answer.ConfigUpdater.PluginFile == "" {
 			answer.ConfigUpdater.PluginFile = scheduler.ConfigUpdater.PluginFile
 		}
+		*/
 	}
 	if answer.Lgtm == nil {
 		answer.Lgtm = make([]plugins.Lgtm, 0)
