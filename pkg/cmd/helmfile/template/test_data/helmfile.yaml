@@ -1,3 +1,8 @@
+repositories:
+- name: external-secrets
+  url: https://godaddy.github.io/kubernetes-external-secrets
+- name: jenkins-x
+  url: https://storage.googleapis.com/chartmuseum.jenkins-x.io
 releases:
 - chart: jenkins-x/tekton
   name: tekton

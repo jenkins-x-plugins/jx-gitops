@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/jenkins-x/jx-gitops/pkg/helmhelpers"
 	"github.com/jenkins-x/jx-gitops/pkg/jxtmpl/reqvalues"
 	"github.com/jenkins-x/jx-gitops/pkg/versionstreamer"
 	"github.com/jenkins-x/jx-helpers/pkg/files"
@@ -133,6 +134,11 @@ func (o *Options) Run() error {
 	log.Logger().Infof("resolving versions and values files from the version stream %s ref %s in dir %s", o.VersionStreamURL, o.VersionStreamRef, o.VersionStreamDir)
 
 	helmState := o.Results.HelmState
+
+	err = helmhelpers.AddHelmRepositories(helmState, o.CommandRunner)
+	if err != nil {
+		return errors.Wrapf(err, "failed to add helm repositories")
+	}
 
 	/*
 		TODO lazily create environments file?
