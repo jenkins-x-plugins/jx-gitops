@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sort"
 
 	jenkinsv1 "github.com/jenkins-x/jx-api/pkg/apis/jenkins.io/v1"
 	"github.com/jenkins-x/jx-api/pkg/client/clientset/versioned"
@@ -71,6 +70,23 @@ func NewCmdExportConfig() (*cobra.Command, *Options) {
 
 // Run transforms the YAML files
 func (o *Options) Run() error {
+	var err error
+	o.JXClient, o.Namespace, err = jxclient.LazyCreateJXClientAndNamespace(o.JXClient, o.Namespace)
+	if err != nil {
+		return errors.Wrapf(err, "failed to create jx client")
+	}
+
+	ns := o.Namespace
+	srList, err := o.JXClient.JenkinsV1().SourceRepositories(ns).List(metav1.ListOptions{})
+	if err != nil && !apierrors.IsNotFound(err) {
+		return errors.Wrapf(err, "failed to load SourceRepositories in namespace %s", ns)
+	}
+
+	return o.PopulateSourceConfig(srList.Items)
+}
+
+// PopulateSourceConfig populates the source config file given the list of source repositories
+func (o *Options) PopulateSourceConfig(srList []jenkinsv1.SourceRepository) error {
 	if o.ConfigFile == "" {
 		o.ConfigFile = filepath.Join(o.Dir, ".jx", "gitops", v1alpha1.SourceConfigFileName)
 	}
@@ -100,17 +116,6 @@ func (o *Options) Run() error {
 		return errors.Wrapf(err, "failed to create directory %s", dir)
 	}
 
-	o.JXClient, o.Namespace, err = jxclient.LazyCreateJXClientAndNamespace(o.JXClient, o.Namespace)
-	if err != nil {
-		return errors.Wrapf(err, "failed to create jx client")
-	}
-
-	ns := o.Namespace
-	srList, err := o.JXClient.JenkinsV1().SourceRepositories(ns).List(metav1.ListOptions{})
-	if err != nil && !apierrors.IsNotFound(err) {
-		return errors.Wrapf(err, "failed to load SourceRepositories in namespace %s", ns)
-	}
-
 	err = o.populateConfig(config, srList)
 	if err != nil {
 		return errors.Wrapf(err, "failed to populate config")
@@ -119,7 +124,7 @@ func (o *Options) Run() error {
 	if !o.ExplicitMode {
 		o.dryConfig(config)
 	}
-	SortConfig(config)
+	sourceconfigs.SortConfig(config)
 
 	err = yamls.SaveFile(config, o.ConfigFile)
 	if err != nil {
@@ -130,10 +135,10 @@ func (o *Options) Run() error {
 	return nil
 }
 
-func (o *Options) populateConfig(config *v1alpha1.SourceConfig, srList *jenkinsv1.SourceRepositoryList) error {
+func (o *Options) populateConfig(config *v1alpha1.SourceConfig, srList []jenkinsv1.SourceRepository) error {
 	if srList != nil {
-		for i := range srList.Items {
-			sr := &srList.Items[i]
+		for i := range srList {
+			sr := &srList[i]
 			owner := sr.Spec.Org
 			if owner == "" {
 				log.Logger().Warnf("ignoring SourceRepository %s with no owner", sr.Name)
@@ -224,21 +229,4 @@ func (o *Options) dryConfig(config *v1alpha1.SourceConfig) {
 			}
 		}
 	}
-}
-
-// SortConfig sorts the repositories in each group
-func SortConfig(config *v1alpha1.SourceConfig) {
-	for i := range config.Spec.Groups {
-		group := &config.Spec.Groups[i]
-		SortRepositories(group.Repositories)
-	}
-}
-
-// SortRepositories sorts the repositories
-func SortRepositories(repositories []v1alpha1.Repository) {
-	sort.Slice(repositories, func(i, j int) bool {
-		r1 := repositories[i]
-		r2 := repositories[j]
-		return r1.Name < r2.Name
-	})
 }

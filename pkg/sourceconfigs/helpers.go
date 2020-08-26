@@ -1,6 +1,8 @@
 package sourceconfigs
 
 import (
+	"sort"
+
 	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
 	"github.com/jenkins-x/jx-helpers/pkg/stringhelpers"
 	"github.com/pkg/errors"
@@ -65,4 +67,21 @@ func GetOrCreateRepository(config *v1alpha1.RepositoryGroup, repoName string) *v
 		Name: repoName,
 	})
 	return &config.Repositories[len(config.Repositories)-1]
+}
+
+// SortConfig sorts the repositories in each group
+func SortConfig(config *v1alpha1.SourceConfig) {
+	for i := range config.Spec.Groups {
+		group := &config.Spec.Groups[i]
+		SortRepositories(group.Repositories)
+	}
+}
+
+// SortRepositories sorts the repositories
+func SortRepositories(repositories []v1alpha1.Repository) {
+	sort.Slice(repositories, func(i, j int) bool {
+		r1 := repositories[i]
+		r2 := repositories[j]
+		return r1.Name < r2.Name
+	})
 }
