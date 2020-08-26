@@ -82,7 +82,15 @@ func NewCmdGitSetup() (*cobra.Command, *Options) {
 // Run implements the command
 func (o *Options) Run() error {
 	gitClient := o.GitClient()
-	_, _, err := gitclient.EnsureUserAndEmailSetup(gitClient, o.Dir, o.UserName, o.UserEmail)
+
+	// lets make sure there's a git config home dir
+	homeDir := GetConfigHome()
+	err := os.MkdirAll(homeDir, files.DefaultDirWritePermissions)
+	if err != nil {
+		return errors.Wrapf(err, "failed to ensure git config home directory exists %s", homeDir)
+	}
+
+	_, _, err = gitclient.EnsureUserAndEmailSetup(gitClient, o.Dir, o.UserName, o.UserEmail)
 	if err != nil {
 		return errors.Wrapf(err, "failed to setup git user and email")
 	}
@@ -221,6 +229,12 @@ func IsInCluster() bool {
 
 // GitCredentialsFile returns the location of the git credentials file
 func GitCredentialsFile() string {
+	cfgHome := GetConfigHome()
+	return filepath.Join(cfgHome, "git", "credentials")
+}
+
+// GetConfigHome returns the home dir
+func GetConfigHome() string {
 	cfgHome := os.Getenv("XDG_CONFIG_HOME")
 	if cfgHome == "" {
 		cfgHome = homedir.HomeDir()
@@ -228,5 +242,5 @@ func GitCredentialsFile() string {
 	if cfgHome == "" {
 		cfgHome = "."
 	}
-	return filepath.Join(cfgHome, "git", "credentials")
+	return cfgHome
 }
