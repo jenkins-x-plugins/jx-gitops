@@ -64,7 +64,7 @@ func NewCmdCreateRepository() (*cobra.Command, *Options) {
 // Run transforms the YAML files
 func (o *Options) Run() error {
 	if o.SourceDir == "" {
-		o.SourceDir = filepath.Join(o.Dir, "src", "base", "namespaces", "jx", "source-repositories")
+		o.SourceDir = filepath.Join(o.Dir, "config-root", "namespaces", "jx", "source-repositories")
 	}
 
 	if o.ConfigFile == "" {
