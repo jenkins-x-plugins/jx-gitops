@@ -1,10 +1,9 @@
 releases:
+- chart: external-secrets/kubernetes-external-secrets
 - chart: jenkins-x/tekton
 - chart: jenkins-x/jxboot-helmfile-resources
 - chart: bitnami/external-dns
   namespace: foo
-- chart: external-secrets/kubernetes-external-secrets
-  namespace: external-secrets
 # test using a local repo prefix and URL
 - chart: doesnotexist/bucketrepo
 repositories:

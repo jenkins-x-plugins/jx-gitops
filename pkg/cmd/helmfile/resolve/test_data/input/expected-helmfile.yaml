@@ -2,13 +2,19 @@ filepath: ""
 repositories:
 - name: doesnotexist
   url: https://storage.googleapis.com/chartmuseum.jenkins-x.io
+- name: external-secrets
+  url: https://godaddy.github.io/kubernetes-external-secrets
 - name: jenkins-x
   url: https://storage.googleapis.com/chartmuseum.jenkins-x.io
 - name: bitnami
   url: https://charts.bitnami.com/bitnami
-- name: external-secrets
-  url: https://godaddy.github.io/kubernetes-external-secrets
 releases:
+- chart: external-secrets/kubernetes-external-secrets
+  version: 4.0.0
+  name: kubernetes-external-secrets
+  namespace: secret-infra
+  values:
+  - values/kubernetes-external-secrets/values.yaml.gotmpl
 - chart: jenkins-x/tekton
   version: 0.0.56
   name: tekton
@@ -25,12 +31,6 @@ releases:
   namespace: foo
   values:
   - values/external-dns/values.yaml
-- chart: external-secrets/kubernetes-external-secrets
-  version: 4.0.0
-  name: kubernetes-external-secrets
-  namespace: external-secrets
-  values:
-  - values/kubernetes-external-secrets/values.yaml.gotmpl
 - chart: doesnotexist/bucketrepo
   name: bucketrepo
   namespace: jx
