@@ -12,6 +12,8 @@ import (
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/pkg/files"
+	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
+	"github.com/jenkins-x/jx-logging/pkg/log"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -108,10 +110,40 @@ func ProcessYamlFiles(dir string) error {
 					ex := filepath.Ext(path)
 					name = strings.TrimSuffix(path, ex) + strconv.Itoa(i+1) + ex
 				}
+
+				// lets remove empty files
+				if isWhitespaceOrComments(text) {
+					// lets remove the file if it exists
+					exists, err := files.FileExists(path)
+					if err != nil {
+						return errors.Wrapf(err, "failed to check if file exists %s", path)
+					}
+					if exists {
+						err = os.Remove(path)
+						if err != nil {
+							return errors.Wrapf(err, "failed to remove empty file %s", path)
+						}
+						log.Logger().Infof("removed empty file %s", termcolor.ColorInfo(path))
+					}
+					continue
+				}
 				err = ioutil.WriteFile(name, []byte(text), files.DefaultFileWritePermissions)
 				if err != nil {
 					return errors.Wrapf(err, "failed to save %s", name)
 				}
+			}
+		} else {
+			// lets remove the file if it exists
+			exists, err := files.FileExists(path)
+			if err != nil {
+				return errors.Wrapf(err, "failed to check if file exists %s", path)
+			}
+			if exists {
+				err = os.Remove(path)
+				if err != nil {
+					return errors.Wrapf(err, "failed to remove empty file %s", path)
+				}
+				log.Logger().Infof("removed empty file %s", termcolor.ColorInfo(path))
 			}
 		}
 		return nil
@@ -127,7 +159,7 @@ func isWhitespaceOrComments(text string) bool {
 	lines := strings.Split(text, "\n")
 	for _, line := range lines {
 		t := strings.TrimSpace(line)
-		if t != "" && !strings.HasPrefix(t, "#") {
+		if t != "" && !strings.HasPrefix(t, "#") && !strings.HasPrefix(t, "--") {
 			return false
 		}
 	}

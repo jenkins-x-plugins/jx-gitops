@@ -32,6 +32,8 @@ func TestSplitYamlFiles(t *testing.T) {
 
 	t.Logf("split files in dir %s\n", tmpDir)
 
+	assert.NoFileExists(t, filepath.Join(tmpDir, "empty", "empty-svc.yaml"))
+
 	assert.FileExists(t, filepath.Join(tmpDir, "two", "foo-svc.yaml"))
 	assert.FileExists(t, filepath.Join(tmpDir, "two", "foo-svc2.yaml"))
 	assert.FileExists(t, filepath.Join(tmpDir, "no-separator", "cheese-svc.yaml"))
