@@ -28,10 +28,10 @@ func TestCreateRepositorySourceDir(t *testing.T) {
 	err = o.Run()
 	require.NoError(t, err, "failed to run the command in dir %s", tmpDir)
 
-	expectedDir := filepath.Join("test_data", "expected", "src", "base", "namespaces", "jx", "source-repositories")
-	genDir := filepath.Join(tmpDir, "src", "base", "namespaces", "jx", "source-repositories")
-	
-	for _, name := range []string {"jenkins-x-jx-cli.yaml", "jenkins-x-jx-gitops.yaml"} {
+	expectedDir := filepath.Join("test_data", "expected", "config-root", "namespaces", "jx", "source-repositories")
+	genDir := filepath.Join(tmpDir, "config-root", "namespaces", "jx", "source-repositories")
+
+	for _, name := range []string{"jenkins-x-jx-cli.yaml", "jenkins-x-jx-gitops.yaml"} {
 		expectedFile := filepath.Join(expectedDir, name)
 		genFile := filepath.Join(genDir, name)
 		testhelpers.AssertTextFilesEqual(t, expectedFile, genFile, "generated SourceRepository")
