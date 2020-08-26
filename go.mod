@@ -16,7 +16,7 @@ require (
 	github.com/jenkins-x/jx-kube-client v0.0.8
 	github.com/jenkins-x/jx-logging v0.0.11
 	github.com/jenkins-x/jx/v2 v2.1.133
-	github.com/jenkins-x/lighthouse v0.0.758
+	github.com/jenkins-x/lighthouse v0.0.768
 	github.com/jenkins-x/lighthouse-config v0.0.10 // indirect
 	github.com/pborman/uuid v1.2.0
 	github.com/pkg/errors v0.9.1
