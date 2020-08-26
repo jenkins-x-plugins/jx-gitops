@@ -8,6 +8,7 @@ import (
 
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/move"
 	split2 "github.com/jenkins-x/jx-gitops/pkg/cmd/split"
+	"github.com/jenkins-x/jx-gitops/pkg/helmhelpers"
 	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/jenkins-x/jx-helpers/pkg/yaml2s"
@@ -145,23 +146,9 @@ func (o *Options) Run() error {
 		return nil
 	}
 
-	// lets add some default repos
-	repoMap := map[string]string{
-		"jx": "http://chartmuseum.jenkins-x.io",
-	}
-	for _, repo := range helmState.Repositories {
-		repoMap[repo.Name] = repo.URL
-	}
-	for repoName, repoURL := range repoMap {
-		c := &cmdrunner.Command{
-			Name: "helm",
-			Args: []string{"repo", "add", repoName, repoURL},
-		}
-		_, err = o.CommandRunner(c)
-		if err != nil {
-			return errors.Wrap(err, "failed to add helm repo")
-		}
-		log.Logger().Infof("added helm repository %s %s", repoName, repoURL)
+	err = helmhelpers.AddHelmRepositories(helmState, o.CommandRunner)
+	if err != nil {
+		return errors.Wrapf(err, "failed to add helm repositories")
 	}
 
 	log.Logger().Infof("generating helm templates to dir %s", o.OutputDir)
