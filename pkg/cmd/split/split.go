@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/jenkins-x/jx-gitops/pkg/helmhelpers"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
@@ -88,7 +89,7 @@ func ProcessYamlFiles(dir string) error {
 				buf.WriteString(resourcesSeparator)
 			}
 			buf.WriteString(section)
-			if !isWhitespaceOrComments(section) {
+			if !helmhelpers.IsWhitespaceOrComments(section) {
 				count++
 
 				text := buf.String()
@@ -112,7 +113,7 @@ func ProcessYamlFiles(dir string) error {
 				}
 
 				// lets remove empty files
-				if isWhitespaceOrComments(text) {
+				if helmhelpers.IsWhitespaceOrComments(text) {
 					// lets remove the file if it exists
 					exists, err := files.FileExists(path)
 					if err != nil {
@@ -152,16 +153,4 @@ func ProcessYamlFiles(dir string) error {
 		return errors.Wrapf(err, "failed to split YAML files in dir %s", dir)
 	}
 	return nil
-}
-
-// isWhitespaceOrComments returns true if the text is empty, whitespace or comments only
-func isWhitespaceOrComments(text string) bool {
-	lines := strings.Split(text, "\n")
-	for _, line := range lines {
-		t := strings.TrimSpace(line)
-		if t != "" && !strings.HasPrefix(t, "#") && !strings.HasPrefix(t, "--") {
-			return false
-		}
-	}
-	return true
 }

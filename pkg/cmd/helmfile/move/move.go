@@ -2,10 +2,12 @@ package move
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/jenkins-x/jx-gitops/pkg/helmhelpers"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
@@ -236,9 +238,19 @@ func (o *Options) moveFilesToClusterOrNamespacesFolder(dir string, ns string, re
 			}
 		}
 
+		// lets check for empty yaml files
+		data, err := ioutil.ReadFile(path)
+		if err != nil {
+			return errors.Wrapf(err, "failed to read file %s", path)
+		}
+		if helmhelpers.IsWhitespaceOrComments(string(data)) {
+			log.Logger().Infof("ignoring empty yaml file %s", path)
+			return nil
+		}
+
 		node, err := yaml.ReadFile(path)
 		if err != nil {
-			return errors.Wrapf(err, "failed to load file %s", path)
+			return errors.Wrapf(err, "failed to load YAML file %s", path)
 		}
 
 		kind := kyamls.GetKind(node, path)
