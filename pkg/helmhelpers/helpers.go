@@ -1,6 +1,8 @@
 package helmhelpers
 
 import (
+	"strings"
+
 	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-logging/pkg/log"
 	"github.com/pkg/errors"
@@ -26,7 +28,19 @@ func AddHelmRepositories(helmState state.HelmState, runner cmdrunner.CommandRunn
 		if err != nil {
 			return errors.Wrap(err, "failed to add helm repo")
 		}
-		log.Logger().Infof("added helm repository %s %s", repoName, repoURL)
+		log.Logger().Debugf("added helm repository %s %s", repoName, repoURL)
 	}
 	return nil
+}
+
+// IsWhitespaceOrComments returns true if the text is empty, whitespace or comments only
+func IsWhitespaceOrComments(text string) bool {
+	lines := strings.Split(text, "\n")
+	for _, line := range lines {
+		t := strings.TrimSpace(line)
+		if t != "" && !strings.HasPrefix(t, "#") && !strings.HasPrefix(t, "--") {
+			return false
+		}
+	}
+	return true
 }
