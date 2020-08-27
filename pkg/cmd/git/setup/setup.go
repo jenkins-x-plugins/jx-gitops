@@ -90,17 +90,29 @@ func (o *Options) Run() error {
 		return errors.Wrapf(err, "failed to ensure git config home directory exists %s", homeDir)
 	}
 
-	_, _, err = gitclient.EnsureUserAndEmailSetup(gitClient, o.Dir, o.UserName, o.UserEmail)
+	// lets fetch the credentials so we can default the UserName if its not specified
+	credentials, err := o.findCredentials()
+	if err != nil {
+		return errors.Wrap(err, "creating git credentials")
+	}
+
+	_, _, err = gitclient.SetUserAndEmail(gitClient, o.Dir, o.UserName, o.UserEmail)
 	if err != nil {
 		return errors.Wrapf(err, "failed to setup git user and email")
 	}
+
 	err = gitclient.SetCredentialHelper(gitClient, "")
 	if err != nil {
 		return errors.Wrapf(err, "failed to setup credential store")
 	}
 
 	if o.DisableInClusterTest || IsInCluster() {
-		return o.GenerateGitCredentials()
+		outFile, err := o.determineOutputFile()
+		if err != nil {
+			return errors.Wrap(err, "unable to determine for git credentials")
+		}
+
+		return o.createGitCredentialsFile(outFile, credentials)
 	}
 	return nil
 }
@@ -110,20 +122,6 @@ func (o *Options) GitClient() gitclient.Interface {
 		o.gitClient = cli.NewCLIClient("", o.CommandRunner)
 	}
 	return o.gitClient
-}
-
-func (o *Options) GenerateGitCredentials() error {
-	credentials, err := o.findCredentials()
-	if err != nil {
-		return errors.Wrap(err, "creating git credentials")
-	}
-
-	outFile, err := o.determineOutputFile()
-	if err != nil {
-		return errors.Wrap(err, "unable to determine for git credentials")
-	}
-
-	return o.createGitCredentialsFile(outFile, credentials)
 }
 
 // findCredentials detects the git operator secret so we have default credentials
@@ -160,6 +158,9 @@ func (o *Options) findCredentials() ([]credentialhelper.GitCredential, error) {
 		gitProviderURL := gitInfo.HostURL()
 
 		username := string(data["username"])
+		if o.UserName == "" {
+			o.UserName = username
+		}
 		password := string(data["password"])
 		credential, err := credentialhelper.CreateGitCredentialFromURL(gitProviderURL, username, password)
 		if err != nil {
