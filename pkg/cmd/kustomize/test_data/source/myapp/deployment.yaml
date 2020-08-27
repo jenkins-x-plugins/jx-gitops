@@ -19,31 +19,31 @@ spec:
         app: myapp-myapp
     spec:
       containers:
-      - name: myapp
-        image: "gcr.io/myproject/myapp:1.0.5"
-        imagePullPolicy: IfNotPresent
-        ports:
-        - containerPort: 8080
-        livenessProbe:
-          httpGet:
-            path: /
-            port: 8080
-          initialDelaySeconds: 60
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 1
-        readinessProbe:
-          httpGet:
-            path: /
-            port: 8080
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 1
-        resources:
-          limits:
-            cpu: 400m
-            memory: 256Mi
-          requests:
-            cpu: 200m
-            memory: 128Mi
+        - name: myapp
+          image: "gcr.io/myproject/myapp:1.0.5"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            limits:
+              cpu: 400m
+              memory: 256Mi
+            requests:
+              cpu: 200m
+              memory: 128Mi
       terminationGracePeriodSeconds:

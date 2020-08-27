@@ -64,4 +64,14 @@ replace k8s.io/test-infra => github.com/jenkins-x/test-infra v0.0.0-202006111422
 
 replace gomodules.xyz/jsonpatch/v2 => gomodules.xyz/jsonpatch/v2 v2.0.1
 
+// fix yaml comment parsing issue
+
+replace gopkg.in/yaml.v2 => gopkg.in/yaml.v2 v2.3.0
+
+replace gopkg.in/yaml.v3 => gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
+
+replace sigs.k8s.io/yaml => sigs.k8s.io/yaml v1.2.0
+
+replace sigs.k8s.io/kustomize/kyaml => sigs.k8s.io/kustomize/kyaml v0.6.1
+
 go 1.13

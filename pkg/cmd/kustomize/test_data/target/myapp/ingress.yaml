@@ -7,9 +7,9 @@ metadata:
   namespace: myapps
 spec:
   rules:
-  - host: myapp.1.2.3.4.nipio
-    http:
-      paths:
-      - backend:
-          serviceName: myapp
-          servicePort: 80
+    - host: myapp.1.2.3.4.nipio
+      http:
+        paths:
+          - backend:
+              serviceName: myapp
+              servicePort: 80
