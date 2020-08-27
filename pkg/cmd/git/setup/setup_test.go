@@ -20,7 +20,6 @@ func TestGitSetup(t *testing.T) {
 	runner := &fakerunner.FakeRunner{}
 	o.CommandRunner = runner.Run
 	o.UserEmail = "fakeuser@googlegroups.com"
-	o.UserName = "fakeusername"
 	o.DisableInClusterTest = true
 
 	ns := "jx"
@@ -50,13 +49,7 @@ func TestGitSetup(t *testing.T) {
 
 	runner.ExpectResults(t,
 		fakerunner.FakeResult{
-			CLI: "git config --get user.name",
-		},
-		fakerunner.FakeResult{
-			CLI: "git config --get user.email",
-		},
-		fakerunner.FakeResult{
-			CLI: "git config --global --add user.name fakeusername",
+			CLI: "git config --global --add user.name myuser",
 		},
 		fakerunner.FakeResult{
 			CLI: "git config --global --add user.email fakeuser@googlegroups.com",
