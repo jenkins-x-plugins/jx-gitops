@@ -3,9 +3,9 @@ kind: ClusterRoleBinding
 metadata:
   name: tekton-pipelines-jx
 subjects:
-- kind: ServiceAccount
-  name: tekton-pipelines
-  namespace: jx
+  - kind: ServiceAccount
+    name: tekton-pipelines
+    namespace: jx
 roleRef:
   kind: ClusterRole
   name: tekton-pipelines

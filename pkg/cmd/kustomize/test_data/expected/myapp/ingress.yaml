@@ -5,4 +5,4 @@ metadata:
   namespace: myapps
 spec:
   rules:
-  - host: myapp.1.2.3.4.nipio
+    - host: myapp.1.2.3.4.nipio

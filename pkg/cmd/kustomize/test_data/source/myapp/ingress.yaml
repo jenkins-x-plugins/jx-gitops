@@ -7,9 +7,9 @@ metadata:
   namespace: myapps
 spec:
   rules:
-  - host: myapp.cluster.local
-    http:
-      paths:
-      - backend:
-          serviceName: myapp
-          servicePort: 80
+    - host: myapp.cluster.local
+      http:
+        paths:
+          - backend:
+              serviceName: myapp
+              servicePort: 80

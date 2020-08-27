@@ -5,26 +5,26 @@ metadata:
 spec:
   pipelineSpec:
     params:
-    - name: MESSAGE
-      description: "Message, default is Hello World!"
-      type: string
-      default: "Hello World!"
-    tasks:
-    - name: echo-message
-      taskSpec:
-        params:
-        - name: MESSAGE
-          type: string
-          default: "Hello World!"
-        steps:
-        - name: echo
-          image: ubuntu:9.8.7
-          script: |
-            #!/usr/bin/env bash
-            echo "$(params.MESSAGE)"
-      params:
       - name: MESSAGE
-        value: $(params.MESSAGE)
+        description: "Message, default is Hello World!"
+        type: string
+        default: "Hello World!"
+    tasks:
+      - name: echo-message
+        taskSpec:
+          params:
+            - name: MESSAGE
+              type: string
+              default: "Hello World!"
+          steps:
+            - name: echo
+              image: ubuntu:9.8.7
+              script: |
+                #!/usr/bin/env bash
+                echo "$(params.MESSAGE)"
+        params:
+          - name: MESSAGE
+            value: $(params.MESSAGE)
   params:
-  - name: MESSAGE
-    value: "Good Morning!"
+    - name: MESSAGE
+      value: "Good Morning!"

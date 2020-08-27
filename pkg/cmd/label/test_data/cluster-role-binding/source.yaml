@@ -8,6 +8,6 @@ roleRef:
   kind: ClusterRole
   name: jx-jx
 subjects:
-- kind: ServiceAccount
-  name: jx
-  namespace: jx
+  - kind: ServiceAccount
+    name: jx
+    namespace: jx
