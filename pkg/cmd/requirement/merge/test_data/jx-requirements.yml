@@ -7,6 +7,7 @@ buildPacks:
     gitRef: master
     gitURL: https://github.com/jenkins-x/jxr-packs-kubernetes.git
 cluster:
+  chartRepository: http://bucketrepo/bucketrepo/charts/
   clusterName: ""
   devEnvApprovers:
   - todo

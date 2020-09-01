@@ -140,6 +140,7 @@ func (o *Options) MergeChanges(changes *config.RequirementsConfig) error {
 	cluster := changes.Cluster
 
 	// lets pull in any values missing from the source
+	cluster.ChartRepository = mergeString(cluster.ChartRepository, to.Cluster.ChartRepository)
 	cluster.EnvironmentGitOwner = mergeString(cluster.EnvironmentGitOwner, to.Cluster.EnvironmentGitOwner)
 	cluster.ExternalDNSSAName = mergeString(cluster.ExternalDNSSAName, to.Cluster.ExternalDNSSAName)
 	cluster.GitKind = mergeString(cluster.GitKind, to.Cluster.GitKind)
