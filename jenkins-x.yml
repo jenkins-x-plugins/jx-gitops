@@ -24,11 +24,11 @@ pipelineConfig:
             containerOptions:
               resources:
                 limits:
-                  cpu: 2
-                  memory: 2072Mi
+                  cpu: 3
+                  memory: 3072Mi
                 requests:
-                  cpu: 1
-                  memory: 1048Mi
+                  cpu: 2
+                  memory: 2048Mi
           steps:
           - name: release-binary
             command: make release
