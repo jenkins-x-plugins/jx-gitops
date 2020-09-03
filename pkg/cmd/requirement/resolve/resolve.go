@@ -6,8 +6,12 @@ import (
 	"github.com/jenkins-x/jx-api/pkg/config"
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient/cli"
+	"github.com/jenkins-x/jx-helpers/pkg/kube"
 	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
 	"github.com/jenkins-x/jx-logging/pkg/log"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
@@ -36,7 +40,10 @@ type Options struct {
 	NoCommit             bool
 	NoInClusterCheck     bool
 	CommandRunner        cmdrunner.CommandRunner
+	Namespace            string
+	SecretName           string
 	GKEConfig            GKEConfig
+	KubeClient           kubernetes.Interface
 	gitClient            gitclient.Interface
 	requirements         *config.RequirementsConfig
 	requirementsFileName string
@@ -58,6 +65,8 @@ func NewCmdRequirementsResolve() (*cobra.Command, *Options) {
 	}
 	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the directory to run the git push command from")
 	cmd.Flags().BoolVarP(&o.NoCommit, "no-commit", "n", false, "disables performing a git commit if there are changes")
+	cmd.Flags().StringVarP(&o.Namespace, "namespace", "", "", "the namespace used to find the git operator secret for the git repository if running in cluster. Defaults to the current namespace")
+	cmd.Flags().StringVarP(&o.SecretName, "secret", "", "jx-boot", "the name of the Secret to find the git URL, username and password for creating a git credential if running inside the cluster")
 	return cmd, o
 }
 
@@ -76,6 +85,11 @@ func (o *Options) Run() error {
 		return errors.Errorf("missing kubernetes provider name at 'cluster.provider' in file: %s", o.requirementsFileName)
 	}
 
+	err = o.resolvePipelineUsername()
+	if err != nil {
+		return errors.Wrapf(err, "failed to resolve pipeilne user")
+	}
+
 	switch provider {
 	case "gke":
 		return o.ResolveGKE()
@@ -90,6 +104,63 @@ func (o *Options) GitClient() gitclient.Interface {
 		o.gitClient = cli.NewCLIClient("", o.CommandRunner)
 	}
 	return o.gitClient
+}
+
+func (o *Options) resolvePipelineUsername() error {
+	if o.requirements.PipelineUser == nil {
+		o.requirements.PipelineUser = &config.UserNameEmailConfig{}
+	}
+	if o.requirements.PipelineUser.Username != "" && o.requirements.PipelineUser.Email != "" {
+		return nil
+	}
+	var err error
+	o.KubeClient, o.Namespace, err = kube.LazyCreateKubeClientAndNamespace(o.KubeClient, o.Namespace)
+	if err != nil {
+		return errors.Wrapf(err, "failed to create kube client")
+	}
+	ns := o.Namespace
+	name := o.SecretName
+	secret, err := o.KubeClient.CoreV1().Secrets(ns).Get(name, metav1.GetOptions{})
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			log.Logger().Warnf("could not find secret %s in namespace %s", name, ns)
+			return nil
+		}
+		return errors.Wrapf(err, "failed to find Secret %s in namespace %s", name, ns)
+	}
+	data := secret.Data
+	username := ""
+	email := ""
+	if data != nil {
+		username = string(data["username"])
+		email = string(data["email"])
+	}
+	if username == "" {
+		log.Logger().Warnf("no username in secret %s in namespace %s", name, ns)
+	}
+	if email == "" {
+		log.Logger().Warnf("no email in secret %s in namespace %s", name, ns)
+	}
+	modified := false
+	if o.requirements.PipelineUser.Username == "" && username != "" {
+		o.requirements.PipelineUser.Username = username
+		modified = true
+	}
+	if o.requirements.PipelineUser.Email == "" && email != "" {
+		o.requirements.PipelineUser.Email = email
+		modified = true
+	}
+
+	if !modified {
+		return nil
+	}
+	err = o.requirements.SaveConfig(o.requirementsFileName)
+	if err != nil {
+		return errors.Wrapf(err, "failed to save modified requirements file %s", o.requirementsFileName)
+
+	}
+	log.Logger().Infof("modified the pipeline user in %s", termcolor.ColorInfo(o.requirementsFileName))
+	return nil
 }
 
 // IsInCluster tells if we are running incluster
