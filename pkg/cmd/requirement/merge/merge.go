@@ -12,6 +12,7 @@ import (
 	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/jenkins-x/jx-helpers/pkg/kube"
 	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
+	"github.com/jenkins-x/jx-helpers/pkg/yamls"
 	"github.com/jenkins-x/jx-logging/pkg/log"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -100,12 +101,11 @@ func (o *Options) Run() error {
 		o.requirementsFileName = filepath.Join(o.Dir, config.RequirementsConfigFileName)
 	}
 
-	requirementChanges, err := config.LoadRequirementsConfigFile(o.File, false)
+	// lets not se the usual loading as we dno't want any default values populated
+	requirementChanges := &config.RequirementsConfig{}
+	err = yamls.LoadFile(o.File, requirementChanges)
 	if err != nil {
-		return errors.Wrapf(err, "failed to load changes from file: %s", o.File)
-	}
-	if requirementChanges == nil {
-		return errors.Errorf("no requirements config found for file: %s", o.File)
+		return errors.Wrapf(err, "failed to unmarshal YAML changes from file: %s", o.File)
 	}
 
 	exists := false

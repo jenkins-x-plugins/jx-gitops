@@ -14,7 +14,7 @@ cluster:
   environmentGitOwner: "todo"
   gitKind: github
   gitName: github
-  gitServer: https://github.com
+  gitServer: https://acme.com
   namespace: jx
   project:  ""
   provider: gke
