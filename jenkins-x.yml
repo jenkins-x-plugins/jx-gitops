@@ -25,10 +25,10 @@ pipelineConfig:
               resources:
                 limits:
                   cpu: 3
-                  memory: 4072Mi
+                  memory: 6072Mi
                 requests:
                   cpu: 2
-                  memory: 3048Mi
+                  memory: 4048Mi
           steps:
           - name: release-binary
             command: make release
