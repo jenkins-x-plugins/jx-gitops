@@ -9,14 +9,14 @@ require (
 	github.com/google/go-cmp v0.4.1
 	github.com/h2non/gock v1.0.9
 	github.com/jenkins-x/gen-crd-api-reference-docs v0.1.6 // indirect
-	github.com/jenkins-x/go-scm v1.5.157
+	github.com/jenkins-x/go-scm v1.5.160
 	github.com/jenkins-x/jx-api v0.0.17
 	github.com/jenkins-x/jx-apps v0.0.4 // indirect
 	github.com/jenkins-x/jx-helpers v1.0.47
 	github.com/jenkins-x/jx-kube-client v0.0.8
 	github.com/jenkins-x/jx-logging v0.0.11
-	github.com/jenkins-x/jx/v2 v2.1.133
-	github.com/jenkins-x/lighthouse v0.0.758
+	github.com/jenkins-x/jx/v2 v2.1.142
+	github.com/jenkins-x/lighthouse v0.0.785
 	github.com/jenkins-x/lighthouse-config v0.0.10 // indirect
 	github.com/pborman/uuid v1.2.0
 	github.com/pkg/errors v0.9.1
