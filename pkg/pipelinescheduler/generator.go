@@ -9,6 +9,9 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/jenkins-x/jx-logging/pkg/log"
 	"github.com/jenkins-x/jx/v2/pkg/prow"
+	"github.com/jenkins-x/lighthouse/pkg/config/branchprotection"
+	"github.com/jenkins-x/lighthouse/pkg/config/job"
+	"github.com/jenkins-x/lighthouse/pkg/config/keeper"
 
 	"github.com/jenkins-x/lighthouse/pkg/config"
 	"github.com/jenkins-x/lighthouse/pkg/plugins"
@@ -155,12 +158,12 @@ func CreateSchedulersFromProwConfig(configFileLocation string, pluginsFileLocati
 			return nil, nil, nil, errors.Errorf("Migrated Prow plugins do not match, not applying! \nDiff: \n%s", cmp.Diff(migratedPlugins, pluginConfig, pluginCmpOptions))
 		}
 		cnfgCmpOptions := cmp.Options{
-			cmpopts.IgnoreUnexported(config.Brancher{}),
-			cmpopts.IgnoreUnexported(config.RegexpChangeMatcher{}),
-			cmpopts.IgnoreUnexported(config.Presubmit{}),
-			cmpopts.IgnoreUnexported(config.Periodic{}),
+			cmpopts.IgnoreUnexported(job.Brancher{}),
+			cmpopts.IgnoreUnexported(job.RegexpChangeMatcher{}),
+			cmpopts.IgnoreUnexported(job.Presubmit{}),
+			cmpopts.IgnoreUnexported(job.Periodic{}),
 			sortSliceStringOpt,
-			cmpopts.SortSlices(func(i config.KeeperQuery, j config.KeeperQuery) bool {
+			cmpopts.SortSlices(func(i keeper.Query, j keeper.Query) bool {
 				sort.Strings(i.Repos)
 				sort.Strings(j.Repos)
 				iLabels := append(i.Labels, i.MissingLabels...)
@@ -180,7 +183,7 @@ func CreateSchedulersFromProwConfig(configFileLocation string, pluginsFileLocati
 //cleanupExistingProwConfig Removes config that we do not currently support
 func cleanupExistingProwConfig(prowConfig *config.Config, pluginConfig *plugins.Configuration, sourceRepoMap map[string]*jenkinsv1.SourceRepository) {
 	// Deck is not supported
-	prowConfig.Deck = config.Deck{}
+	//prowConfig.Deck = job.Deck{}
 	// heart plugin is not supported
 	pluginConfig.Heart = plugins.Heart{}
 	queries := prowConfig.Keeper.Queries[:0]
@@ -250,12 +253,12 @@ func cleanupExistingProwConfig(prowConfig *config.Config, pluginConfig *plugins.
 	for org := range prowConfig.BranchProtection.Orgs {
 		protectionOrg := prowConfig.BranchProtection.Orgs[org]
 		if protectionOrg.Repos == nil {
-			protectionOrg.Repos = make(map[string]config.Repo)
+			protectionOrg.Repos = make(map[string]branchprotection.Repo)
 			replacedOrgPolicy := false
 			for existingRepo := range sourceRepoMap {
 				if strings.HasPrefix(existingRepo, org+"/") {
 					orgRepo := strings.Split(existingRepo, "/")
-					repoPolicy := config.Repo{
+					repoPolicy := branchprotection.Repo{
 						Policy: protectionOrg.Policy,
 					}
 					protectionOrg.Repos[orgRepo[1]] = repoPolicy
@@ -265,7 +268,7 @@ func cleanupExistingProwConfig(prowConfig *config.Config, pluginConfig *plugins.
 			}
 			if replacedOrgPolicy {
 				protectionOrg := prowConfig.BranchProtection.Orgs[org]
-				protectionOrg.Policy = config.Policy{}
+				protectionOrg.Policy = branchprotection.Policy{}
 				prowConfig.BranchProtection.Orgs[org] = protectionOrg
 			}
 		}
@@ -387,7 +390,7 @@ func addProjectSchedulers(sourceRepoGroups *jenkinsv1.SourceRepositoryGroupList,
 func addConfigUpdaterToDevEnv(gitOps bool, autoApplyConfigUpdater bool, applicableSchedulers []*jenkinsv1.SchedulerSpec, devEnv *jenkinsv1.Environment, sourceRepo *jenkinsv1.SourceRepositorySpec) []*jenkinsv1.SchedulerSpec {
 	if gitOps && autoApplyConfigUpdater && strings.Contains(devEnv.Spec.Source.URL, sourceRepo.Org+"/"+sourceRepo.Repo) {
 		maps := make(map[string]jenkinsv1.ConfigMapSpec)
-		maps["env/prow/config.yaml"] = jenkinsv1.ConfigMapSpec{
+		maps["env/prow/job.yaml"] = jenkinsv1.ConfigMapSpec{
 			Name: "config",
 		}
 		maps["env/prow/plugins.yaml"] = jenkinsv1.ConfigMapSpec{
@@ -419,7 +422,7 @@ func ApplyDirectly(kubeClient kubernetes.Interface, namespace string, cfg *confi
 			Namespace: namespace,
 		},
 		Data: map[string]string{
-			"config.yaml": string(cfgYaml),
+			"job.yaml": string(cfgYaml),
 		},
 	}
 	plugsYaml, err := yaml.Marshal(plugs)
