@@ -167,68 +167,71 @@ func (o *Options) Run() error {
 			release.Name = chartName
 		}
 
-		// lets resolve the chart prefix from a local repository from the file or from a
-		// prefix in the versions stream
-		if repository == "" && prefix != "" {
-			for _, r := range helmState.Repositories {
-				if r.Name == prefix {
-					repository = r.URL
-				}
-			}
-		}
-		if repository == "" && prefix != "" {
-			repository, err = versionstreamer.MatchRepositoryPrefix(o.prefixes, prefix)
-			if err != nil {
-				return errors.Wrapf(err, "failed to match prefix %s with repositories from versionstream %s", prefix, o.VersionStreamURL)
-			}
-		}
-		if repository == "" && prefix != "" {
-			return errors.Wrapf(err, "failed to find repository URL, not defined in helmfile.yaml or versionstream %s", o.VersionStreamURL)
-		}
-		if repository != "" && prefix != "" {
-			// lets ensure we've got a repository for this URL in the apps file
-			found := false
-			for _, r := range helmState.Repositories {
-				if r.Name == prefix {
-					if r.URL != repository {
-						return errors.Errorf("release %s has prefix %s for repository URL %s which is also mapped to prefix %s", release.Name, prefix, r.URL, r.Name)
+		// lets not try resolve repository / versions for local charts
+		if prefix != "." {
+			// lets resolve the chart prefix from a local repository from the file or from a
+			// prefix in the versions stream
+			if repository == "" && prefix != "" {
+				for _, r := range helmState.Repositories {
+					if r.Name == prefix {
+						repository = r.URL
 					}
-					found = true
-					break
 				}
 			}
-			if !found {
-				helmState.Repositories = append(helmState.Repositories, state.RepositorySpec{
-					Name: prefix,
-					URL:  repository,
-				})
+			if repository == "" && prefix != "" {
+				repository, err = versionstreamer.MatchRepositoryPrefix(o.prefixes, prefix)
+				if err != nil {
+					return errors.Wrapf(err, "failed to match prefix %s with repositories from versionstream %s", prefix, o.VersionStreamURL)
+				}
 			}
-		}
-		versionProperties, err := resolver.StableVersion(versionstream.KindChart, fullChartName)
-		if err != nil {
-			return errors.Wrapf(err, "failed to find version number for chart %s", fullChartName)
-		}
+			if repository == "" && prefix != "" {
+				return errors.Wrapf(err, "failed to find repository URL, not defined in helmfile.yaml or versionstream %s", o.VersionStreamURL)
+			}
+			if repository != "" && prefix != "" {
+				// lets ensure we've got a repository for this URL in the apps file
+				found := false
+				for _, r := range helmState.Repositories {
+					if r.Name == prefix {
+						if r.URL != repository {
+							return errors.Errorf("release %s has prefix %s for repository URL %s which is also mapped to prefix %s", release.Name, prefix, r.URL, r.Name)
+						}
+						found = true
+						break
+					}
+				}
+				if !found {
+					helmState.Repositories = append(helmState.Repositories, state.RepositorySpec{
+						Name: prefix,
+						URL:  repository,
+					})
+				}
+			}
+			versionProperties, err := resolver.StableVersion(versionstream.KindChart, fullChartName)
+			if err != nil {
+				return errors.Wrapf(err, "failed to find version number for chart %s", fullChartName)
+			}
 
-		version := versionProperties.Version
+			version := versionProperties.Version
 
-		versionChanged := false
-		if release.Version == "" {
-			release.Version = version
-			versionChanged = true
-		} else if o.UpdateMode && release.Version != version && version != "" {
-			release.Version = version
-			versionChanged = true
-		}
-		if versionChanged {
-			log.Logger().Infof("resolved chart %s version %s", fullChartName, version)
-		}
+			versionChanged := false
+			if release.Version == "" {
+				release.Version = version
+				versionChanged = true
+			} else if o.UpdateMode && release.Version != version && version != "" {
+				release.Version = version
+				versionChanged = true
+			}
+			if versionChanged {
+				log.Logger().Infof("resolved chart %s version %s", fullChartName, version)
+			}
 
-		if version == "" {
-			log.Logger().Warnf("could not find version for chart %s so using latest found in helm repository %s", fullChartName, repository)
-		}
+			if version == "" {
+				log.Logger().Warnf("could not find version for chart %s so using latest found in helm repository %s", fullChartName, repository)
+			}
 
-		if release.Namespace == "" && versionProperties.Namespace != "" {
-			release.Namespace = versionProperties.Namespace
+			if release.Namespace == "" && versionProperties.Namespace != "" {
+				release.Namespace = versionProperties.Namespace
+			}
 		}
 
 		if release.Namespace == "" && o.Options.Requirements != nil {
