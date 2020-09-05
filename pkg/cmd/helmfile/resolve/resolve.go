@@ -168,7 +168,7 @@ func (o *Options) Run() error {
 		}
 
 		// lets not try resolve repository / versions for local charts
-		if prefix != "." {
+		if prefix != "." && prefix != ".." {
 			// lets resolve the chart prefix from a local repository from the file or from a
 			// prefix in the versions stream
 			if repository == "" && prefix != "" {
