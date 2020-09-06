@@ -15,6 +15,7 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/namespace"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/postprocess"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/pr"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/rename"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/repository"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/requirement"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/scheduler"
@@ -55,6 +56,7 @@ func Main() *cobra.Command {
 	cmd.AddCommand(cobras.SplitCommand(kustomize.NewCmdKustomize()))
 	cmd.AddCommand(cobras.SplitCommand(label.NewCmdUpdateLabel()))
 	cmd.AddCommand(cobras.SplitCommand(namespace.NewCmdUpdateNamespace()))
+	cmd.AddCommand(cobras.SplitCommand(rename.NewCmdRename()))
 	cmd.AddCommand(cobras.SplitCommand(postprocess.NewCmdPostProcess()))
 	cmd.AddCommand(cobras.SplitCommand(scheduler.NewCmdScheduler()))
 	cmd.AddCommand(cobras.SplitCommand(split.NewCmdSplit()))
