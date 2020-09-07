@@ -34,6 +34,11 @@ var (
 		# splits the helmfile.yaml into separate files for each namespace and runs 'helm template' on each one	
 		%s helmfile template --args="--include-crds --values=jx-values.yaml --values=src/fake-secrets.yaml.gotmpl" --output-dir config-root/namespaces
 	`)
+
+	// debugInfoPrefixes lets use debug level logging for lines starting with the following prefixes in the output of helmfile template
+	debugInfoPrefixes = []string{
+		"wrote ", "Templating ", "Adding repo  ",
+	}
 )
 
 // Options the options for the command
@@ -189,12 +194,6 @@ func (o *Options) Run() error {
 	}
 	return nil
 }
-
-var (
-	debugInfoPrefixes = []string{
-		"wrote ", "Templating ", "Adding repo  ",
-	}
-)
 
 func (o *Options) runHelmfile(fileName string, ns string, state *state.HelmState) error {
 	outDir := filepath.Join(o.TmpDir, ns)
