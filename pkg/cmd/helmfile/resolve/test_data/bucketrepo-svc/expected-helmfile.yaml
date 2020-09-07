@@ -1,0 +1,19 @@
+filepath: ""
+repositories:
+- name: dev
+  url: http://bucketrepo/bucketrepo/charts/
+- name: jenkins-x
+  url: https://storage.googleapis.com/chartmuseum.jenkins-x.io
+releases:
+- chart: jenkins-x/tekton
+  version: 0.0.56
+  name: tekton
+  namespace: jx
+  values:
+  - versionStream/charts/jenkins-x/tekton/values.yaml.gotmpl
+- chart: dev/dummy
+  version: 1.2.3
+  name: dummy
+  namespace: jx
+templates: {}
+missingFileHandler: ""

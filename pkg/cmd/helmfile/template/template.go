@@ -156,7 +156,7 @@ func (o *Options) Run() error {
 		return nil
 	}
 
-	err = helmhelpers.AddHelmRepositories(helmState, o.CommandRunner)
+	err = helmhelpers.AddHelmRepositories(helmState, o.CommandRunner, nil)
 	if err != nil {
 		return errors.Wrapf(err, "failed to add helm repositories")
 	}
