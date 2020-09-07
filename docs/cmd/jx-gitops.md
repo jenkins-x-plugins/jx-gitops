@@ -37,6 +37,7 @@ GitOps utility commands
 * [jx-gitops rename](jx-gitops_rename.md)	 - Renames yaml files to use canonical file names based on the resource name and kind
 * [jx-gitops repository](jx-gitops_repository.md)	 - Commands for working with source repositories
 * [jx-gitops requirement](jx-gitops_requirement.md)	 - Commands for working with jx-requirements.yml
+* [jx-gitops sa](jx-gitops_sa.md)	 - Commands for working with kubernetes ServiceAccount resources
 * [jx-gitops scheduler](jx-gitops_scheduler.md)	 - Generates the Lighthouse configuration from the SourceRepository and Scheduler resources
 * [jx-gitops split](jx-gitops_split.md)	 - Splits any YAML files which define multiple resources into separate files
 * [jx-gitops upgrade](jx-gitops_upgrade.md)	 - Upgrades the GitOps git repository with the latest configuration and versions the Version Stream

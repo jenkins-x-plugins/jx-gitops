@@ -1,9 +1,7 @@
 package sa
 
 import (
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/requirement/edit"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/requirement/merge"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/requirement/resolve"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/sa/secret"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras"
 	"github.com/jenkins-x/jx-logging/pkg/log"
 	"github.com/spf13/cobra"
@@ -22,8 +20,6 @@ func NewCmdServiceAccount() *cobra.Command {
 			}
 		},
 	}
-	command.AddCommand(cobras.SplitCommand(resolve.NewCmdRequirementsResolve()))
-	command.AddCommand(cobras.SplitCommand(edit.NewCmdRequirementsEdit()))
-	command.AddCommand(cobras.SplitCommand(merge.NewCmdRequirementsMerge()))
+	command.AddCommand(cobras.SplitCommand(secret.NewCmdServiceAccountSecrets()))
 	return command
 }
