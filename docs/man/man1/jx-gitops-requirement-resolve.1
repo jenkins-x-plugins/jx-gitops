@@ -31,8 +31,16 @@ For example if the provider is GKE then this step will automatically default the
     help for resolve
 
 .PP
+\fB\-\-namespace\fP=""
+    the namespace used to find the git operator secret for the git repository if running in cluster. Defaults to the current namespace
+
+.PP
 \fB\-n\fP, \fB\-\-no\-commit\fP[=false]
     disables performing a git commit if there are changes
+
+.PP
+\fB\-\-secret\fP="jx\-boot"
+    the name of the Secret to find the git URL, username and password for creating a git credential if running inside the cluster
 
 
 .SH EXAMPLE
