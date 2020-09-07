@@ -5,12 +5,14 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/move"
 	split2 "github.com/jenkins-x/jx-gitops/pkg/cmd/split"
 	"github.com/jenkins-x/jx-gitops/pkg/helmhelpers"
 	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/pkg/files"
+	"github.com/jenkins-x/jx-helpers/pkg/stringhelpers"
 	"github.com/jenkins-x/jx-helpers/pkg/yaml2s"
 	"github.com/jenkins-x/jx-kube-client/pkg/kubeclient"
 	"github.com/roboll/helmfile/pkg/state"
@@ -32,6 +34,11 @@ var (
 		# splits the helmfile.yaml into separate files for each namespace and runs 'helm template' on each one	
 		%s helmfile template --args="--include-crds --values=jx-values.yaml --values=src/fake-secrets.yaml.gotmpl" --output-dir config-root/namespaces
 	`)
+
+	// debugInfoPrefixes lets use debug level logging for lines starting with the following prefixes in the output of helmfile template
+	debugInfoPrefixes = []string{
+		"wrote ", "Templating ", "Adding repo  ",
+	}
 )
 
 // Options the options for the command
@@ -95,7 +102,7 @@ func (o *Options) Validate() error {
 		}
 	}
 	if o.CommandRunner == nil {
-		o.CommandRunner = cmdrunner.DefaultCommandRunner
+		o.CommandRunner = cmdrunner.QuietCommandRunner
 	}
 	exists, err := files.FileExists(o.Helmfile)
 	if err != nil {
@@ -209,12 +216,25 @@ func (o *Options) runHelmfile(fileName string, ns string, state *state.HelmState
 	c := &cmdrunner.Command{
 		Name: "helmfile",
 		Args: args,
-		Out:  os.Stdout,
-		Err:  os.Stderr,
 	}
-	_, err = o.CommandRunner(c)
+	text, err := o.CommandRunner(c)
 	if err != nil {
 		return errors.Wrapf(err, "failed to run %s", c.CLI())
+	}
+
+	lines := strings.Split(text, "\n")
+	lastLineDebug := false
+	for _, line := range lines {
+		if stringhelpers.HasPrefix(line, debugInfoPrefixes...) {
+			lastLineDebug = true
+		} else if strings.TrimSpace(line) != "" {
+			lastLineDebug = false
+		}
+		if lastLineDebug {
+			log.Logger().Debug(line)
+		} else {
+			log.Logger().Info(line)
+		}
 	}
 
 	// lets split any generated files into one file per resource...
