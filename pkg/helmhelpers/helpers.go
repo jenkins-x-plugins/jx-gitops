@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner"
+	"github.com/jenkins-x/jx-helpers/pkg/stringhelpers"
 	"github.com/jenkins-x/jx-logging/pkg/log"
 	"github.com/pkg/errors"
 	"github.com/roboll/helmfile/pkg/state"
@@ -24,7 +25,7 @@ func AddHelmRepositories(helmState state.HelmState, runner cmdrunner.CommandRunn
 			Name: "helm",
 			Args: []string{"repo", "add", repoName, repoURL},
 		}
-		_, err := runner(c)
+		err := RunCommandAndLogOutput(runner, c, nil, []string{" has been added to your repositories"})
 		if err != nil {
 			return errors.Wrap(err, "failed to add helm repo")
 		}
@@ -43,4 +44,31 @@ func IsWhitespaceOrComments(text string) bool {
 		}
 	}
 	return true
+}
+
+// RunCommandAndLogOutput runs the command and outputs info or debug level logging
+func RunCommandAndLogOutput(commandRunner cmdrunner.CommandRunner, c *cmdrunner.Command, debugPrefixes []string, infoPrefixes []string) error {
+	if commandRunner == nil {
+		commandRunner = cmdrunner.QuietCommandRunner
+	}
+	text, err := commandRunner(c)
+	if err != nil {
+		return errors.Wrapf(err, "failed to run %s", c.CLI())
+	}
+
+	lines := strings.Split(text, "\n")
+	lastLineDebug := false
+	for _, line := range lines {
+		if stringhelpers.HasPrefix(line, debugPrefixes...) || stringhelpers.HasSuffix(line, infoPrefixes...) {
+			lastLineDebug = true
+		} else if strings.TrimSpace(line) != "" {
+			lastLineDebug = false
+		}
+		if lastLineDebug {
+			log.Logger().Debug(line)
+		} else {
+			log.Logger().Info(line)
+		}
+	}
+	return nil
 }
