@@ -116,7 +116,7 @@ func (o *Options) Run() error {
 
 	var namespaces []string
 	for _, dir := range fileNames {
-		log.Logger().Infof("processing chart dir %s", dir)
+		log.Logger().Debugf("processing chart dir %s", dir)
 
 		exists, err := files.DirExists(dir)
 		if err != nil {
@@ -211,7 +211,7 @@ func (o *Options) lazyCreateNamespaceResource(ns string) error {
 		return errors.Wrapf(err, "failed to save file %s", fileName)
 	}
 
-	log.Logger().Infof("no Namespace resource %s so created file %s", termcolor.ColorInfo(ns), termcolor.ColorInfo(fileName))
+	log.Logger().Debugf("no Namespace resource %s so created file %s", termcolor.ColorInfo(ns), termcolor.ColorInfo(fileName))
 	return nil
 }
 

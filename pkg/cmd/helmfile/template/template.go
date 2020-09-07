@@ -35,7 +35,7 @@ var (
 
 	// debugInfoPrefixes lets use debug level logging for lines starting with the following prefixes in the output of helmfile or helm commands
 	debugInfoPrefixes = []string{
-		"wrote ", "Templating ", "Adding repo ", "Fetching ", "Building dependency ", "processing chart dir ",
+		"wrote ", "Templating ", "Adding repo ", "Fetching ", "Building dependency ",
 	}
 
 	// debugInfoSuffixes lets use debug level logging for lines ending with the following suffixes in the output of helmfile or helm commands
