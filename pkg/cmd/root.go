@@ -18,6 +18,7 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/rename"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/repository"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/requirement"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/sa"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/scheduler"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/split"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/upgrade"
@@ -47,6 +48,7 @@ func Main() *cobra.Command {
 	cmd.AddCommand(pr.NewCmdPR())
 	cmd.AddCommand(requirement.NewCmdRequirement())
 	cmd.AddCommand(repository.NewCmdRepository())
+	cmd.AddCommand(sa.NewCmdServiceAccount())
 
 	cmd.AddCommand(cobras.SplitCommand(annotate.NewCmdUpdateAnnotate()))
 	cmd.AddCommand(cobras.SplitCommand(condition.NewCmdCondition()))

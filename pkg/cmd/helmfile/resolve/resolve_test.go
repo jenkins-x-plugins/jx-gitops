@@ -16,6 +16,7 @@ import (
 	"github.com/roboll/helmfile/pkg/state"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"k8s.io/client-go/rest"
 )
 
 func TestStepHelmfileResolve(t *testing.T) {
@@ -56,7 +57,7 @@ func TestStepHelmfileResolve(t *testing.T) {
 			}
 			o.CommandRunner = runner.Run
 			o.Gitter = cli.NewCLIClient("", runner.Run)
-
+			o.UpdateMode = true
 			err = o.Run()
 			require.NoError(t, err, "failed to run the command")
 
@@ -84,6 +85,21 @@ func TestStepHelmfileResolve(t *testing.T) {
 			}
 
 			testhelpers.AssertTextFilesEqual(t, filepath.Join(tmpDir, "expected-helmfile.yaml"), filepath.Join(tmpDir, "helmfile.yaml"), "generated file")
+
+			// lets assert that we don't add the bucket repo if we are not in a cluster
+			if !IsInCluster() {
+				for _, cmd := range runner.OrderedCommands {
+					if cmd.Name == "helm" {
+						assert.NotEqual(t, []string{"repo", "add", "dev", "http://bucketrepo/bucketrepo/charts/"}, cmd.Args, "should not have added a cluster local repository for %s", name)
+					}
+				}
+			}
 		}
 	}
+}
+
+// IsInCluster tells if we are running incluster
+func IsInCluster() bool {
+	_, err := rest.InClusterConfig()
+	return err == nil
 }

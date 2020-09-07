@@ -176,7 +176,7 @@ func (o *Options) lazyCreateNamespaceResource(ns string) error {
 		return errors.Wrapf(err, "failed to save file %s", fileName)
 	}
 
-	log.Logger().Infof("no Namespace resource %s so created file %s", termcolor.ColorInfo(ns), termcolor.ColorInfo(fileName))
+	log.Logger().Debugf("no Namespace resource %s so created file %s", termcolor.ColorInfo(ns), termcolor.ColorInfo(fileName))
 	return nil
 }
 

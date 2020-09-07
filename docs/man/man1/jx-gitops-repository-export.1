@@ -28,6 +28,10 @@ jx\-gitops\-repository\-export \- Exports the 'source\-config.yaml' file from th
     the directory look for the 'jx\-requirements.yml` file
 
 .PP
+\fB\-e\fP, \fB\-\-explicit\fP[=false]
+    Explicit mode: always populate all the fields even if they can be deduced. e.g. the git URLs for each repository are not absolutely necessary and are omitted by default are populated if this flag is enabled
+
+.PP
 \fB\-h\fP, \fB\-\-help\fP[=false]
     help for export
 

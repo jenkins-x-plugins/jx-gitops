@@ -5,14 +5,12 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/move"
 	split2 "github.com/jenkins-x/jx-gitops/pkg/cmd/split"
 	"github.com/jenkins-x/jx-gitops/pkg/helmhelpers"
 	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/pkg/files"
-	"github.com/jenkins-x/jx-helpers/pkg/stringhelpers"
 	"github.com/jenkins-x/jx-helpers/pkg/yaml2s"
 	"github.com/jenkins-x/jx-kube-client/pkg/kubeclient"
 	"github.com/roboll/helmfile/pkg/state"
@@ -35,9 +33,14 @@ var (
 		%s helmfile template --args="--include-crds --values=jx-values.yaml --values=src/fake-secrets.yaml.gotmpl" --output-dir config-root/namespaces
 	`)
 
-	// debugInfoPrefixes lets use debug level logging for lines starting with the following prefixes in the output of helmfile template
+	// debugInfoPrefixes lets use debug level logging for lines starting with the following prefixes in the output of helmfile or helm commands
 	debugInfoPrefixes = []string{
-		"wrote ", "Templating ", "Adding repo  ",
+		"wrote ", "Templating ", "Adding repo ", "Fetching ", "Building dependency ",
+	}
+
+	// debugInfoSuffixes lets use debug level logging for lines ending with the following suffixes in the output of helmfile or helm commands
+	debugInfoSuffixes = []string{
+		" has been added to your repositories",
 	}
 )
 
@@ -153,7 +156,7 @@ func (o *Options) Run() error {
 		return nil
 	}
 
-	err = helmhelpers.AddHelmRepositories(helmState, o.CommandRunner)
+	err = helmhelpers.AddHelmRepositories(helmState, o.CommandRunner, nil)
 	if err != nil {
 		return errors.Wrapf(err, "failed to add helm repositories")
 	}
@@ -217,24 +220,9 @@ func (o *Options) runHelmfile(fileName string, ns string, state *state.HelmState
 		Name: "helmfile",
 		Args: args,
 	}
-	text, err := o.CommandRunner(c)
+	err = helmhelpers.RunCommandAndLogOutput(o.CommandRunner, c, debugInfoPrefixes, debugInfoSuffixes)
 	if err != nil {
-		return errors.Wrapf(err, "failed to run %s", c.CLI())
-	}
-
-	lines := strings.Split(text, "\n")
-	lastLineDebug := false
-	for _, line := range lines {
-		if stringhelpers.HasPrefix(line, debugInfoPrefixes...) {
-			lastLineDebug = true
-		} else if strings.TrimSpace(line) != "" {
-			lastLineDebug = false
-		}
-		if lastLineDebug {
-			log.Logger().Debug(line)
-		} else {
-			log.Logger().Info(line)
-		}
+		return errors.Wrapf(err, "failed to run helmfile template")
 	}
 
 	// lets split any generated files into one file per resource...

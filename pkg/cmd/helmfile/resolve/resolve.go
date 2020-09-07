@@ -11,6 +11,7 @@ import (
 	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient/cli"
+	"github.com/jenkins-x/jx-helpers/pkg/stringhelpers"
 	"github.com/jenkins-x/jx-helpers/pkg/yaml2s"
 	"github.com/roboll/helmfile/pkg/state"
 
@@ -135,7 +136,15 @@ func (o *Options) Run() error {
 
 	helmState := o.Results.HelmState
 
-	err = helmhelpers.AddHelmRepositories(helmState, o.CommandRunner)
+	var ignoreRepositories []string
+	if !helmhelpers.IsInCluster() {
+		ignoreRepositories, err = helmhelpers.FindClusterLocalRepositories(helmState.Repositories)
+		if err != nil {
+			return errors.Wrapf(err, "failed to find cluster local repositories")
+		}
+	}
+
+	err = helmhelpers.AddHelmRepositories(helmState, o.CommandRunner, ignoreRepositories)
 	if err != nil {
 		return errors.Wrapf(err, "failed to add helm repositories")
 	}
@@ -206,31 +215,34 @@ func (o *Options) Run() error {
 					})
 				}
 			}
-			versionProperties, err := resolver.StableVersion(versionstream.KindChart, fullChartName)
-			if err != nil {
-				return errors.Wrapf(err, "failed to find version number for chart %s", fullChartName)
-			}
 
-			version := versionProperties.Version
+			if stringhelpers.StringArrayIndex(ignoreRepositories, repository) < 0 {
+				versionProperties, err := resolver.StableVersion(versionstream.KindChart, fullChartName)
+				if err != nil {
+					return errors.Wrapf(err, "failed to find version number for chart %s", fullChartName)
+				}
 
-			versionChanged := false
-			if release.Version == "" {
-				release.Version = version
-				versionChanged = true
-			} else if o.UpdateMode && release.Version != version && version != "" {
-				release.Version = version
-				versionChanged = true
-			}
-			if versionChanged {
-				log.Logger().Infof("resolved chart %s version %s", fullChartName, version)
-			}
+				version := versionProperties.Version
 
-			if version == "" {
-				log.Logger().Warnf("could not find version for chart %s so using latest found in helm repository %s", fullChartName, repository)
-			}
+				versionChanged := false
+				if release.Version == "" {
+					release.Version = version
+					versionChanged = true
+				} else if o.UpdateMode && release.Version != version && version != "" {
+					release.Version = version
+					versionChanged = true
+				}
+				if versionChanged {
+					log.Logger().Infof("resolved chart %s version %s", fullChartName, version)
+				}
 
-			if release.Namespace == "" && versionProperties.Namespace != "" {
-				release.Namespace = versionProperties.Namespace
+				if version == "" {
+					log.Logger().Warnf("could not find version for chart %s so using latest found in helm repository %s", fullChartName, repository)
+				}
+
+				if release.Namespace == "" && versionProperties.Namespace != "" {
+					release.Namespace = versionProperties.Namespace
+				}
 			}
 		}
 
