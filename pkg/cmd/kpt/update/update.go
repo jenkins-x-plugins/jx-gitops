@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/user"
 	"path/filepath"
 	"strings"
 
@@ -98,6 +99,11 @@ func (o *Options) Run() error {
 		}
 	}
 
+	usr, err := user.Current()
+	if err != nil {
+		return err
+	}
+
 	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if info == nil || info.IsDir() {
 			return nil
@@ -120,6 +126,12 @@ func (o *Options) Run() error {
 		kptDir = strings.TrimSuffix(kptDir, pathSeparator)
 		parentDir, _ := filepath.Split(kptDir)
 		parentDir = strings.TrimSuffix(parentDir, pathSeparator)
+
+		// clear the kpt repo cache everytime else we run into issues
+		err = os.RemoveAll(filepath.Join(usr.HomeDir, ".kpt", "repos"))
+		if err != nil {
+			return err
+		}
 
 		folderExpression := fmt.Sprintf("%s@%s", rel, o.Version)
 		args := []string{"pkg", "update", folderExpression, "--strategy", o.Strategy}
