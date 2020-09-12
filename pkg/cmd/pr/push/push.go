@@ -117,7 +117,7 @@ func (o *Options) Run() error {
 			return errors.Wrapf(err, "failed to discover the pull request branch. Consider specifying the --branch option")
 		}
 		if o.Branch == "" {
-			return errors.Errorf("could not find branch fpr PR %d in repo %s", o.Number, o.Repository)
+			return errors.Errorf("could not find branch for PR %d in repo %s", o.Number, o.Repository)
 		}
 	}
 	return o.pushToBranch()
