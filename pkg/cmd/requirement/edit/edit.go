@@ -50,87 +50,87 @@ var (
 
 // NewCmdRequirementsEdit creates the new command
 func NewCmdRequirementsEdit() (*cobra.Command, *Options) {
-	options := &Options{}
+	o := &Options{}
 	cmd := &cobra.Command{
 		Use:     "edit",
 		Short:   "Edits the local 'jx-requirements.yml file",
 		Long:    cmdLong,
 		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
-			options.Cmd = cmd
-			options.Args = args
-			err := options.Run()
+			o.Cmd = cmd
+			o.Args = args
+			err := o.Run()
 			helper.CheckErr(err)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			options.Cmd = cmd
-			options.Args = args
-			return options.Run()
+			o.Cmd = cmd
+			o.Args = args
+			return o.Run()
 		},
 	}
-	cmd.Flags().StringVarP(&options.Dir, "dir", "", ".", "the directory to search for the 'jx-requirements.yml' file")
+	cmd.Flags().StringVarP(&o.Dir, "dir", "", ".", "the directory to search for the 'jx-requirements.yml' file")
 
 	// bools
-	cmd.Flags().BoolVarP(&options.Flags.AutoUpgrade, "autoupgrade", "", false, "enables or disables auto upgrades")
-	cmd.Flags().BoolVarP(&options.Flags.EnvironmentGitPublic, "env-git-public", "", false, "enables or disables whether the environment repositories should be public")
-	cmd.Flags().BoolVarP(&options.Flags.GitOps, "gitops", "g", false, "enables or disables the use of gitops")
-	cmd.Flags().BoolVarP(&options.Flags.Kaniko, "kaniko", "", false, "enables or disables the use of kaniko")
-	cmd.Flags().BoolVarP(&options.Flags.Terraform, "terraform", "", false, "enables or disables the use of terraform")
-	cmd.Flags().BoolVarP(&options.Flags.VaultRecreateBucket, "vault-recreate-bucket", "", false, "enables or disables whether to rereate the secret bucket on boot")
-	cmd.Flags().BoolVarP(&options.Flags.VaultDisableURLDiscover, "vault-disable-url-discover", "", false, "override the default lookup of the Vault URL, could be incluster service or external ingress")
+	cmd.Flags().BoolVarP(&o.Flags.AutoUpgrade, "autoupgrade", "", false, "enables or disables auto upgrades")
+	cmd.Flags().BoolVarP(&o.Flags.EnvironmentGitPublic, "env-git-public", "", false, "enables or disables whether the environment repositories should be public")
+	cmd.Flags().BoolVarP(&o.Flags.GitOps, "gitops", "g", false, "enables or disables the use of gitops")
+	cmd.Flags().BoolVarP(&o.Flags.Kaniko, "kaniko", "", false, "enables or disables the use of kaniko")
+	cmd.Flags().BoolVarP(&o.Flags.Terraform, "terraform", "", false, "enables or disables the use of terraform")
+	cmd.Flags().BoolVarP(&o.Flags.VaultRecreateBucket, "vault-recreate-bucket", "", false, "enables or disables whether to rereate the secret bucket on boot")
+	cmd.Flags().BoolVarP(&o.Flags.VaultDisableURLDiscover, "vault-disable-url-discover", "", false, "override the default lookup of the Vault URL, could be incluster service or external ingress")
 
 	// requirements
-	cmd.Flags().StringVarP(&options.Requirements.BootConfigURL, "boot-config-url", "", "", "specify the boot configuration git URL")
-	cmd.Flags().StringVarP(&options.SecretStorage, "secret", "s", "", fmt.Sprintf("configures the kind of secret storage. Values: %s", strings.Join(config.SecretStorageTypeValues, ", ")))
-	cmd.Flags().StringVarP(&options.Webhook, "webhook", "w", "", fmt.Sprintf("configures the kind of webhook. Values %s", strings.Join(config.WebhookTypeValues, ", ")))
+	cmd.Flags().StringVarP(&o.Requirements.BootConfigURL, "boot-config-url", "", "", "specify the boot configuration git URL")
+	cmd.Flags().StringVarP(&o.SecretStorage, "secret", "s", "", fmt.Sprintf("configures the kind of secret storage. Values: %s", strings.Join(config.SecretStorageTypeValues, ", ")))
+	cmd.Flags().StringVarP(&o.Webhook, "webhook", "w", "", fmt.Sprintf("configures the kind of webhook. Values %s", strings.Join(config.WebhookTypeValues, ", ")))
 
 	// auto upgrade
-	cmd.Flags().StringVarP(&options.Requirements.AutoUpdate.Schedule, "autoupdate-schedule", "", "", "the cron schedule for auto upgrading your cluster")
+	cmd.Flags().StringVarP(&o.Requirements.AutoUpdate.Schedule, "autoupdate-schedule", "", "", "the cron schedule for auto upgrading your cluster")
 
 	// cluster
-	cmd.Flags().StringVarP(&options.Requirements.Cluster.ClusterName, "cluster", "c", "", "configures the cluster name")
-	cmd.Flags().StringVarP(&options.Requirements.Cluster.Namespace, "namespace", "n", "", "configures the namespace to use")
-	cmd.Flags().StringVarP(&options.Requirements.Cluster.Provider, "provider", "p", "", "configures the kubernetes provider")
-	cmd.Flags().StringVarP(&options.Requirements.Cluster.ProjectID, "project", "", "", "configures the Google Project ID")
-	cmd.Flags().StringVarP(&options.Requirements.Cluster.Registry, "registry", "", "", "configures the host name of the container registry")
-	cmd.Flags().StringVarP(&options.Requirements.Cluster.Region, "region", "r", "", "configures the cloud region")
-	cmd.Flags().StringVarP(&options.Requirements.Cluster.Zone, "zone", "z", "", "configures the cloud zone")
+	cmd.Flags().StringVarP(&o.Requirements.Cluster.ClusterName, "cluster", "c", "", "configures the cluster name")
+	cmd.Flags().StringVarP(&o.Requirements.Cluster.Namespace, "namespace", "n", "", "configures the namespace to use")
+	cmd.Flags().StringVarP(&o.Requirements.Cluster.Provider, "provider", "p", "", "configures the kubernetes provider")
+	cmd.Flags().StringVarP(&o.Requirements.Cluster.ProjectID, "project", "", "", "configures the Google Project ID")
+	cmd.Flags().StringVarP(&o.Requirements.Cluster.Registry, "registry", "", "", "configures the host name of the container registry")
+	cmd.Flags().StringVarP(&o.Requirements.Cluster.Region, "region", "r", "", "configures the cloud region")
+	cmd.Flags().StringVarP(&o.Requirements.Cluster.Zone, "zone", "z", "", "configures the cloud zone")
 
-	cmd.Flags().StringVarP(&options.Requirements.Cluster.ExternalDNSSAName, "extdns-sa", "", "", "configures the External DNS service account name")
-	cmd.Flags().StringVarP(&options.Requirements.Cluster.KanikoSAName, "kaniko-sa", "", "", "configures the Kaniko service account name")
-	cmd.Flags().StringVarP(&options.Requirements.Cluster.HelmMajorVersion, "helm-version", "", "", "configures the Helm major version. e.g. 3 to try helm 3")
+	cmd.Flags().StringVarP(&o.Requirements.Cluster.ExternalDNSSAName, "extdns-sa", "", "", "configures the External DNS service account name")
+	cmd.Flags().StringVarP(&o.Requirements.Cluster.KanikoSAName, "kaniko-sa", "", "", "configures the Kaniko service account name")
+	cmd.Flags().StringVarP(&o.Requirements.Cluster.HelmMajorVersion, "helm-version", "", "", "configures the Helm major version. e.g. 3 to try helm 3")
 
 	// git
-	cmd.Flags().StringVarP(&options.Requirements.Cluster.GitKind, "git-kind", "", "", fmt.Sprintf("the kind of git repository to use. Possible values: %s", strings.Join(giturl.KindGits, ", ")))
-	cmd.Flags().StringVarP(&options.Requirements.Cluster.GitName, "git-name", "", "", "the name of the git repository")
-	cmd.Flags().StringVarP(&options.Requirements.Cluster.GitServer, "git-server", "", "", "the git server host such as https://github.com or https://gitlab.com")
-	cmd.Flags().StringVarP(&options.Requirements.Cluster.EnvironmentGitOwner, "env-git-owner", "", "", "the git owner (organisation or user) used to own the git repositories for the environments")
+	cmd.Flags().StringVarP(&o.Requirements.Cluster.GitKind, "git-kind", "", "", fmt.Sprintf("the kind of git repository to use. Possible values: %s", strings.Join(giturl.KindGits, ", ")))
+	cmd.Flags().StringVarP(&o.Requirements.Cluster.GitName, "git-name", "", "", "the name of the git repository")
+	cmd.Flags().StringVarP(&o.Requirements.Cluster.GitServer, "git-server", "", "", "the git server host such as https://github.com or https://gitlab.com")
+	cmd.Flags().StringVarP(&o.Requirements.Cluster.EnvironmentGitOwner, "env-git-owner", "", "", "the git owner (organisation or user) used to own the git repositories for the environments")
 
 	// ingress
-	cmd.Flags().StringVarP(&options.Requirements.Ingress.Domain, "domain", "d", "", "configures the domain name")
-	cmd.Flags().StringVarP(&options.Requirements.Ingress.TLS.Email, "tls-email", "", "", "the TLS email address to enable TLS on the domain")
+	cmd.Flags().StringVarP(&o.Requirements.Ingress.Domain, "domain", "d", "", "configures the domain name")
+	cmd.Flags().StringVarP(&o.Requirements.Ingress.TLS.Email, "tls-email", "", "", "the TLS email address to enable TLS on the domain")
 
 	// storage
-	cmd.Flags().StringVarP(&options.Requirements.Storage.Logs.URL, "bucket-logs", "", "", "the bucket URL to store logs")
-	cmd.Flags().StringVarP(&options.Requirements.Storage.Backup.URL, "bucket-backups", "", "", "the bucket URL to store backups")
-	cmd.Flags().StringVarP(&options.Requirements.Storage.Repository.URL, "bucket-repo", "", "", "the bucket URL to store repository artifacts")
-	cmd.Flags().StringVarP(&options.Requirements.Storage.Reports.URL, "bucket-reports", "", "", "the bucket URL to store reports. If not specified default to te logs bucket")
+	cmd.Flags().StringVarP(&o.Requirements.Storage.Logs.URL, "bucket-logs", "", "", "the bucket URL to store logs")
+	cmd.Flags().StringVarP(&o.Requirements.Storage.Backup.URL, "bucket-backups", "", "", "the bucket URL to store backups")
+	cmd.Flags().StringVarP(&o.Requirements.Storage.Repository.URL, "bucket-repo", "", "", "the bucket URL to store repository artifacts")
+	cmd.Flags().StringVarP(&o.Requirements.Storage.Reports.URL, "bucket-reports", "", "", "the bucket URL to store reports. If not specified default to te logs bucket")
 
 	// vault
-	cmd.Flags().StringVarP(&options.Requirements.Vault.Name, "vault-name", "", "", "specify the vault name")
-	cmd.Flags().StringVarP(&options.Requirements.Vault.Bucket, "vault-bucket", "", "", "specify the vault bucket")
-	cmd.Flags().StringVarP(&options.Requirements.Vault.Keyring, "vault-keyring", "", "", "specify the vault key ring")
-	cmd.Flags().StringVarP(&options.Requirements.Vault.Key, "vault-key", "", "", "specify the vault key")
-	cmd.Flags().StringVarP(&options.Requirements.Vault.ServiceAccount, "vault-sa", "", "", "specify the vault Service Account name")
+	cmd.Flags().StringVarP(&o.Requirements.Vault.Name, "vault-name", "", "", "specify the vault name")
+	cmd.Flags().StringVarP(&o.Requirements.Vault.Bucket, "vault-bucket", "", "", "specify the vault bucket")
+	cmd.Flags().StringVarP(&o.Requirements.Vault.Keyring, "vault-keyring", "", "", "specify the vault key ring")
+	cmd.Flags().StringVarP(&o.Requirements.Vault.Key, "vault-key", "", "", "specify the vault key")
+	cmd.Flags().StringVarP(&o.Requirements.Vault.ServiceAccount, "vault-sa", "", "", "specify the vault Service Account name")
 
 	// velero
-	cmd.Flags().StringVarP(&options.Requirements.Velero.ServiceAccount, "velero-sa", "", "", "specify the Velero Service Account name")
-	cmd.Flags().StringVarP(&options.Requirements.Velero.Namespace, "velero-ns", "", "", "specify the Velero Namespace")
+	cmd.Flags().StringVarP(&o.Requirements.Velero.ServiceAccount, "velero-sa", "", "", "specify the Velero Service Account name")
+	cmd.Flags().StringVarP(&o.Requirements.Velero.Namespace, "velero-ns", "", "", "specify the Velero Namespace")
 
 	// version stream
-	cmd.Flags().StringVarP(&options.Requirements.VersionStream.URL, "version-stream-url", "", "", "specify the Version Stream git URL")
-	cmd.Flags().StringVarP(&options.Requirements.VersionStream.Ref, "version-stream-ref", "", "", "specify the Version Stream git reference (branch, tag, sha)")
-	return cmd, options
+	cmd.Flags().StringVarP(&o.Requirements.VersionStream.URL, "version-stream-url", "", "", "specify the Version Stream git URL")
+	cmd.Flags().StringVarP(&o.Requirements.VersionStream.Ref, "version-stream-ref", "", "", "specify the Version Stream git reference (branch, tag, sha)")
+	return cmd, o
 }
 
 // Run runs the command

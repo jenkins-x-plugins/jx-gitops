@@ -20,8 +20,9 @@ func TestPullRequestPush(t *testing.T) {
 
 	runner := &fakerunner.FakeRunner{}
 	pp.CommandRunner = runner.Run
+	pp.SourceURL = "https://github.com/" + repo
 	pp.Number = prNumber
-	pp.Repository = repo
+	pp.Branch = prBranch
 
 	scmClient, fakeData := fake.NewDefault()
 	pp.ScmClient = scmClient
