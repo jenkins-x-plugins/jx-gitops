@@ -29,10 +29,11 @@ var (
 // KptOptions the options for the command
 type Options struct {
 	scmhelpers.PullRequestOptions
-	UserName  string
-	UserEmail string
-	BatchMode bool
-	gitClient gitclient.Interface
+	UserName       string
+	UserEmail      string
+	BatchMode      bool
+	DisableGitInit bool
+	gitClient      gitclient.Interface
 }
 
 // NewCmdPullRequestPush creates a command object for the command
@@ -63,7 +64,7 @@ func (o *Options) Run() error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to ")
 	}
-	if kube.IsInCluster() {
+	if kube.IsInCluster() && !o.DisableGitInit {
 		err := o.InitGitConfigAndUser()
 		if err != nil {
 			return errors.Wrapf(err, "failed to init git")

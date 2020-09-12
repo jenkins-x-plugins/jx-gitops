@@ -23,6 +23,7 @@ func TestPullRequestPush(t *testing.T) {
 	pp.SourceURL = "https://github.com/" + repo
 	pp.Number = prNumber
 	pp.Branch = prBranch
+	pp.DisableGitInit = true
 
 	scmClient, fakeData := fake.NewDefault()
 	pp.ScmClient = scmClient
