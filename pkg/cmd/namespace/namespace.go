@@ -97,13 +97,13 @@ func (o *Options) RunDirMode() error {
 	if o.Namespace != "" {
 		return errors.Errorf("should not specify the --namespace option if you are running dir mode as the namespace is taken from the first child directory names")
 	}
-	files, err := ioutil.ReadDir(o.Dir)
+	flieList, err := ioutil.ReadDir(o.Dir)
 	if err != nil {
 		return errors.Wrapf(err, "failed to read dir %s", o.Dir)
 	}
 
 	namespaces := []string{}
-	for _, f := range files {
+	for _, f := range flieList {
 		if !f.IsDir() {
 			continue
 		}

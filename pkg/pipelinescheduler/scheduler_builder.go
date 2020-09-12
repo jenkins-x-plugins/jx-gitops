@@ -193,8 +193,8 @@ func buildSchedulerWelcome(configuration *plugins.Configuration) []*jenkinsv1.We
 }
 
 func buildSchedulerConfigUpdater(repo string, pluginConfig *plugins.Configuration) *jenkinsv1.ConfigUpdater {
-	if plugins, ok := pluginConfig.Plugins[repo]; !ok {
-		for _, plugin := range plugins {
+	if ps, ok := pluginConfig.Plugins[repo]; !ok {
+		for _, plugin := range ps {
 			if plugin == "config-updater" {
 				configMapSpec := make(map[string]jenkinsv1.ConfigMapSpec)
 				for location, conf := range pluginConfig.ConfigUpdater.Maps {
@@ -221,11 +221,11 @@ func buildSchedulerConfigUpdater(repo string, pluginConfig *plugins.Configuratio
 }
 
 func buildSchedulerPlugins(repo string, pluginConfig *plugins.Configuration) *jenkinsv1.ReplaceableSliceOfStrings {
-	if plugins, ok := pluginConfig.Plugins[repo]; ok {
+	if ps, ok := pluginConfig.Plugins[repo]; ok {
 		pluginList := &jenkinsv1.ReplaceableSliceOfStrings{
 			Items: make([]string, 0),
 		}
-		for _, plugin := range plugins {
+		for _, plugin := range ps {
 			pluginList.Items = append(pluginList.Items, plugin)
 		}
 		if len(pluginList.Items) > 0 {
@@ -358,9 +358,9 @@ func buildSchedulerExternalPlugins(repo string, pluginConfig *plugins.Configurat
 	pluginList := &jenkinsv1.ReplaceableSliceOfExternalPlugins{
 		Items: nil,
 	}
-	if plugins, ok := pluginConfig.ExternalPlugins[repo]; ok {
-		if plugins != nil {
-			for _, plugin := range plugins {
+	if ps, ok := pluginConfig.ExternalPlugins[repo]; ok {
+		if ps != nil {
+			for _, plugin := range ps {
 				if pluginList.Items == nil {
 					pluginList.Items = make([]*jenkinsv1.ExternalPlugin, 0)
 				}
@@ -479,7 +479,6 @@ func buildSchedulerProtectionPolicies(repo string, prowConfig *config.Config) *j
 		ProtectionPolicy: repoPolicy,
 		Items:            protectionPolicies,
 	}
-	return nil
 }
 
 func buildSchedulerRequiredPullRequestReviews(requiredPullRequestReviews *branchprotection.ReviewPolicy) *jenkinsv1.ReviewPolicy {
