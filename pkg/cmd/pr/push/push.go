@@ -64,6 +64,9 @@ func (o *Options) Run() error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to ")
 	}
+	if o.CommandRunner == nil {
+		o.CommandRunner = cmdrunner.DefaultCommandRunner
+	}
 	if kube.IsInCluster() && !o.DisableGitInit {
 		err := o.InitGitConfigAndUser()
 		if err != nil {
