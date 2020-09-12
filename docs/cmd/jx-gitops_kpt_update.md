@@ -25,7 +25,7 @@ Updates the kpt packages in the given directory
   -h, --help              help for update
   -o, --owner string      filter on the Kptfile repository owner (user/organisation) for which packages to update
   -r, --repo string       filter on the Kptfile repository name  for which packages to update
-  -s, --strategy string   the 'kpt pkg update' strategy to use (default "resource-merge")
+  -s, --strategy string   the 'kpt pkg update' strategy to use (default "alpha-git-patch")
   -u, --url string        filter on the Kptfile repository URL for which packages to update
   -v, --version string    the git version of the kpt package to upgrade to (default "master")
 ```

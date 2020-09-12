@@ -26,7 +26,7 @@ Upgrades the GitOps git repository with the latest configuration and versions th
       --namespace string        the default namespace if none is specified in the helmfile.yaml or jx-requirements.yml (default "jx")
   -o, --owner string            filter on the Kptfile repository owner (user/organisation) for which packages to update
   -r, --repo string             filter on the Kptfile repository name  for which packages to update
-  -s, --strategy string         the 'kpt pkg update' strategy to use (default "resource-merge")
+  -s, --strategy string         the 'kpt pkg update' strategy to use (default "alpha-git-patch")
   -u, --url string              filter on the Kptfile repository URL for which packages to update
   -v, --version string          the git version of the kpt package to upgrade to (default "master")
 ```
