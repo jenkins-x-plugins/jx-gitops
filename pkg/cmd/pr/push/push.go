@@ -29,8 +29,10 @@ var (
 // KptOptions the options for the command
 type Options struct {
 	scmhelpers.PullRequestOptions
-	UserName       string
-	UserEmail      string
+	UserName          string
+	UserEmail         string
+	PullRequestBranch string
+
 	BatchMode      bool
 	DisableGitInit bool
 	gitClient      gitclient.Interface
@@ -73,16 +75,24 @@ func (o *Options) Run() error {
 			return errors.Wrapf(err, "failed to init git")
 		}
 	}
-	return o.pushToBranch()
+
+	if o.PullRequestBranch == "" {
+		pr, err := o.DiscoverPullRequest()
+		if err != nil {
+			return errors.Wrapf(err, "failed to discover pull request")
+		}
+		o.PullRequestBranch = pr.Source
+	}
+	return o.pushToBranch(o.PullRequestBranch)
 }
 
-func (o *Options) pushToBranch() error {
+func (o *Options) pushToBranch(branch string) error {
 	argSlices := [][]string{
 		{
-			"checkout", "-b", o.Branch,
+			"checkout", "-b", branch,
 		},
 		{
-			"push", "origin", o.Branch,
+			"push", "origin", branch,
 		},
 	}
 
