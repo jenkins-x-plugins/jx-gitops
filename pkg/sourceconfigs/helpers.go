@@ -56,17 +56,17 @@ func GetOrCreateGroup(config *v1alpha1.SourceConfig, owner string) *v1alpha1.Rep
 }
 
 // GetOrCreateRepository get or create the repository for the given name
-func GetOrCreateRepository(config *v1alpha1.RepositoryGroup, repoName string) *v1alpha1.Repository {
-	for i := range config.Repositories {
-		repo := &config.Repositories[i]
+func GetOrCreateRepository(group *v1alpha1.RepositoryGroup, repoName string) *v1alpha1.Repository {
+	for i := range group.Repositories {
+		repo := &group.Repositories[i]
 		if repo.Name == repoName {
 			return repo
 		}
 	}
-	config.Repositories = append(config.Repositories, v1alpha1.Repository{
+	group.Repositories = append(group.Repositories, v1alpha1.Repository{
 		Name: repoName,
 	})
-	return &config.Repositories[len(config.Repositories)-1]
+	return &group.Repositories[len(group.Repositories)-1]
 }
 
 // SortConfig sorts the repositories in each group
@@ -84,4 +84,59 @@ func SortRepositories(repositories []v1alpha1.Repository) {
 		r2 := repositories[j]
 		return r1.Name < r2.Name
 	})
+}
+
+
+// DryConfig avoids unnecessary values in the source config
+func DryConfig(config *v1alpha1.SourceConfig) {
+	// if all of the repositories in a group have the same scheduler then clear them all and set it on the group
+	for i := range config.Spec.Groups {
+		group := &config.Spec.Groups[i]
+		scheduler := ""
+		for j := range group.Repositories {
+			repo := &group.Repositories[j]
+			if repo.Scheduler == "" {
+				scheduler = ""
+				break
+			}
+			if scheduler == "" {
+				scheduler = repo.Scheduler
+			} else if scheduler != repo.Scheduler {
+				scheduler = ""
+				break
+			}
+		}
+		if scheduler != "" {
+			group.Scheduler = scheduler
+			for j := range group.Repositories {
+				group.Repositories[j].Scheduler = ""
+			}
+		}
+	}
+
+	// if the URLs can be guessed from the group, omit them
+	for i := range config.Spec.Groups {
+		group := &config.Spec.Groups[i]
+		provider := group.Provider
+		if provider == "" {
+			break
+		}
+		owner := group.Owner
+		for j := range group.Repositories {
+			repo := &group.Repositories[j]
+			name := repo.Name
+			url := stringhelpers.UrlJoin(provider, owner, name)
+			cloneURL := url + ".git"
+			description := "Imported application for " + owner + "/" + name
+			if repo.URL == url || repo.URL == cloneURL {
+				repo.URL = ""
+			}
+			if repo.HTTPCloneURL == cloneURL {
+				repo.HTTPCloneURL = ""
+			}
+			if repo.Description == description {
+				repo.Description = ""
+			}
+		}
+	}
 }

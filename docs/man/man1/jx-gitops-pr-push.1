@@ -20,12 +20,8 @@ Pushes the current git directory to the branch used to create the Pull Request
 
 .SH OPTIONS
 .PP
-\fB\-b\fP, \fB\-\-branch\fP=""
-    the git branch to push to. If not specified we will find the branch from the PullRequest.Source property
-
-.PP
-\fB\-d\fP, \fB\-\-dir\fP=""
-    the directory to run the git push command from
+\fB\-\-dir\fP="."
+    the directory to search for the .git to discover the git source URL
 
 .PP
 \fB\-\-email\fP=""
@@ -41,7 +37,7 @@ Pushes the current git directory to the branch used to create the Pull Request
 
 .PP
 \fB\-\-git\-token\fP=""
-    the git oauth token used to query the Pull Request to discover the branch name
+    the git token used to operate on the git repository
 
 .PP
 \fB\-h\fP, \fB\-\-help\fP[=false]
@@ -52,12 +48,12 @@ Pushes the current git directory to the branch used to create the Pull Request
     the git user name to use if one is not setup
 
 .PP
-\fB\-r\fP, \fB\-\-repo\fP=""
-    the full git repository name of the form 'owner/name' for the Pull Request
+\fB\-\-pr\fP=0
+    the Pull Request number. If not specified we detect it via $PULL\_NUMBER or $BRANCH\_NAME environment variables
 
 .PP
-\fB\-s\fP, \fB\-\-source\fP=""
-    the git source URL of the current git clone
+\fB\-r\fP, \fB\-\-repo\fP=""
+    the full git repository name of the form 'owner/name'
 
 
 .SH EXAMPLE
