@@ -1011,6 +1011,8 @@ github.com/jenkins-x/golang-jenkins v0.0.0-20180919102630-65b83ad42314/go.mod h1
 github.com/jenkins-x/jx-api v0.0.13/go.mod h1:/TyG05VMeX2hydFPHh6nDfPPXTBCQaFCuet/pdPvjUA=
 github.com/jenkins-x/jx-api v0.0.17 h1:DXfR76lH3s7K2CaSJBzq/S7zRtKFfbKpnNyY4n8plUQ=
 github.com/jenkins-x/jx-api v0.0.17/go.mod h1:QKLHk4VzI+sDBPSzN4K+QdEjNIBnCHS3DKY5YbGeCdY=
+github.com/jenkins-x/jx-api v0.0.18 h1:ncOG3hsdimAJhdwyo+b8v+RHZPUWgDrWE7pMcCyrnvk=
+github.com/jenkins-x/jx-api v0.0.18/go.mod h1:QKLHk4VzI+sDBPSzN4K+QdEjNIBnCHS3DKY5YbGeCdY=
 github.com/jenkins-x/jx-apps v0.0.4 h1:pLQ9cY+nX8xMXiJxb09lOv6r21vvw9VLB+ixy1larJU=
 github.com/jenkins-x/jx-apps v0.0.4/go.mod h1:aazqQIaAsaJjsFL1NdilvQ9l41hjVT6L+dWe9ULravM=
 github.com/jenkins-x/jx-helpers v1.0.9/go.mod h1:JldgSKYWU4cwWGynlLHtR4BhhEjjppoKG8TKaaiiumY=
@@ -1022,6 +1024,8 @@ github.com/jenkins-x/jx-helpers v1.0.56 h1:O2Ulo+lZiXdv4OP6zKycBldr7oMn9yblg4kPv
 github.com/jenkins-x/jx-helpers v1.0.56/go.mod h1:GcR4f3e1183/StDPUbU9I3ie2ZtWkg+sq+oPb3RotRg=
 github.com/jenkins-x/jx-helpers v1.0.58 h1:SRLCiV1VHm0KXZ3zjOtDj53Odl7/3hbJqfdBbg7WLR8=
 github.com/jenkins-x/jx-helpers v1.0.58/go.mod h1:GcR4f3e1183/StDPUbU9I3ie2ZtWkg+sq+oPb3RotRg=
+github.com/jenkins-x/jx-helpers v1.0.59 h1:CZLs4drsMerWR2mYKuJ+juIldEvdNNkt3mpTwuNbPE4=
+github.com/jenkins-x/jx-helpers v1.0.59/go.mod h1:VQQ5HOZacb7g5OS0D6AlVP4GJulxeWx78viRyMLvjOw=
 github.com/jenkins-x/jx-kube-client v0.0.8 h1:XK/TP2qnhHPb/vhaGHmvVilWGDtARIZ1DOEHp/6/h0Y=
 github.com/jenkins-x/jx-kube-client v0.0.8/go.mod h1:XvNZQAAF95wzQzSfCpehXwb5FI6WCg+5GiwVA2S4SPA=
 github.com/jenkins-x/jx-logging v0.0.8/go.mod h1:mjEejiArk2Mk+J+72/YcSKGo9bZlJ/LwKYjMgAiv+G4=
@@ -1043,6 +1047,8 @@ github.com/jenkins-x/lighthouse v0.0.785 h1:RVH7cR+4JqHjUvvU5cnZG/l3u9YAnvUX1i6h
 github.com/jenkins-x/lighthouse v0.0.785/go.mod h1:CwKGIN9JFhZ8YcPjBeshYnoHs/Bg7XBA3KF9lHHjIDY=
 github.com/jenkins-x/lighthouse v0.0.808 h1:LN1VPoWDRz0ggmcKmdKSViAeotWDH6sZP5cOnOkFWbc=
 github.com/jenkins-x/lighthouse v0.0.808/go.mod h1:z5/JiPthNksT+7DPkcwXRK3mZaUnFb2yDXx+6sFriqc=
+github.com/jenkins-x/lighthouse v0.0.812 h1:JCgNNzYHBjyjtlxSFkEDYZN5cOvrK8wzVfPLK65CgZ0=
+github.com/jenkins-x/lighthouse v0.0.812/go.mod h1:z5/JiPthNksT+7DPkcwXRK3mZaUnFb2yDXx+6sFriqc=
 github.com/jenkins-x/lighthouse-config v0.0.6/go.mod h1:5ax5UF79SGM+Xc3HrWR/9LsPQBWDxE+TEJMwPAikst8=
 github.com/jenkins-x/lighthouse-config v0.0.10 h1:wwbUeMYBAikpEtLTsSAB8/pHVIiiyieUnNmp0NbH+Q8=
 github.com/jenkins-x/lighthouse-config v0.0.10/go.mod h1:yG86b4t5H/Auif/mIiUf4C35wuI8LnjivjWTVUUbYIs=
@@ -2281,6 +2287,7 @@ k8s.io/kube-openapi v0.0.0-20200410145947-bcb3869e6f29 h1:NeQXVJ2XFSkRoPzRo8AId0
 k8s.io/kube-openapi v0.0.0-20200410145947-bcb3869e6f29/go.mod h1:F+5wygcW0wmRTnM3cOgIqGivxkwSWIWT5YdsDbeAOaU=
 k8s.io/kubernetes v1.14.0 h1:6T2iAEoOYQnzQb3WvPlUkcczEEXZ7+YPlAO8olwujRw=
 k8s.io/kubernetes v1.14.0/go.mod h1:ocZa8+6APFNC2tX1DZASIbocyYT5jHzqFVsY5aoB7Jk=
+k8s.io/kubernetes v1.14.7/go.mod h1:ocZa8+6APFNC2tX1DZASIbocyYT5jHzqFVsY5aoB7Jk=
 k8s.io/legacy-cloud-providers v0.17.0/go.mod h1:DdzaepJ3RtRy+e5YhNtrCYwlgyK87j/5+Yfp0L9Syp8=
 k8s.io/legacy-cloud-providers v0.17.4/go.mod h1:FikRNoD64ECjkxO36gkDgJeiQWwyZTuBkhu+yxOc1Js=
 k8s.io/metrics v0.0.0-20190819143841-305e1cef1ab1 h1:vNxfr8VBLdY4B4AkyKUHhFV4X9Vec3QLrb6xFzZ25h4=
