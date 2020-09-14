@@ -2,7 +2,6 @@ module github.com/jenkins-x/jx-gitops
 
 require (
 	github.com/cpuguy83/go-md2man v1.0.10
-	github.com/cyphar/filepath-securejoin v0.2.2 // indirect
 	github.com/davecgh/go-spew v1.1.1
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/go-yaml/yaml v2.1.0+incompatible
@@ -11,13 +10,10 @@ require (
 	github.com/jenkins-x/gen-crd-api-reference-docs v0.1.6 // indirect
 	github.com/jenkins-x/go-scm v1.5.164
 	github.com/jenkins-x/jx-api v0.0.18
-	github.com/jenkins-x/jx-apps v0.0.4 // indirect
 	github.com/jenkins-x/jx-helpers v1.0.59
 	github.com/jenkins-x/jx-kube-client v0.0.8
 	github.com/jenkins-x/jx-logging v0.0.11
-	github.com/jenkins-x/jx/v2 v2.1.143 // indirect
 	github.com/jenkins-x/lighthouse v0.0.812
-	github.com/jenkins-x/lighthouse-config v0.0.10 // indirect
 	github.com/pborman/uuid v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/roboll/helmfile v0.125.7
@@ -36,42 +32,20 @@ require (
 
 )
 
-replace github.com/heptio/sonobuoy => github.com/jenkins-x/sonobuoy v0.11.7-0.20190318120422-253758214767
+replace (
+	// fix yaml comment parsing issue
+	gopkg.in/yaml.v2 => gopkg.in/yaml.v2 v2.3.0
+	gopkg.in/yaml.v3 => gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
 
-replace k8s.io/api => k8s.io/api v0.16.5
+	k8s.io/api => k8s.io/api v0.17.6
+	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.17.6
+	k8s.io/apimachinery => k8s.io/apimachinery v0.17.6
+	k8s.io/client-go => k8s.io/client-go v0.17.6
+	k8s.io/kubernetes => k8s.io/kubernetes v1.14.7
 
-replace k8s.io/metrics => k8s.io/metrics v0.0.0-20190819143841-305e1cef1ab1
-
-replace k8s.io/apimachinery => k8s.io/apimachinery v0.16.5
-
-replace k8s.io/client-go => k8s.io/client-go v0.16.5
-
-replace k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20190819143637-0dbe462fe92d
-
-replace github.com/sirupsen/logrus => github.com/jtnord/logrus v1.4.2-0.20190423161236-606ffcaf8f5d
-
-replace github.com/Azure/azure-sdk-for-go => github.com/Azure/azure-sdk-for-go v23.2.0+incompatible
-
-replace github.com/Azure/go-autorest => github.com/Azure/go-autorest v13.3.1+incompatible
-
-replace github.com/banzaicloud/bank-vaults => github.com/banzaicloud/bank-vaults v0.0.0-20191212164220-b327d7f2b681
-
-replace github.com/banzaicloud/bank-vaults/pkg/sdk => github.com/banzaicloud/bank-vaults/pkg/sdk v0.0.0-20191212164220-b327d7f2b681
-
-replace github.com/TV4/logrus-stackdriver-formatter => github.com/jenkins-x/logrus-stackdriver-formatter v0.1.1-0.20200408213659-1dcf20c371bb
-
-replace k8s.io/test-infra => github.com/jenkins-x/test-infra v0.0.0-20200611142252-211a92405c22
-
-replace gomodules.xyz/jsonpatch/v2 => gomodules.xyz/jsonpatch/v2 v2.0.1
-
-// fix yaml comment parsing issue
-
-replace gopkg.in/yaml.v2 => gopkg.in/yaml.v2 v2.3.0
-
-replace gopkg.in/yaml.v3 => gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
-
-replace sigs.k8s.io/yaml => sigs.k8s.io/yaml v1.2.0
-
-replace sigs.k8s.io/kustomize/kyaml => sigs.k8s.io/kustomize/kyaml v0.6.1
+	// fix yaml comment parsing issue
+	sigs.k8s.io/kustomize/kyaml => sigs.k8s.io/kustomize/kyaml v0.6.1
+	sigs.k8s.io/yaml => sigs.k8s.io/yaml v1.2.0
+)
 
 go 1.13
