@@ -1,32 +1,32 @@
-## jx-gitops repository export
+## jx-gitops repository add
 
-Exports the 'source-config.yaml' file from the kubernetes resources in the current cluster
+Add one or more git URLs to the source configuration
 
 ### Usage
 
 ```
-jx-gitops repository export
+jx-gitops repository add
 ```
 
 ### Synopsis
 
-"Exports the 'source-config.yaml' file from the kubernetes resources in the current cluster
+Add one or more repositories to the SourceConfig
 
 ### Examples
 
-  # creates/populates the .jx/gitops/source-config.yaml file with any SourceRepository resources in the current cluster
-  jx-gitops repository export%!(EXTRA string=jx-gitops)
+  # creates any missing SourceConfig resources
+  jx-gitops repository add https://github.com/myorg/myrepo.git%!(EXTRA string=jx-gitops)
 
 ### Options
 
 ```
-  -c, --config string             the configuration file to load for the repository configurations. If not specified we look in ./.jx/gitops/source-repositories.yaml
+  -c, --config string             the configuration file to load for the repository configurations. If not specified we look in .jx/gitops/source-repositories.yaml
   -d, --dir string                the directory look for the 'jx-requirements.yml` file (default ".")
   -e, --explicit                  Explicit mode: always populate all the fields even if they can be deduced. e.g. the git URLs for each repository are not absolutely necessary and are omitted by default are populated if this flag is enabled
-  -h, --help                      help for export
+  -h, --help                      help for add
   -k, --kind stringArray          adds Kubernetes resource kinds to filter on. For kind expressions see: https://github.com/jenkins-x/jx-helpers/tree/master/docs/kind_filters.md
       --kind-ignore stringArray   adds Kubernetes resource kinds to exclude. For kind expressions see: https://github.com/jenkins-x/jx-helpers/tree/master/docs/kind_filters.md
-  -n, --namespace string          the namespace to look for SourceRepository, SourceRepositoryGroup and Scheduler resources
+  -s, --scheduler string          the name of the Scheduler to use for the repository
 ```
 
 ### SEE ALSO

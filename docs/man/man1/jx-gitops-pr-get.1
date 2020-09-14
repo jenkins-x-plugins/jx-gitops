@@ -20,6 +20,10 @@ Gets a pull request and displays fields from it
 
 .SH OPTIONS
 .PP
+\fB\-\-dir\fP="."
+    the directory to search for the .git to discover the git source URL
+
+.PP
 \fB\-\-git\-kind\fP=""
     the kind of git server to connect to
 
@@ -29,7 +33,7 @@ Gets a pull request and displays fields from it
 
 .PP
 \fB\-\-git\-token\fP=""
-    the git oauth token used to query the Pull Request to discover the branch name
+    the git token used to operate on the git repository
 
 .PP
 \fB\-\-head\-url\fP[=false]
@@ -41,11 +45,11 @@ Gets a pull request and displays fields from it
 
 .PP
 \fB\-\-pr\fP=0
-    the Pull Request number. If not specified we will use $BRANCH\_NAME
+    the Pull Request number. If not specified we detect it via $PULL\_NUMBER or $BRANCH\_NAME environment variables
 
 .PP
 \fB\-r\fP, \fB\-\-repo\fP=""
-    the full git repository name of the form 'owner/name' for the Pull Request
+    the full git repository name of the form 'owner/name'
 
 
 .SH EXAMPLE

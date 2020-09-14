@@ -15,7 +15,6 @@ import (
 	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/jenkins-x/jx-helpers/pkg/kube/jxclient"
 	"github.com/jenkins-x/jx-helpers/pkg/kyamls"
-	"github.com/jenkins-x/jx-helpers/pkg/stringhelpers"
 	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
 	"github.com/jenkins-x/jx-helpers/pkg/yamls"
 	"github.com/jenkins-x/jx-logging/pkg/log"
@@ -122,7 +121,7 @@ func (o *Options) PopulateSourceConfig(srList []jenkinsv1.SourceRepository) erro
 	}
 
 	if !o.ExplicitMode {
-		o.dryConfig(config)
+		sourceconfigs.DryConfig(config)
 	}
 	sourceconfigs.SortConfig(config)
 
@@ -176,57 +175,4 @@ func (o *Options) populateConfig(config *v1alpha1.SourceConfig, srList []jenkins
 		}
 	}
 	return nil
-}
-
-func (o *Options) dryConfig(config *v1alpha1.SourceConfig) {
-	// if all of the repositories in a group have the same scheduler then clear them all and set it on the group
-	for i := range config.Spec.Groups {
-		group := &config.Spec.Groups[i]
-		scheduler := ""
-		for j := range group.Repositories {
-			repo := &group.Repositories[j]
-			if repo.Scheduler == "" {
-				scheduler = ""
-				break
-			}
-			if scheduler == "" {
-				scheduler = repo.Scheduler
-			} else if scheduler != repo.Scheduler {
-				scheduler = ""
-				break
-			}
-		}
-		if scheduler != "" {
-			group.Scheduler = scheduler
-			for j := range group.Repositories {
-				group.Repositories[j].Scheduler = ""
-			}
-		}
-	}
-
-	// if the URLs can be guessed from the group, omit them
-	for i := range config.Spec.Groups {
-		group := &config.Spec.Groups[i]
-		provider := group.Provider
-		if provider == "" {
-			break
-		}
-		owner := group.Owner
-		for j := range group.Repositories {
-			repo := &group.Repositories[j]
-			name := repo.Name
-			url := stringhelpers.UrlJoin(provider, owner, name)
-			cloneURL := url + ".git"
-			description := "Imported application for " + owner + "/" + name
-			if repo.URL == url || repo.URL == cloneURL {
-				repo.URL = ""
-			}
-			if repo.HTTPCloneURL == cloneURL {
-				repo.HTTPCloneURL = ""
-			}
-			if repo.Description == description {
-				repo.Description = ""
-			}
-		}
-	}
 }
