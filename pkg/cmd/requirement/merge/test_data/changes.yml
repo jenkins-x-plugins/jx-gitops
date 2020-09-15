@@ -33,7 +33,8 @@ storage:
   repository:
     enabled: true
     url: gs://repository-tf-jx-sweet-lemur-9f71113659fb
-secretStorage: vault
+secretStorage:
+  provider: vault
 vault:
   name: tf-jx-sweet-lemur
   bucket: vault-tf-jx-sweet-lemur-9f71113659fb

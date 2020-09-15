@@ -199,9 +199,9 @@ func (o *Options) applyDefaults() error {
 	if o.SecretStorage != "" {
 		switch o.SecretStorage {
 		case "local":
-			r.SecretStorage = config.SecretStorageTypeLocal
+			r.SecretStorage.Provider = config.SecretStorageTypeLocal
 		case "vault":
-			r.SecretStorage = config.SecretStorageTypeVault
+			r.SecretStorage.Provider = config.SecretStorageTypeVault
 		default:
 			return options.InvalidOption("secret", o.SecretStorage, config.SecretStorageTypeValues)
 		}
