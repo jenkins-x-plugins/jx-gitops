@@ -2,6 +2,7 @@ package add
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
@@ -98,6 +99,12 @@ func (o *Options) Run() error {
 
 	if !o.ExplicitMode {
 		sourceconfigs.DryConfig(config)
+	}
+
+	dir := filepath.Dir(o.ConfigFile)
+	err = os.MkdirAll(dir, files.DefaultDirWritePermissions)
+	if err != nil {
+		return errors.Wrapf(err, "failed to create dir %s", dir)
 	}
 
 	err = yamls.SaveFile(config, o.ConfigFile)
