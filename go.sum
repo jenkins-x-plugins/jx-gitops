@@ -43,6 +43,8 @@ code.cloudfoundry.org/gofileutils v0.0.0-20170111115228-4d0c80011a0f h1:UrKzEwTg
 code.cloudfoundry.org/gofileutils v0.0.0-20170111115228-4d0c80011a0f/go.mod h1:sk5LnIjB/nIEU7yP5sDQExVm62wu0pBh3yrElngUisI=
 code.gitea.io/sdk/gitea v0.12.1 h1:bMgjEqPnNX/i6TpVwXwpjJtFOnUSuC9P6yy/jjy8sjY=
 code.gitea.io/sdk/gitea v0.12.1/go.mod h1:z3uwDV/b9Ls47NGukYM9XhnHtqPh/J+t40lsUrR6JDY=
+code.gitea.io/sdk/gitea v0.13.0 h1:iHognp8ZMhMFLooUUNZFpm8IHaC9qoHJDvAE5vTm5aw=
+code.gitea.io/sdk/gitea v0.13.0/go.mod h1:z3uwDV/b9Ls47NGukYM9XhnHtqPh/J+t40lsUrR6JDY=
 contrib.go.opencensus.io/exporter/aws v0.0.0-20181029163544-2befc13012d0/go.mod h1:uu1P0UCM/6RbsMrgPa98ll8ZcHM858i/AD06a9aLRCA=
 contrib.go.opencensus.io/exporter/ocagent v0.4.12/go.mod h1:450APlNTSR6FrvC3CTRqYosuDstRB9un7SOx2k/9ckA=
 contrib.go.opencensus.io/exporter/ocagent v0.5.0/go.mod h1:ImxhfLRpxoYiSq891pBrLVhN+qmP8BTVvdH2YLs7Gl0=
@@ -944,6 +946,8 @@ github.com/jenkins-x/go-scm v1.5.164 h1:p+N22JDRRuWLg/MTBD58eWoJhTdYYTx3FejaXG+p
 github.com/jenkins-x/go-scm v1.5.164/go.mod h1:wJgj7PfgsCs+YAXC0vEj43g48HKf94apSyza62ADxKY=
 github.com/jenkins-x/go-scm v1.5.165 h1:xSb9Ael5VWlVcbXO1p3ZGE8ZCqcY7DjEBCO1MGURK0E=
 github.com/jenkins-x/go-scm v1.5.165/go.mod h1:wJgj7PfgsCs+YAXC0vEj43g48HKf94apSyza62ADxKY=
+github.com/jenkins-x/go-scm v1.5.170 h1:+vfayc1YqGgAQ5/yS//3RrkqMgaNPWFMJ6kDRxWi5bE=
+github.com/jenkins-x/go-scm v1.5.170/go.mod h1:xk/KnuS3rVHKBEASsShBZGABm9cGrwntQffiy3BfTCc=
 github.com/jenkins-x/jx-api v0.0.17/go.mod h1:QKLHk4VzI+sDBPSzN4K+QdEjNIBnCHS3DKY5YbGeCdY=
 github.com/jenkins-x/jx-api v0.0.18 h1:ncOG3hsdimAJhdwyo+b8v+RHZPUWgDrWE7pMcCyrnvk=
 github.com/jenkins-x/jx-api v0.0.18/go.mod h1:QKLHk4VzI+sDBPSzN4K+QdEjNIBnCHS3DKY5YbGeCdY=
@@ -955,6 +959,8 @@ github.com/jenkins-x/jx-helpers v1.0.60 h1:A8w1/7QNK2EFhMdU7vAvYOWAj5yH9KtJOJ7Xr
 github.com/jenkins-x/jx-helpers v1.0.60/go.mod h1:3ayhv3uQFtPh4IJ8zkxrF8JegyrzoFpr9gBRAoYspQk=
 github.com/jenkins-x/jx-helpers v1.0.62 h1:OfAEQXZD6VqKLYoMaEGnVL9noVahUqyH4oXh8sWG7gw=
 github.com/jenkins-x/jx-helpers v1.0.62/go.mod h1:3ayhv3uQFtPh4IJ8zkxrF8JegyrzoFpr9gBRAoYspQk=
+github.com/jenkins-x/jx-helpers v1.0.68 h1:eMM1FOmRH23oo+S6hkqlC/tCRce71f22rQILm2Z6cMU=
+github.com/jenkins-x/jx-helpers v1.0.68/go.mod h1:TQDbxIJGEYTHMYlF44GyvemibIIzc/aBzKk1Acq4F9E=
 github.com/jenkins-x/jx-kube-client v0.0.8 h1:XK/TP2qnhHPb/vhaGHmvVilWGDtARIZ1DOEHp/6/h0Y=
 github.com/jenkins-x/jx-kube-client v0.0.8/go.mod h1:XvNZQAAF95wzQzSfCpehXwb5FI6WCg+5GiwVA2S4SPA=
 github.com/jenkins-x/jx-logging v0.0.11 h1:t4T653u6oy4SJ2VYlrY5rIobr16jJS9Gf8RWlHqtJvw=
@@ -965,6 +971,8 @@ github.com/jenkins-x/lighthouse v0.0.815 h1:C2y84+/NGD//eHNsebiSIYQS1p2spEOG+VZR
 github.com/jenkins-x/lighthouse v0.0.815/go.mod h1:3zG20ulKL7JTS+/2V4ZfXFe29qQ9rCtcAvVaQDmegHU=
 github.com/jenkins-x/lighthouse v0.0.817 h1:6fjVXXB9kZkFnNswOyr6F/dQV+3ubT6EPP4SJe4/61U=
 github.com/jenkins-x/lighthouse v0.0.817/go.mod h1:3zG20ulKL7JTS+/2V4ZfXFe29qQ9rCtcAvVaQDmegHU=
+github.com/jenkins-x/lighthouse v0.0.824 h1:6sBDOrKQuO1AfpuaMxPKVb6bTKKs+0jhHm9CLMw3Brs=
+github.com/jenkins-x/lighthouse v0.0.824/go.mod h1:o4ZQzQmaLX8OKLMP/3Lap4OloAP7QUJpZRPY7tUI6LA=
 github.com/jenkins-x/logrus-stackdriver-formatter v0.2.3 h1:NuRWKUPCEX1wKlXA8ZYSG28qGKd41R7BK11YDQkPwqo=
 github.com/jenkins-x/logrus-stackdriver-formatter v0.2.3/go.mod h1:litPp7VZWDRCl8LvXuqGngy+65kkg/+T23TgFnDmfTk=
 github.com/jessevdk/go-flags v1.4.0/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=
@@ -1901,6 +1909,7 @@ google.golang.org/api v0.18.0/go.mod h1:BwFmGc8tA3vsd7r/7kR8DY7iEEGSU04BFxCo5jP/
 google.golang.org/api v0.20.0 h1:jz2KixHX7EcCPiQrySzPdnYT7DbINAypCqKZ1Z7GM40=
 google.golang.org/api v0.20.0/go.mod h1:BwFmGc8tA3vsd7r/7kR8DY7iEEGSU04BFxCo5jP/sfE=
 google.golang.org/api v0.31.0 h1:1w5Sz/puhxFo9lTtip2n47k7toB/U2nCqOKNHd3Yrbo=
+google.golang.org/api v0.32.0 h1:Le77IccnTqEa8ryp9wIpX5W3zYm7Gf9LhOp9PHcwFts=
 google.golang.org/appengine v1.1.0/go.mod h1:EbEs0AVv82hx2wNQdGPgUI5lhzA/G0D9YwlJXL52JkM=
 google.golang.org/appengine v1.2.0/go.mod h1:xpcJRLb0r/rnEns0DIKYYv+WjYCduHsrkT7/EB5XEv4=
 google.golang.org/appengine v1.3.0/go.mod h1:xpcJRLb0r/rnEns0DIKYYv+WjYCduHsrkT7/EB5XEv4=
