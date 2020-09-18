@@ -1,0 +1,5 @@
+config:
+- relativePath: foo
+  strategy: bar
+- relativePath: cheese
+  strategy: wine

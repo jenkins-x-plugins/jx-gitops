@@ -2,6 +2,7 @@ package update_test
 
 import (
 	"path/filepath"
+	"reflect"
 	"testing"
 
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/kpt/update"
@@ -104,4 +105,31 @@ func TestUpdateKptFilterNotMatching(t *testing.T) {
 	require.NoError(t, err, "failed to run update kpt")
 
 	runner.ExpectResults(t)
+}
+
+func TestOptions_loadOverrideStrategies(t *testing.T) {
+
+	tests := []struct {
+		name    string
+		want    map[string]string
+		wantErr bool
+	}{
+		{name: "validate_pass", want: map[string]string{"foo": "bar", "cheese": "wine"}, wantErr: false},
+		{name: "validate_fail", want: map[string]string{}, wantErr: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			o := &update.Options{
+				Dir: filepath.Join("test_data", tt.name),
+			}
+			got, err := o.LoadOverrideStrategies()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("loadOverrideStrategies() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("loadOverrideStrategies() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }

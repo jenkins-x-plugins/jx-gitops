@@ -8,6 +8,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
+
+	"github.com/jenkins-x/jx-helpers/pkg/files"
+
 	"github.com/jenkins-x/jx-gitops/pkg/plugins"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner"
@@ -36,11 +40,14 @@ var (
 	pathSeparator = string(os.PathSeparator)
 )
 
+const (
+	defaultKptStrategy = "alpha-git-patch"
+)
+
 // KptOptions the options for the command
 type Options struct {
 	Dir             string
 	Version         string
-	Strategy        string
 	RepositoryURL   string
 	RepositoryOwner string
 	RepositoryName  string
@@ -70,7 +77,6 @@ func NewCmdKptUpdate() (*cobra.Command, *Options) {
 func (o *Options) AddFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&o.Dir, "dir", "", ".", "the directory to recursively look for the *.yaml or *.yml files")
 	cmd.Flags().StringVarP(&o.Version, "version", "v", "master", "the git version of the kpt package to upgrade to")
-	cmd.Flags().StringVarP(&o.Strategy, "strategy", "s", "alpha-git-patch", "the 'kpt pkg update' strategy to use")
 	cmd.Flags().StringVarP(&o.RepositoryURL, "url", "u", "", "filter on the Kptfile repository URL for which packages to update")
 	cmd.Flags().StringVarP(&o.RepositoryOwner, "owner", "o", "", "filter on the Kptfile repository owner (user/organisation) for which packages to update")
 	cmd.Flags().StringVarP(&o.RepositoryName, "repo", "r", "", "filter on the Kptfile repository name  for which packages to update")
@@ -89,6 +95,11 @@ func (o *Options) Run() error {
 
 	if o.CommandRunner == nil {
 		o.CommandRunner = cmdrunner.DefaultCommandRunner
+	}
+
+	strategies, err := o.LoadOverrideStrategies()
+	if err != nil {
+		return errors.Wrap(err, "failed to load kpt merge override strategies")
 	}
 
 	bin := o.KptBinary
@@ -133,8 +144,14 @@ func (o *Options) Run() error {
 			return err
 		}
 
+		strategy := defaultKptStrategy
+		log.Logger().Infof("looking at dir %s in %v", rel, strategies)
+		if strategies[rel] != "" {
+			strategy = strategies[rel]
+		}
+
 		folderExpression := fmt.Sprintf("%s@%s", rel, o.Version)
-		args := []string{"pkg", "update", folderExpression, "--strategy", o.Strategy}
+		args := []string{"pkg", "update", folderExpression, "--strategy", strategy}
 		c := &cmdrunner.Command{
 			Name: bin,
 			Args: args,
@@ -200,4 +217,36 @@ func (o *Options) Matches(path string) (bool, error) {
 		}
 	}
 	return true, nil
+}
+
+func (o *Options) LoadOverrideStrategies() (map[string]string, error) {
+	strategies := map[string]string{}
+	kptStrategyFilename := filepath.Join(o.Dir, ".jx", "gitops", v1alpha1.KptStragegyFileName)
+
+	exists, err := files.FileExists(kptStrategyFilename)
+	if !exists {
+		log.Logger().Infof("no local strategy file %s found so using default merge strategies", kptStrategyFilename)
+		return o.getDefaultOverrideStrategies(), nil
+	}
+	data, err := ioutil.ReadFile(kptStrategyFilename)
+	if err != nil {
+		return strategies, errors.Wrapf(err, "failed to read kpt strategy file %s", kptStrategyFilename)
+	}
+	kptStrategies := &v1alpha1.KptStrategies{}
+	err = yaml.Unmarshal(data, kptStrategies)
+	if err != nil {
+		return strategies, errors.Wrapf(err, "failed to unmarshall kpt strategy file %s", kptStrategyFilename)
+	}
+	err = kptStrategies.Validate()
+	if err != nil {
+		return strategies, errors.Wrapf(err, "failed to validate kpt strategy file %s", kptStrategyFilename)
+	}
+	for _, fileStrategy := range kptStrategies.KptStrategyConfig {
+		strategies[fileStrategy.RelativePath] = fileStrategy.Strategy
+	}
+	return strategies, nil
+}
+
+func (o *Options) getDefaultOverrideStrategies() map[string]string {
+	return map[string]string{"versionStream": "force-delete-replace"}
 }

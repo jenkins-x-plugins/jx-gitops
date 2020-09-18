@@ -10,7 +10,7 @@ jx-gitops label --kind Deployment mylabel=somevalue
 
 If you want to filter by an `apiVersion` too you can add it as a prefix using `/` as a separator:
 
-```bash 
+```bash
 jx-gitops label --kind app/v1/Deployment mylabel=somevalue 
 ```
 
