@@ -953,6 +953,7 @@ github.com/jenkins-x/jx-api v0.0.18 h1:ncOG3hsdimAJhdwyo+b8v+RHZPUWgDrWE7pMcCyrn
 github.com/jenkins-x/jx-api v0.0.18/go.mod h1:QKLHk4VzI+sDBPSzN4K+QdEjNIBnCHS3DKY5YbGeCdY=
 github.com/jenkins-x/jx-api v0.0.20 h1:mguvXhbzW6aQ7zaBwInhVp44dAum98+Dqc3eTFhxxtg=
 github.com/jenkins-x/jx-api v0.0.20/go.mod h1:QKLHk4VzI+sDBPSzN4K+QdEjNIBnCHS3DKY5YbGeCdY=
+github.com/jenkins-x/jx-gitops v0.0.296/go.mod h1:JITXGqXHcIZM/YJQXiClXINo8ZQaDAO8lCgf/OyU5/I=
 github.com/jenkins-x/jx-helpers v1.0.59 h1:CZLs4drsMerWR2mYKuJ+juIldEvdNNkt3mpTwuNbPE4=
 github.com/jenkins-x/jx-helpers v1.0.59/go.mod h1:VQQ5HOZacb7g5OS0D6AlVP4GJulxeWx78viRyMLvjOw=
 github.com/jenkins-x/jx-helpers v1.0.60 h1:A8w1/7QNK2EFhMdU7vAvYOWAj5yH9KtJOJ7XrkN6CoU=
@@ -967,6 +968,8 @@ github.com/jenkins-x/jx-kube-client v0.0.8 h1:XK/TP2qnhHPb/vhaGHmvVilWGDtARIZ1DO
 github.com/jenkins-x/jx-kube-client v0.0.8/go.mod h1:XvNZQAAF95wzQzSfCpehXwb5FI6WCg+5GiwVA2S4SPA=
 github.com/jenkins-x/jx-logging v0.0.11 h1:t4T653u6oy4SJ2VYlrY5rIobr16jJS9Gf8RWlHqtJvw=
 github.com/jenkins-x/jx-logging v0.0.11/go.mod h1:mjEejiArk2Mk+J+72/YcSKGo9bZlJ/LwKYjMgAiv+G4=
+github.com/jenkins-x/jx-promote v0.0.106 h1:DKgSyc9Lf/Fipcaj9yA+7AKtxPhy7HZ4MzH598HPbvQ=
+github.com/jenkins-x/jx-promote v0.0.106/go.mod h1:U65mSazYyN3ij2B5h5cmUjoLB7/gMHQ66zEufhB/sQU=
 github.com/jenkins-x/lighthouse v0.0.812 h1:JCgNNzYHBjyjtlxSFkEDYZN5cOvrK8wzVfPLK65CgZ0=
 github.com/jenkins-x/lighthouse v0.0.812/go.mod h1:z5/JiPthNksT+7DPkcwXRK3mZaUnFb2yDXx+6sFriqc=
 github.com/jenkins-x/lighthouse v0.0.815 h1:C2y84+/NGD//eHNsebiSIYQS1p2spEOG+VZRfNxXP1U=
@@ -2122,6 +2125,7 @@ k8s.io/kube-openapi v0.0.0-20200121204235-bf4fb3bd569c/go.mod h1:GRQhZsXIAJ1xR0C
 k8s.io/kube-openapi v0.0.0-20200410145947-bcb3869e6f29 h1:NeQXVJ2XFSkRoPzRo8AId01ZER+j8oV4SZADT4iBOXQ=
 k8s.io/kube-openapi v0.0.0-20200410145947-bcb3869e6f29/go.mod h1:F+5wygcW0wmRTnM3cOgIqGivxkwSWIWT5YdsDbeAOaU=
 k8s.io/kubectl v0.17.2/go.mod h1:y4rfLV0n6aPmvbRCqZQjvOp3ezxsFgpqL+zF5jH/lxk=
+k8s.io/kubernetes v1.14.7 h1:wJx/r2HuPVaaBeCUk/P47GSK0eyrj3mI/kESRFBp6/A=
 k8s.io/kubernetes v1.14.7/go.mod h1:ocZa8+6APFNC2tX1DZASIbocyYT5jHzqFVsY5aoB7Jk=
 k8s.io/legacy-cloud-providers v0.17.0/go.mod h1:DdzaepJ3RtRy+e5YhNtrCYwlgyK87j/5+Yfp0L9Syp8=
 k8s.io/legacy-cloud-providers v0.17.4/go.mod h1:FikRNoD64ECjkxO36gkDgJeiQWwyZTuBkhu+yxOc1Js=
