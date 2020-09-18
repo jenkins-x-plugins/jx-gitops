@@ -25,6 +25,9 @@ spec:
     prStatusBaseUrl: ""
     squashLabel: ""
     targetUrl: http://deck.cluster.local
+  in_repo_config:
+    enabled:
+      "*": true
   plugins:
     entries:
     - approve

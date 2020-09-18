@@ -12,6 +12,8 @@ import (
 	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
 	"github.com/jenkins-x/jx-helpers/pkg/yamls"
 	"github.com/jenkins-x/jx-logging/pkg/log"
+	"github.com/jenkins-x/lighthouse/pkg/config"
+	"github.com/jenkins-x/lighthouse/pkg/plugins"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -60,9 +62,10 @@ var (
 
 // LabelOptions the options for the command
 type Options struct {
-	Dir       string
-	OutDir    string
-	Namespace string
+	Dir          string
+	OutDir       string
+	Namespace    string
+	InRepoConfig bool
 }
 
 // NewCmdScheduler creates a command object for the command
@@ -83,6 +86,7 @@ func NewCmdScheduler() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the directory to recursively look for the *.yaml or *.yml files")
 	cmd.Flags().StringVarP(&o.OutDir, "out", "o", "", "the output directory for the generated config files")
 	cmd.Flags().StringVarP(&o.Namespace, "namespace", "n", "jx", "the namespace for the SourceRepository and Scheduler resources")
+	cmd.Flags().BoolVarP(&o.InRepoConfig, "in-repo-config", "", false, "enables in repo configuration in lighthouse")
 	return cmd, o
 }
 
@@ -183,6 +187,10 @@ func (o *Options) Run() error {
 		return errors.Wrapf(err, "failed to generate lighthouse configuration")
 	}
 
+	if o.InRepoConfig {
+		o.enableInRepoConfig(config, plugins)
+	}
+
 	configConfigMap, err := createConfigMap(config, ns, "config", ConfigKey)
 	if err != nil {
 		return err
@@ -206,6 +214,15 @@ func (o *Options) Run() error {
 	}
 	log.Logger().Infof("generated config ConfigMap %s and plugins ConfigMap %s", termcolor.ColorInfo(configFileName), termcolor.ColorInfo(pluginsFileName))
 	return nil
+}
+
+func (o *Options) enableInRepoConfig(config *config.Config, plugins *plugins.Configuration) {
+	flag := true
+	if config.ProwConfig.InRepoConfig.Enabled == nil {
+		config.ProwConfig.InRepoConfig.Enabled = map[string]*bool{
+			"*": &flag,
+		}
+	}
 }
 
 func createConfigMap(resource interface{}, ns string, name string, key string) (*corev1.ConfigMap, error) {
