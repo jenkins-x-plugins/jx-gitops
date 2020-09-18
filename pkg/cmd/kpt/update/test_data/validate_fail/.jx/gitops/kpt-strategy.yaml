@@ -1,0 +1,3 @@
+config:
+- relativePath: foo
+- strategy: wine
