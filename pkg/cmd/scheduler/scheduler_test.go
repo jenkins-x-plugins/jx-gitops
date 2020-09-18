@@ -9,6 +9,7 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/scheduler"
 	"github.com/jenkins-x/jx-helpers/pkg/testhelpers"
 	"github.com/jenkins-x/jx-helpers/pkg/yamls"
+	"github.com/jenkins-x/lighthouse/pkg/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
@@ -55,6 +56,16 @@ func TestScheduler(t *testing.T) {
 	for _, k := range []string{"approve", "plugins", "triggers"} {
 		assert.Contains(t, ym, k, pluginFile)
 	}
+
+	// lets load the LH config
+	configYaml := configCM.Data["config.yaml"]
+	require.NotEmpty(t, configYaml, "no config.yaml in generated ConfigMap")
+
+	lhCfg, err := config.LoadYAMLConfig([]byte(configYaml))
+	require.NoError(t, err, "failed to load config file %s into lighthouse config", configFile)
+
+	repoName := "myorg/in-repo"
+	assert.Len(t, lhCfg.Postsubmits[repoName], 0, "should not have any postsubmits for %s", repoName)
 }
 
 func AssertYamlMap(t *testing.T, text string, message string) map[string]interface{} {

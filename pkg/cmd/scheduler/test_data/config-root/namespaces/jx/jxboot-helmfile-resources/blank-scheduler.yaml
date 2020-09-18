@@ -1,0 +1,55 @@
+# Source: jxboot-helmfile-resources/templates/env-scheduler.yaml
+apiVersion: jenkins.io/v1
+kind: Scheduler
+metadata:
+  creationTimestamp: null
+  name: blank
+spec:
+  approve:
+    issueRequired: false
+    lgtmActsAsApprove: true
+    requireSelfApproval: true
+  merger:
+    blockerLabel: ""
+    maxGoroutines: 0
+    mergeMethod: merge
+    policy:
+      fromBranchProtection: true
+      optionalContexts: {}
+      requiredContexts: {}
+      requiredIfPresentContexts: {}
+      skipUnknownContexts: false
+    prStatusBaseUrl: ""
+    squashLabel: ""
+    targetUrl: http://deck-jx.34.71.101.110.nip.io
+  plugins:
+    entries:
+      - config-updater
+      - approve
+      - assign
+      - blunderbuss
+      - help
+      - hold
+      - lgtm
+      - lifecycle
+      - size
+      - trigger
+      - wip
+      - heart
+      - cat
+      - override
+  policy:
+    protectTested: true
+  postsubmits:
+    entries: []
+  presubmits:
+    entries: []
+  schedulerAgent:
+    agent: tekton
+  trigger:
+    ignoreOkToTest: false
+    joinOrgUrl: ""
+    onlyOrgMembers: false
+    trustedOrg: todo
+  welcome:
+    - message_template: Welcome
