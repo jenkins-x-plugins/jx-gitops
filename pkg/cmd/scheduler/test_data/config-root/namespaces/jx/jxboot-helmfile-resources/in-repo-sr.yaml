@@ -1,0 +1,20 @@
+# Source: jxboot-helmfile-resources/templates/repositories.yaml
+apiVersion: jenkins.io/v1
+kind: SourceRepository
+metadata:
+  name: "in-repo"
+  labels:
+    jenkins.io/gitSync: "false"
+    gitops.jenkins-x.io/pipeline: 'environment'
+  namespace: jx
+spec:
+  description: "the git repository for the Dev environment"
+  provider: "https://github.com"
+  providerName: 'github'
+  org: "myorg"
+  repo: "in-repo"
+  httpCloneURL: "https://github.com/myorg/in-repo.git"
+  url: "https://github.com/myorg/in-repo.git"
+  scheduler:
+    kind: Scheduler
+    name: "blank"

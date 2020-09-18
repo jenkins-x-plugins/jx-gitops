@@ -96,7 +96,7 @@ func loadSchedulerResources(jxClient versioned.Interface, namespace string) (map
 }
 
 func addTeamScheduler(defaultSchedulerName string, defaultScheduler *jenkinsv1.Scheduler, applicableSchedulers []*jenkinsv1.SchedulerSpec) []*jenkinsv1.SchedulerSpec {
-	if defaultScheduler != nil {
+	if defaultScheduler != nil && len(applicableSchedulers) == 0 {
 		applicableSchedulers = append([]*jenkinsv1.SchedulerSpec{&defaultScheduler.Spec}, applicableSchedulers...)
 	} else {
 		if defaultSchedulerName != "" {
