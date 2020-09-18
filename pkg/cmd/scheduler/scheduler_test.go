@@ -25,6 +25,7 @@ func TestScheduler(t *testing.T) {
 
 	so.OutDir = tmpDir
 	so.Dir = sourceDir
+	so.InRepoConfig = true
 
 	err = so.Run()
 	require.NoError(t, err, "failed to run scheduler command")
