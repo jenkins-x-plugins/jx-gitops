@@ -78,8 +78,8 @@ func RunCommandAndLogOutput(commandRunner cmdrunner.CommandRunner, c *cmdrunner.
 	return nil
 }
 
-// FindClusterLocalRepositories finds any cluster local repositories such as http://bucketrepo/bucketrepo/charts/
-func FindClusterLocalRepositories(repos []state.RepositorySpec) ([]string, error) {
+// FindClusterLocalRepositoryURLs finds any cluster local repositories such as http://bucketrepo/bucketrepo/charts/
+func FindClusterLocalRepositoryURLs(repos []state.RepositorySpec) ([]string, error) {
 	var answer []string
 	for _, repo := range repos {
 		if repo.URL == "" {
@@ -91,8 +91,14 @@ func FindClusterLocalRepositories(repos []state.RepositorySpec) ([]string, error
 		}
 		h := u.Host
 
-		// if we have no sub domain assume local
-		if !strings.Contains(h, ".") {
+		// lets trim the port
+		idx := strings.LastIndex(h, ":")
+		if idx > 0 {
+			h = h[0:idx]
+		}
+
+		// if we have no sub domain or ends with
+		if !strings.Contains(h, ".") || strings.HasSuffix(h, ".cluster.local") {
 			answer = append(answer, repo.URL)
 		}
 	}

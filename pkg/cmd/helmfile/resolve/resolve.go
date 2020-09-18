@@ -138,7 +138,7 @@ func (o *Options) Run() error {
 
 	var ignoreRepositories []string
 	if !helmhelpers.IsInCluster() {
-		ignoreRepositories, err = helmhelpers.FindClusterLocalRepositories(helmState.Repositories)
+		ignoreRepositories, err = helmhelpers.FindClusterLocalRepositoryURLs(helmState.Repositories)
 		if err != nil {
 			return errors.Wrapf(err, "failed to find cluster local repositories")
 		}
