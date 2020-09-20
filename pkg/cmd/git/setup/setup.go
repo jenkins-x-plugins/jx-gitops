@@ -49,6 +49,7 @@ type Options struct {
 	OutputFile           string
 	DisableInClusterTest bool
 	Namespace            string
+	OperatorNamespace    string
 	SecretName           string
 	KubeClient           kubernetes.Interface
 	CommandRunner        cmdrunner.CommandRunner
@@ -73,6 +74,7 @@ func NewCmdGitSetup() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.UserName, "name", "n", "", "the git user name to use if one is not setup")
 	cmd.Flags().StringVarP(&o.UserEmail, "email", "e", "", "the git user email to use if one is not setup")
 	cmd.Flags().StringVarP(&o.OutputFile, "credentials-file", "", "", "The destination of the git credentials file to generate. If not specified uses $XDG_CONFIG_HOME/git/credentials or $HOME/git/credentials")
+	cmd.Flags().StringVarP(&o.OperatorNamespace, "operator-namespace", "", "jx-git-operator", "the namespace used by the git operator to find the secret for the git repository if running in cluster")
 	cmd.Flags().StringVarP(&o.Namespace, "namespace", "", "", "the namespace used to find the git operator secret for the git repository if running in cluster. Defaults to the current namespace")
 	cmd.Flags().StringVarP(&o.SecretName, "secret", "", "jx-boot", "the name of the Secret to find the git URL, username and password for creating a git credential if running inside the cluster")
 	cmd.Flags().BoolVarP(&o.DisableInClusterTest, "fake-in-cluster", "", false, "for testing: lets you fake running this command inside a kubernetes cluster so that it can create the file: $XDG_CONFIG_HOME/git/credentials or $HOME/git/credentials")
@@ -136,6 +138,13 @@ func (o *Options) findCredentials() ([]credentialhelper.GitCredential, error) {
 	ns := o.Namespace
 	name := o.SecretName
 	secret, err := o.KubeClient.CoreV1().Secrets(ns).Get(name, metav1.GetOptions{})
+	if err != nil && o.OperatorNamespace != o.Namespace {
+		var err2 error
+		secret, err2 = o.KubeClient.CoreV1().Secrets(o.OperatorNamespace).Get(name, metav1.GetOptions{})
+		if err2 == nil {
+			err = nil
+		}
+	}
 	if err != nil {
 		if !apierrors.IsNotFound(err) {
 			log.Logger().Warnf("could not find secret %s in namespace %s", name, ns)
