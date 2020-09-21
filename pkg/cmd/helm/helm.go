@@ -1,6 +1,7 @@
 package helm
 
 import (
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/helm/release"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras"
 	"github.com/jenkins-x/jx-logging/pkg/log"
 	"github.com/spf13/cobra"
@@ -20,5 +21,6 @@ func NewCmdHelm() *cobra.Command {
 	}
 	command.AddCommand(cobras.SplitCommand(NewCmdHelmTemplate()))
 	command.AddCommand(cobras.SplitCommand(NewCmdHelmStream()))
+	command.AddCommand(cobras.SplitCommand(release.NewCmdHelmRelease()))
 	return command
 }

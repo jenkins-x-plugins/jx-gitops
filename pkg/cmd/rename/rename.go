@@ -32,7 +32,8 @@ var (
 
 // Options the options for the command
 type Options struct {
-	Dir string
+	Dir     string
+	Verbose bool
 }
 
 // NewCmdRename creates a command object for the command
@@ -85,7 +86,11 @@ func (o *Options) Run() error {
 		newPath := filepath.Join(dir, newFile)
 
 		if newPath != path {
-			log.Logger().Infof("renaming %s => %s", file, newFile)
+			if o.Verbose {
+				log.Logger().Infof("renaming %s => %s", file, newFile)
+			} else {
+				log.Logger().Debugf("renaming %s => %s", file, newFile)
+			}
 			err = os.Rename(path, newPath)
 			if err != nil {
 				return errors.Wrapf(err, "failed to rename %s to %s", file, newFile)
