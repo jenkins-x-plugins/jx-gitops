@@ -40,6 +40,7 @@ func TestStepHelmRelease(t *testing.T) {
 	o.ChartsDir = filepath.Join("test_data", "charts")
 	o.JXClient = jxClient
 	o.Namespace = ns
+	o.Version = "1.2.3"
 
 	o.KubeClient = fake.NewSimpleClientset(
 		&corev1.Secret{

@@ -14,6 +14,8 @@ import (
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/pkg/files"
+	"github.com/jenkins-x/jx-helpers/pkg/gitclient"
+	"github.com/jenkins-x/jx-helpers/pkg/gitclient/cli"
 	"github.com/jenkins-x/jx-helpers/pkg/kube"
 	"github.com/jenkins-x/jx-helpers/pkg/kube/jxclient"
 	"github.com/jenkins-x/jx-helpers/pkg/scmhelpers"
@@ -109,6 +111,9 @@ func (o *Options) Validate() error {
 		return errors.Wrapf(err, "failed to create kube client")
 	}
 
+	if o.GitClient == nil {
+		o.GitClient = cli.NewCLIClient("", o.CommandRunner)
+	}
 	o.Requirements, err = variablefinders.FindRequirements(o.JXClient, o.Namespace)
 	if err != nil {
 		return errors.Wrapf(err, "failed to load requirements")
@@ -278,6 +283,11 @@ func (o *Options) Run() error {
 		return errors.Wrapf(err, "failed to save %s", file)
 	}
 	log.Logger().Infof("added variables to file: %s", info(file))
+
+	_, err = gitclient.AddAndCommitFiles(o.GitClient, o.Dir, "added variables")
+	if err != nil {
+		return errors.Wrapf(err, "failed to commit changes")
+	}
 	return nil
 }
 
