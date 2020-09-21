@@ -8,16 +8,15 @@ import (
 	"strings"
 
 	jxc "github.com/jenkins-x/jx-api/pkg/client/clientset/versioned"
-	"github.com/jenkins-x/jx-api/pkg/config"
 	"github.com/jenkins-x/jx-gitops/pkg/plugins"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x/jx-gitops/pkg/variablefinders"
 	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/jenkins-x/jx-helpers/pkg/kube"
 	"github.com/jenkins-x/jx-helpers/pkg/kube/jxclient"
-	"github.com/jenkins-x/jx-helpers/pkg/kube/jxenv"
 	"github.com/jenkins-x/jx-helpers/pkg/stringhelpers"
 	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
 	"github.com/jenkins-x/jx-logging/pkg/log"
@@ -42,6 +41,7 @@ var (
 
 // Options the options for the command
 type Options struct {
+	UseHelmPlugin      bool
 	NoRelease          bool
 	HelmBinary         string
 	ChartsDir          string
@@ -80,6 +80,7 @@ func NewCmdHelmRelease() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.VersionFile, "version-file", "", "VERSION", "the file to load the version from if not specified directly or via a $VERSION environment variable")
 	cmd.Flags().StringVarP(&o.Namespace, "namespace", "", "", "the namespace to look for the dev Environment. Defaults to the current namespace")
 	cmd.Flags().BoolVarP(&o.NoRelease, "no-release", "", false, "disables publishing the release. Useful for a Pull Request pipeline")
+	cmd.Flags().BoolVarP(&o.UseHelmPlugin, "use-helm-plugin", "", false, "uses the jx binary plugin for helm rather than whatever helm is on the $PATH")
 	return cmd, o
 }
 
@@ -89,11 +90,15 @@ func (o *Options) Validate() error {
 		o.CommandRunner = cmdrunner.DefaultCommandRunner
 	}
 	var err error
-	bin := o.HelmBinary
-	if bin == "" {
-		bin, err = plugins.GetHelmBinary(plugins.HelmVersion)
-		if err != nil {
-			return err
+	if o.HelmBinary == "" {
+		if o.UseHelmPlugin {
+			o.HelmBinary, err = plugins.GetHelmBinary(plugins.HelmVersion)
+			if err != nil {
+				return err
+			}
+		}
+		if o.HelmBinary == "" {
+			o.HelmBinary = "helm"
 		}
 	}
 	o.JXClient, o.Namespace, err = jxclient.LazyCreateJXClientAndNamespace(o.JXClient, o.Namespace)
@@ -124,28 +129,16 @@ func (o *Options) Validate() error {
 		}
 	}
 
+	requirements, err := variablefinders.FindRequirements(o.JXClient, o.Namespace)
+	if err != nil {
+		return errors.Wrapf(err, "failed to load requirements")
+	}
+
 	// find the repository URL
 	if o.RepositoryURL == "" {
-		o.RepositoryURL = os.Getenv("JX_CHART_REPOSITORY")
-
-		if o.RepositoryURL == "" {
-			// try the dev environment
-			devEnv, err := jxenv.GetDevEnvironment(o.JXClient, o.Namespace)
-			if err != nil {
-				return errors.Wrapf(err, "failed to find the dev Environment in namespace %s", o.Namespace)
-			}
-
-			requirements, err := config.GetRequirementsConfigFromTeamSettings(&devEnv.Spec.TeamSettings)
-			if err != nil {
-				return errors.Wrapf(err, "failed to load requirements from dev environment")
-			}
-			if requirements != nil {
-				o.RepositoryURL = requirements.Cluster.ChartRepository
-			}
-		}
-
-		if o.RepositoryURL == "" {
-			return errors.Errorf("could not detect version from $JX_CHART_REPOSITORY or from the requirements on the dev Environment. Try supply the option: --repo-url")
+		o.RepositoryURL, err = variablefinders.FindRepositoryURL(o.JXClient, o.Namespace, requirements)
+		if err != nil {
+			return errors.Wrapf(err, "failed to find chart repository URL")
 		}
 	}
 	return nil
@@ -162,6 +155,7 @@ func (o *Options) Run() error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to read dir %s", dir)
 	}
+	count := 0
 	for _, f := range fileSlice {
 		if !f.IsDir() {
 			continue
@@ -226,19 +220,22 @@ func (o *Options) Run() error {
 
 		c, err = o.createPublishCommand(name, chartDir)
 		if err != nil {
-			return errors.Wrapf(err, "failed to create release command")
+			return errors.Wrapf(err, "failed to create release command in dir %s", chartDir)
 		}
 
 		_, err = o.CommandRunner(c)
 		if err != nil {
 			return errors.Wrapf(err, "failed to publish")
 		}
+		count++
 	}
+
+	log.Logger().Infof("released %d charts from the charts dir: %s", count, dir)
 	return nil
 }
 
 func (o *Options) createPublishCommand(name, chartDir string) (*cmdrunner.Command, error) {
-	tarFile := name + ".tgz"
+	tarFile := name + "-" + o.Version + ".tgz"
 
 	if strings.HasPrefix(o.RepositoryURL, "gs:") {
 		// use gcs to push the chart
@@ -256,11 +253,11 @@ func (o *Options) createPublishCommand(name, chartDir string) (*cmdrunner.Comman
 
 	url := stringhelpers.UrlJoin(o.RepositoryURL, "/api/charts")
 
-	dataBinary := fmt.Sprintf("\"@%s-%s.tgz\"", name, o.Version)
 	return &cmdrunner.Command{
 		Dir:  chartDir,
 		Name: "curl",
-		Args: []string{"--fail", "-u", userSecret, "--data-binary", dataBinary, url},
+		// lets hide progress bars (-s) and enable show errors (-S)
+		Args: []string{"--fail", "-sS", "-u", userSecret, "--data-binary", "@" + tarFile, url},
 	}, nil
 }
 

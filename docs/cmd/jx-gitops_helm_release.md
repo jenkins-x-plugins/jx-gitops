@@ -28,6 +28,7 @@ Generate the kubernetes resources from a helm chart
       --repo-password string   the password to access the chart repository. If not specified defaults to the environment variable $JX_REPOSITORY_PASSWORD
   -u, --repo-url string        the URL to release to
       --repo-username string   the username to access the chart repository. If not specified defaults to the environment variable $JX_REPOSITORY_USERNAME
+      --use-helm-plugin        uses the jx binary plugin for helm rather than whatever helm is on the $PATH
       --version string         specify the version to release
       --version-file string    the file to load the version from if not specified directly or via a $VERSION environment variable (default "VERSION")
 ```
