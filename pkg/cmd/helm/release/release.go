@@ -128,9 +128,15 @@ func (o *Options) Validate() error {
 			return errors.Errorf("could not detect version from $VERSION or version file %s. Try supply the command option: --version", o.VersionFile)
 		}
 	}
+
+	requirements, err := variablefinders.FindRequirements(o.JXClient, o.Namespace)
+	if err != nil {
+		return errors.Wrapf(err, "failed to load requirements")
+	}
+
 	// find the repository URL
 	if o.RepositoryURL == "" {
-		o.RepositoryURL, err = variablefinders.FindRepositoryURL(o.JXClient, o.Namespace)
+		o.RepositoryURL, err = variablefinders.FindRepositoryURL(o.JXClient, o.Namespace, requirements)
 		if err != nil {
 			return errors.Wrapf(err, "failed to find chart repository URL")
 		}
@@ -250,7 +256,8 @@ func (o *Options) createPublishCommand(name, chartDir string) (*cmdrunner.Comman
 	return &cmdrunner.Command{
 		Dir:  chartDir,
 		Name: "curl",
-		Args: []string{"--fail", "-u", userSecret, "--data-binary", "@" + tarFile, url},
+		// lets hide progress bars (-s) and enable show errors (-S)
+		Args: []string{"--fail", "-sS", "-u", userSecret, "--data-binary", "@" + tarFile, url},
 	}, nil
 }
 
