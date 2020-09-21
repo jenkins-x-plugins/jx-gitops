@@ -149,6 +149,7 @@ func (o *Options) Run() error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to read dir %s", dir)
 	}
+	count := 0
 	for _, f := range fileSlice {
 		if !f.IsDir() {
 			continue
@@ -220,12 +221,15 @@ func (o *Options) Run() error {
 		if err != nil {
 			return errors.Wrapf(err, "failed to publish")
 		}
+		count++
 	}
+
+	log.Logger().Infof("released %d charts from the charts dir: %s", count, dir)
 	return nil
 }
 
 func (o *Options) createPublishCommand(name, chartDir string) (*cmdrunner.Command, error) {
-	tarFile := filepath.Join(chartDir, name+"-"+o.VersionFile+".tgz")
+	tarFile := filepath.Join(chartDir, name+"-"+o.Version+".tgz")
 
 	if strings.HasPrefix(o.RepositoryURL, "gs:") {
 		// use gcs to push the chart
