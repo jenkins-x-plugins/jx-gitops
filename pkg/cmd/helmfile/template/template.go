@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/move"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/rename"
 	split2 "github.com/jenkins-x/jx-gitops/pkg/cmd/split"
 	"github.com/jenkins-x/jx-gitops/pkg/helmhelpers"
 	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner"
@@ -232,6 +233,14 @@ func (o *Options) runHelmfile(fileName string, ns string, state *state.HelmState
 	err = so.Run()
 	if err != nil {
 		return errors.Wrapf(err, "failed to split the generated helm resources in dir %s", outDir)
+	}
+
+	// now lets rename to canonical file names
+	_, rn := rename.NewCmdRename()
+	rn.Dir = outDir
+	err = rn.Run()
+	if err != nil {
+		return errors.Wrapf(err, "failed to rename helm output files in dir %s", outDir)
 	}
 
 	// now lets move the generated resources to the real output dir

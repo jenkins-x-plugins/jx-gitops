@@ -42,15 +42,15 @@ func TestStepHelmfileTemplate(t *testing.T) {
 
 	t.Logf("generated files to %s\n", o.OutputDir)
 
-	assert.FileExists(t, filepath.Join(o.OutputDir, "namespaces", "jx", "tekton", "controller.yaml"), "expected generated file")
-	assert.FileExists(t, filepath.Join(o.OutputDir, "namespaces", "secret-infra", "kubernetes-external-secrets", "deployment.yaml"), "expected generated file")
-	assert.FileExists(t, filepath.Join(o.OutputDir, "namespaces", "jx-production", "kubernetes-external-secrets", "deployment.yaml"), "expected generated file")
+	assert.FileExists(t, filepath.Join(o.OutputDir, "namespaces", "jx", "tekton", "tekton-pipelines-controller-deploy.yaml"), "expected generated file")
+	assert.FileExists(t, filepath.Join(o.OutputDir, "namespaces", "secret-infra", "kubernetes-external-secrets", "es-kubernetes-external-secrets-deploy.yaml"), "expected generated file")
+	assert.FileExists(t, filepath.Join(o.OutputDir, "namespaces", "jx-production", "kubernetes-external-secrets", "es-kubernetes-external-secrets-deploy.yaml"), "expected generated file")
 
 	assert.FileExists(t, filepath.Join(o.OutputDir, "cluster", "namespaces", "jx.yaml"), "expected generated namespace")
 	assert.FileExists(t, filepath.Join(o.OutputDir, "cluster", "namespaces", "jx-production.yaml"), "expected generated namespace")
 	assert.FileExists(t, filepath.Join(o.OutputDir, "cluster", "namespaces", "secret-infra.yaml"), "expected generated namespace")
 
-	assert.FileExists(t, filepath.Join(o.OutputDir, "cluster", "secret-infra", "kubernetes-external-secrets", "kubernetes-client.io_externalsecrets_crd.yaml"), "expected generated CRD file")
+	assert.FileExists(t, filepath.Join(o.OutputDir, "cluster", "secret-infra", "kubernetes-external-secrets", "externalsecrets.kubernetes-client.io-crd.yaml"), "expected generated CRD file")
 }
 
 func skipTestIfCommandFails(t *testing.T, name string, args ...string) {

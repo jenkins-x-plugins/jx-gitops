@@ -51,6 +51,10 @@ This is typically used in a pipeline to ensure git can do commits.
     the namespace used to find the git operator secret for the git repository if running in cluster. Defaults to the current namespace
 
 .PP
+\fB\-\-operator\-namespace\fP="jx\-git\-operator"
+    the namespace used by the git operator to find the secret for the git repository if running in cluster
+
+.PP
 \fB\-\-secret\fP="jx\-boot"
     the name of the Secret to find the git URL, username and password for creating a git credential if running inside the cluster
 

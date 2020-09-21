@@ -9,11 +9,11 @@ require (
 	github.com/h2non/gock v1.0.9
 	github.com/jenkins-x/go-scm v1.5.170
 	github.com/jenkins-x/jx-api v0.0.20
-	github.com/jenkins-x/jx-helpers v1.0.70
+	github.com/jenkins-x/jx-helpers v1.0.72
 	github.com/jenkins-x/jx-kube-client v0.0.8
 	github.com/jenkins-x/jx-logging v0.0.11
-	github.com/jenkins-x/jx-promote v0.0.106 // indirect
-	github.com/jenkins-x/lighthouse v0.0.826
+	github.com/jenkins-x/jx-promote v0.0.108 // indirect
+	github.com/jenkins-x/lighthouse v0.0.827
 	github.com/pborman/uuid v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/roboll/helmfile v0.125.7
