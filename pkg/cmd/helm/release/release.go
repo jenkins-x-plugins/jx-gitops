@@ -101,8 +101,7 @@ func (o *Options) Validate() error {
 			o.HelmBinary = "helm"
 		}
 	}
-	ns := o.Namespace
-	o.JXClient, ns, err = jxclient.LazyCreateJXClientAndNamespace(o.JXClient, ns)
+	o.JXClient, o.Namespace, err = jxclient.LazyCreateJXClientAndNamespace(o.JXClient, o.Namespace)
 	if err != nil {
 		return errors.Wrapf(err, "failed to create jx client")
 	}
@@ -129,11 +128,9 @@ func (o *Options) Validate() error {
 			return errors.Errorf("could not detect version from $VERSION or version file %s. Try supply the command option: --version", o.VersionFile)
 		}
 	}
-	jxClient := o.JXClient
-
 	// find the repository URL
 	if o.RepositoryURL == "" {
-		o.RepositoryURL, err = variablefinders.FindRepositoryURL(jxClient, ns)
+		o.RepositoryURL, err = variablefinders.FindRepositoryURL(o.JXClient, o.Namespace)
 		if err != nil {
 			return errors.Wrapf(err, "failed to find chart repository URL")
 		}
