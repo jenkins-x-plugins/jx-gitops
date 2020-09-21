@@ -225,7 +225,7 @@ func (o *Options) Run() error {
 }
 
 func (o *Options) createPublishCommand(name, chartDir string) (*cmdrunner.Command, error) {
-	tarFile := name + ".tgz"
+	tarFile := filepath.Join(chartDir, name+"-"+o.VersionFile+".tgz")
 
 	if strings.HasPrefix(o.RepositoryURL, "gs:") {
 		// use gcs to push the chart
@@ -243,11 +243,10 @@ func (o *Options) createPublishCommand(name, chartDir string) (*cmdrunner.Comman
 
 	url := stringhelpers.UrlJoin(o.RepositoryURL, "/api/charts")
 
-	dataBinary := fmt.Sprintf("\"@%s-%s.tgz\"", name, o.Version)
 	return &cmdrunner.Command{
 		Dir:  chartDir,
 		Name: "curl",
-		Args: []string{"--fail", "-u", userSecret, "--data-binary", dataBinary, url},
+		Args: []string{"--fail", "-u", userSecret, "--data-binary", "@" + tarFile, url},
 	}, nil
 }
 
