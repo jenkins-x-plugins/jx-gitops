@@ -214,7 +214,7 @@ func (o *Options) Run() error {
 
 		c, err = o.createPublishCommand(name, chartDir)
 		if err != nil {
-			return errors.Wrapf(err, "failed to create release command")
+			return errors.Wrapf(err, "failed to create release command in dir %s", chartDir)
 		}
 
 		_, err = o.CommandRunner(c)
@@ -229,7 +229,7 @@ func (o *Options) Run() error {
 }
 
 func (o *Options) createPublishCommand(name, chartDir string) (*cmdrunner.Command, error) {
-	tarFile := filepath.Join(chartDir, name+"-"+o.Version+".tgz")
+	tarFile := name + "-" + o.Version + ".tgz"
 
 	if strings.HasPrefix(o.RepositoryURL, "gs:") {
 		// use gcs to push the chart
