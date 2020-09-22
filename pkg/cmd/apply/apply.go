@@ -2,11 +2,9 @@ package apply
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"strings"
 
-	"github.com/jenkins-x/jx-gitops/pkg/filters"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
@@ -40,15 +38,11 @@ var (
 
 // KptOptions the options for the command
 type Options struct {
-	Dir                     string
-	Args                    []string
-	LastCommitMessageFilter filters.StringFilter
-	BatchMode               bool
-	GitClient               gitclient.Interface
-	CommandRunner           cmdrunner.CommandRunner
-	GitCommandRunner        cmdrunner.CommandRunner
-	Out                     io.Writer
-	Err                     io.Writer
+	Dir              string
+	PullRequest      bool
+	GitClient        gitclient.Interface
+	CommandRunner    cmdrunner.CommandRunner
+	GitCommandRunner cmdrunner.CommandRunner
 }
 
 // NewCmdApply creates a command object for the command
@@ -61,14 +55,12 @@ func NewCmdApply() (*cobra.Command, *Options) {
 		Long:    cmdLong,
 		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
-			o.Args = args
 			err := o.Run()
 			helper.CheckErr(err)
 		},
 	}
 	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the directory to the git and make commands")
-
-	o.LastCommitMessageFilter.AddFlags(cmd, "last-commit-msg", "last commit message")
+	cmd.Flags().BoolVarP(&o.PullRequest, "pull-request", "", false, "specifies to apply the pull request contents into the PR branch")
 	return cmd, o
 }
 
@@ -97,12 +89,16 @@ func (o *Options) Run() error {
 	lastCommitMessage = strings.TrimSpace(lastCommitMessage)
 	log.Logger().Infof("found last commit message: %s", termcolor.ColorStatus(lastCommitMessage))
 
-	regen := true
 	if strings.Contains(lastCommitMessage, "/pipeline cancel") {
-		log.Logger().Infof("last commit disabled regeneration so terminating")
+		log.Logger().Infof("last commit disabled further processing")
 		return nil
 	}
 
+	if o.PullRequest {
+		return o.pullRequest()
+	}
+
+	regen := true
 	if strings.HasPrefix(lastCommitMessage, "Merge pull request") {
 		log.Logger().Infof("last commit was a merge pull request so not regenerating")
 		regen = false
@@ -173,4 +169,17 @@ func (o *Options) RunCommand(c *cmdrunner.Command) error {
 	c.Err = os.Stderr
 	_, err := o.CommandRunner(c)
 	return err
+}
+
+func (o *Options) pullRequest() error {
+	c := &cmdrunner.Command{
+		Dir:  o.Dir,
+		Name: "make",
+		Args: []string{"pr-regen"},
+	}
+	err := o.RunCommand(c)
+	if err != nil {
+		return errors.Wrapf(err, "failed to regen pr")
+	}
+	return nil
 }
