@@ -49,6 +49,8 @@ type Options struct {
 	RepositoryURL  string
 	ConfigMapName  string
 	Namespace      string
+	VersionFile    string
+	BuildNumber    string
 	KubeClient     kubernetes.Interface
 	JXClient       jxc.Interface
 	Requirements   *config.RequirementsConfig
@@ -88,7 +90,9 @@ func NewCmdVariables() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.RepositoryName, "repo-name", "n", "release-repo", "the name of the helm chart to release to. If not specified uses JX_CHART_REPOSITORY environment variable")
 	cmd.Flags().StringVarP(&o.RepositoryURL, "repo-url", "u", "", "the URL to release to")
 	cmd.Flags().StringVarP(&o.Namespace, "namespace", "", "", "the namespace to look for the dev Environment. Defaults to the current namespace")
+	cmd.Flags().StringVarP(&o.BuildNumber, "build-number", "", "", "the build number to use. If not specified defaults to $BUILD_NUMBER")
 	cmd.Flags().StringVarP(&o.ConfigMapName, "configmap", "", "jenkins-x-docker-registry", "the ConfigMap used to load environment variables")
+	cmd.Flags().StringVarP(&o.VersionFile, "version-file", "", "", "the file to load the version from if not specified directly or via a $VERSION environment variable. Defaults to VERSION in the current dir")
 	o.Options.AddFlags(cmd)
 	return cmd, o
 }
@@ -98,6 +102,9 @@ func (o *Options) Validate() error {
 	err := o.Options.Validate()
 	if err != nil {
 		return errors.Wrapf(err, "failed to validate scm options")
+	}
+	if o.VersionFile == "" {
+		o.VersionFile = filepath.Join(o.Dir, "VERSION")
 	}
 	if o.entries == nil {
 		o.entries = map[string]*Entry{}
@@ -144,6 +151,11 @@ func (o *Options) Validate() error {
 		}
 	}
 
+	o.BuildNumber, err = o.findBuildNumber()
+	if err != nil {
+		return errors.Wrapf(err, "failed to find build number")
+	}
+
 	o.factories = []Factory{
 		{
 			Name: "APP_NAME",
@@ -155,6 +167,12 @@ func (o *Options) Validate() error {
 			Name: "BRANCH_NAME",
 			Function: func() (string, error) {
 				return o.Options.Branch, nil
+			},
+		},
+		{
+			Name: "BUILD_NUMBER",
+			Function: func() (string, error) {
+				return o.BuildNumber, nil
 			},
 		},
 		{
@@ -185,6 +203,12 @@ func (o *Options) Validate() error {
 			Name: "REPO_OWNER",
 			Function: func() (string, error) {
 				return o.Options.Owner, nil
+			},
+		},
+		{
+			Name: "VERSION",
+			Function: func() (string, error) {
+				return variablefinders.FindVersion(o.VersionFile, o.Options.Branch, o.BuildNumber)
 			},
 		},
 	}
@@ -319,6 +343,17 @@ func (o *Options) dockerRegistryOrg() (string, error) {
 		answer = o.Options.Owner
 	}
 	return answer, nil
+}
+
+func (o *Options) findBuildNumber() (string, error) {
+	if o.BuildNumber == "" {
+		o.BuildNumber = os.Getenv("BUILD_NUMBER")
+		if o.BuildNumber == "" {
+			// TODO better implementation required!
+			o.BuildNumber = "1"
+		}
+	}
+	return o.BuildNumber, nil
 }
 
 func configMapKeyToEnvVar(k string) string {
