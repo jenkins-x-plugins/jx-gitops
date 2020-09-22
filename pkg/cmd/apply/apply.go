@@ -20,6 +20,8 @@ import (
 )
 
 var (
+	info = termcolor.ColorInfo
+
 	cmdLong = templates.LongDesc(`
 		Performs a gitops regeneration and apply on a cluster git repository
 
@@ -44,6 +46,7 @@ type Options struct {
 	BatchMode               bool
 	GitClient               gitclient.Interface
 	CommandRunner           cmdrunner.CommandRunner
+	GitCommandRunner        cmdrunner.CommandRunner
 	Out                     io.Writer
 	Err                     io.Writer
 }
@@ -72,7 +75,7 @@ func NewCmdApply() (*cobra.Command, *Options) {
 // Validate validates the setup
 func (o *Options) Validate() error {
 	if o.CommandRunner == nil {
-		o.CommandRunner = cmdrunner.DefaultCommandRunner
+		o.CommandRunner = cmdrunner.QuietCommandRunner
 	}
 	if o.GitClient == nil {
 		o.GitClient = cli.NewCLIClient("", o.CommandRunner)
@@ -116,7 +119,7 @@ func (o *Options) Run() error {
 			Name: "make",
 			Args: []string{"regen-phase-3"},
 		}
-		_, err = o.CommandRunner(c)
+		err = o.RunCommand(c)
 		if err != nil {
 			return errors.Wrapf(err, "failed to regenerate phase 3")
 		}
@@ -136,7 +139,7 @@ func (o *Options) Regenerate() (bool, error) {
 		Name: "make",
 		Args: []string{"regen-phase-1"},
 	}
-	_, err = o.CommandRunner(c)
+	err = o.RunCommand(c)
 	if err != nil {
 		return false, errors.Wrapf(err, "failed to regenerate phase 1")
 	}
@@ -156,9 +159,18 @@ func (o *Options) Regenerate() (bool, error) {
 		Name: "make",
 		Args: []string{"regen-phase-2"},
 	}
-	_, err = o.CommandRunner(c)
+	err = o.RunCommand(c)
 	if err != nil {
 		return false, errors.Wrapf(err, "failed to regenerate phase 2")
 	}
 	return true, nil
+}
+
+// Run runs the command
+func (o *Options) RunCommand(c *cmdrunner.Command) error {
+	log.Logger().Info(info(c.CLI()))
+	c.Out = os.Stdout
+	c.Err = os.Stderr
+	_, err := o.CommandRunner(c)
+	return err
 }
