@@ -1,10 +1,10 @@
 merger:
-  blockerLabel: /hold
-  maxGoroutines: 10
+  blocker_label: /hold
+  max_goroutines: 10
   target_url: http://targeturl
-  squashLabel: squash
+  squash_label: squash
   policy:
-    skipUnknownContexts: false
+    skip-unknown-contexts: false
     required-contexts:
       replace: false
       entries:

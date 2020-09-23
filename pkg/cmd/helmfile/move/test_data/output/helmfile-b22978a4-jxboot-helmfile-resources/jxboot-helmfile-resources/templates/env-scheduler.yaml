@@ -11,17 +11,17 @@ spec:
     lgtm_acts_as_approve: true
     require_self_approval: true
   merger:
-    blockerLabel: ""
-    maxGoroutines: 0
-    mergeMethod: merge
+    blocker_label: ""
+    max_goroutines: 0
+    merge_method: merge
     policy:
-      fromBranchProtection: true
+      from-branch-protection: true
       optional-contexts: {}
       required-contexts: {}
       required-if-present-contexts: {}
-      skipUnknownContexts: false
+      skip-unknown-contexts: false
     pr_status_base_url: ""
-    squashLabel: ""
+    squash_label: ""
     target_url: http://deck-jx.
   plugins:
     entries:
@@ -40,7 +40,7 @@ spec:
     - cat
     - override
   policy:
-    protectTested: true
+    protect_tested: true
   postsubmits:
     replace: true
     entries:
@@ -66,11 +66,11 @@ spec:
       context: promotion-build
       labels: {}
       maxConcurrency: 0
-      mergeMethod: ""
+      merge_method: ""
       name: promotion-build
       optional: false
       policy:
-        requiredStatusChecks:
+        required_status_checks:
           contexts:
             entries:
             - promotion-build

@@ -3,11 +3,11 @@ trigger:
 schedulerAgent:
   agent: prow
 policy:
-  protectTested: true
+  protect_tested: true
 merger:
   policy:
-    fromBranchProtection: true
-    skipUnknownContexts: false
+    from-branch-protection: true
+    skip-unknown-contexts: false
 postsubmits:
   entries:
     - name: release
@@ -36,7 +36,7 @@ presubmits:
               - needs-rebase
       policy:
         protect: true
-        requiredStatusChecks:
+        required_status_checks:
           contexts:
             entries:
               - integration

@@ -10,10 +10,10 @@ external_plugins:
 schedulerAgent:
   agent: prow
 policy:
-  enforceAdmins: true
+  enforce_admins: true
   protect: true
-  protectTested: false
-  requiredStatusChecks:
+  protect_tested: false
+  required_status_checks:
     strict: true
     contexts:
       entries:
@@ -28,11 +28,11 @@ policy:
       entries:
         - team1
         - team2
-  requiredPullRequestReviews:
-    dismissStaleReviews: true
-    requireCodeOwnerReviews: false
-    requiredApprovingReviewCount: 5
-    dismissalRestrictions:
+  required_pull_request_reviews:
+    dismiss_stale_reviews: true
+    require_code_owner_reviews: false
+    required_approving_review_count: 5
+    dismissal_restrictions:
       users:
         entries:
           - user1
@@ -43,8 +43,8 @@ policy:
           - team2
 merger:
   policy:
-    fromBranchProtection: true
-    skipUnknownContexts: false
+    from-branch-protection: true
+    skip-unknown-contexts: false
 postsubmits:
   entries:
     - name: release
@@ -74,7 +74,7 @@ presubmits:
               - needs-rebase
       policy:
         protect: true
-        requiredStatusChecks:
+        required_status_checks:
           contexts:
             entries:
               - integration

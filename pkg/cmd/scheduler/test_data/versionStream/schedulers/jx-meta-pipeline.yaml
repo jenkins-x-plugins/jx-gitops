@@ -1,4 +1,4 @@
-apiVersion: jenkins.io/v1
+apiVersion: gitops.jenkins-x.io/v1alpha1
 kind: Scheduler
 metadata:
   name: jx-meta-pipeline
@@ -8,17 +8,17 @@ spec:
     lgtm_acts_as_approve: true
     require_self_approval: true
   merger:
-    blockerLabel: ""
-    maxGoroutines: 0
+    blocker_label: ""
+    max_goroutines: 0
     merge_method: merge
     policy:
-      fromBranchProtection: true
+      from-branch-protection: true
       optional-contexts: { }
       required-contexts: { }
       required-if-present-contexts: { }
-      skipUnknownContexts: false
+      skip-unknown-contexts: false
     pr_status_base_url: ""
-    squashLabel: ""
+    squash_label: ""
     target_url: http://deck-jx.35.192.148.208.nip.io
   plugins:
     entries:
@@ -38,7 +38,7 @@ spec:
       - dog
       - pony
   policy:
-    protectTested: true
+    protect_tested: true
   postsubmits:
     entries:
       - agent: tekton

@@ -203,7 +203,7 @@ type Presubmit struct {
 	job.Presubmit
 
 	// Override the default method of merge. Valid options are squash, rebase, and merge.
-	MergeType *string `json:"merge_method,omitempty" protobuf:"bytes,7,opt,name=mergeMethod"`
+	MergeType *string `json:"merge_method,omitempty" protobuf:"bytes,7,opt,name=merge_method"`
 
 	Queries []*Query `json:"queries,omitempty" protobuf:"bytes,8,opt,name=query"`
 
@@ -264,20 +264,20 @@ type Merger struct {
 	// BlockerLabel is an optional label that is used to identify merge blocking
 	// Git Provider issues.
 	// Leave this blank to disable this feature and save 1 API token per sync loop.
-	BlockerLabel *string `json:"blockerLabel,omitempty"`
+	BlockerLabel *string `json:"blocker_label,omitempty"`
 
 	// SquashLabel is an optional label that is used to identify PRs that should
 	// always be squash merged.
 	// Leave this blank to disable this feature.
-	SquashLabel *string `json:"squashLabel,omitempty"`
+	SquashLabel *string `json:"squash_label,omitempty"`
 
 	// MaxGoroutines is the maximum number of goroutines spawned inside the
 	// controller to handle org/repo:branch pools. Defaults to 20. Needs to be a
 	// positive number.
-	MaxGoroutines *int `json:"maxGoroutines,omitempty"`
+	MaxGoroutines *int `json:"max_goroutines,omitempty"`
 
 	// Override the default method of merge. Valid options are squash, rebase, and merge.
-	MergeType *string `json:"mergeMethod,omitempty"`
+	MergeType *string `json:"merge_method,omitempty"`
 
 	// ContextOptions defines the default merge options. If not set it will infer
 	// the required and optional contexts from the jobs configured and use the Git Provider
@@ -302,12 +302,12 @@ type ReplaceableMapOfStringContextPolicy struct {
 // ContextPolicy configures options about how to handle various contexts.
 type ContextPolicy struct {
 	// whether to consider unknown contexts optional (skip) or required.
-	SkipUnknownContexts       *bool                      `json:"skipUnknownContexts,omitempty"`
+	SkipUnknownContexts       *bool                      `json:"skip-unknown-contexts,omitempty"`
 	RequiredContexts          *ReplaceableSliceOfStrings `json:"required-contexts,omitempty"`
 	RequiredIfPresentContexts *ReplaceableSliceOfStrings `json:"required-if-present-contexts,omitempty"`
 	OptionalContexts          *ReplaceableSliceOfStrings `json:"optional-contexts,omitempty"`
 	// Infer required and optional jobs from Branch Protection configuration
-	FromBranchProtection *bool `json:"fromBranchProtection,omitempty"`
+	FromBranchProtection *bool `json:"from-branch-protection,omitempty"`
 }
 
 // Welcome welcome plugin config
@@ -319,7 +319,7 @@ type Welcome struct {
 type GlobalProtectionPolicy struct {
 	// +optional
 	*ProtectionPolicy
-	ProtectTested *bool `json:"protectTested,omitempty"`
+	ProtectTested *bool `json:"protect_tested,omitempty"`
 }
 
 // ProtectionPolicy for merging.
@@ -327,13 +327,13 @@ type ProtectionPolicy struct {
 	// Protect overrides whether branch protection is enabled if set.
 	Protect *bool `json:"protect,omitempty"`
 	// RequiredStatusChecks configures github contexts
-	RequiredStatusChecks *BranchProtectionContextPolicy `json:"requiredStatusChecks,omitempty"`
+	RequiredStatusChecks *BranchProtectionContextPolicy `json:"required_status_checks,omitempty"`
 	// Admins overrides whether protections apply to admins if set.
-	Admins *bool `json:"enforceAdmins,omitempty"`
+	Admins *bool `json:"enforce_admins,omitempty"`
 	// Restrictions limits who can merge
 	Restrictions *Restrictions `json:"restrictions,omitempty"`
 	// RequiredPullRequestReviews specifies approval/review criteria.
-	RequiredPullRequestReviews *ReviewPolicy `json:"requiredPullRequestReviews,omitempty"`
+	RequiredPullRequestReviews *ReviewPolicy `json:"required_pull_request_reviews,omitempty"`
 }
 
 // ReviewPolicy specifies git provider approval/review criteria.
@@ -341,13 +341,13 @@ type ProtectionPolicy struct {
 // Non-empty lists are appended to parent lists.
 type ReviewPolicy struct {
 	// Restrictions appends users/teams that are allowed to merge
-	DismissalRestrictions *Restrictions `json:"dismissalRestrictions,omitempty"`
+	DismissalRestrictions *Restrictions `json:"dismissal_restrictions,omitempty"`
 	// DismissStale overrides whether new commits automatically dismiss old reviews if set
-	DismissStale *bool `json:"dismissStaleReviews,omitempty"`
+	DismissStale *bool `json:"dismiss_stale_reviews,omitempty"`
 	// RequireOwners overrides whether CODEOWNERS must approve PRs if set
-	RequireOwners *bool `json:"requireCodeOwnerReviews,omitempty"`
+	RequireOwners *bool `json:"require_code_owner_reviews,omitempty"`
 	// Approvals overrides the number of approvals required if set (set to 0 to disable)
-	Approvals *int `json:"requiredApprovingReviewCount,omitempty"`
+	Approvals *int `json:"required_approving_review_count,omitempty"`
 }
 
 // Restrictions limits who can merge

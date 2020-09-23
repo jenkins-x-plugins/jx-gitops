@@ -10,13 +10,13 @@ external_plugins:
 schedulerAgent:
   agent: prow
 policy:
-  protectTested: true
+  protect_tested: true
 merger:
-  blockerLabel: hold
+  blocker_label: hold
   pr_status_base_url: http://fakeurl
-  maxGoroutines: 5
+  max_goroutines: 5
   policy:
-    fromBranchProtection: true
+    from-branch-protection: true
     required-contexts:
       entries:
         - context1
@@ -58,7 +58,7 @@ presubmits:
               - needs-rebase
       policy:
         protect: true
-        requiredStatusChecks:
+        required_status_checks:
           contexts:
             entries:
               - integration
