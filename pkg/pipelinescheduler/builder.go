@@ -338,11 +338,15 @@ func applyToRequiredPullRequestReviews(parent *schedulerapi.ReviewPolicy, child 
 }
 
 func applyToRestrictions(parent *schedulerapi.Restrictions, child *schedulerapi.Restrictions) {
-	if child.Teams == nil || parent.Teams != nil {
+	if child.Teams == nil {
 		child.Teams = parent.Teams
+	} else if parent.Teams != nil {
+		applyToReplaceableSliceOfStrings(parent.Teams, child.Teams)
 	}
-	if child.Users == nil || parent.Users != nil {
+	if child.Users == nil {
 		child.Users = parent.Users
+	} else if parent.Users != nil {
+		applyToReplaceableSliceOfStrings(parent.Users, child.Users)
 	}
 }
 
