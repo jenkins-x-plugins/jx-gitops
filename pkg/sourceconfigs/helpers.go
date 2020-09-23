@@ -86,8 +86,16 @@ func SortRepositories(repositories []v1alpha1.Repository) {
 	})
 }
 
+// EnrichConfig ensures everything is populated
+func EnrichConfig(config *v1alpha1.SourceConfig) {
+	if config.APIVersion == "" {
+		config.APIVersion = v1alpha1.APIVersion
+	}
+	if config.Kind == "" {
+		config.Kind = v1alpha1.KindSourceConfig
+	}
+}
 
-// DryConfig avoids unnecessary values in the source config
 func DryConfig(config *v1alpha1.SourceConfig) {
 	// if all of the repositories in a group have the same scheduler then clear them all and set it on the group
 	for i := range config.Spec.Groups {
