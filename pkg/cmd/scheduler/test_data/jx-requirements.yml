@@ -1,0 +1,4 @@
+ingress:
+  domain: 1.2.3.4.nip.io
+  namespaceSubDomain: .jx.
+  

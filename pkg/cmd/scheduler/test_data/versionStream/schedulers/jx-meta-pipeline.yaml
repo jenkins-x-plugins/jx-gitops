@@ -19,7 +19,7 @@ spec:
       skip-unknown-contexts: false
     pr_status_base_url: ""
     squash_label: ""
-    target_url: http://deck-jx.35.192.148.208.nip.io
+    target_url: http://deck-jx.{{ .Requirements.ingress.namespaceSubDomain }}{{ .Requirements.ingress.domain }}
   plugins:
     entries:
       - approve

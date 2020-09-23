@@ -74,6 +74,8 @@ func TestScheduler(t *testing.T) {
 	}
 
 	assert.NotEmpty(t, lhCfg.InRepoConfig.Enabled, "should have inRepoConfig enabled")
+
+	assert.Equal(t, "http://deck-jx..jx.1.2.3.4.nip.io", lhCfg.Keeper.TargetURL, "config.Keeper.TargetURL")
 }
 
 func AssertYamlMap(t *testing.T, text string, message string) map[string]interface{} {

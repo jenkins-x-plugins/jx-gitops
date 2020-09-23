@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 
 	v1 "github.com/jenkins-x/jx-api/pkg/apis/jenkins.io/v1"
+	jxconfig "github.com/jenkins-x/jx-api/pkg/config"
+
 	"github.com/jenkins-x/jx-api/pkg/client/clientset/versioned"
 	"github.com/jenkins-x/jx-api/pkg/client/clientset/versioned/fake"
 	"github.com/jenkins-x/jx-gitops/pkg/schedulerapi"
@@ -228,6 +230,20 @@ func (o *Options) Run() error {
 		o.enableInRepoConfig(config, plugins)
 	}
 
+	// lets process any templated values
+	templater, err := o.createTemplater()
+	if err != nil {
+		return errors.Wrapf(err, "failed to create a templater")
+	}
+	config.Keeper.TargetURL, err = templater(config.Keeper.TargetURL)
+	if err != nil {
+		return errors.Wrapf(err, "failed to template the config.Keeper.TargetURL")
+	}
+	config.Keeper.PRStatusBaseURL, err = templater(config.Keeper.PRStatusBaseURL)
+	if err != nil {
+		return errors.Wrapf(err, "failed to template the config.Keeper.PRStatusBaseURL")
+	}
+
 	configConfigMap, err := createConfigMap(config, ns, "config", ConfigKey)
 	if err != nil {
 		return err
@@ -260,6 +276,16 @@ func (o *Options) enableInRepoConfig(config *config.Config, plugins *plugins.Con
 			"*": &flag,
 		}
 	}
+}
+
+func (o *Options) createTemplater() (func(string) (string, error), error) {
+	requirements, _, err := jxconfig.LoadRequirementsConfig(o.Dir, false)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to load requirements in dir %s", o.Dir)
+	}
+	return func(templateText string) (string, error) {
+		return EvaluateTemplate(templateText, requirements)
+	}, nil
 }
 
 func createConfigMap(resource interface{}, ns string, name string, key string) (*corev1.ConfigMap, error) {
