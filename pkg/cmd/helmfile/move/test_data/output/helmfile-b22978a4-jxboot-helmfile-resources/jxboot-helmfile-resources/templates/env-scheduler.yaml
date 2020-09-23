@@ -7,9 +7,9 @@ metadata:
   name: environment
 spec:
   approve:
-    issueRequired: false
-    lgtmActsAsApprove: true
-    requireSelfApproval: true
+    issue_required: false
+    lgtm_acts_as_approve: true
+    require_self_approval: true
   merger:
     blockerLabel: ""
     maxGoroutines: 0
@@ -20,9 +20,9 @@ spec:
       required-contexts: {}
       required-if-present-contexts: {}
       skipUnknownContexts: false
-    prStatusBaseUrl: ""
+    pr_status_base_url: ""
     squashLabel: ""
-    targetUrl: http://deck-jx.
+    target_url: http://deck-jx.
   plugins:
     entries:
     - config-updater
@@ -76,7 +76,7 @@ spec:
             - promotion-build
       queries:
       - excludedBranches: {}
-        includedBranches: {}
+        included_branches: {}
         labels:
           entries:
           - approved
@@ -88,9 +88,9 @@ spec:
           - do-not-merge/work-in-progress
           - needs-ok-to-test
           - needs-rebase
-        reviewApprovedRequired: false
+        review_approved_required: false
       - excludedBranches: {}
-        includedBranches: {}
+        included_branches: {}
         labels:
           entries:
           - updatebot
@@ -102,7 +102,7 @@ spec:
           - do-not-merge/work-in-progress
           - needs-ok-to-test
           - needs-rebase
-        reviewApprovedRequired: false
+        review_approved_required: false
       report: true
       rerunCommand: /test this
       runIfChanged: ""
@@ -111,9 +111,9 @@ spec:
   schedulerAgent:
     agent: tekton
   trigger:
-    ignoreOkToTest: false
-    joinOrgUrl: ""
-    onlyOrgMembers: false
-    trustedOrg: myorg
+    ignore_ok_to_test: false
+    join_org_url: ""
+    only_org_members: false
+    trusted_org: myorg
   welcome:
   - message_template: Welcome

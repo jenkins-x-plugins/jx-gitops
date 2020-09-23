@@ -1,13 +1,13 @@
 lgtm:
-  reviewActsAsLgtm: true
-  storeTreeHash: true
-  trustedTeamForStickyLgtm: team2
+  review_acts_as_lgtm: true
+  store_tree_hash: true
+  trusted_team_for_sticky_lgtm: team2
 
 approve:
-  lgtmActsAsApprove: true
-  ignoreReviewState: false
+  lgtm_acts_as_approve: true
+  ignore_review_state: false
 
-externalPlugins:
+external_plugins:
   replace: true
   entries:
     - name: jx-app-cheese

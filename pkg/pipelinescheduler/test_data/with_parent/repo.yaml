@@ -5,8 +5,8 @@ postsubmits:
         - 2.x
 
 trigger:
-  joinOrgUrl: http://org-url
-  onlyOrgMembers: true
+  join_org_url: http://org-url
+  only_org_members: true
 
 plugins:
   entries:

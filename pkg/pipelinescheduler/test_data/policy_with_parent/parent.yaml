@@ -1,9 +1,9 @@
 trigger:
-  trustedOrg: roadrunner-corp
+  trusted_org: roadrunner-corp
 approve:
-  lgtmActsAsApprove: true
-  ignoreReviewState: false
-externalPlugins:
+  lgtm_acts_as_approve: true
+  ignore_review_state: false
+external_plugins:
   entries:
     - name: jx-app-cheese
       endpoint: http://jx-app-cheese

@@ -5,9 +5,9 @@ metadata:
   name: environment
 spec:
   approve:
-    issueRequired: false
-    lgtmActsAsApprove: true
-    requireSelfApproval: true
+    issue_required: false
+    lgtm_acts_as_approve: true
+    require_self_approval: true
   merger:
     blockerLabel: ""
     maxGoroutines: 0
@@ -18,9 +18,9 @@ spec:
       required-contexts: { }
       required-if-present-contexts: { }
       skipUnknownContexts: false
-    prStatusBaseUrl: ""
+    pr_status_base_url: ""
     squashLabel: ""
-    targetUrl: http://deck-jx.35.192.148.208.nip.io
+    target_url: http://deck-jx.35.192.148.208.nip.io
   plugins:
     entries:
       - config-updater
@@ -71,31 +71,33 @@ spec:
             contexts:
               - promotion-build
         queries:
-          - excluded_branches: { }
+          - excludedBranches: { }
             included_branches: { }
             labels:
               entries:
                 - approved
             milestone: ""
-            missing_labels:
-              - do-not-merge
-              - do-not-merge/hold
-              - do-not-merge/work-in-progress
-              - needs-ok-to-test
-              - needs-rebase
+            missingLabels:
+              entries:
+                - do-not-merge
+                - do-not-merge/hold
+                - do-not-merge/work-in-progress
+                - needs-ok-to-test
+                - needs-rebase
             review_approved_required: false
-          - excluded_branches: { }
+          - excludedBranches: { }
             included_branches: { }
             labels:
               entries:
                 - updatebot
             milestone: ""
-            missing_labels:
-              - do-not-merge
-              - do-not-merge/hold
-              - do-not-merge/work-in-progress
-              - needs-ok-to-test
-              - needs-rebase
+            missingLabels:
+              entries:
+                - do-not-merge
+                - do-not-merge/hold
+                - do-not-merge/work-in-progress
+                - needs-ok-to-test
+                - needs-rebase
             review_approved_required: false
         report: true
         rerun_command: /test this
@@ -105,9 +107,9 @@ spec:
   schedulerAgent:
     agent: tekton
   trigger:
-    ignoreOkToTest: false
-    joinOrgUrl: ""
-    onlyOrgMembers: false
-    trustedOrg: todo
+    ignore_ok_to_test: false
+    join_org_url: ""
+    only_org_members: false
+    trusted_org: todo
   welcome:
     - message_template: Welcome

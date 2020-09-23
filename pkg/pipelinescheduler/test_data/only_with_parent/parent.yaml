@@ -1,5 +1,5 @@
 trigger:
-  trustedOrg: roadrunner-corp
+  trusted_org: roadrunner-corp
 schedulerAgent:
   agent: prow
 policy:

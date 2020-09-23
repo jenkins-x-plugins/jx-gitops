@@ -7,9 +7,9 @@ metadata:
   name: release-only
 spec:
   approve:
-    issueRequired: false
-    lgtmActsAsApprove: true
-    requireSelfApproval: true
+    issue_required: false
+    lgtm_acts_as_approve: true
+    require_self_approval: true
   merger:
     blockerLabel: ""
     maxGoroutines: 0
@@ -20,9 +20,9 @@ spec:
       required-contexts: {}
       required-if-present-contexts: {}
       skipUnknownContexts: false
-    prStatusBaseUrl: ""
+    pr_status_base_url: ""
     squashLabel: ""
-    targetUrl: http://deck-jx.
+    target_url: http://deck-jx.
   plugins:
     entries:
     - approve
@@ -59,9 +59,9 @@ spec:
   schedulerAgent:
     agent: tekton
   trigger:
-    ignoreOkToTest: false
-    joinOrgUrl: ""
-    onlyOrgMembers: false
-    trustedOrg: myorg
+    ignore_ok_to_test: false
+    join_org_url: ""
+    only_org_members: false
+    trusted_org: myorg
   welcome:
   - message_template: Welcome

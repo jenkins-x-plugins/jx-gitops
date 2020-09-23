@@ -1,7 +1,7 @@
 merger:
   blockerLabel: /hold
   maxGoroutines: 10
-  targetUrl: http://targeturl
+  target_url: http://targeturl
   squashLabel: squash
   mergeMethod: rebase
   policy:
