@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	scmfake "github.com/jenkins-x/go-scm/scm/driver/fake"
 	jxfake "github.com/jenkins-x/jx-api/pkg/client/clientset/versioned/fake"
 	"github.com/jenkins-x/jx-api/pkg/config"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/variables"
@@ -42,6 +43,7 @@ func TestCmdVariables(t *testing.T) {
 	devEnv.Spec.TeamSettings.BootRequirements = string(data)
 
 	jxClient := jxfake.NewSimpleClientset(devEnv)
+	scmFake, _ := scmfake.NewDefault()
 
 	_, o := variables.NewCmdVariables()
 	o.Dir = tmpDir
@@ -66,6 +68,7 @@ func TestCmdVariables(t *testing.T) {
 	o.Options.Repository = "myrepo"
 	o.Options.Branch = "PR-23"
 	o.Options.SourceURL = "https://github.com/" + o.Options.Owner + "/" + o.Options.Repository
+	o.Options.ScmClient = scmFake
 
 	err = o.Run()
 
