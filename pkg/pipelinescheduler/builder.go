@@ -2,14 +2,14 @@ package pipelinescheduler
 
 import (
 	"github.com/davecgh/go-spew/spew"
-	jenkinsv1 "github.com/jenkins-x/jx-api/pkg/apis/jenkins.io/v1"
-	"github.com/jenkins-x/jx-helpers/pkg/stringhelpers"
+	"github.com/jenkins-x/jx-gitops/pkg/schedulerapi"
+	"github.com/jenkins-x/lighthouse/pkg/config/job"
 	"github.com/pkg/errors"
 )
 
 //Build combines the slice of schedulers into one, with the most specific schedule config defined last
-func Build(schedulers []*jenkinsv1.SchedulerSpec) (*jenkinsv1.SchedulerSpec, error) {
-	var answer *jenkinsv1.SchedulerSpec
+func Build(schedulers []*schedulerapi.SchedulerSpec) (*schedulerapi.SchedulerSpec, error) {
+	var answer *schedulerapi.SchedulerSpec
 	for i := len(schedulers) - 1; i >= 0; i-- {
 		parent := schedulers[i]
 		if answer == nil {
@@ -62,10 +62,8 @@ func Build(schedulers []*jenkinsv1.SchedulerSpec) (*jenkinsv1.SchedulerSpec, err
 			} else if parent.ExternalPlugins != nil {
 				applyToExternalPlugins(parent.ExternalPlugins, answer.ExternalPlugins)
 			}
-			if answer.Plugins == nil {
+			if answer.Plugins == nil || parent.Plugins != nil {
 				answer.Plugins = parent.Plugins
-			} else if parent.Plugins != nil {
-				applyToReplaceableSliceOfStrings(parent.Plugins, answer.Plugins)
 			}
 			if answer.Merger == nil {
 				answer.Merger = parent.Merger
@@ -83,7 +81,7 @@ func Build(schedulers []*jenkinsv1.SchedulerSpec) (*jenkinsv1.SchedulerSpec, err
 	return answer, nil
 }
 
-func applyToTrigger(parent *jenkinsv1.Trigger, child *jenkinsv1.Trigger) {
+func applyToTrigger(parent *schedulerapi.Trigger, child *schedulerapi.Trigger) {
 	if child.IgnoreOkToTest != nil {
 		child.IgnoreOkToTest = parent.IgnoreOkToTest
 	}
@@ -98,63 +96,57 @@ func applyToTrigger(parent *jenkinsv1.Trigger, child *jenkinsv1.Trigger) {
 	}
 }
 
-func applyToSchedulerAgent(parent *jenkinsv1.SchedulerAgent, child *jenkinsv1.SchedulerAgent) {
+func applyToSchedulerAgent(parent *schedulerapi.SchedulerAgent, child *schedulerapi.SchedulerAgent) {
 	if child.Agent == nil {
 		child.Agent = parent.Agent
 	}
 }
 
-func applyToBrancher(parent *jenkinsv1.Brancher, child *jenkinsv1.Brancher) {
-	if child.Branches == nil {
+func applyToBrancher(parent *job.Brancher, child *job.Brancher) {
+	if child.Branches == nil || len(parent.Branches) > 0 {
 		child.Branches = parent.Branches
-	} else if parent.Branches != nil {
-		applyToReplaceableSliceOfStrings(parent.Branches, child.Branches)
 	}
-	if child.SkipBranches == nil {
+	if child.SkipBranches == nil || len(parent.SkipBranches) > 0 {
 		child.SkipBranches = parent.SkipBranches
-	} else if parent.SkipBranches != nil {
-		applyToReplaceableSliceOfStrings(parent.SkipBranches, child.SkipBranches)
 	}
 }
 
-func applyToRegexpChangeMatcher(parent *jenkinsv1.RegexpChangeMatcher, child *jenkinsv1.RegexpChangeMatcher) {
-	if child.RunIfChanged == nil {
-		child.RunIfChanged = parent.RunIfChanged
-	}
+func applyToRegexpChangeMatcher(parent *job.RegexpChangeMatcher, child *job.RegexpChangeMatcher) {
+	child.RunIfChanged = parent.RunIfChanged
 }
 
-func applyToJobBase(parent *jenkinsv1.JobBase, child *jenkinsv1.JobBase) {
-	if child.Name == nil {
+func applyToBase(parent *job.Base, child *job.Base) {
+	if child.Name == "" {
 		child.Name = parent.Name
 	}
 	if child.Namespace == nil {
 		child.Namespace = parent.Namespace
 	}
-	if child.Agent == nil {
+	if child.Agent == "" {
 		child.Agent = parent.Agent
 	}
-	if child.Cluster == nil {
+	if child.Cluster == "" {
 		child.Cluster = parent.Cluster
 	}
-	if child.MaxConcurrency == nil {
+	if child.MaxConcurrency <= 0 {
 		child.MaxConcurrency = parent.MaxConcurrency
 	}
 	if child.Labels == nil {
 		child.Labels = parent.Labels
-	} else if !child.Labels.Replace && parent.Labels != nil {
-		if child.Labels.Items == nil {
-			child.Labels.Items = make(map[string]string)
+	} else if parent.Labels != nil {
+		if child.Labels == nil {
+			child.Labels = make(map[string]string)
 		}
 		// Add any labels that are missing
-		for pk, pv := range parent.Labels.Items {
-			if _, ok := child.Labels.Items[pk]; !ok {
-				child.Labels.Items[pk] = pv
+		for pk, pv := range parent.Labels {
+			if _, ok := child.Labels[pk]; !ok {
+				child.Labels[pk] = pv
 			}
 		}
 	}
 }
 
-func applyToMerger(parent *jenkinsv1.Merger, child *jenkinsv1.Merger) {
+func applyToMerger(parent *schedulerapi.Merger, child *schedulerapi.Merger) {
 	if child.ContextPolicy == nil {
 		child.ContextPolicy = parent.ContextPolicy
 	} else if parent.ContextPolicy != nil {
@@ -186,34 +178,7 @@ func applyToMerger(parent *jenkinsv1.Merger, child *jenkinsv1.Merger) {
 	}
 }
 
-// TODO use this
-//func applyToReplaceableMapOfStringString(parent *jenkinsv1.ReplaceableMapOfStringString, child *jenkinsv1.ReplaceableMapOfStringString) {
-//	if !child.Replace && parent != nil {
-//		if child.Items == nil {
-//			child.Items = make(map[string]string)
-//		}
-//		for pk, pv := range parent.Items {
-//			if _, ok := child.Items[pk]; !ok {
-//				child.Items[pk] = pv
-//			}
-//		}
-//	}
-//}
-
-func applyToReplaceableSliceOfStrings(parent *jenkinsv1.ReplaceableSliceOfStrings, child *jenkinsv1.ReplaceableSliceOfStrings) {
-	if !child.Replace && parent != nil {
-		if child.Items == nil {
-			child.Items = make([]string, 0)
-		}
-		for i := range parent.Items {
-			if stringhelpers.StringArrayIndex(child.Items, parent.Items[i]) < 0 {
-				child.Items = append(child.Items, parent.Items[i])
-			}
-		}
-	}
-}
-
-func applyToRepoContextPolicy(parent *jenkinsv1.RepoContextPolicy, child *jenkinsv1.RepoContextPolicy) {
+func applyToRepoContextPolicy(parent *schedulerapi.RepoContextPolicy, child *schedulerapi.RepoContextPolicy) {
 	if child.ContextPolicy == nil {
 		child.ContextPolicy = parent.ContextPolicy
 	} else if parent.ContextPolicy != nil {
@@ -223,7 +188,7 @@ func applyToRepoContextPolicy(parent *jenkinsv1.RepoContextPolicy, child *jenkin
 		child.Branches = parent.Branches
 	} else if !child.Branches.Replace && parent.Branches != nil {
 		if child.Branches.Items == nil {
-			child.Branches.Items = make(map[string]*jenkinsv1.ContextPolicy)
+			child.Branches.Items = make(map[string]*schedulerapi.ContextPolicy)
 		}
 		for pk, pv := range parent.Branches.Items {
 			if cv, ok := child.Branches.Items[pk]; !ok {
@@ -235,31 +200,25 @@ func applyToRepoContextPolicy(parent *jenkinsv1.RepoContextPolicy, child *jenkin
 	}
 }
 
-func applyToContextPolicy(parent *jenkinsv1.ContextPolicy, child *jenkinsv1.ContextPolicy) {
+func applyToContextPolicy(parent *schedulerapi.ContextPolicy, child *schedulerapi.ContextPolicy) {
 	if child.FromBranchProtection == nil {
 		child.FromBranchProtection = parent.FromBranchProtection
 	}
 	if child.SkipUnknownContexts == nil {
 		child.SkipUnknownContexts = parent.SkipUnknownContexts
 	}
-	if child.OptionalContexts == nil {
+	if child.OptionalContexts == nil || parent.OptionalContexts != nil {
 		child.OptionalContexts = parent.OptionalContexts
-	} else if parent.OptionalContexts != nil {
-		applyToReplaceableSliceOfStrings(parent.OptionalContexts, child.OptionalContexts)
 	}
-	if child.RequiredContexts == nil {
+	if child.RequiredContexts == nil || parent.RequiredContexts != nil {
 		child.RequiredContexts = parent.RequiredContexts
-	} else if parent.RequiredContexts != nil {
-		applyToReplaceableSliceOfStrings(parent.RequiredContexts, child.RequiredContexts)
 	}
-	if child.RequiredIfPresentContexts == nil {
+	if child.RequiredIfPresentContexts == nil || parent.RequiredIfPresentContexts != nil {
 		child.RequiredIfPresentContexts = parent.RequiredIfPresentContexts
-	} else if parent.RequiredIfPresentContexts != nil {
-		applyToReplaceableSliceOfStrings(parent.RequiredIfPresentContexts, child.RequiredIfPresentContexts)
 	}
 }
 
-func applyToLgtm(parent *jenkinsv1.Lgtm, child *jenkinsv1.Lgtm) {
+func applyToLgtm(parent *schedulerapi.Lgtm, child *schedulerapi.Lgtm) {
 	if child.StickyLgtmTeam == nil {
 		child.StickyLgtmTeam = parent.StickyLgtmTeam
 	}
@@ -271,7 +230,7 @@ func applyToLgtm(parent *jenkinsv1.Lgtm, child *jenkinsv1.Lgtm) {
 	}
 }
 
-func applyToExternalPlugins(parent *jenkinsv1.ReplaceableSliceOfExternalPlugins, child *jenkinsv1.ReplaceableSliceOfExternalPlugins) {
+func applyToExternalPlugins(parent *schedulerapi.ReplaceableSliceOfExternalPlugins, child *schedulerapi.ReplaceableSliceOfExternalPlugins) {
 	if child.Items == nil {
 		child.Items = parent.Items
 	} else if !child.Replace {
@@ -280,7 +239,7 @@ func applyToExternalPlugins(parent *jenkinsv1.ReplaceableSliceOfExternalPlugins,
 }
 
 // TODO use this
-//func applyToExternalPlugin(parent *jenkinsv1.ExternalPlugin, child *jenkinsv1.ExternalPlugin) {
+//func applyToExternalPlugin(parent *schedulerapi.ExternalPlugin, child *schedulerapi.ExternalPlugin) {
 //	if child.Name == nil {
 //		child.Name = parent.Name
 //	}
@@ -294,7 +253,7 @@ func applyToExternalPlugins(parent *jenkinsv1.ReplaceableSliceOfExternalPlugins,
 //	}
 //}
 
-func applyToApprove(parent *jenkinsv1.Approve, child *jenkinsv1.Approve) {
+func applyToApprove(parent *schedulerapi.Approve, child *schedulerapi.Approve) {
 	if child.IgnoreReviewState == nil {
 		child.IgnoreReviewState = parent.IgnoreReviewState
 	}
@@ -309,7 +268,7 @@ func applyToApprove(parent *jenkinsv1.Approve, child *jenkinsv1.Approve) {
 	}
 }
 
-func applyToGlobalProtectionPolicy(parent *jenkinsv1.GlobalProtectionPolicy, child *jenkinsv1.GlobalProtectionPolicy) {
+func applyToGlobalProtectionPolicy(parent *schedulerapi.GlobalProtectionPolicy, child *schedulerapi.GlobalProtectionPolicy) {
 	if child.ProtectionPolicy == nil {
 		child.ProtectionPolicy = parent.ProtectionPolicy
 	} else if parent.ProtectionPolicy != nil {
@@ -320,7 +279,7 @@ func applyToGlobalProtectionPolicy(parent *jenkinsv1.GlobalProtectionPolicy, chi
 	}
 }
 
-func applyToProtectionPolicy(parent *jenkinsv1.ProtectionPolicy, child *jenkinsv1.ProtectionPolicy) {
+func applyToProtectionPolicy(parent *schedulerapi.ProtectionPolicy, child *schedulerapi.ProtectionPolicy) {
 	if child.Protect == nil {
 		child.Protect = parent.Protect
 	}
@@ -339,7 +298,7 @@ func applyToProtectionPolicy(parent *jenkinsv1.ProtectionPolicy, child *jenkinsv
 	}
 }
 
-func applyToRequiredPullRequestReviews(parent *jenkinsv1.ReviewPolicy, child *jenkinsv1.ReviewPolicy) {
+func applyToRequiredPullRequestReviews(parent *schedulerapi.ReviewPolicy, child *schedulerapi.ReviewPolicy) {
 	if child.Approvals == nil {
 		child.Approvals = parent.Approvals
 	}
@@ -356,57 +315,33 @@ func applyToRequiredPullRequestReviews(parent *jenkinsv1.ReviewPolicy, child *je
 	}
 }
 
-func applyToRestrictions(parent *jenkinsv1.Restrictions, child *jenkinsv1.Restrictions) {
-	if child.Teams == nil {
+func applyToRestrictions(parent *schedulerapi.Restrictions, child *schedulerapi.Restrictions) {
+	if child.Teams == nil || parent.Teams != nil {
 		child.Teams = parent.Teams
-	} else if parent.Teams != nil {
-		applyToReplaceableSliceOfStrings(parent.Teams, child.Teams)
 	}
-	if child.Users == nil {
+	if child.Users == nil || parent.Users != nil {
 		child.Users = parent.Users
-	} else if parent.Users != nil {
-		applyToReplaceableSliceOfStrings(parent.Users, child.Users)
 	}
 }
 
-func applyToPostSubmits(parentPostsubmits *jenkinsv1.Postsubmits, childPostsubmits *jenkinsv1.Postsubmits) error {
+func applyToPostSubmits(parentPostsubmits *schedulerapi.Postsubmits, childPostsubmits *schedulerapi.Postsubmits) error {
 	if childPostsubmits.Items == nil {
-		childPostsubmits.Items = make([]*jenkinsv1.Postsubmit, 0)
+		childPostsubmits.Items = make([]*job.Postsubmit, 0)
 	}
 	// Work through each of the post submits in the parent. If we can find a name based match in child,
 	// we apply it to the child, otherwise we append it
 	for _, parent := range parentPostsubmits.Items {
-		var found []*jenkinsv1.Postsubmit
+		var found []*job.Postsubmit
 		for _, postsubmit := range childPostsubmits.Items {
-			if postsubmit.Name != nil && parent.Name != nil && *postsubmit.Name == *parent.Name {
+			if postsubmit.Name != "" && parent.Name != "" && postsubmit.Name == parent.Name {
 				found = append(found, postsubmit)
 			}
 		}
 		if len(found) > 1 {
-			return errors.Errorf("more than one postsubmit with name %v in %s", *parent.Name, spew.Sdump(childPostsubmits))
+			return errors.Errorf("more than one postsubmit with name %v in %s", parent.Name, spew.Sdump(childPostsubmits))
 		} else if len(found) == 1 {
 			child := found[0]
-			// Neither parent's nor child's JobBase can be nil as it would've panicked earlier
-			applyToJobBase(parent.JobBase, child.JobBase)
-			if child.RegexpChangeMatcher == nil {
-				child.RegexpChangeMatcher = parent.RegexpChangeMatcher
-			} else if parent.RegexpChangeMatcher != nil {
-				applyToRegexpChangeMatcher(parent.RegexpChangeMatcher, child.RegexpChangeMatcher)
-			}
-			if child.Brancher == nil {
-				if parent.Brancher == nil {
-					child.Brancher = &jenkinsv1.Brancher{}
-				}
-				child.Brancher = parent.Brancher
-			} else if parent.Brancher != nil {
-				applyToBrancher(parent.Brancher, child.Brancher)
-			}
-			if child.Context == nil {
-				child.Context = parent.Context
-			}
-			if child.Report == nil {
-				child.Report = parent.Report
-			}
+			*child = *parent
 		} else {
 			childPostsubmits.Items = append(childPostsubmits.Items, parent)
 		}
@@ -414,14 +349,14 @@ func applyToPostSubmits(parentPostsubmits *jenkinsv1.Postsubmits, childPostsubmi
 	return nil
 }
 
-func applyToPreSubmits(parentPresubmits *jenkinsv1.Presubmits, childPresubmits *jenkinsv1.Presubmits) error {
+func applyToPreSubmits(parentPresubmits *schedulerapi.Presubmits, childPresubmits *schedulerapi.Presubmits) error {
 	if childPresubmits.Items == nil {
-		childPresubmits.Items = make([]*jenkinsv1.Presubmit, 0)
+		childPresubmits.Items = make([]*job.Presubmit, 0)
 	}
 	// Work through each of the presubmits in the parent. If we can find a name based match in child,
 	// we apply it to the child, otherwise we append it
 	for _, parent := range parentPresubmits.Items {
-		var found []*jenkinsv1.Presubmit
+		var found []*job.Presubmit
 		for _, child := range childPresubmits.Items {
 			if child.Name == parent.Name {
 				found = append(found, child)
@@ -431,70 +366,16 @@ func applyToPreSubmits(parentPresubmits *jenkinsv1.Presubmits, childPresubmits *
 			return errors.Errorf("more than one presubmit with name %v in %s", parent.Name, spew.Sdump(parentPresubmits))
 		} else if len(found) == 1 {
 			child := found[0]
-			// Neither parent's nor child's JobBase can be nil as it would've panicked earlier
-			applyToJobBase(parent.JobBase, child.JobBase)
-			if child.RegexpChangeMatcher == nil {
-				child.RegexpChangeMatcher = parent.RegexpChangeMatcher
-			} else if parent.RegexpChangeMatcher != nil {
-				applyToRegexpChangeMatcher(parent.RegexpChangeMatcher, child.RegexpChangeMatcher)
-			}
-			if child.Brancher == nil {
-				if parent.Brancher == nil {
-					child.Brancher = &jenkinsv1.Brancher{}
-				} else {
-					child.Brancher = parent.Brancher
-				}
-			} else if parent.Brancher != nil {
-				applyToBrancher(parent.Brancher, child.Brancher)
-			}
-			if child.Context == nil {
-				child.Context = parent.Context
-			}
-			if child.Report == nil {
-				child.Report = parent.Report
-			}
-			if child.AlwaysRun == nil {
-				child.AlwaysRun = parent.AlwaysRun
-			}
-			if child.Optional == nil {
-				child.Optional = parent.Optional
-			}
-			if child.Trigger == nil {
-				child.Trigger = parent.Trigger
-			}
-			if child.RerunCommand == nil {
-				child.RerunCommand = parent.RerunCommand
-			}
-			if child.MergeType == nil {
-				child.MergeType = parent.MergeType
-			}
-			if child.ContextPolicy == nil {
-				child.ContextPolicy = parent.ContextPolicy
-			} else if parent.ContextPolicy != nil {
-				applyToRepoContextPolicy(parent.ContextPolicy, child.ContextPolicy)
-			}
-			if child.Branches == nil {
-				child.Branches = parent.Branches
-			} else if parent.Branches != nil {
-				applyToReplaceableSliceOfStrings(parent.Branches, child.Branches)
-			}
-			if child.Policy == nil {
-				child.Policy = parent.Policy
-			} else if parent.Policy != nil {
-				applyToProtectionPolicies(parent.Policy, child.Policy)
-			}
-			if child.Queries == nil {
-				child.Queries = parent.Queries
-			} else if parent.Queries != nil {
-				applyToQueries(parent.Queries, child.Queries)
-			}
+			*child = *parent
+		} else {
+			childPresubmits.Items = append(childPresubmits.Items, parent)
 		}
 	}
 	return nil
 }
 
-func applyToProtectionPolicies(parent *jenkinsv1.ProtectionPolicies,
-	child *jenkinsv1.ProtectionPolicies) {
+func applyToProtectionPolicies(parent *schedulerapi.ProtectionPolicies,
+	child *schedulerapi.ProtectionPolicies) {
 	if child.ProtectionPolicy == nil {
 		child.ProtectionPolicy = parent.ProtectionPolicy
 	} else if parent.ProtectionPolicy != nil {
@@ -511,7 +392,7 @@ func applyToProtectionPolicies(parent *jenkinsv1.ProtectionPolicies,
 	}
 }
 
-func applyToQueries(parents []*jenkinsv1.Query, children []*jenkinsv1.Query) {
+func applyToQueries(parents []*schedulerapi.Query, children []*schedulerapi.Query) {
 	for _, v := range parents {
 		children = append(children, v)
 	}

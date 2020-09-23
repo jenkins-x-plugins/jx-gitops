@@ -296,22 +296,6 @@ type Welcome struct {
 	MessageTemplate *string `json:"message_template,omitempty"`
 }
 
-// Brancher is for shared code between jobs that only run against certain
-// branches. An empty brancher runs against all branches.
-type Brancher struct {
-	// Do not run against these branches. Default is no branches.
-	SkipBranches *ReplaceableSliceOfStrings `json:"skipBranches,omitempty"`
-	// Only run against these branches. Default is all branches.
-	Branches *ReplaceableSliceOfStrings `json:"branches,omitempty"`
-}
-
-// RegexpChangeMatcher is for code shared between jobs that run only when certain files are changed.
-type RegexpChangeMatcher struct {
-	// RunIfChanged defines a regex used to select which subset of file changes should trigger this job.
-	// If any file in the changeset matches this regex, the job will be triggered
-	RunIfChanged *string `json:"runIfChanged,omitempty"`
-}
-
 // GlobalProtectionPolicy defines the default branch protection policy for the scheduler
 type GlobalProtectionPolicy struct {
 	// +optional

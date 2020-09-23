@@ -1,9 +1,8 @@
-# Source: jxboot-helmfile-resources/templates/env-scheduler.yaml
+# Source: jxboot-helmfile-resources/templates/default-scheduler.yaml
 apiVersion: jenkins.io/v1
 kind: Scheduler
 metadata:
-  creationTimestamp: null
-  name: blank
+  name: in-repo
 spec:
   approve:
     issueRequired: false
@@ -12,19 +11,18 @@ spec:
   merger:
     blockerLabel: ""
     maxGoroutines: 0
-    mergeMethod: merge
+    merge_method: merge
     policy:
       fromBranchProtection: true
-      optionalContexts: {}
-      requiredContexts: {}
-      requiredIfPresentContexts: {}
+      optionalContexts: { }
+      requiredContexts: { }
+      requiredIfPresentContexts: { }
       skipUnknownContexts: false
     prStatusBaseUrl: ""
     squashLabel: ""
-    targetUrl: http://deck-jx.34.71.101.110.nip.io
+    targetUrl: http://deck-jx.35.192.148.208.nip.io
   plugins:
     entries:
-      - config-updater
       - approve
       - assign
       - blunderbuss
@@ -32,18 +30,16 @@ spec:
       - hold
       - lgtm
       - lifecycle
+      - override
       - size
       - trigger
       - wip
       - heart
       - cat
-      - override
+      - dog
+      - pony
   policy:
     protectTested: true
-  postsubmits:
-    entries: []
-  presubmits:
-    entries: []
   schedulerAgent:
     agent: tekton
   trigger:

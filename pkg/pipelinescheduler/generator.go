@@ -3,6 +3,7 @@ package pipelinescheduler
 import (
 	"strings"
 
+	"github.com/jenkins-x/jx-gitops/pkg/schedulerapi"
 	"github.com/jenkins-x/jx-logging/pkg/log"
 	"github.com/jenkins-x/lighthouse/pkg/config"
 	"github.com/jenkins-x/lighthouse/pkg/plugins"
@@ -19,11 +20,8 @@ import (
 )
 
 // GenerateProw will generate the prow config for the namespace
-func GenerateProw(gitOps bool, autoApplyConfigUpdater bool, jxClient versioned.Interface, namespace string, teamSchedulerName string, devEnv *jenkinsv1.Environment, loadSchedulerResourcesFunc func(versioned.Interface, string) (map[string]*jenkinsv1.Scheduler, *jenkinsv1.SourceRepositoryGroupList, *jenkinsv1.SourceRepositoryList, error)) (*config.Config,
+func GenerateProw(gitOps bool, autoApplyConfigUpdater bool, jxClient versioned.Interface, namespace string, teamSchedulerName string, devEnv *jenkinsv1.Environment, loadSchedulerResourcesFunc func(versioned.Interface, string) (map[string]*schedulerapi.Scheduler, *jenkinsv1.SourceRepositoryGroupList, *jenkinsv1.SourceRepositoryList, error)) (*config.Config,
 	*plugins.Configuration, error) {
-	if loadSchedulerResourcesFunc == nil {
-		loadSchedulerResourcesFunc = loadSchedulerResources
-	}
 	schedulers, sourceRepoGroups, sourceRepos, err := loadSchedulerResourcesFunc(jxClient, namespace)
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "loading scheduler resources")
@@ -34,7 +32,7 @@ func GenerateProw(gitOps bool, autoApplyConfigUpdater bool, jxClient versioned.I
 	defaultScheduler := schedulers[teamSchedulerName]
 	leaves := make([]*SchedulerLeaf, 0)
 	for _, sourceRepo := range sourceRepos.Items {
-		applicableSchedulers := []*jenkinsv1.SchedulerSpec{}
+		applicableSchedulers := []*schedulerapi.SchedulerSpec{}
 		// Apply config-updater to devEnv
 		applicableSchedulers = addConfigUpdaterToDevEnv(gitOps, autoApplyConfigUpdater, applicableSchedulers, devEnv, &sourceRepo.Spec)
 		// Apply repo scheduler
@@ -70,34 +68,9 @@ func GenerateProw(gitOps bool, autoApplyConfigUpdater bool, jxClient versioned.I
 	return cfg, plugs, nil
 }
 
-func loadSchedulerResources(jxClient versioned.Interface, namespace string) (map[string]*jenkinsv1.Scheduler, *jenkinsv1.SourceRepositoryGroupList, *jenkinsv1.SourceRepositoryList, error) {
-	schedulers, err := jxClient.JenkinsV1().Schedulers(namespace).List(metav1.ListOptions{})
-	if err != nil {
-		return nil, nil, nil, errors.WithStack(err)
-	}
-	if len(schedulers.Items) == 0 {
-		return nil, nil, nil, errors.New("No pipeline schedulers are configured")
-	}
-	lookup := make(map[string]*jenkinsv1.Scheduler)
-	for _, item := range schedulers.Items {
-		lookup[item.Name] = item.DeepCopy()
-	}
-	// Process Schedulers linked to SourceRepositoryGroups
-	sourceRepoGroups, err := jxClient.JenkinsV1().SourceRepositoryGroups(namespace).List(metav1.ListOptions{})
-	if err != nil {
-		return nil, nil, nil, errors.Wrapf(err, "Error finding source repository groups")
-	}
-	// Process Schedulers linked to SourceRepositoryGroups
-	sourceRepos, err := jxClient.JenkinsV1().SourceRepositories(namespace).List(metav1.ListOptions{})
-	if err != nil {
-		return nil, nil, nil, errors.Wrapf(err, "Error finding source repositories")
-	}
-	return lookup, sourceRepoGroups, sourceRepos, nil
-}
-
-func addTeamScheduler(defaultSchedulerName string, defaultScheduler *jenkinsv1.Scheduler, applicableSchedulers []*jenkinsv1.SchedulerSpec) []*jenkinsv1.SchedulerSpec {
+func addTeamScheduler(defaultSchedulerName string, defaultScheduler *schedulerapi.Scheduler, applicableSchedulers []*schedulerapi.SchedulerSpec) []*schedulerapi.SchedulerSpec {
 	if defaultScheduler != nil && len(applicableSchedulers) == 0 {
-		applicableSchedulers = append([]*jenkinsv1.SchedulerSpec{&defaultScheduler.Spec}, applicableSchedulers...)
+		applicableSchedulers = append([]*schedulerapi.SchedulerSpec{&defaultScheduler.Spec}, applicableSchedulers...)
 	} else {
 		if defaultSchedulerName != "" {
 			log.Logger().Warnf("A team pipeline scheduler named %s was configured but could not be found", defaultSchedulerName)
@@ -106,11 +79,11 @@ func addTeamScheduler(defaultSchedulerName string, defaultScheduler *jenkinsv1.S
 	return applicableSchedulers
 }
 
-func addRepositoryScheduler(sourceRepo jenkinsv1.SourceRepository, lookup map[string]*jenkinsv1.Scheduler, applicableSchedulers []*jenkinsv1.SchedulerSpec) []*jenkinsv1.SchedulerSpec {
+func addRepositoryScheduler(sourceRepo jenkinsv1.SourceRepository, lookup map[string]*schedulerapi.Scheduler, applicableSchedulers []*schedulerapi.SchedulerSpec) []*schedulerapi.SchedulerSpec {
 	if sourceRepo.Spec.Scheduler.Name != "" {
 		scheduler := lookup[sourceRepo.Spec.Scheduler.Name]
 		if scheduler != nil {
-			applicableSchedulers = append([]*jenkinsv1.SchedulerSpec{&scheduler.Spec}, applicableSchedulers...)
+			applicableSchedulers = append([]*schedulerapi.SchedulerSpec{&scheduler.Spec}, applicableSchedulers...)
 		} else {
 			log.Logger().Warnf("A scheduler named %s is referenced by repository(%s) but could not be found", sourceRepo.Spec.Scheduler.Name, sourceRepo.Name)
 		}
@@ -118,7 +91,7 @@ func addRepositoryScheduler(sourceRepo jenkinsv1.SourceRepository, lookup map[st
 	return applicableSchedulers
 }
 
-func addProjectSchedulers(sourceRepoGroups *jenkinsv1.SourceRepositoryGroupList, sourceRepo jenkinsv1.SourceRepository, lookup map[string]*jenkinsv1.Scheduler, applicableSchedulers []*jenkinsv1.SchedulerSpec) []*jenkinsv1.SchedulerSpec {
+func addProjectSchedulers(sourceRepoGroups *jenkinsv1.SourceRepositoryGroupList, sourceRepo jenkinsv1.SourceRepository, lookup map[string]*schedulerapi.Scheduler, applicableSchedulers []*schedulerapi.SchedulerSpec) []*schedulerapi.SchedulerSpec {
 	if sourceRepoGroups != nil {
 		for _, sourceGroup := range sourceRepoGroups.Items {
 			for _, groupRepo := range sourceGroup.Spec.SourceRepositorySpec {
@@ -126,7 +99,7 @@ func addProjectSchedulers(sourceRepoGroups *jenkinsv1.SourceRepositoryGroupList,
 					if sourceGroup.Spec.Scheduler.Name != "" {
 						scheduler := lookup[sourceGroup.Spec.Scheduler.Name]
 						if scheduler != nil {
-							applicableSchedulers = append([]*jenkinsv1.SchedulerSpec{&scheduler.Spec}, applicableSchedulers...)
+							applicableSchedulers = append([]*schedulerapi.SchedulerSpec{&scheduler.Spec}, applicableSchedulers...)
 						} else {
 							log.Logger().Warnf("A scheduler named %s is referenced by repository group(%s) but could not be found", sourceGroup.Spec.Scheduler.Name, sourceGroup.Name)
 						}
@@ -138,24 +111,24 @@ func addProjectSchedulers(sourceRepoGroups *jenkinsv1.SourceRepositoryGroupList,
 	return applicableSchedulers
 }
 
-func addConfigUpdaterToDevEnv(gitOps bool, autoApplyConfigUpdater bool, applicableSchedulers []*jenkinsv1.SchedulerSpec, devEnv *jenkinsv1.Environment, sourceRepo *jenkinsv1.SourceRepositorySpec) []*jenkinsv1.SchedulerSpec {
+func addConfigUpdaterToDevEnv(gitOps bool, autoApplyConfigUpdater bool, applicableSchedulers []*schedulerapi.SchedulerSpec, devEnv *jenkinsv1.Environment, sourceRepo *jenkinsv1.SourceRepositorySpec) []*schedulerapi.SchedulerSpec {
 	if gitOps && autoApplyConfigUpdater && strings.Contains(devEnv.Spec.Source.URL, sourceRepo.Org+"/"+sourceRepo.Repo) {
-		maps := make(map[string]jenkinsv1.ConfigMapSpec)
-		maps["env/prow/job.yaml"] = jenkinsv1.ConfigMapSpec{
+		maps := make(map[string]schedulerapi.ConfigMapSpec)
+		maps["env/prow/job.yaml"] = schedulerapi.ConfigMapSpec{
 			Name: "config",
 		}
-		maps["env/prow/plugins.yaml"] = jenkinsv1.ConfigMapSpec{
+		maps["env/prow/plugins.yaml"] = schedulerapi.ConfigMapSpec{
 			Name: "plugins",
 		}
-		environmentUpdaterSpec := &jenkinsv1.SchedulerSpec{
-			ConfigUpdater: &jenkinsv1.ConfigUpdater{
+		environmentUpdaterSpec := &schedulerapi.SchedulerSpec{
+			ConfigUpdater: &schedulerapi.ConfigUpdater{
 				Map: maps,
 			},
-			Plugins: &jenkinsv1.ReplaceableSliceOfStrings{
+			Plugins: &schedulerapi.ReplaceableSliceOfStrings{
 				Items: []string{"config-updater"},
 			},
 		}
-		applicableSchedulers = append([]*jenkinsv1.SchedulerSpec{environmentUpdaterSpec}, applicableSchedulers...)
+		applicableSchedulers = append([]*schedulerapi.SchedulerSpec{environmentUpdaterSpec}, applicableSchedulers...)
 	}
 	return applicableSchedulers
 }
@@ -207,58 +180,5 @@ func ApplyDirectly(kubeClient kubernetes.Interface, namespace string, cfg *confi
 	} else if err != nil {
 		return errors.Wrapf(err, "updating ConfigMap plugins")
 	}
-	return nil
-}
-
-//ApplySchedulersDirectly directly applies pipeline schedulers to the cluster
-func ApplySchedulersDirectly(jxClient versioned.Interface, namespace string, sourceRepositoryGroups []*jenkinsv1.SourceRepositoryGroup, sourceRepositories []*jenkinsv1.SourceRepository, schedulers map[string]*jenkinsv1.Scheduler, devEnv *jenkinsv1.Environment) error {
-	log.Logger().Infof("Applying scheduler configuration to namespace %s", namespace)
-	err := jxClient.JenkinsV1().Schedulers(namespace).DeleteCollection(&metav1.DeleteOptions{}, metav1.ListOptions{})
-	if err != nil {
-		return errors.Wrapf(err, "Error removing existing schedulers")
-	}
-	for _, scheduler := range schedulers {
-		_, err := jxClient.JenkinsV1().Schedulers(namespace).Update(scheduler)
-		if kubeerrors.IsNotFound(err) {
-			_, err := jxClient.JenkinsV1().Schedulers(namespace).Create(scheduler)
-			if err != nil {
-				return errors.Wrapf(err, "creating scheduler")
-			}
-		} else if err != nil {
-			return errors.Wrapf(err, "updating scheduler")
-		}
-		if scheduler.Name == "default-scheduler" {
-			devEnv.Spec.TeamSettings.DefaultScheduler.Name = scheduler.Name
-			devEnv.Spec.TeamSettings.DefaultScheduler.Kind = "Scheduler"
-			_, err = jxClient.JenkinsV1().Environments(namespace).PatchUpdate(devEnv)
-			if err != nil {
-				return errors.Wrapf(err, "patch updating env %v", devEnv)
-			}
-		}
-	}
-	for _, repo := range sourceRepositories {
-		sourceRepo, err := GetOrCreateSourceRepository(jxClient, namespace, repo.Spec.Repo, repo.Spec.Org, repo.Spec.Provider)
-		if err != nil || sourceRepo == nil {
-			return errors.New("Getting / creating source repo")
-		}
-		sourceRepo.Spec.Scheduler.Name = repo.Spec.Scheduler.Name
-		sourceRepo.Spec.Scheduler.Kind = repo.Spec.Scheduler.Kind
-		_, err = jxClient.JenkinsV1().SourceRepositories(namespace).Update(sourceRepo)
-		if err != nil {
-			return errors.Wrapf(err, "updating source repo")
-		}
-	}
-	for _, repoGroup := range sourceRepositoryGroups {
-		_, err := jxClient.JenkinsV1().SourceRepositoryGroups(namespace).Update(repoGroup)
-		if kubeerrors.IsNotFound(err) {
-			_, err := jxClient.JenkinsV1().SourceRepositoryGroups(namespace).Create(repoGroup)
-			if err != nil {
-				return errors.Wrapf(err, "creating source repo group")
-			}
-		} else if err != nil {
-			return errors.Wrapf(err, "updating source repo group")
-		}
-	}
-
 	return nil
 }

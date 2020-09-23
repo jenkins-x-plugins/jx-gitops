@@ -1,0 +1,111 @@
+# Source: jxboot-helmfile-resources/templates/env-scheduler.yaml
+apiVersion: jenkins.io/v1
+kind: Scheduler
+metadata:
+  name: environment
+spec:
+  approve:
+    issueRequired: false
+    lgtmActsAsApprove: true
+    requireSelfApproval: true
+  merger:
+    blockerLabel: ""
+    maxGoroutines: 0
+    merge_method: merge
+    policy:
+      fromBranchProtection: true
+      optionalContexts: { }
+      requiredContexts: { }
+      requiredIfPresentContexts: { }
+      skipUnknownContexts: false
+    prStatusBaseUrl: ""
+    squashLabel: ""
+    targetUrl: http://deck-jx.35.192.148.208.nip.io
+  plugins:
+    entries:
+      - config-updater
+      - approve
+      - assign
+      - blunderbuss
+      - help
+      - hold
+      - lgtm
+      - lifecycle
+      - size
+      - trigger
+      - wip
+      - heart
+      - cat
+      - override
+  policy:
+    protectTested: true
+  postsubmits:
+    replace: true
+    entries:
+      - agent: tekton
+        branches:
+          - master
+        cluster: ""
+        context: ""
+        labels: { }
+        max_concurrency: 0
+        name: promotion
+        report: false
+        run_if_changed: ""
+        skip_branches: []
+  presubmits:
+    replace: true
+    entries:
+      - agent: tekton
+        always_run: true
+        branches: []
+        cluster: ""
+        context: promotion-build
+        labels: { }
+        max_concurrency: 0
+        merge_method: ""
+        name: promotion-build
+        optional: false
+        policy:
+          required_status_checks:
+            contexts:
+              - promotion-build
+        queries:
+          - excluded_branches: {}
+            included_branches: {}
+            labels:
+              - approved
+            milestone: ""
+            missing_labels:
+              - do-not-merge
+              - do-not-merge/hold
+              - do-not-merge/work-in-progress
+              - needs-ok-to-test
+              - needs-rebase
+            review_approved_required: false
+          - excluded_branches: {}
+            included_branches: {}
+            labels:
+              - updatebot
+            milestone: ""
+            missing_labels:
+              - do-not-merge
+              - do-not-merge/hold
+              - do-not-merge/work-in-progress
+              - needs-ok-to-test
+              - needs-rebase
+            review_approved_required: false
+        report: true
+        rerun_command: /test this
+        run_if_changed: ""
+        skip_branches: []
+        trigger: (?m)^/test( all| this),?(\s+|$)
+  schedulerAgent:
+    agent: tekton
+  trigger:
+    ignoreOkToTest: false
+    joinOrgUrl: ""
+    onlyOrgMembers: false
+    trustedOrg: todo
+  welcome:
+    - message_template: Welcome
