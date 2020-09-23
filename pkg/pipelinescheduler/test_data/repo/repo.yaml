@@ -7,7 +7,7 @@ postsubmits:
     - name: release
       context: ""
       branches:
-          - master
+        - master
       agent: tekton
 presubmits:
   entries:
@@ -20,20 +20,20 @@ presubmits:
       queries:
         - labels:
             entries:
-            - approved
+              - approved
           missingLabels:
             entries:
-            - do-not-merge
-            - do-not-merge/hold
-            - do-not-merge/work-in-progress
-            - needs-ok-to-test
-            - needs-rebase
+              - do-not-merge
+              - do-not-merge/hold
+              - do-not-merge/work-in-progress
+              - needs-ok-to-test
+              - needs-rebase
       policy:
         protect: true
         requiredStatusChecks:
           contexts:
             entries:
-            - integration
+              - integration
 merger:
   policy:
     fromBranchProtection: true

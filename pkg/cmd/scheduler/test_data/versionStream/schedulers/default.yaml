@@ -47,20 +47,20 @@ spec:
           - master
         cluster: ""
         context: ""
-        labels: {}
+        labels: { }
         max_concurrency: 0
         name: release
         report: false
         run_if_changed: ""
-        skip_branches: []
+        skip_branches: [ ]
   presubmits:
     entries:
       - agent: tekton
         always_run: true
-        branches: []
+        branches: [ ]
         cluster: ""
         context: pr-build
-        labels: {}
+        labels: { }
         max_concurrency: 0
         merge_method: ""
         name: pr-build
@@ -70,11 +70,11 @@ spec:
             contexts:
               - pr-build
         queries:
-          - excluded_branches: {}
-            included_branches: {}
+          - excluded_branches: { }
+            included_branches: { }
             labels:
               entries:
-              - approved
+                - approved
             milestone: ""
             missing_labels:
               - do-not-merge
@@ -83,11 +83,11 @@ spec:
               - needs-ok-to-test
               - needs-rebase
             review_approved_required: false
-          - excluded_branches: {}
-            included_branches: {}
+          - excluded_branches: { }
+            included_branches: { }
             labels:
               entries:
-              - updatebot
+                - updatebot
             milestone: ""
             missing_labels:
               - do-not-merge
@@ -99,7 +99,7 @@ spec:
         report: true
         rerun_command: /test this
         run_if_changed: ""
-        skip_branches: []
+        skip_branches: [ ]
         trigger: (?m)^/test( all| this),?(\s+|$)
   schedulerAgent:
     agent: tekton

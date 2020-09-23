@@ -21,11 +21,11 @@ policy:
     requireCodeOwnerReviews: true
     requiredApprovingReviewCount: 6
     dismissalRestrictions:
-        teams:
-          replace: false
-          entries:
-            - team5
-            - team6
+      teams:
+        replace: false
+        entries:
+          - team5
+          - team6
 
 plugins:
   replace: true

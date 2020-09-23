@@ -5,8 +5,8 @@ approve:
   ignoreReviewState: false
 externalPlugins:
   entries:
-  - name: jx-app-cheese
-    endpoint: http://jx-app-cheese
+    - name: jx-app-cheese
+      endpoint: http://jx-app-cheese
 schedulerAgent:
   agent: prow
 policy:
@@ -47,49 +47,49 @@ merger:
     skipUnknownContexts: false
 postsubmits:
   entries:
-  - name: release
-    context: ""
-    branches:
-      entries:
-      - master
-    agent: tekton
+    - name: release
+      context: ""
+      branches:
+        entries:
+          - master
+      agent: tekton
 presubmits:
   entries:
-  - name: integration
-    agent: tekton
-    always_run: true
-    context: integration
-    rerun_command: /test this
-    trigger: (?m)^/test( all| this),?(\s+|$)
-    queries:
-      - labels:
-          entries:
-            - approved
-        missingLabels:
-          entries:
-          - do-not-merge
-          - do-not-merge/hold
-          - do-not-merge/work-in-progress
-          - needs-ok-to-test
-          - needs-rebase
-    policy:
-      protect: true
-      requiredStatusChecks:
-        contexts:
-          entries:
-          - integration
+    - name: integration
+      agent: tekton
+      always_run: true
+      context: integration
+      rerun_command: /test this
+      trigger: (?m)^/test( all| this),?(\s+|$)
+      queries:
+        - labels:
+            entries:
+              - approved
+          missingLabels:
+            entries:
+              - do-not-merge
+              - do-not-merge/hold
+              - do-not-merge/work-in-progress
+              - needs-ok-to-test
+              - needs-rebase
+      policy:
+        protect: true
+        requiredStatusChecks:
+          contexts:
+            entries:
+              - integration
 plugins:
   entries:
-  - config-updater
-  - approve
-  - assign
-  - blunderbuss
-  - help
-  - hold
-  - lgtm
-  - lifecycle
-  - size
-  - trigger
-  - wip
-  - heart
-  - override
+    - config-updater
+    - approve
+    - assign
+    - blunderbuss
+    - help
+    - hold
+    - lgtm
+    - lifecycle
+    - size
+    - trigger
+    - wip
+    - heart
+    - override
