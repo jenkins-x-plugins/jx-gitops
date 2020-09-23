@@ -50,7 +50,6 @@ postsubmits:
     - name: release
       context: ""
       branches:
-        entries:
           - master
       agent: tekton
 presubmits:

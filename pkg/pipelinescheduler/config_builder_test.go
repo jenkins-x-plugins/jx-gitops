@@ -93,8 +93,6 @@ func TestNoPostSubmitsWithParent(t *testing.T) {
 }
 
 func TestPolicyWithParent(t *testing.T) {
-	t.SkipNow()
-
 	wd, err := os.Getwd()
 	assert.NoError(t, err)
 	testhelpers.BuildAndValidateProwConfig(t, filepath.Join(wd, "test_data", "policy_with_parent"), "config.yaml",
