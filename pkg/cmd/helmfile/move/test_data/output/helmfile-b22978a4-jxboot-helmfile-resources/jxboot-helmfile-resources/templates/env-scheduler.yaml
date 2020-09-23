@@ -16,9 +16,9 @@ spec:
     mergeMethod: merge
     policy:
       fromBranchProtection: true
-      optionalContexts: {}
-      requiredContexts: {}
-      requiredIfPresentContexts: {}
+      optional-contexts: {}
+      required-contexts: {}
+      required-if-present-contexts: {}
       skipUnknownContexts: false
     prStatusBaseUrl: ""
     squashLabel: ""

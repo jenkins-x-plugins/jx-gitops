@@ -41,7 +41,6 @@ func TestBuild(t *testing.T) {
 }
 
 func TestRepo(t *testing.T) {
-	t.SkipNow()
 	wd, err := os.Getwd()
 	assert.NoError(t, err)
 	testhelpers.BuildAndValidateProwConfig(t, filepath.Join(wd, "test_data", "repo"), "config.yaml", "",
@@ -55,8 +54,6 @@ func TestRepo(t *testing.T) {
 }
 
 func TestMultipleContexts(t *testing.T) {
-	t.SkipNow()
-
 	wd, err := os.Getwd()
 	assert.NoError(t, err)
 	testhelpers.BuildAndValidateProwConfig(t, filepath.Join(wd, "test_data", "multiple_contexts"), "config.yaml", "",
@@ -70,7 +67,6 @@ func TestMultipleContexts(t *testing.T) {
 }
 
 func TestWithParent(t *testing.T) {
-	t.SkipNow()
 	wd, err := os.Getwd()
 	assert.NoError(t, err)
 	testhelpers.BuildAndValidateProwConfig(t, filepath.Join(wd, "test_data", "with_parent"), "config.yaml",
@@ -84,8 +80,6 @@ func TestWithParent(t *testing.T) {
 }
 
 func TestNoPostSubmitsWithParent(t *testing.T) {
-	t.SkipNow()
-
 	wd, err := os.Getwd()
 	assert.NoError(t, err)
 	testhelpers.BuildAndValidateProwConfig(t, filepath.Join(wd, "test_data", "no_postsubmits_with_parent"), "config.yaml",
@@ -114,8 +108,6 @@ func TestPolicyWithParent(t *testing.T) {
 }
 
 func TestMergerWithParent(t *testing.T) {
-	t.SkipNow()
-
 	wd, err := os.Getwd()
 	assert.NoError(t, err)
 	testhelpers.BuildAndValidateProwConfig(t, filepath.Join(wd, "test_data", "merger_with_parent"), "config.yaml",
@@ -129,8 +121,6 @@ func TestMergerWithParent(t *testing.T) {
 }
 
 func TestMergerWithMergeMethod(t *testing.T) {
-	t.SkipNow()
-
 	wd, err := os.Getwd()
 	assert.NoError(t, err)
 	testhelpers.BuildAndValidateProwConfig(t, filepath.Join(wd, "test_data", "merger_with_mergemethod"), "config.yaml",
@@ -144,8 +134,6 @@ func TestMergerWithMergeMethod(t *testing.T) {
 }
 
 func TestOnlyWithParent(t *testing.T) {
-	t.SkipNow()
-
 	wd, err := os.Getwd()
 	assert.NoError(t, err)
 	testhelpers.BuildAndValidateProwConfig(t, filepath.Join(wd, "test_data", "only_with_parent"), "config.yaml",
@@ -185,8 +173,6 @@ func TestOnlyPluginsJustFromParent(t *testing.T) {
 }
 
 func TestOnlyPluginsMixFromParentAndRepo(t *testing.T) {
-	t.SkipNow()
-
 	wd, err := os.Getwd()
 	assert.NoError(t, err)
 	testhelpers.BuildAndValidateProwConfig(t, filepath.Join(wd, "test_data", "only_plugins"), "",

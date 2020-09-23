@@ -6,11 +6,11 @@ merger:
   mergeMethod: rebase
   policy:
     skipUnknownContexts: false
-    requiredContexts:
+    required-contexts:
       replace: false
       entries:
         - context3
-    requiredIfPresentContexts:
+    required-if-present-contexts:
       replace: true
       entries:
         - context5

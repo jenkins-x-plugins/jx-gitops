@@ -7,16 +7,15 @@ postsubmits:
     - name: release
       context: ""
       branches:
-        entries:
           - master
       agent: tekton
 presubmits:
   entries:
     - agent: tekton
-      alwaysRun: true
+      always_run: true
       context: integration
       name: integration
-      rerunCommand: /test this
+      rerun_command: /test this
       trigger: (?m)^/test( all| this),?(\s+|$)
       queries:
         - labels:

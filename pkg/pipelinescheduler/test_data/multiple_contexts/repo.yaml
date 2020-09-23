@@ -7,16 +7,15 @@ postsubmits:
     - name: release
       context: ""
       branches:
-        entries:
           - master
       agent: tekton
 presubmits:
   entries:
     - agent: tekton
-      alwaysRun: true
+      always_run: true
       context: integration
       name: integration
-      rerunCommand: /test this
+      rerun_command: /test this
       trigger: (?m)^/test( all| this),?(\s+|$)
       queries:
         - labels:
@@ -36,10 +35,10 @@ presubmits:
             entries:
             - integration
     - agent: tekton
-      alwaysRun: true
+      always_run: true
       context: context2
       name: context2
-      rerunCommand: /test context2
+      rerun_command: /test context2
       trigger: (?m)^/test( all| context2),?(\s+|$)
       queries:
         - labels:
@@ -59,10 +58,10 @@ presubmits:
             entries:
               - context2
     - agent: tekton
-      alwaysRun: false
+      always_run: false
       context: context3
       name: context3
-      rerunCommand: /test context3
+      rerun_command: /test context3
       trigger: (?m)^/test( all| context3),?(\s+|$)
       queries:
         - labels:

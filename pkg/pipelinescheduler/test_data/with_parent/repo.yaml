@@ -2,9 +2,7 @@ postsubmits:
   entries:
   - name: release
     branches:
-      replace: true
-      entries:
-        - 2.x
+      - 2.x
 
 trigger:
   joinOrgUrl: http://org-url

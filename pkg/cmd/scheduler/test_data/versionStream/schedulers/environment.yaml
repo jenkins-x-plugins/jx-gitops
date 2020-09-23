@@ -14,9 +14,9 @@ spec:
     merge_method: merge
     policy:
       fromBranchProtection: true
-      optionalContexts: { }
-      requiredContexts: { }
-      requiredIfPresentContexts: { }
+      optional-contexts: { }
+      required-contexts: { }
+      required-if-present-contexts: { }
       skipUnknownContexts: false
     prStatusBaseUrl: ""
     squashLabel: ""
@@ -74,6 +74,7 @@ spec:
           - excluded_branches: {}
             included_branches: {}
             labels:
+              entries:
               - approved
             milestone: ""
             missing_labels:
@@ -86,6 +87,7 @@ spec:
           - excluded_branches: {}
             included_branches: {}
             labels:
+              entries:
               - updatebot
             milestone: ""
             missing_labels:

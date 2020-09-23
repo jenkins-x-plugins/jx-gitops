@@ -191,9 +191,25 @@ type Postsubmits struct {
 // configurations in the parent scheduler
 type Presubmits struct {
 	// Items are the Presubmit configurtations
-	Items []*job.Presubmit `json:"entries,omitempty" protobuf:"bytes,1,opt,name=entries"`
+	Items []*Presubmit `json:"entries,omitempty" protobuf:"bytes,1,opt,name=entries"`
 	// Replace the existing entries
 	Replace bool `json:"replace,omitempty" protobuf:"bytes,2,opt,name=replace"`
+}
+
+type Presubmit struct {
+	job.Presubmit
+
+	// Override the default method of merge. Valid options are squash, rebase, and merge.
+	MergeType *string `json:"merge_method,omitempty" protobuf:"bytes,7,opt,name=mergeMethod"`
+
+	Queries []*Query `json:"queries,omitempty" protobuf:"bytes,8,opt,name=query"`
+
+	Policy *ProtectionPolicies `json:"policy,omitempty" protobuf:"bytes,9,opt,name=policy"`
+	// ContextOptions defines the merge options. If not set it will infer
+	// the required and optional contexts from the jobs configured and use the Git Provider
+	// combined status; otherwise it may apply the branch protection setting or let user
+	// define their own options in case branch protection is not used.
+	ContextPolicy *RepoContextPolicy `json:"context_options,omitempty" protobuf:"bytes,10,opt,name=contextPolicy"`
 }
 
 // Periodics is a list of jobs to be run periodically
@@ -284,9 +300,9 @@ type ReplaceableMapOfStringContextPolicy struct {
 type ContextPolicy struct {
 	// whether to consider unknown contexts optional (skip) or required.
 	SkipUnknownContexts       *bool                      `json:"skipUnknownContexts,omitempty"`
-	RequiredContexts          *ReplaceableSliceOfStrings `json:"requiredContexts,omitempty"`
-	RequiredIfPresentContexts *ReplaceableSliceOfStrings `json:"requiredIfPresentContexts,omitempty"`
-	OptionalContexts          *ReplaceableSliceOfStrings `json:"optionalContexts,omitempty"`
+	RequiredContexts          *ReplaceableSliceOfStrings `json:"required-contexts,omitempty"`
+	RequiredIfPresentContexts *ReplaceableSliceOfStrings `json:"required-if-present-contexts,omitempty"`
+	OptionalContexts          *ReplaceableSliceOfStrings `json:"optional-contexts,omitempty"`
 	// Infer required and optional jobs from Branch Protection configuration
 	FromBranchProtection *bool `json:"fromBranchProtection,omitempty"`
 }

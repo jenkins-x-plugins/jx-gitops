@@ -41,10 +41,12 @@ func CompleteScheduler() *schedulerapi.SchedulerSpec {
 			SyncPeriod:         pointerToRandomDuration(),
 		},
 		Presubmits: &schedulerapi.Presubmits{
-			Items: []*job.Presubmit{
+			Items: []*schedulerapi.Presubmit{
 				{
-					Base: job.Base{
-						Name: "cheese",
+					Presubmit: job.Presubmit{
+						Base: job.Base{
+							Name: "cheese",
+						},
 					},
 				},
 			},
@@ -216,13 +218,20 @@ func BuildAndValidateProwConfig(t *testing.T, baseDir string, expectedConfigFile
 		actual, err := yaml.Marshal(cfg)
 		assert.NoError(t, err)
 		assert.NotNil(t, expected)
-		assert.Equal(t, string(expected), string(actual))
+		if !assert.Equal(t, string(expected), string(actual)) {
+			t.Logf("config expected: %s\n", string(expected))
+			t.Logf("got: %s\n", string(actual))
+		}
 	}
 	if expectedPluginsFilename != "" {
 		expected, err := yaml.Marshal(&expectedPlugins)
 		assert.NoError(t, err)
 		actual, err := yaml.Marshal(plugs)
 		assert.NoError(t, err)
-		assert.Equal(t, string(expected), string(actual))
+		if !assert.Equal(t, string(expected), string(actual)) {
+			t.Logf("plugins expected: %s\n", string(expected))
+			t.Logf("got: %s\n", string(actual))
+
+		}
 	}
 }

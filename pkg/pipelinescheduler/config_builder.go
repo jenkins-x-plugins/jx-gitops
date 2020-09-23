@@ -369,7 +369,7 @@ func buildPostsubmits(jobConfig *config.JobConfig, items []*job.Postsubmit, orgN
 }
 
 func buildPresubmits(jobConfig *config.JobConfig, prowConfig *config.ProwConfig,
-	items []*job.Presubmit, orgName string, repoName string) error {
+	items []*schedulerapi.Presubmit, orgName string, repoName string) error {
 	if jobConfig.Presubmits == nil {
 		jobConfig.Presubmits = make(map[string][]job.Presubmit)
 	}
@@ -378,7 +378,55 @@ func buildPresubmits(jobConfig *config.JobConfig, prowConfig *config.ProwConfig,
 		if _, ok := jobConfig.Presubmits[orgSlashRepo]; !ok {
 			jobConfig.Presubmits[orgSlashRepo] = make([]job.Presubmit, 0)
 		}
-		jobConfig.Presubmits[orgSlashRepo] = append(jobConfig.Presubmits[orgSlashRepo], *r)
+		jobConfig.Presubmits[orgSlashRepo] = append(jobConfig.Presubmits[orgSlashRepo], r.Presubmit)
+
+		if r.Queries != nil && len(r.Queries) > 0 {
+			err := buildQuery(&prowConfig.Keeper, r.Queries, orgName, repoName)
+			if err != nil {
+				return errors.Wrapf(err, "building Query from %v", r.Queries)
+			}
+		}
+		if r.MergeType != nil {
+			mt := keeper.PullRequestMergeType(*r.MergeType)
+			if prowConfig.Keeper.MergeType == nil && mt != "" {
+				prowConfig.Keeper.MergeType = make(map[string]keeper.PullRequestMergeType)
+			}
+			if mt != "" {
+				prowConfig.Keeper.MergeType[orgSlashRepo] = mt
+			}
+		}
+		if r.Policy != nil {
+			if r.Policy.ProtectionPolicy != nil {
+				err := buildBranchProtection(&prowConfig.BranchProtection, r.Policy.ProtectionPolicy,
+					orgName, repoName, "")
+				if err != nil {
+					return errors.WithStack(err)
+				}
+			}
+			for k, v := range r.Policy.Items {
+				err := buildBranchProtection(&prowConfig.BranchProtection, v, orgName, repoName, k)
+				if err != nil {
+					return errors.WithStack(err)
+				}
+			}
+
+		}
+		if r.ContextPolicy != nil {
+			policy := keeper.RepoContextPolicy{}
+			err := buildRepoContextPolicy(&policy, r.ContextPolicy)
+			if err != nil {
+				return errors.Wrapf(err, "building RepoContextPolicy from %v", r)
+			}
+			if prowConfig.Keeper.ContextOptions.Orgs == nil {
+				prowConfig.Keeper.ContextOptions.Orgs = make(map[string]keeper.OrgContextPolicy)
+			}
+			if _, ok := prowConfig.Keeper.ContextOptions.Orgs[orgName]; !ok {
+				prowConfig.Keeper.ContextOptions.Orgs[orgName] = keeper.OrgContextPolicy{
+					Repos: make(map[string]keeper.RepoContextPolicy),
+				}
+			}
+			prowConfig.Keeper.ContextOptions.Orgs[orgName].Repos[repoName] = policy
+		}
 	}
 	return nil
 }

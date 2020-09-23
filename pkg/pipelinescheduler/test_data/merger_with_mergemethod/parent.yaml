@@ -17,16 +17,16 @@ merger:
   maxGoroutines: 5
   policy:
     fromBranchProtection: true
-    requiredContexts:
+    required-contexts:
       entries:
         - context1
         - context2
-    requiredIfPresentContexts:
+    required-if-present-contexts:
       entries:
         - context55
         - context66
         - context77
-    optionalContexts:
+    optional-contexts:
       entries:
         - opt1
   mergeMethod: merge
@@ -35,7 +35,6 @@ postsubmits:
   - name: release
     context: ""
     branches:
-      entries:
       - master
     agent: tekton
 
@@ -43,9 +42,9 @@ presubmits:
   entries:
   - name: integration
     agent: tekton
-    alwaysRun: true
+    always_run: true
     context: integration
-    rerunCommand: /test this
+    rerun_command: /test this
     trigger: (?m)^/test( all| this),?(\s+|$)
     queries:
       - labels:
