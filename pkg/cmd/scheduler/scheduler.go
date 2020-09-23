@@ -8,6 +8,7 @@ import (
 	v1 "github.com/jenkins-x/jx-api/pkg/apis/jenkins.io/v1"
 	"github.com/jenkins-x/jx-api/pkg/client/clientset/versioned"
 	"github.com/jenkins-x/jx-api/pkg/client/clientset/versioned/fake"
+	"github.com/jenkins-x/jx-gitops/pkg/schedulerapi"
 	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
 	"github.com/jenkins-x/jx-helpers/pkg/yamls"
@@ -55,17 +56,23 @@ var (
 
 	`)
 
+	sourceResourceFilter = kyamls.Filter{
+		Kinds: []string{"jenkins.io/v1/Environment", "jenkins.io/v1/SourceRepository"},
+	}
+
 	schedulerResourceFilter = kyamls.Filter{
-		Kinds: []string{"jenkins.io/v1/Environment", "jenkins.io/v1/Scheduler", "jenkins.io/v1/SourceRepository"},
+		Kinds: []string{"jenkins.io/v1/Scheduler"},
 	}
 )
 
 // LabelOptions the options for the command
 type Options struct {
-	Dir          string
-	OutDir       string
-	Namespace    string
-	InRepoConfig bool
+	Dir           string
+	OutDir        string
+	SourceRepoDir string
+	SchedulerDir  string
+	Namespace     string
+	InRepoConfig  bool
 }
 
 // NewCmdScheduler creates a command object for the command
@@ -83,21 +90,28 @@ func NewCmdScheduler() (*cobra.Command, *Options) {
 			helper.CheckErr(err)
 		},
 	}
-	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the directory to recursively look for the *.yaml or *.yml files")
-	cmd.Flags().StringVarP(&o.OutDir, "out", "o", "", "the output directory for the generated config files")
+	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the current working directory")
+	cmd.Flags().StringVarP(&o.SourceRepoDir, "repo-dir", "", "", "the directory to look for SourceRepository resources. If not specified defaults config-root/namespaces/$ns")
+	cmd.Flags().StringVarP(&o.SchedulerDir, "scheduler-dir", "", "", "the directory to look for Scheduler resources. If not specified defaults versionStream/schedulers")
+	cmd.Flags().StringVarP(&o.OutDir, "out", "o", "", "the output directory for the generated config files. If not specified defaults to config-root/namespaces/$ns/lighthouse-config")
 	cmd.Flags().StringVarP(&o.Namespace, "namespace", "n", "jx", "the namespace for the SourceRepository and Scheduler resources")
 	cmd.Flags().BoolVarP(&o.InRepoConfig, "in-repo-config", "", false, "enables in repo configuration in lighthouse")
 	return cmd, o
 }
 
 func (o *Options) Run() error {
-	dir := o.Dir
 	ns := o.Namespace
 	if ns == "" {
 		ns = "jx"
 	}
+	if o.SourceRepoDir == "" {
+		o.SourceRepoDir = filepath.Join(o.Dir, "config-root", "namespaces", ns)
+	}
+	if o.SchedulerDir == "" {
+		o.SchedulerDir = filepath.Join(o.Dir, "versionStream", "schedulers")
+	}
 	if o.OutDir == "" {
-		o.OutDir = filepath.Join(o.Dir, "src", "base", "namespaces", ns, "lighthouse-config")
+		o.OutDir = filepath.Join(o.Dir, "config-root", "namespaces", ns, "lighthouse-config")
 	}
 	err := os.MkdirAll(o.OutDir, files.DefaultDirWritePermissions)
 	if err != nil {
@@ -107,11 +121,11 @@ func (o *Options) Run() error {
 	var devEnv *v1.Environment
 	var resources []runtime.Object
 
-	schedulerMap := map[string]*v1.Scheduler{}
+	schedulerMap := map[string]*schedulerapi.Scheduler{}
 	repoListGroup := &v1.SourceRepositoryGroupList{}
 	repoList := &v1.SourceRepositoryList{}
 
-	modifyFn := func(node *yaml.RNode, path string) (bool, error) {
+	sourceModifyFn := func(node *yaml.RNode, path string) (bool, error) {
 		namespace := kyamls.GetNamespace(node, path)
 		kind := kyamls.GetKind(node, path)
 		name := kyamls.GetName(node, path)
@@ -126,16 +140,6 @@ func (o *Options) Run() error {
 				}
 				loaded = true
 			}
-
-		case "Scheduler":
-			scheduler := &v1.Scheduler{}
-			err = yamls.LoadFile(path, scheduler)
-			if err != nil {
-				return false, errors.Wrapf(err, "failed to load file %s", path)
-			}
-			schedulerMap[name] = scheduler
-			resources = append(resources, scheduler)
-			loaded = true
 
 		case "SourceRepository":
 			sr := &v1.SourceRepository{}
@@ -155,11 +159,36 @@ func (o *Options) Run() error {
 		}
 		return false, nil
 	}
-
-	err = kyamls.ModifyFiles(dir, modifyFn, schedulerResourceFilter)
+	err = kyamls.ModifyFiles(o.SourceRepoDir, sourceModifyFn, sourceResourceFilter)
 	if err != nil {
-		return errors.Wrapf(err, "failed to load resources from dir %s", dir)
+		return errors.Wrapf(err, "failed to load resources from dir %s", o.SourceRepoDir)
 	}
+
+	log.Logger().Infof("loaded %d SourceRepository resources from %s", len(repoList.Items), o.SourceRepoDir)
+
+	schedulerModifyFn := func(node *yaml.RNode, path string) (bool, error) {
+		namespace := kyamls.GetNamespace(node, path)
+		kind := kyamls.GetKind(node, path)
+		name := kyamls.GetName(node, path)
+		loaded := false
+		scheduler := &schedulerapi.Scheduler{}
+		err = yamls.LoadFile(path, scheduler)
+		if err != nil {
+			return false, errors.Wrapf(err, "failed to load file %s", path)
+		}
+		schedulerMap[name] = scheduler
+		loaded = true
+		if loaded {
+			log.Logger().Infof("loaded %s name %s in namespace %s", kind, name, namespace)
+		}
+		return false, nil
+	}
+	err = kyamls.ModifyFiles(o.SchedulerDir, schedulerModifyFn, schedulerResourceFilter)
+	if err != nil {
+		return errors.Wrapf(err, "failed to load resources from dir %s", o.SchedulerDir)
+	}
+
+	log.Logger().Infof("loaded %d Scheduler resources from %s", len(schedulerMap), o.SchedulerDir)
 
 	if devEnv == nil {
 		devEnv = &v1.Environment{
@@ -178,7 +207,7 @@ func (o *Options) Run() error {
 	resources = append(resources, devEnv)
 	jxClient := fake.NewSimpleClientset(resources...)
 
-	loadSchedulers := func(jxClient versioned.Interface, ns string) (map[string]*v1.Scheduler, *v1.SourceRepositoryGroupList, *v1.SourceRepositoryList, error) {
+	loadSchedulers := func(jxClient versioned.Interface, ns string) (map[string]*schedulerapi.Scheduler, *v1.SourceRepositoryGroupList, *v1.SourceRepositoryList, error) {
 		return schedulerMap, repoListGroup, repoList, nil
 	}
 
@@ -187,7 +216,15 @@ func (o *Options) Run() error {
 		return errors.Wrapf(err, "failed to generate lighthouse configuration")
 	}
 
+	// lets check for in repo config
+	for _, sr := range repoList.Items {
+		if sr.Spec.Scheduler.Name == "in-repo" {
+			o.InRepoConfig = true
+			break
+		}
+	}
 	if o.InRepoConfig {
+		log.Logger().Infof("enabling in repo configuration for Lighthouse")
 		o.enableInRepoConfig(config, plugins)
 	}
 

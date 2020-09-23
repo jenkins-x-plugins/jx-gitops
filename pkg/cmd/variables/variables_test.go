@@ -9,6 +9,7 @@ import (
 	"github.com/jenkins-x/jx-api/pkg/config"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/variables"
 	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner/fakerunner"
+	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/jenkins-x/jx-helpers/pkg/kube/jxenv"
 	"github.com/jenkins-x/jx-helpers/pkg/testhelpers"
 	"github.com/stretchr/testify/require"
@@ -23,6 +24,11 @@ func TestCmdVariables(t *testing.T) {
 
 	tmpDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err, "failed to create temp dir")
+
+	version := "1.2.3"
+	versionFile := filepath.Join(tmpDir, "VERSION")
+	err = ioutil.WriteFile(versionFile, []byte(version), files.DefaultFileWritePermissions)
+	require.NoError(t, err, "failed to write file %s", versionFile)
 
 	ns := "jx"
 	devEnv := jxenv.CreateDefaultDevEnvironment(ns)
@@ -42,6 +48,7 @@ func TestCmdVariables(t *testing.T) {
 	o.CommandRunner = runner.Run
 	o.JXClient = jxClient
 	o.Namespace = ns
+	o.BuildNumber = "5"
 
 	o.KubeClient = fake.NewSimpleClientset(
 		&corev1.ConfigMap{

@@ -26,7 +26,6 @@ func TestScheduler(t *testing.T) {
 
 	so.OutDir = tmpDir
 	so.Dir = sourceDir
-	so.InRepoConfig = true
 
 	err = so.Run()
 	require.NoError(t, err, "failed to run scheduler command")
@@ -64,8 +63,17 @@ func TestScheduler(t *testing.T) {
 	lhCfg, err := config.LoadYAMLConfig([]byte(configYaml))
 	require.NoError(t, err, "failed to load config file %s into lighthouse config", configFile)
 
-	repoName := "myorg/in-repo"
-	assert.Len(t, lhCfg.Postsubmits[repoName], 0, "should not have any postsubmits for %s", repoName)
+	for _, repoName := range []string{"myorg/default", "myorg/env-mycluster-dev"} {
+		assert.Len(t, lhCfg.Presubmits[repoName], 1, "presubmits for %s", repoName)
+		assert.Len(t, lhCfg.Postsubmits[repoName], 1, "postsubmits for %s", repoName)
+	}
+
+	for _, repoName := range []string{"myorg/in-repo"} {
+		assert.Len(t, lhCfg.Presubmits[repoName], 0, "presubmits for %s", repoName)
+		assert.Len(t, lhCfg.Postsubmits[repoName], 0, "postsubmits for %s", repoName)
+	}
+
+	assert.NotEmpty(t, lhCfg.InRepoConfig.Enabled, "should have inRepoConfig enabled")
 }
 
 func AssertYamlMap(t *testing.T, text string, message string) map[string]interface{} {

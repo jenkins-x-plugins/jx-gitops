@@ -7,7 +7,8 @@ import (
 	"testing"
 	"time"
 
-	v1 "github.com/jenkins-x/jx-api/pkg/apis/jenkins.io/v1"
+	"github.com/jenkins-x/jx-gitops/pkg/schedulerapi"
+	"github.com/jenkins-x/lighthouse/pkg/config/job"
 
 	"github.com/ghodss/yaml"
 
@@ -21,11 +22,11 @@ import (
 )
 
 // CompleteScheduler returns a SchedulerSpec completely filled with dummy data
-func CompleteScheduler() *v1.SchedulerSpec {
-	return &v1.SchedulerSpec{
+func CompleteScheduler() *schedulerapi.SchedulerSpec {
+	return &schedulerapi.SchedulerSpec{
 		Policy: pointerToGlobalProtectionPolicy(),
-		Merger: &v1.Merger{
-			ContextPolicy: &v1.ContextPolicy{
+		Merger: &schedulerapi.Merger{
+			ContextPolicy: &schedulerapi.ContextPolicy{
 				OptionalContexts:          PointerToReplaceableSliceOfStrings(),
 				RequiredContexts:          PointerToReplaceableSliceOfStrings(),
 				RequiredIfPresentContexts: PointerToReplaceableSliceOfStrings(),
@@ -39,71 +40,41 @@ func CompleteScheduler() *v1.SchedulerSpec {
 			StatusUpdatePeriod: pointerToRandomDuration(),
 			SyncPeriod:         pointerToRandomDuration(),
 		},
-		Presubmits: &v1.Presubmits{
-			Items: []*v1.Presubmit{
+		Presubmits: &schedulerapi.Presubmits{
+			Items: []*job.Presubmit{
 				{
-					MergeType: pointerToUUID(),
-					Context:   pointerToUUID(),
-					Report:    pointerToTrue(),
-					AlwaysRun: pointerToTrue(),
-					Optional:  pointerToTrue(),
-					ContextPolicy: &v1.RepoContextPolicy{
-						ContextPolicy: pointerToContextPolicy(),
-						Branches: &v1.ReplaceableMapOfStringContextPolicy{
-							Items: map[string]*v1.ContextPolicy{
-								uuid.New(): pointerToContextPolicy(),
-							},
-						},
+					Base: job.Base{
+						Name: "cheese",
 					},
-					Queries: []*v1.Query{{
-						Labels:                 PointerToReplaceableSliceOfStrings(),
-						ExcludedBranches:       PointerToReplaceableSliceOfStrings(),
-						IncludedBranches:       PointerToReplaceableSliceOfStrings(),
-						MissingLabels:          PointerToReplaceableSliceOfStrings(),
-						Milestone:              pointerToUUID(),
-						ReviewApprovedRequired: pointerToTrue(),
-					}},
-					Brancher:     pointerToBrancher(),
-					RerunCommand: pointerToUUID(),
-					Trigger:      pointerToUUID(),
-					Policy: &v1.ProtectionPolicies{
-						Items: map[string]*v1.ProtectionPolicy{
-							uuid.New(): pointerToProtectionPolicy(),
-						},
-					},
-					RegexpChangeMatcher: pointerToRegexpChangeMatcher(),
-					JobBase:             pointerToJobBase(),
 				},
 			},
 		},
-		Postsubmits: &v1.Postsubmits{
-			Items: []*v1.Postsubmit{
+		Postsubmits: &schedulerapi.Postsubmits{
+			Items: []*job.Postsubmit{
 				{
-					Report:              pointerToTrue(),
-					Context:             pointerToUUID(),
-					JobBase:             pointerToJobBase(),
-					RegexpChangeMatcher: pointerToRegexpChangeMatcher(),
-					Brancher:            pointerToBrancher(),
+					Base: job.Base{
+						Name: "cheese",
+					},
 				},
 			},
 		},
-		Trigger: &v1.Trigger{
+		Trigger: &schedulerapi.Trigger{
 			IgnoreOkToTest: pointerToTrue(),
 			JoinOrgURL:     pointerToUUID(),
 			OnlyOrgMembers: pointerToTrue(),
 			TrustedOrg:     pointerToUUID(),
 		},
-		ScehdulerAgent: &v1.SchedulerAgent{
+		ScehdulerAgent: &schedulerapi.SchedulerAgent{
 			Agent: pointerToUUID(),
 		},
-		Approve: &v1.Approve{
+		Approve: &schedulerapi.Approve{
 			RequireSelfApproval: pointerToTrue(),
 			LgtmActsAsApprove:   pointerToTrue(),
 			IssueRequired:       pointerToTrue(),
 			IgnoreReviewState:   pointerToTrue(),
 		},
-		ExternalPlugins: &v1.ReplaceableSliceOfExternalPlugins{
-			Items: []*v1.ExternalPlugin{
+		ExternalPlugins: &schedulerapi.ReplaceableSliceOfExternalPlugins{
+			Items: []*schedulerapi.ExternalPlugin{
 				{
 					Name:     pointerToUUID(),
 					Events:   PointerToReplaceableSliceOfStrings(),
@@ -111,7 +82,7 @@ func CompleteScheduler() *v1.SchedulerSpec {
 				},
 			},
 		},
-		LGTM: &v1.Lgtm{
+		LGTM: &schedulerapi.Lgtm{
 			StoreTreeHash:    pointerToTrue(),
 			ReviewActsAsLgtm: pointerToTrue(),
 			StickyLgtmTeam:   pointerToUUID(),
@@ -142,25 +113,16 @@ func pointerToRandomDuration() *time.Duration {
 }
 
 // PointerToReplaceableSliceOfStrings creaters a ReplaceableSliceOfStrings and returns its pointer
-func PointerToReplaceableSliceOfStrings() *v1.ReplaceableSliceOfStrings {
-	return &v1.ReplaceableSliceOfStrings{
+func PointerToReplaceableSliceOfStrings() *schedulerapi.ReplaceableSliceOfStrings {
+	return &schedulerapi.ReplaceableSliceOfStrings{
 		Items: []string{
 			uuid.New(),
 		},
 	}
 }
 
-// PointerToReplaceableMapOfStringString returns a ReplaceableMapOfStringString pointer
-func PointerToReplaceableMapOfStringString() *v1.ReplaceableMapOfStringString {
-	return &v1.ReplaceableMapOfStringString{
-		Items: map[string]string{
-			uuid.New(): uuid.New(),
-		},
-	}
-}
-
-func pointerToContextPolicy() *v1.ContextPolicy {
-	return &v1.ContextPolicy{
+func pointerToContextPolicy() *schedulerapi.ContextPolicy {
+	return &schedulerapi.ContextPolicy{
 		SkipUnknownContexts:       pointerToTrue(),
 		FromBranchProtection:      pointerToTrue(),
 		RequiredIfPresentContexts: PointerToReplaceableSliceOfStrings(),
@@ -169,55 +131,31 @@ func pointerToContextPolicy() *v1.ContextPolicy {
 	}
 }
 
-func pointerToGlobalProtectionPolicy() *v1.GlobalProtectionPolicy {
-	return &v1.GlobalProtectionPolicy{
+func pointerToGlobalProtectionPolicy() *schedulerapi.GlobalProtectionPolicy {
+	return &schedulerapi.GlobalProtectionPolicy{
 		ProtectTested:    pointerToTrue(),
 		ProtectionPolicy: pointerToProtectionPolicy(),
 	}
 }
 
-func pointerToProtectionPolicy() *v1.ProtectionPolicy {
-	return &v1.ProtectionPolicy{
-		Restrictions: &v1.Restrictions{
+func pointerToProtectionPolicy() *schedulerapi.ProtectionPolicy {
+	return &schedulerapi.ProtectionPolicy{
+		Restrictions: &schedulerapi.Restrictions{
 			Users: PointerToReplaceableSliceOfStrings(),
 			Teams: PointerToReplaceableSliceOfStrings(),
 		},
 		Admins: pointerToTrue(),
-		RequiredPullRequestReviews: &v1.ReviewPolicy{
-			DismissalRestrictions: &v1.Restrictions{
+		RequiredPullRequestReviews: &schedulerapi.ReviewPolicy{
+			DismissalRestrictions: &schedulerapi.Restrictions{
 				Users: PointerToReplaceableSliceOfStrings(),
 				Teams: PointerToReplaceableSliceOfStrings(),
 			},
 		},
-		RequiredStatusChecks: &v1.BranchProtectionContextPolicy{
+		RequiredStatusChecks: &schedulerapi.BranchProtectionContextPolicy{
 			Strict:   pointerToTrue(),
 			Contexts: PointerToReplaceableSliceOfStrings(),
 		},
 		Protect: pointerToTrue(),
-	}
-}
-
-func pointerToJobBase() *v1.JobBase {
-	return &v1.JobBase{
-		Labels:         PointerToReplaceableMapOfStringString(),
-		Namespace:      pointerToUUID(),
-		Cluster:        pointerToUUID(),
-		MaxConcurrency: pointerToRandomNumber(),
-		Agent:          pointerToUUID(),
-		Name:           pointerToUUID(),
-	}
-}
-
-func pointerToRegexpChangeMatcher() *v1.RegexpChangeMatcher {
-	return &v1.RegexpChangeMatcher{
-		RunIfChanged: pointerToUUID(),
-	}
-}
-
-func pointerToBrancher() *v1.Brancher {
-	return &v1.Brancher{
-		Branches:     PointerToReplaceableSliceOfStrings(),
-		SkipBranches: PointerToReplaceableSliceOfStrings(),
 	}
 }
 
@@ -252,11 +190,11 @@ func BuildAndValidateProwConfig(t *testing.T, baseDir string, expectedConfigFile
 
 	schedulerLeaves := make([]*pipelinescheduler.SchedulerLeaf, 0)
 	for _, sfs := range schedulerFiles {
-		schedulers := make([]*v1.SchedulerSpec, 0)
+		schedulers := make([]*schedulerapi.SchedulerSpec, 0)
 		for _, f := range sfs.Filenames {
 			bytes, err := ioutil.ReadFile(filepath.Join(baseDir, f))
 			assert.NoError(t, err)
-			s := v1.SchedulerSpec{}
+			s := schedulerapi.SchedulerSpec{}
 			err = yaml.Unmarshal(bytes, &s)
 			assert.NoError(t, err)
 			schedulers = append(schedulers, &s)

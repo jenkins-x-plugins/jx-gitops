@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	jenkinsv1 "github.com/jenkins-x/jx-api/pkg/apis/jenkins.io/v1"
+	"github.com/jenkins-x/jx-gitops/pkg/schedulerapi"
 	"github.com/jenkins-x/lighthouse/pkg/config"
 	"github.com/jenkins-x/lighthouse/pkg/config/branchprotection"
 	"github.com/jenkins-x/lighthouse/pkg/config/job"
@@ -40,7 +40,7 @@ func BuildProwConfig(schedulers []*SchedulerLeaf) (*config.Config, *plugins.Conf
 	return &configResult, &pluginsResult, nil
 }
 
-func buildPlugins(answer *plugins.Configuration, scheduler *jenkinsv1.SchedulerSpec, orgName string,
+func buildPlugins(answer *plugins.Configuration, scheduler *schedulerapi.SchedulerSpec, orgName string,
 	repoName string) error {
 	if scheduler.Plugins != nil {
 		if answer.Plugins == nil {
@@ -143,7 +143,7 @@ func buildPlugins(answer *plugins.Configuration, scheduler *jenkinsv1.SchedulerS
 	return nil
 }
 
-func buildTrigger(answer *plugins.Trigger, trigger *jenkinsv1.Trigger, orgName string, repoName string) error {
+func buildTrigger(answer *plugins.Trigger, trigger *schedulerapi.Trigger, orgName string, repoName string) error {
 	if trigger.TrustedOrg != nil {
 		answer.TrustedOrg = *trigger.TrustedOrg
 	} else {
@@ -164,7 +164,7 @@ func buildTrigger(answer *plugins.Trigger, trigger *jenkinsv1.Trigger, orgName s
 	return nil
 }
 
-func buildLgtm(answer *plugins.Lgtm, lgtm *jenkinsv1.Lgtm, orgName string, repoName string) error {
+func buildLgtm(answer *plugins.Lgtm, lgtm *schedulerapi.Lgtm, orgName string, repoName string) error {
 	if lgtm.StickyLgtmTeam != nil {
 		answer.StickyLgtmTeam = *lgtm.StickyLgtmTeam
 	}
@@ -180,7 +180,7 @@ func buildLgtm(answer *plugins.Lgtm, lgtm *jenkinsv1.Lgtm, orgName string, repoN
 	return nil
 }
 
-func buildApprove(answer *plugins.Approve, approve *jenkinsv1.Approve, orgName string, repoName string) error {
+func buildApprove(answer *plugins.Approve, approve *schedulerapi.Approve, orgName string, repoName string) error {
 	answer.IgnoreReviewState = approve.IgnoreReviewState
 	answer.RequireSelfApproval = approve.RequireSelfApproval
 	if approve.IssueRequired != nil {
@@ -195,7 +195,7 @@ func buildApprove(answer *plugins.Approve, approve *jenkinsv1.Approve, orgName s
 	return nil
 }
 
-func buildExternalPlugin(answer *plugins.ExternalPlugin, plugin *jenkinsv1.ExternalPlugin) error {
+func buildExternalPlugin(answer *plugins.ExternalPlugin, plugin *schedulerapi.ExternalPlugin) error {
 	if plugin.Name != nil {
 		answer.Name = *plugin.Name
 	}
@@ -208,7 +208,7 @@ func buildExternalPlugin(answer *plugins.ExternalPlugin, plugin *jenkinsv1.Exter
 	return nil
 }
 
-func buildProwConfig(prowConfig *config.ProwConfig, scheduler *jenkinsv1.SchedulerSpec, org string, repo string) error {
+func buildProwConfig(prowConfig *config.ProwConfig, scheduler *schedulerapi.SchedulerSpec, org string, repo string) error {
 	if scheduler.Policy != nil {
 		err := buildGlobalBranchProtection(&prowConfig.BranchProtection, scheduler.Policy)
 		if err != nil {
@@ -224,7 +224,7 @@ func buildProwConfig(prowConfig *config.ProwConfig, scheduler *jenkinsv1.Schedul
 	return nil
 }
 
-func buildPolicy(answer *branchprotection.Policy, policy *jenkinsv1.ProtectionPolicy) error {
+func buildPolicy(answer *branchprotection.Policy, policy *schedulerapi.ProtectionPolicy) error {
 	if policy.Protect != nil {
 		answer.Protect = policy.Protect
 	}
@@ -262,7 +262,7 @@ func buildPolicy(answer *branchprotection.Policy, policy *jenkinsv1.ProtectionPo
 }
 
 func buildBranchProtectionContextPolicy(answer *branchprotection.ContextPolicy,
-	policy *jenkinsv1.BranchProtectionContextPolicy) error {
+	policy *schedulerapi.BranchProtectionContextPolicy) error {
 	if policy.Contexts != nil {
 		if answer.Contexts == nil {
 			answer.Contexts = make([]string, 0)
@@ -286,7 +286,7 @@ func buildBranchProtectionContextPolicy(answer *branchprotection.ContextPolicy,
 	return nil
 }
 
-func buildRequiredPullRequestReviews(answer *branchprotection.ReviewPolicy, policy *jenkinsv1.ReviewPolicy) error {
+func buildRequiredPullRequestReviews(answer *branchprotection.ReviewPolicy, policy *schedulerapi.ReviewPolicy) error {
 	if policy.Approvals != nil {
 		answer.Approvals = policy.Approvals
 	}
@@ -308,7 +308,7 @@ func buildRequiredPullRequestReviews(answer *branchprotection.ReviewPolicy, poli
 	return nil
 }
 
-func buildRestrictions(answer *branchprotection.Restrictions, restrictions *jenkinsv1.Restrictions) error {
+func buildRestrictions(answer *branchprotection.Restrictions, restrictions *schedulerapi.Restrictions) error {
 	if restrictions.Users != nil {
 		if answer.Users == nil {
 			answer.Users = make([]string, 0)
@@ -329,7 +329,7 @@ func buildRestrictions(answer *branchprotection.Restrictions, restrictions *jenk
 }
 
 func buildJobConfig(jobConfig *config.JobConfig, prowConfig *config.ProwConfig,
-	scheduler *jenkinsv1.SchedulerSpec, org string, repo string) error {
+	scheduler *schedulerapi.SchedulerSpec, org string, repo string) error {
 	if scheduler.Postsubmits != nil && scheduler.Postsubmits.Items != nil {
 		err := buildPostsubmits(jobConfig, scheduler.Postsubmits.Items, org, repo)
 		if err != nil {
@@ -354,7 +354,7 @@ func buildJobConfig(jobConfig *config.JobConfig, prowConfig *config.ProwConfig,
 	return nil
 }
 
-func buildPostsubmits(jobConfig *config.JobConfig, items []*jenkinsv1.Postsubmit, orgName string, repoName string) error {
+func buildPostsubmits(jobConfig *config.JobConfig, items []*job.Postsubmit, orgName string, repoName string) error {
 	if jobConfig.Postsubmits == nil {
 		jobConfig.Postsubmits = make(map[string][]job.Postsubmit)
 	}
@@ -363,37 +363,13 @@ func buildPostsubmits(jobConfig *config.JobConfig, items []*jenkinsv1.Postsubmit
 		if _, ok := jobConfig.Postsubmits[orgSlashRepo]; !ok {
 			jobConfig.Postsubmits[orgSlashRepo] = make([]job.Postsubmit, 0)
 		}
-		c := job.Postsubmit{}
-		err := buildBase(&c.Base, r.JobBase)
-		if err != nil {
-			return errors.Wrapf(err, "building Base from %v", r.JobBase)
-		}
-		if r.Brancher != nil {
-			err = buildBrancher(&c.Brancher, r.Brancher)
-			if err != nil {
-				return errors.Wrapf(err, "building Brancher from %v", r.Brancher)
-			}
-		}
-		if r.RegexpChangeMatcher != nil {
-			err = buildRegexChangeMatacher(&c.RegexpChangeMatcher, r.RegexpChangeMatcher)
-			if err != nil {
-				return errors.Wrapf(err, "building RegexpChangeMatcher from %v", r.RegexpChangeMatcher)
-			}
-		}
-		if r.Report != nil {
-			report := *r.Report
-			c.SkipReport = !report
-		}
-		if r.Context != nil {
-			c.Context = *r.Context
-		}
-		jobConfig.Postsubmits[orgSlashRepo] = append(jobConfig.Postsubmits[orgSlashRepo], c)
+		jobConfig.Postsubmits[orgSlashRepo] = append(jobConfig.Postsubmits[orgSlashRepo], *r)
 	}
 	return nil
 }
 
 func buildPresubmits(jobConfig *config.JobConfig, prowConfig *config.ProwConfig,
-	items []*jenkinsv1.Presubmit, orgName string, repoName string) error {
+	items []*job.Presubmit, orgName string, repoName string) error {
 	if jobConfig.Presubmits == nil {
 		jobConfig.Presubmits = make(map[string][]job.Presubmit)
 	}
@@ -402,97 +378,13 @@ func buildPresubmits(jobConfig *config.JobConfig, prowConfig *config.ProwConfig,
 		if _, ok := jobConfig.Presubmits[orgSlashRepo]; !ok {
 			jobConfig.Presubmits[orgSlashRepo] = make([]job.Presubmit, 0)
 		}
-		c := job.Presubmit{}
-		err := buildBase(&c.Base, r.JobBase)
-		if err != nil {
-			return errors.Wrapf(err, "building Base from %v", r.JobBase)
-		}
-		if r.Brancher != nil {
-			err = buildBrancher(&c.Brancher, r.Brancher)
-			if err != nil {
-				return errors.Wrapf(err, "building Brancher from %v", r.Brancher)
-			}
-		}
-		if r.RegexpChangeMatcher != nil {
-			err = buildRegexChangeMatacher(&c.RegexpChangeMatcher, r.RegexpChangeMatcher)
-			if err != nil {
-				return errors.Wrapf(err, "building RegexpChangeMatcher from %v", r.RegexpChangeMatcher)
-			}
-		}
-		if r.Trigger != nil {
-			c.Trigger = *r.Trigger
-		}
-		if r.RerunCommand != nil {
-			c.RerunCommand = *r.RerunCommand
-		}
-		if r.Optional != nil {
-			c.Optional = *r.Optional
-		}
-		if r.AlwaysRun != nil {
-			c.AlwaysRun = *r.AlwaysRun
-		}
-		if r.Report != nil {
-			c.SkipReport = !*r.Report
-		}
-		if r.Context != nil {
-			c.Context = *r.Context
-		}
-		jobConfig.Presubmits[orgSlashRepo] = append(jobConfig.Presubmits[orgSlashRepo], c)
-
-		if r.Queries != nil && len(r.Queries) > 0 {
-			err := buildQuery(&prowConfig.Keeper, r.Queries, orgName, repoName)
-			if err != nil {
-				return errors.Wrapf(err, "building Query from %v", r.Queries)
-			}
-		}
-		if r.MergeType != nil {
-			mt := keeper.PullRequestMergeType(*r.MergeType)
-			if prowConfig.Keeper.MergeType == nil && mt != "" {
-				prowConfig.Keeper.MergeType = make(map[string]keeper.PullRequestMergeType)
-			}
-			if mt != "" {
-				prowConfig.Keeper.MergeType[orgSlashRepo] = mt
-			}
-		}
-		if r.Policy != nil {
-			if r.Policy.ProtectionPolicy != nil {
-				err := buildBranchProtection(&prowConfig.BranchProtection, r.Policy.ProtectionPolicy,
-					orgName, repoName, "")
-				if err != nil {
-					return errors.WithStack(err)
-				}
-			}
-			for k, v := range r.Policy.Items {
-				err := buildBranchProtection(&prowConfig.BranchProtection, v, orgName, repoName, k)
-				if err != nil {
-					return errors.WithStack(err)
-				}
-			}
-
-		}
-		if r.ContextPolicy != nil {
-			policy := keeper.RepoContextPolicy{}
-			err := buildRepoContextPolicy(&policy, r.ContextPolicy)
-			if err != nil {
-				return errors.Wrapf(err, "building RepoContextPolicy from %v", r)
-			}
-			if prowConfig.Keeper.ContextOptions.Orgs == nil {
-				prowConfig.Keeper.ContextOptions.Orgs = make(map[string]keeper.OrgContextPolicy)
-			}
-			if _, ok := prowConfig.Keeper.ContextOptions.Orgs[orgName]; !ok {
-				prowConfig.Keeper.ContextOptions.Orgs[orgName] = keeper.OrgContextPolicy{
-					Repos: make(map[string]keeper.RepoContextPolicy),
-				}
-			}
-			prowConfig.Keeper.ContextOptions.Orgs[orgName].Repos[repoName] = policy
-		}
-		// TODO handle LGTM's here
+		jobConfig.Presubmits[orgSlashRepo] = append(jobConfig.Presubmits[orgSlashRepo], *r)
 	}
 	return nil
 }
 
 func buildGlobalBranchProtection(answer *branchprotection.Config,
-	globalProtectionPolicy *jenkinsv1.GlobalProtectionPolicy) error {
+	globalProtectionPolicy *schedulerapi.GlobalProtectionPolicy) error {
 	if globalProtectionPolicy.ProtectTested != nil {
 		answer.ProtectTested = *globalProtectionPolicy.ProtectTested
 	}
@@ -506,7 +398,7 @@ func buildGlobalBranchProtection(answer *branchprotection.Config,
 }
 
 func buildBranchProtection(answer *branchprotection.Config,
-	protectionPolicy *jenkinsv1.ProtectionPolicy, orgName string, repoName string, branchName string) error {
+	protectionPolicy *schedulerapi.ProtectionPolicy, orgName string, repoName string, branchName string) error {
 	if orgName != "" {
 		if answer.Orgs == nil {
 			answer.Orgs = make(map[string]branchprotection.Org)
@@ -565,24 +457,24 @@ func orgSlashRepo(org string, repo string) string {
 	return fmt.Sprintf("%s/%s", org, repo)
 }
 
-func buildBase(answer *job.Base, jobBase *jenkinsv1.JobBase) error {
-	if jobBase.Agent != nil {
-		answer.Agent = *jobBase.Agent
+func buildBase(answer *job.Base, jobBase *job.Base) error {
+	if jobBase.Agent != "" {
+		answer.Agent = jobBase.Agent
 	}
-	if jobBase.Labels != nil && jobBase.Labels.Items != nil {
-		answer.Labels = jobBase.Labels.Items
+	if jobBase.Labels != nil {
+		answer.Labels = jobBase.Labels
 	}
-	if jobBase.MaxConcurrency != nil {
-		answer.MaxConcurrency = *jobBase.MaxConcurrency
+	if jobBase.MaxConcurrency <= 0 {
+		answer.MaxConcurrency = jobBase.MaxConcurrency
 	}
-	if jobBase.Cluster != nil {
-		answer.Cluster = *jobBase.Cluster
+	if jobBase.Cluster != "" {
+		answer.Cluster = jobBase.Cluster
 	}
 	if jobBase.Namespace != nil {
 		answer.Namespace = jobBase.Namespace
 	}
-	if jobBase.Name != nil {
-		answer.Name = *jobBase.Name
+	if jobBase.Name != "" {
+		answer.Name = jobBase.Name
 	}
 	if jobBase.Spec != nil {
 		answer.Spec = jobBase.Spec
@@ -590,25 +482,25 @@ func buildBase(answer *job.Base, jobBase *jenkinsv1.JobBase) error {
 	return nil
 }
 
-func buildBrancher(answer *job.Brancher, brancher *jenkinsv1.Brancher) error {
-	if brancher.SkipBranches != nil && brancher.SkipBranches.Items != nil {
-		answer.SkipBranches = brancher.SkipBranches.Items
+func buildBrancher(answer *job.Brancher, brancher *job.Brancher) error {
+	if len(brancher.SkipBranches) > 0 {
+		answer.SkipBranches = brancher.SkipBranches
 	}
-	if brancher.Branches != nil {
-		answer.Branches = brancher.Branches.Items
+	if len(brancher.Branches) > 0 {
+		answer.Branches = brancher.Branches
 	}
 	return nil
 }
 
 func buildRegexChangeMatacher(answer *job.RegexpChangeMatcher,
-	matcher *jenkinsv1.RegexpChangeMatcher) error {
-	if matcher.RunIfChanged != nil {
-		answer.RunIfChanged = *matcher.RunIfChanged
+	matcher *job.RegexpChangeMatcher) error {
+	if len(matcher.RunIfChanged) > 0 {
+		answer.RunIfChanged = matcher.RunIfChanged
 	}
 	return nil
 }
 
-func buildPlank(answer *config.ProwConfig, attachments []*jenkinsv1.Attachment) {
+func buildPlank(answer *config.ProwConfig, attachments []*schedulerapi.Attachment) {
 	for attachmentIndex := range attachments {
 		attachment := attachments[attachmentIndex]
 		if attachment.Name == "reportTemplate" {
@@ -625,26 +517,26 @@ func buildPlank(answer *config.ProwConfig, attachments []*jenkinsv1.Attachment) 
 	}
 }
 
-func buildPeriodics(answer *config.JobConfig, periodics *jenkinsv1.Periodics) error {
+func buildPeriodics(answer *config.JobConfig, periodics *schedulerapi.Periodics) error {
 	if answer.Periodics == nil {
 		answer.Periodics = make([]job.Periodic, 0)
 	}
 	for _, schedulerPeriodic := range periodics.Items {
 		periodicAlreadyExists := false
 		for existingPeriodicIndex := range answer.Periodics {
-			if answer.Periodics[existingPeriodicIndex].Name == *schedulerPeriodic.Name {
+			if answer.Periodics[existingPeriodicIndex].Name == schedulerPeriodic.Name {
 				periodicAlreadyExists = true
 				break
 			}
 		}
 		if !periodicAlreadyExists {
 			periodic := job.Periodic{
-				Cron: *schedulerPeriodic.Cron,
+				Cron: schedulerPeriodic.Cron,
 			}
-			if schedulerPeriodic.Tags.Items != nil && len(schedulerPeriodic.Tags.Items) > 0 {
-				periodic.Tags = schedulerPeriodic.Tags.Items
+			if len(schedulerPeriodic.Tags) > 0 {
+				periodic.Tags = schedulerPeriodic.Tags
 			}
-			err := buildBase(&periodic.Base, schedulerPeriodic.JobBase)
+			err := buildBase(&periodic.Base, &schedulerPeriodic.Base)
 			if err != nil {
 				return errors.Wrapf(err, "building periodic for %v", periodic)
 			}
@@ -654,7 +546,7 @@ func buildPeriodics(answer *config.JobConfig, periodics *jenkinsv1.Periodics) er
 	return nil
 }
 
-func buildMerger(answer *keeper.Config, merger *jenkinsv1.Merger, org string, repo string) error {
+func buildMerger(answer *keeper.Config, merger *schedulerapi.Merger, org string, repo string) error {
 	if merger.SyncPeriod != nil {
 		answer.SyncPeriod = *merger.SyncPeriod
 	}
@@ -692,7 +584,7 @@ func buildMerger(answer *keeper.Config, merger *jenkinsv1.Merger, org string, re
 }
 
 func buildRepoContextPolicy(answer *keeper.RepoContextPolicy,
-	repoContextPolicy *jenkinsv1.RepoContextPolicy) error {
+	repoContextPolicy *schedulerapi.RepoContextPolicy) error {
 	err := buildContextPolicy(&answer.ContextPolicy, repoContextPolicy.ContextPolicy)
 	if err != nil {
 		return errors.Wrapf(err, "building ContextPolicy for %v", repoContextPolicy)
@@ -714,7 +606,7 @@ func buildRepoContextPolicy(answer *keeper.RepoContextPolicy,
 }
 
 func buildContextPolicy(answer *keeper.ContextPolicy,
-	contextOptions *jenkinsv1.ContextPolicy) error {
+	contextOptions *schedulerapi.ContextPolicy) error {
 	if contextOptions != nil {
 		if contextOptions.SkipUnknownContexts != nil {
 			answer.SkipUnknownContexts = contextOptions.SkipUnknownContexts
@@ -735,7 +627,7 @@ func buildContextPolicy(answer *keeper.ContextPolicy,
 	return nil
 }
 
-func buildQuery(answer *keeper.Config, queries []*jenkinsv1.Query, org string, repo string) error {
+func buildQuery(answer *keeper.Config, queries []*schedulerapi.Query, org string, repo string) error {
 	if answer.Queries == nil {
 		answer.Queries = keeper.Queries{}
 	}

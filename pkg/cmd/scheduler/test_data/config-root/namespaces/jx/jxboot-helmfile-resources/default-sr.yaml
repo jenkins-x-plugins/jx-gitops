@@ -2,7 +2,7 @@
 apiVersion: jenkins.io/v1
 kind: SourceRepository
 metadata:
-  name: "in-repo"
+  name: "default"
   labels:
     jenkins.io/gitSync: "false"
     gitops.jenkins-x.io/pipeline: 'environment'
@@ -12,9 +12,9 @@ spec:
   provider: "https://github.com"
   providerName: 'github'
   org: "myorg"
-  repo: "in-repo"
-  httpCloneURL: "https://github.com/myorg/in-repo.git"
-  url: "https://github.com/myorg/in-repo.git"
+  repo: "default"
+  httpCloneURL: "https://github.com/myorg/default.git"
+  url: "https://github.com/myorg/default.git"
   scheduler:
     kind: Scheduler
-    name: "in-repo"
+    name: "default"

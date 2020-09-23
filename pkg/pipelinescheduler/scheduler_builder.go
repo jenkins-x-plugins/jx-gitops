@@ -5,6 +5,7 @@ import (
 
 	jenkinsio "github.com/jenkins-x/jx-api/pkg/apis/jenkins.io"
 	jenkinsv1 "github.com/jenkins-x/jx-api/pkg/apis/jenkins.io/v1"
+	"github.com/jenkins-x/jx-gitops/pkg/schedulerapi"
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient/giturl"
 	"github.com/jenkins-x/jx-helpers/pkg/stringhelpers"
 	"github.com/jenkins-x/jx-logging/pkg/log"
@@ -25,7 +26,7 @@ const (
 )
 
 // BuildSchedulers turns prow config in to schedulers
-func BuildSchedulers(prowConfig *config.Config, pluginConfig *plugins.Configuration) ([]*jenkinsv1.SourceRepositoryGroup, []*jenkinsv1.SourceRepository, map[string]*jenkinsv1.SourceRepository, map[string]*jenkinsv1.Scheduler, error) {
+func BuildSchedulers(prowConfig *config.Config, pluginConfig *plugins.Configuration) ([]*jenkinsv1.SourceRepositoryGroup, []*jenkinsv1.SourceRepository, map[string]*jenkinsv1.SourceRepository, map[string]*schedulerapi.Scheduler, error) {
 	log.Logger().Info("Building scheduler resources from prow config")
 	sourceRepos := make(map[string]*jenkinsv1.SourceRepository, 0)
 	if prowConfig.Presubmits != nil {
@@ -42,7 +43,7 @@ func BuildSchedulers(prowConfig *config.Config, pluginConfig *plugins.Configurat
 			}
 		}
 	}
-	schedulers := make(map[string]*jenkinsv1.Scheduler, 0)
+	schedulers := make(map[string]*schedulerapi.Scheduler, 0)
 	sourceRepoSlice := make([]*jenkinsv1.SourceRepository, 0, len(sourceRepos))
 	for sourceRepoName, sourceRepo := range sourceRepos {
 		scheduler, err := buildScheduler(sourceRepoName, prowConfig, pluginConfig)
@@ -78,8 +79,8 @@ func buildSourceRepo(org string, repo string) *jenkinsv1.SourceRepository {
 	}
 }
 
-func buildScheduler(repo string, prowConfig *config.Config, pluginConfig *plugins.Configuration) (*jenkinsv1.Scheduler, error) {
-	scheduler := &jenkinsv1.Scheduler{
+func buildScheduler(repo string, prowConfig *config.Config, pluginConfig *plugins.Configuration) (*schedulerapi.Scheduler, error) {
+	scheduler := &schedulerapi.Scheduler{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Scheduler",
 			APIVersion: jenkinsio.GroupName + "/" + jenkinsio.Version,
@@ -87,7 +88,7 @@ func buildScheduler(repo string, prowConfig *config.Config, pluginConfig *plugin
 		ObjectMeta: metav1.ObjectMeta{
 			Name: strings.Replace(repo, "/", "-", -1) + "-scheduler",
 		},
-		Spec: jenkinsv1.SchedulerSpec{
+		Spec: schedulerapi.SchedulerSpec{
 			ScehdulerAgent:  buildSchedulerAgent(),
 			Policy:          buildSchedulerGlobalProtectionPolicy(prowConfig),
 			Presubmits:      buildSchedulerPresubmits(repo, prowConfig),
@@ -105,8 +106,8 @@ func buildScheduler(repo string, prowConfig *config.Config, pluginConfig *plugin
 	return scheduler, nil
 }
 
-func buildDefaultScheduler(prowConfig *config.Config) *jenkinsv1.Scheduler {
-	scheduler := &jenkinsv1.Scheduler{
+func buildDefaultScheduler(prowConfig *config.Config) *schedulerapi.Scheduler {
+	scheduler := &schedulerapi.Scheduler{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Scheduler",
 			APIVersion: jenkinsio.GroupName + "/" + jenkinsio.Version,
@@ -114,7 +115,7 @@ func buildDefaultScheduler(prowConfig *config.Config) *jenkinsv1.Scheduler {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "default-scheduler",
 		},
-		Spec: jenkinsv1.SchedulerSpec{
+		Spec: schedulerapi.SchedulerSpec{
 			Periodics:   buildSchedulerPeriodics(prowConfig),
 			Attachments: buildSchedulerAttachments(prowConfig),
 		},
@@ -122,8 +123,8 @@ func buildDefaultScheduler(prowConfig *config.Config) *jenkinsv1.Scheduler {
 	return scheduler
 }
 
-func buildSchedulerAttachments(configuration *config.Config) []*jenkinsv1.Attachment {
-	attachments := make([]*jenkinsv1.Attachment, 0)
+func buildSchedulerAttachments(configuration *config.Config) []*schedulerapi.Attachment {
+	attachments := make([]*schedulerapi.Attachment, 0)
 	/*
 		jobURLPrefix := configuration.Plank.JobURLPrefix
 		if jobURLPrefix != "" {
@@ -144,34 +145,23 @@ func buildSchedulerAttachments(configuration *config.Config) []*jenkinsv1.Attach
 	return nil
 }
 
-func buildSchedulerAttachment(name string, value string, attachments []*jenkinsv1.Attachment) []*jenkinsv1.Attachment {
-	return append(attachments, &jenkinsv1.Attachment{
+func buildSchedulerAttachment(name string, value string, attachments []*schedulerapi.Attachment) []*schedulerapi.Attachment {
+	return append(attachments, &schedulerapi.Attachment{
 		Name: name,
 		URLs: []string{value},
 	})
 }
 
-func buildSchedulerPeriodics(configuration *config.Config) *jenkinsv1.Periodics {
+func buildSchedulerPeriodics(configuration *config.Config) *schedulerapi.Periodics {
 	periodics := configuration.Periodics
 	if periodics != nil && len(periodics) > 0 {
 
-		schedulerPeriodics := &jenkinsv1.Periodics{
-			Items: make([]*jenkinsv1.Periodic, 0),
+		schedulerPeriodics := &schedulerapi.Periodics{
+			Items: make([]*job.Periodic, 0),
 		}
 		for i := range periodics {
 			periodic := periodics[i]
-			schedulerPeriodic := &jenkinsv1.Periodic{
-				JobBase: buildSchedulerJobBase(&periodic.Base),
-				//Interval: &periodic.Interval,
-				Cron: &periodic.Cron,
-				Tags: &jenkinsv1.ReplaceableSliceOfStrings{
-					Items: make([]string, 0),
-				},
-			}
-			for _, tag := range periodic.Tags {
-				schedulerPeriodic.Tags.Items = append(schedulerPeriodic.Tags.Items, tag)
-			}
-			schedulerPeriodics.Items = append(schedulerPeriodics.Items, schedulerPeriodic)
+			schedulerPeriodics.Items = append(schedulerPeriodics.Items, &periodic)
 
 		}
 		return schedulerPeriodics
@@ -179,12 +169,12 @@ func buildSchedulerPeriodics(configuration *config.Config) *jenkinsv1.Periodics 
 	return nil
 }
 
-func buildSchedulerWelcome(configuration *plugins.Configuration) []*jenkinsv1.Welcome {
+func buildSchedulerWelcome(configuration *plugins.Configuration) []*schedulerapi.Welcome {
 	welcomes := configuration.Welcome
 	if welcomes != nil && len(welcomes) > 0 {
-		schedulerWelcomes := make([]*jenkinsv1.Welcome, 0)
+		schedulerWelcomes := make([]*schedulerapi.Welcome, 0)
 		for _, welcome := range welcomes {
-			schedulerWelcomes = append(schedulerWelcomes, &jenkinsv1.Welcome{MessageTemplate: &welcome.MessageTemplate})
+			schedulerWelcomes = append(schedulerWelcomes, &schedulerapi.Welcome{MessageTemplate: &welcome.MessageTemplate})
 
 		}
 		return schedulerWelcomes
@@ -192,13 +182,13 @@ func buildSchedulerWelcome(configuration *plugins.Configuration) []*jenkinsv1.We
 	return nil
 }
 
-func buildSchedulerConfigUpdater(repo string, pluginConfig *plugins.Configuration) *jenkinsv1.ConfigUpdater {
+func buildSchedulerConfigUpdater(repo string, pluginConfig *plugins.Configuration) *schedulerapi.ConfigUpdater {
 	if ps, ok := pluginConfig.Plugins[repo]; !ok {
 		for _, plugin := range ps {
 			if plugin == "config-updater" {
-				configMapSpec := make(map[string]jenkinsv1.ConfigMapSpec)
+				configMapSpec := make(map[string]schedulerapi.ConfigMapSpec)
 				for location, conf := range pluginConfig.ConfigUpdater.Maps {
-					spec := jenkinsv1.ConfigMapSpec{
+					spec := schedulerapi.ConfigMapSpec{
 						Name:                 conf.Name,
 						Namespace:            conf.Namespace,
 						Key:                  conf.Key,
@@ -207,7 +197,7 @@ func buildSchedulerConfigUpdater(repo string, pluginConfig *plugins.Configuratio
 					}
 					configMapSpec[location] = spec
 				}
-				return &jenkinsv1.ConfigUpdater{
+				return &schedulerapi.ConfigUpdater{
 					/* TODO removed
 					PluginFile: pluginConfig.ConfigUpdater.PluginFile,
 					ConfigFile: pluginConfig.ConfigUpdater.ConfigFile,
@@ -220,9 +210,9 @@ func buildSchedulerConfigUpdater(repo string, pluginConfig *plugins.Configuratio
 	return nil
 }
 
-func buildSchedulerPlugins(repo string, pluginConfig *plugins.Configuration) *jenkinsv1.ReplaceableSliceOfStrings {
+func buildSchedulerPlugins(repo string, pluginConfig *plugins.Configuration) *schedulerapi.ReplaceableSliceOfStrings {
 	if ps, ok := pluginConfig.Plugins[repo]; ok {
-		pluginList := &jenkinsv1.ReplaceableSliceOfStrings{
+		pluginList := &schedulerapi.ReplaceableSliceOfStrings{
 			Items: make([]string, 0),
 		}
 		for _, plugin := range ps {
@@ -236,9 +226,9 @@ func buildSchedulerPlugins(repo string, pluginConfig *plugins.Configuration) *je
 	return nil
 }
 
-func buildSchedulerMerger(repo string, prowConfig *config.Config) *jenkinsv1.Merger {
+func buildSchedulerMerger(repo string, prowConfig *config.Config) *schedulerapi.Merger {
 	tide := prowConfig.Keeper
-	merger := &jenkinsv1.Merger{
+	merger := &schedulerapi.Merger{
 		SyncPeriod:         &tide.SyncPeriod,
 		StatusUpdatePeriod: &tide.StatusUpdatePeriod,
 		TargetURL:          &tide.TargetURL,
@@ -259,86 +249,86 @@ func buildSchedulerMerger(repo string, prowConfig *config.Config) *jenkinsv1.Mer
 	return merger
 }
 
-func buildSchedulerContextPolicy(orgRepo string, tideConfig *keeper.Config) *jenkinsv1.ContextPolicy {
+func buildSchedulerContextPolicy(orgRepo string, tideConfig *keeper.Config) *schedulerapi.ContextPolicy {
 	orgRepoArr := strings.Split(orgRepo, "/")
 	orgContextPolicy, orgContextPolicyFound := tideConfig.ContextOptions.Orgs[orgRepoArr[0]]
 	if orgContextPolicyFound {
 		repoContextPolicy, repoContextPolicyFound := orgContextPolicy.Repos[orgRepoArr[1]]
 		if repoContextPolicyFound {
-			repoPolicy := jenkinsv1.ContextPolicy{}
-			repoPolicy.OptionalContexts = &jenkinsv1.ReplaceableSliceOfStrings{Items: repoContextPolicy.OptionalContexts}
+			repoPolicy := schedulerapi.ContextPolicy{}
+			repoPolicy.OptionalContexts = &schedulerapi.ReplaceableSliceOfStrings{Items: repoContextPolicy.OptionalContexts}
 			repoPolicy.FromBranchProtection = repoContextPolicy.FromBranchProtection
-			repoPolicy.RequiredContexts = &jenkinsv1.ReplaceableSliceOfStrings{Items: repoContextPolicy.RequiredContexts}
-			repoPolicy.RequiredIfPresentContexts = &jenkinsv1.ReplaceableSliceOfStrings{Items: repoContextPolicy.RequiredIfPresentContexts}
+			repoPolicy.RequiredContexts = &schedulerapi.ReplaceableSliceOfStrings{Items: repoContextPolicy.RequiredContexts}
+			repoPolicy.RequiredIfPresentContexts = &schedulerapi.ReplaceableSliceOfStrings{Items: repoContextPolicy.RequiredIfPresentContexts}
 			repoPolicy.SkipUnknownContexts = repoContextPolicy.SkipUnknownContexts
 			return &repoPolicy
 		}
-		orgPolicy := jenkinsv1.ContextPolicy{}
-		orgPolicy.OptionalContexts = &jenkinsv1.ReplaceableSliceOfStrings{Items: orgContextPolicy.OptionalContexts}
+		orgPolicy := schedulerapi.ContextPolicy{}
+		orgPolicy.OptionalContexts = &schedulerapi.ReplaceableSliceOfStrings{Items: orgContextPolicy.OptionalContexts}
 		orgPolicy.FromBranchProtection = orgContextPolicy.FromBranchProtection
-		orgPolicy.RequiredContexts = &jenkinsv1.ReplaceableSliceOfStrings{Items: orgContextPolicy.RequiredContexts}
-		orgPolicy.RequiredIfPresentContexts = &jenkinsv1.ReplaceableSliceOfStrings{Items: orgContextPolicy.RequiredIfPresentContexts}
+		orgPolicy.RequiredContexts = &schedulerapi.ReplaceableSliceOfStrings{Items: orgContextPolicy.RequiredContexts}
+		orgPolicy.RequiredIfPresentContexts = &schedulerapi.ReplaceableSliceOfStrings{Items: orgContextPolicy.RequiredIfPresentContexts}
 		orgPolicy.SkipUnknownContexts = orgContextPolicy.SkipUnknownContexts
 		return &orgPolicy
 
 	}
-	contextPolicy := jenkinsv1.ContextPolicy{}
+	contextPolicy := schedulerapi.ContextPolicy{}
 	globalContextPolicy := tideConfig.ContextOptions
-	contextPolicy.OptionalContexts = &jenkinsv1.ReplaceableSliceOfStrings{Items: globalContextPolicy.OptionalContexts}
-	contextPolicy.RequiredIfPresentContexts = &jenkinsv1.ReplaceableSliceOfStrings{Items: globalContextPolicy.RequiredIfPresentContexts}
-	contextPolicy.RequiredContexts = &jenkinsv1.ReplaceableSliceOfStrings{Items: globalContextPolicy.RequiredContexts}
+	contextPolicy.OptionalContexts = &schedulerapi.ReplaceableSliceOfStrings{Items: globalContextPolicy.OptionalContexts}
+	contextPolicy.RequiredIfPresentContexts = &schedulerapi.ReplaceableSliceOfStrings{Items: globalContextPolicy.RequiredIfPresentContexts}
+	contextPolicy.RequiredContexts = &schedulerapi.ReplaceableSliceOfStrings{Items: globalContextPolicy.RequiredContexts}
 	contextPolicy.FromBranchProtection = globalContextPolicy.FromBranchProtection
 	contextPolicy.SkipUnknownContexts = globalContextPolicy.SkipUnknownContexts
 	return &contextPolicy
 }
 
-func buildSchedulerRepoContextPolicy(orgRepo string, tideConfig *keeper.Config) *jenkinsv1.RepoContextPolicy {
+func buildSchedulerRepoContextPolicy(orgRepo string, tideConfig *keeper.Config) *schedulerapi.RepoContextPolicy {
 	orgRepoArr := strings.Split(orgRepo, "/")
 	orgContextPolicy, orgContextPolicyFound := tideConfig.ContextOptions.Orgs[orgRepoArr[0]]
 	if orgContextPolicyFound {
 		repoContextPolicy, repoContextPolicyFound := orgContextPolicy.Repos[orgRepoArr[1]]
 		if repoContextPolicyFound && repoContextPolicy.OptionalContexts != nil {
-			repoPolicy := jenkinsv1.RepoContextPolicy{
-				ContextPolicy: &jenkinsv1.ContextPolicy{},
+			repoPolicy := schedulerapi.RepoContextPolicy{
+				ContextPolicy: &schedulerapi.ContextPolicy{},
 			}
-			repoPolicy.OptionalContexts = &jenkinsv1.ReplaceableSliceOfStrings{Items: repoContextPolicy.OptionalContexts}
+			repoPolicy.OptionalContexts = &schedulerapi.ReplaceableSliceOfStrings{Items: repoContextPolicy.OptionalContexts}
 			repoPolicy.FromBranchProtection = repoContextPolicy.FromBranchProtection
-			repoPolicy.RequiredContexts = &jenkinsv1.ReplaceableSliceOfStrings{Items: repoContextPolicy.RequiredContexts}
-			repoPolicy.RequiredIfPresentContexts = &jenkinsv1.ReplaceableSliceOfStrings{Items: repoContextPolicy.RequiredIfPresentContexts}
+			repoPolicy.RequiredContexts = &schedulerapi.ReplaceableSliceOfStrings{Items: repoContextPolicy.RequiredContexts}
+			repoPolicy.RequiredIfPresentContexts = &schedulerapi.ReplaceableSliceOfStrings{Items: repoContextPolicy.RequiredIfPresentContexts}
 			repoPolicy.SkipUnknownContexts = repoContextPolicy.SkipUnknownContexts
-			branchPolicies := make(map[string]*jenkinsv1.ContextPolicy)
+			branchPolicies := make(map[string]*schedulerapi.ContextPolicy)
 			for branch, policy := range repoContextPolicy.Branches {
-				branchPolicy := jenkinsv1.ContextPolicy{}
-				branchPolicy.OptionalContexts = &jenkinsv1.ReplaceableSliceOfStrings{Items: policy.OptionalContexts}
+				branchPolicy := schedulerapi.ContextPolicy{}
+				branchPolicy.OptionalContexts = &schedulerapi.ReplaceableSliceOfStrings{Items: policy.OptionalContexts}
 				branchPolicy.FromBranchProtection = policy.FromBranchProtection
-				branchPolicy.RequiredContexts = &jenkinsv1.ReplaceableSliceOfStrings{Items: policy.RequiredContexts}
-				branchPolicy.RequiredIfPresentContexts = &jenkinsv1.ReplaceableSliceOfStrings{Items: policy.RequiredIfPresentContexts}
+				branchPolicy.RequiredContexts = &schedulerapi.ReplaceableSliceOfStrings{Items: policy.RequiredContexts}
+				branchPolicy.RequiredIfPresentContexts = &schedulerapi.ReplaceableSliceOfStrings{Items: policy.RequiredIfPresentContexts}
 				branchPolicy.SkipUnknownContexts = policy.SkipUnknownContexts
 				branchPolicies[branch] = &branchPolicy
 			}
-			repoPolicy.Branches = &jenkinsv1.ReplaceableMapOfStringContextPolicy{Items: branchPolicies}
+			repoPolicy.Branches = &schedulerapi.ReplaceableMapOfStringContextPolicy{Items: branchPolicies}
 			return &repoPolicy
 		}
 	}
 	return nil
 }
 
-func buildSchedulerQuery(orgRepo string, tideQueries *keeper.Queries) []*jenkinsv1.Query {
-	queries := make([]*jenkinsv1.Query, 0)
+func buildSchedulerQuery(orgRepo string, tideQueries *keeper.Queries) []*schedulerapi.Query {
+	queries := make([]*schedulerapi.Query, 0)
 	if orgRepo != "" && strings.Contains(orgRepo, "/") {
 		for _, tideQuery := range *tideQueries {
 			if stringhelpers.StringArrayIndex(tideQuery.Repos, orgRepo) >= 0 {
-				query := &jenkinsv1.Query{
-					ExcludedBranches: &jenkinsv1.ReplaceableSliceOfStrings{
+				query := &schedulerapi.Query{
+					ExcludedBranches: &schedulerapi.ReplaceableSliceOfStrings{
 						Items: tideQuery.ExcludedBranches,
 					},
-					IncludedBranches: &jenkinsv1.ReplaceableSliceOfStrings{
+					IncludedBranches: &schedulerapi.ReplaceableSliceOfStrings{
 						Items: tideQuery.IncludedBranches,
 					},
-					Labels: &jenkinsv1.ReplaceableSliceOfStrings{
+					Labels: &schedulerapi.ReplaceableSliceOfStrings{
 						Items: tideQuery.Labels,
 					},
-					MissingLabels: &jenkinsv1.ReplaceableSliceOfStrings{
+					MissingLabels: &schedulerapi.ReplaceableSliceOfStrings{
 						Items: tideQuery.MissingLabels,
 					},
 					Milestone:              &tideQuery.Milestone,
@@ -354,20 +344,20 @@ func buildSchedulerQuery(orgRepo string, tideQueries *keeper.Queries) []*jenkins
 	return nil
 }
 
-func buildSchedulerExternalPlugins(repo string, pluginConfig *plugins.Configuration) *jenkinsv1.ReplaceableSliceOfExternalPlugins {
-	pluginList := &jenkinsv1.ReplaceableSliceOfExternalPlugins{
+func buildSchedulerExternalPlugins(repo string, pluginConfig *plugins.Configuration) *schedulerapi.ReplaceableSliceOfExternalPlugins {
+	pluginList := &schedulerapi.ReplaceableSliceOfExternalPlugins{
 		Items: nil,
 	}
 	if ps, ok := pluginConfig.ExternalPlugins[repo]; ok {
 		if ps != nil {
 			for _, plugin := range ps {
 				if pluginList.Items == nil {
-					pluginList.Items = make([]*jenkinsv1.ExternalPlugin, 0)
+					pluginList.Items = make([]*schedulerapi.ExternalPlugin, 0)
 				}
-				events := &jenkinsv1.ReplaceableSliceOfStrings{
+				events := &schedulerapi.ReplaceableSliceOfStrings{
 					Items: plugin.Events,
 				}
-				externalPlugin := &jenkinsv1.ExternalPlugin{
+				externalPlugin := &schedulerapi.ExternalPlugin{
 					Name:     &plugin.Name,
 					Endpoint: &plugin.Endpoint,
 					Events:   events,
@@ -381,12 +371,12 @@ func buildSchedulerExternalPlugins(repo string, pluginConfig *plugins.Configurat
 	return nil
 }
 
-func buildSchedulerLGTM(repo string, pluginConfig *plugins.Configuration) *jenkinsv1.Lgtm {
+func buildSchedulerLGTM(repo string, pluginConfig *plugins.Configuration) *schedulerapi.Lgtm {
 	lgtms := pluginConfig.Lgtm
 	for _, lgtm := range lgtms {
 		for _, lgtmRepo := range lgtm.Repos {
 			if repo == lgtmRepo {
-				return &jenkinsv1.Lgtm{
+				return &schedulerapi.Lgtm{
 					ReviewActsAsLgtm: &lgtm.ReviewActsAsLgtm,
 					StoreTreeHash:    &lgtm.StoreTreeHash,
 					StickyLgtmTeam:   &lgtm.StickyLgtmTeam,
@@ -397,13 +387,13 @@ func buildSchedulerLGTM(repo string, pluginConfig *plugins.Configuration) *jenki
 	return nil
 }
 
-func buildSchedulerApprove(repo string, pluginConfig *plugins.Configuration) *jenkinsv1.Approve {
+func buildSchedulerApprove(repo string, pluginConfig *plugins.Configuration) *schedulerapi.Approve {
 	orgRepo := strings.Split(repo, "/")
 	approves := pluginConfig.Approve
 	for _, approve := range approves {
 		for _, approveRepo := range approve.Repos {
 			if repo == approveRepo || orgRepo[0] == approveRepo {
-				return &jenkinsv1.Approve{
+				return &schedulerapi.Approve{
 					IssueRequired:       &approve.IssueRequired,
 					RequireSelfApproval: approve.RequireSelfApproval,
 					LgtmActsAsApprove:   &approve.LgtmActsAsApprove,
@@ -415,12 +405,12 @@ func buildSchedulerApprove(repo string, pluginConfig *plugins.Configuration) *je
 	return nil
 }
 
-func buildSchedulerTrigger(repo string, pluginConfig *plugins.Configuration) *jenkinsv1.Trigger {
+func buildSchedulerTrigger(repo string, pluginConfig *plugins.Configuration) *schedulerapi.Trigger {
 	triggers := pluginConfig.Triggers
 	for _, trigger := range triggers {
 		for _, triggerRepo := range trigger.Repos {
 			if repo == triggerRepo {
-				return &jenkinsv1.Trigger{
+				return &schedulerapi.Trigger{
 					TrustedOrg:     &trigger.TrustedOrg,
 					JoinOrgURL:     &trigger.JoinOrgURL,
 					OnlyOrgMembers: &trigger.OnlyOrgMembers,
@@ -432,10 +422,10 @@ func buildSchedulerTrigger(repo string, pluginConfig *plugins.Configuration) *je
 	return nil
 }
 
-func buildSchedulerGlobalProtectionPolicy(prowConfig *config.Config) *jenkinsv1.GlobalProtectionPolicy {
-	return &jenkinsv1.GlobalProtectionPolicy{
+func buildSchedulerGlobalProtectionPolicy(prowConfig *config.Config) *schedulerapi.GlobalProtectionPolicy {
+	return &schedulerapi.GlobalProtectionPolicy{
 		ProtectTested: &prowConfig.BranchProtection.ProtectTested,
-		ProtectionPolicy: &jenkinsv1.ProtectionPolicy{
+		ProtectionPolicy: &schedulerapi.ProtectionPolicy{
 			Admins:                     prowConfig.BranchProtection.Admins,
 			Protect:                    prowConfig.BranchProtection.Protect,
 			RequiredPullRequestReviews: buildSchedulerRequiredPullRequestReviews(prowConfig.BranchProtection.RequiredPullRequestReviews),
@@ -445,16 +435,16 @@ func buildSchedulerGlobalProtectionPolicy(prowConfig *config.Config) *jenkinsv1.
 	}
 }
 
-func buildSchedulerProtectionPolicies(repo string, prowConfig *config.Config) *jenkinsv1.ProtectionPolicies {
+func buildSchedulerProtectionPolicies(repo string, prowConfig *config.Config) *schedulerapi.ProtectionPolicies {
 	orgRepo := strings.Split(repo, "/")
 	orgBranchProtection := prowConfig.BranchProtection.GetOrg(orgRepo[0])
 	repoBranchProtection := orgBranchProtection.GetRepo(orgRepo[1])
-	var protectionPolicies map[string]*jenkinsv1.ProtectionPolicy
+	var protectionPolicies map[string]*schedulerapi.ProtectionPolicy
 	for branchName, branch := range repoBranchProtection.Branches {
 		if protectionPolicies == nil {
-			protectionPolicies = make(map[string]*jenkinsv1.ProtectionPolicy)
+			protectionPolicies = make(map[string]*schedulerapi.ProtectionPolicy)
 		}
-		protectionPolicies[branchName] = &jenkinsv1.ProtectionPolicy{
+		protectionPolicies[branchName] = &schedulerapi.ProtectionPolicy{
 			Admins:                     branch.Admins,
 			Protect:                    branch.Protect,
 			RequiredPullRequestReviews: buildSchedulerRequiredPullRequestReviews(branch.RequiredPullRequestReviews),
@@ -462,12 +452,12 @@ func buildSchedulerProtectionPolicies(repo string, prowConfig *config.Config) *j
 			Restrictions:               buildSchedulerRestrictions(branch.Restrictions),
 		}
 	}
-	var repoPolicy *jenkinsv1.ProtectionPolicy
+	var repoPolicy *schedulerapi.ProtectionPolicy
 	requiredPullRequestReviews := buildSchedulerRequiredPullRequestReviews(repoBranchProtection.RequiredPullRequestReviews)
 	requiredStatusChecks := buildSchedulerRequiredStatusChecks(repoBranchProtection.RequiredStatusChecks)
 	restrictions := buildSchedulerRestrictions(repoBranchProtection.Restrictions)
 	if repoBranchProtection.Admins != nil || repoBranchProtection.Protect != nil || requiredPullRequestReviews != nil || requiredStatusChecks != nil || restrictions != nil {
-		repoPolicy = &jenkinsv1.ProtectionPolicy{
+		repoPolicy = &schedulerapi.ProtectionPolicy{
 			Admins:                     repoBranchProtection.Admins,
 			Protect:                    repoBranchProtection.Protect,
 			RequiredPullRequestReviews: requiredPullRequestReviews,
@@ -475,15 +465,15 @@ func buildSchedulerProtectionPolicies(repo string, prowConfig *config.Config) *j
 			Restrictions:               buildSchedulerRestrictions(repoBranchProtection.Restrictions),
 		}
 	}
-	return &jenkinsv1.ProtectionPolicies{
+	return &schedulerapi.ProtectionPolicies{
 		ProtectionPolicy: repoPolicy,
 		Items:            protectionPolicies,
 	}
 }
 
-func buildSchedulerRequiredPullRequestReviews(requiredPullRequestReviews *branchprotection.ReviewPolicy) *jenkinsv1.ReviewPolicy {
+func buildSchedulerRequiredPullRequestReviews(requiredPullRequestReviews *branchprotection.ReviewPolicy) *schedulerapi.ReviewPolicy {
 	if requiredPullRequestReviews != nil {
-		return &jenkinsv1.ReviewPolicy{
+		return &schedulerapi.ReviewPolicy{
 			DismissalRestrictions: buildSchedulerRestrictions(requiredPullRequestReviews.DismissalRestrictions),
 			DismissStale:          requiredPullRequestReviews.DismissStale,
 			RequireOwners:         requiredPullRequestReviews.RequireOwners,
@@ -493,10 +483,10 @@ func buildSchedulerRequiredPullRequestReviews(requiredPullRequestReviews *branch
 	return nil
 }
 
-func buildSchedulerRequiredStatusChecks(requiredStatusChecks *branchprotection.ContextPolicy) *jenkinsv1.BranchProtectionContextPolicy {
+func buildSchedulerRequiredStatusChecks(requiredStatusChecks *branchprotection.ContextPolicy) *schedulerapi.BranchProtectionContextPolicy {
 	if requiredStatusChecks != nil {
-		return &jenkinsv1.BranchProtectionContextPolicy{
-			Contexts: &jenkinsv1.ReplaceableSliceOfStrings{
+		return &schedulerapi.BranchProtectionContextPolicy{
+			Contexts: &schedulerapi.ReplaceableSliceOfStrings{
 				Items: requiredStatusChecks.Contexts,
 			},
 			Strict: requiredStatusChecks.Strict,
@@ -505,13 +495,13 @@ func buildSchedulerRequiredStatusChecks(requiredStatusChecks *branchprotection.C
 	return nil
 }
 
-func buildSchedulerRestrictions(restrictions *branchprotection.Restrictions) *jenkinsv1.Restrictions {
+func buildSchedulerRestrictions(restrictions *branchprotection.Restrictions) *schedulerapi.Restrictions {
 	if restrictions != nil {
-		return &jenkinsv1.Restrictions{
-			Users: &jenkinsv1.ReplaceableSliceOfStrings{
+		return &schedulerapi.Restrictions{
+			Users: &schedulerapi.ReplaceableSliceOfStrings{
 				Items: restrictions.Users,
 			},
-			Teams: &jenkinsv1.ReplaceableSliceOfStrings{
+			Teams: &schedulerapi.ReplaceableSliceOfStrings{
 				Items: restrictions.Teams,
 			},
 		}
@@ -519,92 +509,29 @@ func buildSchedulerRestrictions(restrictions *branchprotection.Restrictions) *je
 	return nil
 }
 
-func buildSchedulerAgent() *jenkinsv1.SchedulerAgent {
+func buildSchedulerAgent() *schedulerapi.SchedulerAgent {
 	defaultAgent := string(DefaultAgent)
-	agent := &jenkinsv1.SchedulerAgent{
+	agent := &schedulerapi.SchedulerAgent{
 		Agent: &defaultAgent,
 	}
 	return agent
 }
 
-func buildSchedulerPostsubmits(repo string, prowConfig *config.Config) *jenkinsv1.Postsubmits {
-	schedulerPostsubmits := &jenkinsv1.Postsubmits{}
+func buildSchedulerPostsubmits(repo string, prowConfig *config.Config) *schedulerapi.Postsubmits {
+	schedulerPostsubmits := &schedulerapi.Postsubmits{}
 	for postSubmitIndex := range prowConfig.Postsubmits[repo] {
-		postsubmit := prowConfig.Postsubmits[repo][postSubmitIndex]
-		skipReport := !postsubmit.SkipReport
-		skipBranches := &jenkinsv1.ReplaceableSliceOfStrings{
-			Items: postsubmit.SkipBranches,
-		}
-		branches := &jenkinsv1.ReplaceableSliceOfStrings{
-			Items: postsubmit.Branches,
-		}
-		schedulerPostsubmit := &jenkinsv1.Postsubmit{
-			JobBase: buildSchedulerJobBase(&postsubmit.Base),
-			Brancher: &jenkinsv1.Brancher{
-				SkipBranches: skipBranches,
-				Branches:     branches,
-			},
-			RegexpChangeMatcher: &jenkinsv1.RegexpChangeMatcher{
-				RunIfChanged: &postsubmit.RunIfChanged,
-			},
-			Context: &postsubmit.Context,
-			Report:  &skipReport,
-		}
-		schedulerPostsubmits.Items = append(schedulerPostsubmits.Items, schedulerPostsubmit)
+		copy := prowConfig.Postsubmits[repo][postSubmitIndex]
+		schedulerPostsubmits.Items = append(schedulerPostsubmits.Items, &copy)
 	}
 	return schedulerPostsubmits
 }
 
-func buildSchedulerJobBase(jobBase *job.Base) *jenkinsv1.JobBase {
-	labels := &jenkinsv1.ReplaceableMapOfStringString{
-		Items: jobBase.Labels,
-	}
-	return &jenkinsv1.JobBase{
-		Name:           &jobBase.Name,
-		Labels:         labels,
-		MaxConcurrency: &jobBase.MaxConcurrency,
-		Agent:          &jobBase.Agent,
-		Cluster:        &jobBase.Cluster,
-		Namespace:      jobBase.Namespace,
-		Spec:           jobBase.Spec,
-	}
-}
-
-func buildSchedulerPresubmits(repo string, prowConfig *config.Config) *jenkinsv1.Presubmits {
-	schedulerPresubmits := &jenkinsv1.Presubmits{}
+func buildSchedulerPresubmits(repo string, prowConfig *config.Config) *schedulerapi.Presubmits {
+	schedulerPresubmits := &schedulerapi.Presubmits{}
 	presubmits := prowConfig.Presubmits[repo]
 	for presubmitIndex := range presubmits {
-		presubmit := presubmits[presubmitIndex]
-		skipBranches := &jenkinsv1.ReplaceableSliceOfStrings{
-			Items: presubmit.SkipBranches,
-		}
-		branches := &jenkinsv1.ReplaceableSliceOfStrings{
-			Items: presubmit.Branches,
-		}
-		report := !presubmit.SkipReport
-		mergeType := prowConfig.Keeper.MergeType[repo]
-		mt := string(mergeType)
-		schedulerPresubmit := &jenkinsv1.Presubmit{
-			JobBase: buildSchedulerJobBase(&presubmit.Base),
-			Brancher: &jenkinsv1.Brancher{
-				SkipBranches: skipBranches,
-				Branches:     branches,
-			},
-			RegexpChangeMatcher: &jenkinsv1.RegexpChangeMatcher{
-				RunIfChanged: &presubmit.RunIfChanged,
-			},
-			AlwaysRun:     &presubmit.AlwaysRun,
-			Context:       &presubmit.Context,
-			Optional:      &presubmit.Optional,
-			Report:        &report,
-			Trigger:       &presubmit.Trigger,
-			RerunCommand:  &presubmit.RerunCommand,
-			MergeType:     &mt,
-			Queries:       buildSchedulerQuery(repo, &prowConfig.Keeper.Queries),
-			Policy:        buildSchedulerProtectionPolicies(repo, prowConfig),
-			ContextPolicy: buildSchedulerRepoContextPolicy(repo, &prowConfig.Keeper),
-		}
-		schedulerPresubmits.Items = append(schedulerPresubmits.Items, schedulerPresubmit)
+		copy := presubmits[presubmitIndex]
+		schedulerPresubmits.Items = append(schedulerPresubmits.Items, &copy)
 	}
 	return schedulerPresubmits
 }

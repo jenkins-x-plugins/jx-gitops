@@ -1,0 +1,78 @@
+apiVersion: jenkins.io/v1
+kind: Scheduler
+metadata:
+  name: jx-meta-pipeline
+spec:
+  approve:
+    issueRequired: false
+    lgtmActsAsApprove: true
+    requireSelfApproval: true
+  merger:
+    blockerLabel: ""
+    maxGoroutines: 0
+    merge_method: merge
+    policy:
+      fromBranchProtection: true
+      optionalContexts: { }
+      requiredContexts: { }
+      requiredIfPresentContexts: { }
+      skipUnknownContexts: false
+    prStatusBaseUrl: ""
+    squashLabel: ""
+    targetUrl: http://deck-jx.35.192.148.208.nip.io
+  plugins:
+    entries:
+      - approve
+      - assign
+      - blunderbuss
+      - help
+      - hold
+      - lgtm
+      - lifecycle
+      - override
+      - size
+      - trigger
+      - wip
+      - heart
+      - cat
+      - dog
+      - pony
+  policy:
+    protectTested: true
+  postsubmits:
+    entries:
+      - agent: tekton
+        branches:
+          - master
+        max_concurrency: 0
+        name: release
+        pipeline_run_spec:
+          pipelineRef:
+            name: jx-meta-pipeline
+        report: false
+        run_if_changed: ""
+
+  presubmits:
+    entries:
+      - agent: tekton
+        always_run: true
+        context: pr-build
+        max_concurrency: 0
+        merge_method: ""
+        name: pr-build
+        optional: false
+        pipeline_run_spec:
+          pipelineRef:
+            name: jx-meta-pipeline
+        report: true
+        rerun_command: /test this
+        run_if_changed: ""
+        trigger: (?m)^/test( all| this),?(\s+|$)
+  schedulerAgent:
+    agent: tekton
+  trigger:
+    ignoreOkToTest: false
+    joinOrgUrl: ""
+    onlyOrgMembers: false
+  welcome:
+    - message_template: Welcome
