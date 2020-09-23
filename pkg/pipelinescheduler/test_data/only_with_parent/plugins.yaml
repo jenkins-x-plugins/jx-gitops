@@ -11,25 +11,25 @@
 #owners: {}
 plugins:
   acme/dummy:
-  - config-updater
-  - approve
-  - assign
-  - blunderbuss
-  - help
-  - hold
-  - lgtm
-  - lifecycle
-  - size
-  - trigger
-  - wip
-  - heart
-  - override
+    - config-updater
+    - approve
+    - assign
+    - blunderbuss
+    - help
+    - hold
+    - lgtm
+    - lifecycle
+    - size
+    - trigger
+    - wip
+    - heart
+    - override
 #requiresig: {}
 #sigmention: {}
 #slack: {}
 triggers:
-- repos:
-  - acme/dummy
-  trusted_org: roadrunner-corp
+  - repos:
+      - acme/dummy
+    trusted_org: roadrunner-corp
 #welcome:
 #- message_template: Welcome

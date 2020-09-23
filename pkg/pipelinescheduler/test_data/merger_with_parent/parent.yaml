@@ -1,80 +1,79 @@
 trigger:
-  trustedOrg: roadrunner-corp
+  trusted_org: roadrunner-corp
 approve:
-  lgtmActsAsApprove: true
-  ignoreReviewState: false
-externalPlugins:
+  lgtm_acts_as_approve: true
+  ignore_review_state: false
+external_plugins:
   entries:
-  - name: jx-app-cheese
-    endpoint: http://jx-app-cheese
+    - name: jx-app-cheese
+      endpoint: http://jx-app-cheese
 schedulerAgent:
   agent: prow
 policy:
-  protectTested: true
+  protect_tested: true
 merger:
-  blockerLabel: hold
-  prStatusBaseUrl: http://fakeurl
-  maxGoroutines: 5
+  blocker_label: hold
+  pr_status_base_url: http://fakeurl
+  max_goroutines: 5
   policy:
-    fromBranchProtection: true
-    requiredContexts:
+    from-branch-protection: true
+    required-contexts:
       entries:
         - context1
         - context2
-    requiredIfPresentContexts:
+    required-if-present-contexts:
       entries:
         - context55
         - context66
         - context77
-    optionalContexts:
+    optional-contexts:
       entries:
         - opt1
 postsubmits:
   entries:
-  - name: release
-    context: ""
-    branches:
-      entries:
-      - master
-    agent: tekton
+    - name: release
+      context: ""
+      branches:
+        - master
+      agent: tekton
 
 presubmits:
   entries:
-  - name: integration
-    agent: tekton
-    alwaysRun: true
-    context: integration
-    rerunCommand: /test this
-    trigger: (?m)^/test( all| this),?(\s+|$)
-    queries:
-      - labels:
-          entries:
-            - approved
-        missingLabels:
-          entries:
-          - do-not-merge
-          - do-not-merge/hold
-          - do-not-merge/work-in-progress
-          - needs-ok-to-test
-          - needs-rebase
-    policy:
-      protect: true
-      requiredStatusChecks:
-        contexts:
-          entries:
-          - integration
+    - name: integration
+      agent: tekton
+      always_run: true
+      context: integration
+      rerun_command: /test this
+      trigger: (?m)^/test( all| this),?(\s+|$)
+      queries:
+        - labels:
+            entries:
+              - approved
+          missingLabels:
+            entries:
+              - do-not-merge
+              - do-not-merge/hold
+              - do-not-merge/work-in-progress
+              - needs-ok-to-test
+              - needs-rebase
+      policy:
+        protect: true
+        required_status_checks:
+          contexts:
+            entries:
+              - integration
 plugins:
   entries:
-  - config-updater
-  - approve
-  - assign
-  - blunderbuss
-  - help
-  - hold
-  - lgtm
-  - lifecycle
-  - size
-  - trigger
-  - wip
-  - heart
-  - override
+    - config-updater
+    - approve
+    - assign
+    - blunderbuss
+    - help
+    - hold
+    - lgtm
+    - lifecycle
+    - size
+    - trigger
+    - wip
+    - heart
+    - override

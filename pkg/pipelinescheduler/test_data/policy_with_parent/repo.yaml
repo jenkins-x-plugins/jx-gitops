@@ -1,6 +1,6 @@
 policy:
-  protectTested: true
-  requiredStatusChecks:
+  protect_tested: true
+  required_status_checks:
     contexts:
       replace: true
       entries:
@@ -17,15 +17,15 @@ policy:
       entries:
         - team3
         - team4
-  requiredPullRequestReviews:
-    requireCodeOwnerReviews: true
-    requiredApprovingReviewCount: 6
-    dismissalRestrictions:
-        teams:
-          replace: false
-          entries:
-            - team5
-            - team6
+  required_pull_request_reviews:
+    require_code_owner_reviews: true
+    required_approving_review_count: 6
+    dismissal_restrictions:
+      teams:
+        replace: false
+        entries:
+          - team5
+          - team6
 
 plugins:
   replace: true

@@ -1,41 +1,40 @@
 schedulerAgent:
   agent: prow
 policy:
-  protectTested: true
+  protect_tested: true
 postsubmits:
   entries:
     - name: release
       context: ""
       branches:
-        entries:
-          - master
+        - master
       agent: tekton
 presubmits:
   entries:
     - agent: tekton
-      alwaysRun: true
+      always_run: true
       context: integration
       name: integration
-      rerunCommand: /test this
+      rerun_command: /test this
       trigger: (?m)^/test( all| this),?(\s+|$)
       queries:
         - labels:
             entries:
-            - approved
+              - approved
           missingLabels:
             entries:
-            - do-not-merge
-            - do-not-merge/hold
-            - do-not-merge/work-in-progress
-            - needs-ok-to-test
-            - needs-rebase
+              - do-not-merge
+              - do-not-merge/hold
+              - do-not-merge/work-in-progress
+              - needs-ok-to-test
+              - needs-rebase
       policy:
         protect: true
-        requiredStatusChecks:
+        required_status_checks:
           contexts:
             entries:
-            - integration
+              - integration
 merger:
   policy:
-    fromBranchProtection: true
-    skipUnknownContexts: false
+    from-branch-protection: true
+    skip-unknown-contexts: false

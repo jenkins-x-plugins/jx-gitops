@@ -124,6 +124,7 @@ func (o *Options) PopulateSourceConfig(srList []jenkinsv1.SourceRepository) erro
 		sourceconfigs.DryConfig(config)
 	}
 	sourceconfigs.SortConfig(config)
+	sourceconfigs.EnrichConfig(config)
 
 	err = yamls.SaveFile(config, o.ConfigFile)
 	if err != nil {

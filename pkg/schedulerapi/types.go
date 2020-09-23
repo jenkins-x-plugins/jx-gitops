@@ -57,13 +57,13 @@ type SchedulerSpec struct {
 	Trigger         *Trigger                           `json:"trigger,omitempty" protobuf:"bytes,5,opt,name=trigger"`
 	Approve         *Approve                           `json:"approve,omitempty" protobuf:"bytes,6,opt,name=approve"`
 	LGTM            *Lgtm                              `json:"lgtm,omitempty" protobuf:"bytes,7,opt,name=lgtm"`
-	ExternalPlugins *ReplaceableSliceOfExternalPlugins `json:"externalPlugins,omitempty" protobuf:"bytes,8,opt,name=externalPlugins"`
+	ExternalPlugins *ReplaceableSliceOfExternalPlugins `json:"external_plugins,omitempty" protobuf:"bytes,8,opt,name=external_plugins"`
 
 	Merger *Merger `json:"merger,omitempty" protobuf:"bytes,9,opt,name=merger"`
 
 	// Plugins is a list of plugin names enabled for a repo
 	Plugins       *ReplaceableSliceOfStrings `json:"plugins,omitempty" protobuf:"bytes,10,opt,name=plugins"`
-	ConfigUpdater *ConfigUpdater             `json:"configUpdater,omitempty" protobuf:"bytes,11,opt,name=configUpdater"`
+	ConfigUpdater *ConfigUpdater             `json:"config_updater,omitempty" protobuf:"bytes,11,opt,name=config_updater"`
 	Welcome       []*Welcome                 `json:"welcome,omitempty" protobuf:"bytes,12,opt,name=welcome"`
 	Periodics     *Periodics                 `json:"periodics,omitempty" protobuf:"bytes,13,opt,name=periodics"`
 	Attachments   []*Attachment              `json:"attachments,omitempty" protobuf:"bytes,13,opt,name=attachments"`
@@ -91,8 +91,8 @@ type ConfigMapSpec struct {
 // ConfigUpdater holds configuration for the config updater plugin
 type ConfigUpdater struct {
 	Map        map[string]ConfigMapSpec `json:"map,omitempty" protobuf:"bytes,1,opt,name=map"`
-	ConfigFile string                   `json:"configFile,omitempty" protobuf:"bytes,2,opt,name=configFile"`
-	PluginFile string                   `json:"pluginFile,omitempty" protobuf:"bytes,3,opt,name=pluginFile"`
+	ConfigFile string                   `json:"config_file,omitempty" protobuf:"bytes,2,opt,name=config_file"`
+	PluginFile string                   `json:"plugin_file,omitempty" protobuf:"bytes,3,opt,name=plugin_file"`
 	// +optional
 	ConfigMap ConfigMapSpec
 }
@@ -125,16 +125,16 @@ type ReplaceableSliceOfStrings struct {
 type Lgtm struct {
 	// ReviewActsAsLgtm indicates that a Github review of "approve" or "request changes"
 	// acts as adding or removing the lgtm label
-	ReviewActsAsLgtm *bool `json:"reviewActsAsLgtm,omitempty" protobuf:"bytes,1,opt,name=reviewActsAsLgtm"`
+	ReviewActsAsLgtm *bool `json:"review_acts_as_lgtm,omitempty" protobuf:"bytes,1,opt,name=review_acts_as_lgtm"`
 	// StoreTreeHash indicates if tree_hash should be stored inside a comment to detect
 	// squashed commits before removing lgtm labels
-	StoreTreeHash *bool `json:"storeTreeHash,omitempty" protobuf:"bytes,2,opt,name=storeTreeHash"`
+	StoreTreeHash *bool `json:"store_tree_hash,omitempty" protobuf:"bytes,2,opt,name=store_tree_hash"`
 	// WARNING: This disables the security mechanism that prevents a malicious member (or
 	// compromised GitHub account) from merging arbitrary code. Use with caution.
 	//
 	// StickyLgtmTeam specifies the Github team whose members are trusted with sticky LGTM,
 	// which eliminates the need to re-lgtm minor fixes/updates.
-	StickyLgtmTeam *string `json:"trustedTeamForStickyLgtm,omitempty" protobuf:"bytes,3,opt,name=stickyLgtmTeam"`
+	StickyLgtmTeam *string `json:"trusted_team_for_sticky_lgtm,omitempty" protobuf:"bytes,3,opt,name=stickyLgtmTeam"`
 }
 
 // Approve specifies a configuration for a single approve.
@@ -143,20 +143,20 @@ type Lgtm struct {
 type Approve struct {
 	// IssueRequired indicates if an associated issue is required for approval in
 	// the specified repos.
-	IssueRequired *bool `json:"issueRequired,omitempty" protobuf:"bytes,1,opt,name=issueRequired"`
+	IssueRequired *bool `json:"issue_required,omitempty" protobuf:"bytes,1,opt,name=issue_required"`
 
 	// RequireSelfApproval requires PR authors to explicitly approve their PRs.
 	// Otherwise the plugin assumes the author of the PR approves the changes in the PR.
-	RequireSelfApproval *bool `json:"requireSelfApproval,omitempty" protobuf:"bytes,2,opt,name=requireSelfApproval"`
+	RequireSelfApproval *bool `json:"require_self_approval,omitempty" protobuf:"bytes,2,opt,name=require_self_approval"`
 
 	// LgtmActsAsApprove indicates that the lgtm command should be used to
 	// indicate approval
-	LgtmActsAsApprove *bool `json:"lgtmActsAsApprove,omitempty" protobuf:"bytes,3,opt,name=lgtmActsAsApprove"`
+	LgtmActsAsApprove *bool `json:"lgtm_acts_as_approve,omitempty" protobuf:"bytes,3,opt,name=lgtm_acts_as_approve"`
 
 	// IgnoreReviewState causes the approve plugin to ignore the GitHub review state. Otherwise:
 	// * an APPROVE github review is equivalent to leaving an "/approve" message.
 	// * A REQUEST_CHANGES github review is equivalent to leaving an /approve cancel" message.
-	IgnoreReviewState *bool `json:"ignoreReviewState,omitempty" protobuf:"bytes,4,opt,name=ignoreReviewState"`
+	IgnoreReviewState *bool `json:"ignore_review_state,omitempty" protobuf:"bytes,4,opt,name=ignore_review_state"`
 }
 
 // Trigger specifies a configuration for a single trigger.
@@ -165,17 +165,20 @@ type Approve struct {
 type Trigger struct {
 	// TrustedOrg is the org whose members' PRs will be automatically built
 	// for PRs to the above repos. The default is the PR's org.
-	TrustedOrg *string `json:"trustedOrg,omitempty" protobuf:"bytes,1,opt,name=trustedOrg"`
+	TrustedOrg *string `json:"trusted_org,omitempty" protobuf:"bytes,1,opt,name=trusted_org"`
 	// JoinOrgURL is a link that redirects users to a location where they
 	// should be able to read more about joining the organization in order
 	// to become trusted members. Defaults to the Github link of TrustedOrg.
-	JoinOrgURL *string `json:"joinOrgUrl,omitempty" protobuf:"bytes,2,opt,name=joinOrgUrl"`
+	JoinOrgURL *string `json:"join_org_url,omitempty" protobuf:"bytes,2,opt,name=join_org_url"`
 	// OnlyOrgMembers requires PRs and/or /ok-to-test comments to come from org members.
 	// By default, trigger also include repo collaborators.
-	OnlyOrgMembers *bool `json:"onlyOrgMembers,omitempty" protobuf:"bytes,3,opt,name=onlyOrgMembers"`
+	OnlyOrgMembers *bool `json:"only_org_members,omitempty" protobuf:"bytes,3,opt,name=only_org_members"`
 	// IgnoreOkToTest makes trigger ignore /ok-to-test comments.
 	// This is a security mitigation to only allow testing from trusted users.
-	IgnoreOkToTest *bool `json:"ignoreOkToTest,omitempty" protobuf:"bytes,4,opt,name=ignoreOkToTest"`
+	IgnoreOkToTest *bool `json:"ignore_ok_to_test,omitempty" protobuf:"bytes,4,opt,name=ignore_ok_to_test"`
+	// ElideSkippedContexts makes trigger not post "Skipped" contexts for jobs
+	// that could run but do not run.
+	ElideSkippedContexts *bool `json:"elide_skipped_contexts,omitempty"`
 }
 
 // Postsubmits is a list of Postsubmit job configurations that can optionally completely replace the Postsubmit job
@@ -191,9 +194,25 @@ type Postsubmits struct {
 // configurations in the parent scheduler
 type Presubmits struct {
 	// Items are the Presubmit configurtations
-	Items []*job.Presubmit `json:"entries,omitempty" protobuf:"bytes,1,opt,name=entries"`
+	Items []*Presubmit `json:"entries,omitempty" protobuf:"bytes,1,opt,name=entries"`
 	// Replace the existing entries
 	Replace bool `json:"replace,omitempty" protobuf:"bytes,2,opt,name=replace"`
+}
+
+type Presubmit struct {
+	job.Presubmit
+
+	// Override the default method of merge. Valid options are squash, rebase, and merge.
+	MergeType *string `json:"merge_method,omitempty" protobuf:"bytes,7,opt,name=merge_method"`
+
+	Queries []*Query `json:"queries,omitempty" protobuf:"bytes,8,opt,name=query"`
+
+	Policy *ProtectionPolicies `json:"policy,omitempty" protobuf:"bytes,9,opt,name=policy"`
+	// ContextOptions defines the merge options. If not set it will infer
+	// the required and optional contexts from the jobs configured and use the Git Provider
+	// combined status; otherwise it may apply the branch protection setting or let user
+	// define their own options in case branch protection is not used.
+	ContextPolicy *RepoContextPolicy `json:"context_options,omitempty" protobuf:"bytes,10,opt,name=contextPolicy"`
 }
 
 // Periodics is a list of jobs to be run periodically
@@ -208,11 +227,11 @@ type Periodics struct {
 // https://help.github.com/articles/searching-issues-and-pull-requests/
 type Query struct {
 	ExcludedBranches       *ReplaceableSliceOfStrings `json:"excludedBranches,omitempty" protobuf:"bytes,1,opt,name=excludedBranches"`
-	IncludedBranches       *ReplaceableSliceOfStrings `json:"includedBranches,omitempty" protobuf:"bytes,2,opt,name=includedBranches"`
+	IncludedBranches       *ReplaceableSliceOfStrings `json:"included_branches,omitempty" protobuf:"bytes,2,opt,name=included_branches"`
 	Labels                 *ReplaceableSliceOfStrings `json:"labels,omitempty" protobuf:"bytes,3,opt,name=labels"`
 	MissingLabels          *ReplaceableSliceOfStrings `json:"missingLabels,omitempty" protobuf:"bytes,4,opt,name=missingLabels"`
 	Milestone              *string                    `json:"milestone,omitempty" protobuf:"bytes,5,opt,name=milestone"`
-	ReviewApprovedRequired *bool                      `json:"reviewApprovedRequired,omitempty" protobuf:"bytes,6,opt,name=reviewApprovedRequired"`
+	ReviewApprovedRequired *bool                      `json:"review_approved_required,omitempty" protobuf:"bytes,6,opt,name=review_approved_required"`
 }
 
 // PullRequestMergeType enumerates the types of merges the Git Provider API can
@@ -235,30 +254,30 @@ type Merger struct {
 	StatusUpdatePeriod *time.Duration `json:"-"`
 
 	// URL for status contexts.
-	TargetURL *string `json:"targetUrl,omitempty" protobuf:"bytes,1,opt,name=targetUrl"`
+	TargetURL *string `json:"target_url,omitempty" protobuf:"bytes,1,opt,name=target_url"`
 
 	// PRStatusBaseURL is the base URL for the PR status page.
 	// This is used to link to a merge requirements overview
 	// in the status context.
-	PRStatusBaseURL *string `json:"prStatusBaseUrl,omitempty" protobuf:"bytes,2,opt,name=prStatusBaseURL"`
+	PRStatusBaseURL *string `json:"pr_status_base_url,omitempty" protobuf:"bytes,2,opt,name=prStatusBaseURL"`
 
 	// BlockerLabel is an optional label that is used to identify merge blocking
 	// Git Provider issues.
 	// Leave this blank to disable this feature and save 1 API token per sync loop.
-	BlockerLabel *string `json:"blockerLabel,omitempty"`
+	BlockerLabel *string `json:"blocker_label,omitempty"`
 
 	// SquashLabel is an optional label that is used to identify PRs that should
 	// always be squash merged.
 	// Leave this blank to disable this feature.
-	SquashLabel *string `json:"squashLabel,omitempty"`
+	SquashLabel *string `json:"squash_label,omitempty"`
 
 	// MaxGoroutines is the maximum number of goroutines spawned inside the
 	// controller to handle org/repo:branch pools. Defaults to 20. Needs to be a
 	// positive number.
-	MaxGoroutines *int `json:"maxGoroutines,omitempty"`
+	MaxGoroutines *int `json:"max_goroutines,omitempty"`
 
 	// Override the default method of merge. Valid options are squash, rebase, and merge.
-	MergeType *string `json:"mergeMethod,omitempty"`
+	MergeType *string `json:"merge_method,omitempty"`
 
 	// ContextOptions defines the default merge options. If not set it will infer
 	// the required and optional contexts from the jobs configured and use the Git Provider
@@ -283,12 +302,12 @@ type ReplaceableMapOfStringContextPolicy struct {
 // ContextPolicy configures options about how to handle various contexts.
 type ContextPolicy struct {
 	// whether to consider unknown contexts optional (skip) or required.
-	SkipUnknownContexts       *bool                      `json:"skipUnknownContexts,omitempty"`
-	RequiredContexts          *ReplaceableSliceOfStrings `json:"requiredContexts,omitempty"`
-	RequiredIfPresentContexts *ReplaceableSliceOfStrings `json:"requiredIfPresentContexts,omitempty"`
-	OptionalContexts          *ReplaceableSliceOfStrings `json:"optionalContexts,omitempty"`
+	SkipUnknownContexts       *bool                      `json:"skip-unknown-contexts,omitempty"`
+	RequiredContexts          *ReplaceableSliceOfStrings `json:"required-contexts,omitempty"`
+	RequiredIfPresentContexts *ReplaceableSliceOfStrings `json:"required-if-present-contexts,omitempty"`
+	OptionalContexts          *ReplaceableSliceOfStrings `json:"optional-contexts,omitempty"`
 	// Infer required and optional jobs from Branch Protection configuration
-	FromBranchProtection *bool `json:"fromBranchProtection,omitempty"`
+	FromBranchProtection *bool `json:"from-branch-protection,omitempty"`
 }
 
 // Welcome welcome plugin config
@@ -300,7 +319,7 @@ type Welcome struct {
 type GlobalProtectionPolicy struct {
 	// +optional
 	*ProtectionPolicy
-	ProtectTested *bool `json:"protectTested,omitempty"`
+	ProtectTested *bool `json:"protect_tested,omitempty"`
 }
 
 // ProtectionPolicy for merging.
@@ -308,13 +327,13 @@ type ProtectionPolicy struct {
 	// Protect overrides whether branch protection is enabled if set.
 	Protect *bool `json:"protect,omitempty"`
 	// RequiredStatusChecks configures github contexts
-	RequiredStatusChecks *BranchProtectionContextPolicy `json:"requiredStatusChecks,omitempty"`
+	RequiredStatusChecks *BranchProtectionContextPolicy `json:"required_status_checks,omitempty"`
 	// Admins overrides whether protections apply to admins if set.
-	Admins *bool `json:"enforceAdmins,omitempty"`
+	Admins *bool `json:"enforce_admins,omitempty"`
 	// Restrictions limits who can merge
 	Restrictions *Restrictions `json:"restrictions,omitempty"`
 	// RequiredPullRequestReviews specifies approval/review criteria.
-	RequiredPullRequestReviews *ReviewPolicy `json:"requiredPullRequestReviews,omitempty"`
+	RequiredPullRequestReviews *ReviewPolicy `json:"required_pull_request_reviews,omitempty"`
 }
 
 // ReviewPolicy specifies git provider approval/review criteria.
@@ -322,13 +341,13 @@ type ProtectionPolicy struct {
 // Non-empty lists are appended to parent lists.
 type ReviewPolicy struct {
 	// Restrictions appends users/teams that are allowed to merge
-	DismissalRestrictions *Restrictions `json:"dismissalRestrictions,omitempty"`
+	DismissalRestrictions *Restrictions `json:"dismissal_restrictions,omitempty"`
 	// DismissStale overrides whether new commits automatically dismiss old reviews if set
-	DismissStale *bool `json:"dismissStaleReviews,omitempty"`
+	DismissStale *bool `json:"dismiss_stale_reviews,omitempty"`
 	// RequireOwners overrides whether CODEOWNERS must approve PRs if set
-	RequireOwners *bool `json:"requireCodeOwnerReviews,omitempty"`
+	RequireOwners *bool `json:"require_code_owner_reviews,omitempty"`
 	// Approvals overrides the number of approvals required if set (set to 0 to disable)
-	Approvals *int `json:"requiredApprovingReviewCount,omitempty"`
+	Approvals *int `json:"required_approving_review_count,omitempty"`
 }
 
 // Restrictions limits who can merge

@@ -7,22 +7,22 @@ metadata:
   name: release-only
 spec:
   approve:
-    issueRequired: false
-    lgtmActsAsApprove: true
-    requireSelfApproval: true
+    issue_required: false
+    lgtm_acts_as_approve: true
+    require_self_approval: true
   merger:
-    blockerLabel: ""
-    maxGoroutines: 0
-    mergeMethod: merge
+    blocker_label: ""
+    max_goroutines: 0
+    merge_method: merge
     policy:
-      fromBranchProtection: true
-      optionalContexts: {}
-      requiredContexts: {}
-      requiredIfPresentContexts: {}
-      skipUnknownContexts: false
-    prStatusBaseUrl: ""
-    squashLabel: ""
-    targetUrl: http://deck-jx.
+      from-branch-protection: true
+      optional-contexts: {}
+      required-contexts: {}
+      required-if-present-contexts: {}
+      skip-unknown-contexts: false
+    pr_status_base_url: ""
+    squash_label: ""
+    target_url: http://deck-jx.
   plugins:
     entries:
     - approve
@@ -41,7 +41,7 @@ spec:
     - dog
     - pony
   policy:
-    protectTested: true
+    protect_tested: true
   postsubmits:
     entries:
     - agent: tekton
@@ -59,9 +59,9 @@ spec:
   schedulerAgent:
     agent: tekton
   trigger:
-    ignoreOkToTest: false
-    joinOrgUrl: ""
-    onlyOrgMembers: false
-    trustedOrg: myorg
+    ignore_ok_to_test: false
+    join_org_url: ""
+    only_org_members: false
+    trusted_org: myorg
   welcome:
   - message_template: Welcome

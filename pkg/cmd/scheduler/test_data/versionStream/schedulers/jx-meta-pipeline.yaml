@@ -1,25 +1,25 @@
-apiVersion: jenkins.io/v1
+apiVersion: gitops.jenkins-x.io/v1alpha1
 kind: Scheduler
 metadata:
   name: jx-meta-pipeline
 spec:
   approve:
-    issueRequired: false
-    lgtmActsAsApprove: true
-    requireSelfApproval: true
+    issue_required: false
+    lgtm_acts_as_approve: true
+    require_self_approval: true
   merger:
-    blockerLabel: ""
-    maxGoroutines: 0
+    blocker_label: ""
+    max_goroutines: 0
     merge_method: merge
     policy:
-      fromBranchProtection: true
-      optionalContexts: { }
-      requiredContexts: { }
-      requiredIfPresentContexts: { }
-      skipUnknownContexts: false
-    prStatusBaseUrl: ""
-    squashLabel: ""
-    targetUrl: http://deck-jx.35.192.148.208.nip.io
+      from-branch-protection: true
+      optional-contexts: { }
+      required-contexts: { }
+      required-if-present-contexts: { }
+      skip-unknown-contexts: false
+    pr_status_base_url: ""
+    squash_label: ""
+    target_url: http://deck-jx.35.192.148.208.nip.io
   plugins:
     entries:
       - approve
@@ -38,7 +38,7 @@ spec:
       - dog
       - pony
   policy:
-    protectTested: true
+    protect_tested: true
   postsubmits:
     entries:
       - agent: tekton
@@ -64,6 +64,35 @@ spec:
         pipeline_run_spec:
           pipelineRef:
             name: jx-meta-pipeline
+        queries:
+          - excludedBranches: { }
+            included_branches: { }
+            labels:
+              entries:
+                - approved
+            milestone: ""
+            missingLabels:
+              entries:
+                - do-not-merge
+                - do-not-merge/hold
+                - do-not-merge/work-in-progress
+                - needs-ok-to-test
+                - needs-rebase
+            review_approved_required: false
+          - excludedBranches: { }
+            included_branches: { }
+            labels:
+              entries:
+                - updatebot
+            milestone: ""
+            missingLabels:
+              entries:
+                - do-not-merge
+                - do-not-merge/hold
+                - do-not-merge/work-in-progress
+                - needs-ok-to-test
+                - needs-rebase
+            review_approved_required: false
         report: true
         rerun_command: /test this
         run_if_changed: ""
@@ -71,8 +100,8 @@ spec:
   schedulerAgent:
     agent: tekton
   trigger:
-    ignoreOkToTest: false
-    joinOrgUrl: ""
-    onlyOrgMembers: false
+    ignore_ok_to_test: false
+    join_org_url: ""
+    only_org_members: false
   welcome:
     - message_template: Welcome

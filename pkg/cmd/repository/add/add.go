@@ -96,11 +96,11 @@ func (o *Options) Run() error {
 	}
 
 	sourceconfigs.SortConfig(config)
+	sourceconfigs.EnrichConfig(config)
 
 	if !o.ExplicitMode {
 		sourceconfigs.DryConfig(config)
 	}
-
 	dir := filepath.Dir(o.ConfigFile)
 	err = os.MkdirAll(dir, files.DefaultDirWritePermissions)
 	if err != nil {

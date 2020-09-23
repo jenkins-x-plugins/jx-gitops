@@ -3,6 +3,7 @@ package pipelinescheduler
 import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/jenkins-x/jx-gitops/pkg/schedulerapi"
+	"github.com/jenkins-x/jx-helpers/pkg/stringhelpers"
 	"github.com/jenkins-x/lighthouse/pkg/config/job"
 	"github.com/pkg/errors"
 )
@@ -62,8 +63,10 @@ func Build(schedulers []*schedulerapi.SchedulerSpec) (*schedulerapi.SchedulerSpe
 			} else if parent.ExternalPlugins != nil {
 				applyToExternalPlugins(parent.ExternalPlugins, answer.ExternalPlugins)
 			}
-			if answer.Plugins == nil || parent.Plugins != nil {
+			if answer.Plugins == nil {
 				answer.Plugins = parent.Plugins
+			} else if parent.Plugins != nil {
+				applyToReplaceableSliceOfStrings(parent.Plugins, answer.Plugins)
 			}
 			if answer.Merger == nil {
 				answer.Merger = parent.Merger
@@ -207,14 +210,33 @@ func applyToContextPolicy(parent *schedulerapi.ContextPolicy, child *schedulerap
 	if child.SkipUnknownContexts == nil {
 		child.SkipUnknownContexts = parent.SkipUnknownContexts
 	}
-	if child.OptionalContexts == nil || parent.OptionalContexts != nil {
+	if child.OptionalContexts == nil {
 		child.OptionalContexts = parent.OptionalContexts
+	} else if parent.OptionalContexts != nil {
+		applyToReplaceableSliceOfStrings(parent.OptionalContexts, child.OptionalContexts)
 	}
-	if child.RequiredContexts == nil || parent.RequiredContexts != nil {
+	if child.RequiredContexts == nil {
 		child.RequiredContexts = parent.RequiredContexts
+	} else if parent.RequiredContexts != nil {
+		applyToReplaceableSliceOfStrings(parent.RequiredContexts, child.RequiredContexts)
 	}
-	if child.RequiredIfPresentContexts == nil || parent.RequiredIfPresentContexts != nil {
+	if child.RequiredIfPresentContexts == nil {
 		child.RequiredIfPresentContexts = parent.RequiredIfPresentContexts
+	} else if parent.RequiredIfPresentContexts != nil {
+		applyToReplaceableSliceOfStrings(parent.RequiredIfPresentContexts, child.RequiredIfPresentContexts)
+	}
+}
+
+func applyToReplaceableSliceOfStrings(parent *schedulerapi.ReplaceableSliceOfStrings, child *schedulerapi.ReplaceableSliceOfStrings) {
+	if !child.Replace && parent != nil {
+		if child.Items == nil {
+			child.Items = make([]string, 0)
+		}
+		for i := range parent.Items {
+			if stringhelpers.StringArrayIndex(child.Items, parent.Items[i]) < 0 {
+				child.Items = append(child.Items, parent.Items[i])
+			}
+		}
 	}
 }
 
@@ -351,12 +373,12 @@ func applyToPostSubmits(parentPostsubmits *schedulerapi.Postsubmits, childPostsu
 
 func applyToPreSubmits(parentPresubmits *schedulerapi.Presubmits, childPresubmits *schedulerapi.Presubmits) error {
 	if childPresubmits.Items == nil {
-		childPresubmits.Items = make([]*job.Presubmit, 0)
+		childPresubmits.Items = make([]*schedulerapi.Presubmit, 0)
 	}
 	// Work through each of the presubmits in the parent. If we can find a name based match in child,
 	// we apply it to the child, otherwise we append it
 	for _, parent := range parentPresubmits.Items {
-		var found []*job.Presubmit
+		var found []*schedulerapi.Presubmit
 		for _, child := range childPresubmits.Items {
 			if child.Name == parent.Name {
 				found = append(found, child)

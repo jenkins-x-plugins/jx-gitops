@@ -61,7 +61,7 @@ var (
 	}
 
 	schedulerResourceFilter = kyamls.Filter{
-		Kinds: []string{"jenkins.io/v1/Scheduler"},
+		Kinds: []string{"Scheduler"},
 	}
 )
 

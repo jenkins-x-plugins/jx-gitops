@@ -453,15 +453,15 @@ func buildSchedulerProtectionPolicies(repo string, prowConfig *config.Config) *s
 		}
 	}
 	var repoPolicy *schedulerapi.ProtectionPolicy
-	requiredPullRequestReviews := buildSchedulerRequiredPullRequestReviews(repoBranchProtection.RequiredPullRequestReviews)
-	requiredStatusChecks := buildSchedulerRequiredStatusChecks(repoBranchProtection.RequiredStatusChecks)
+	required_pull_request_reviews := buildSchedulerRequiredPullRequestReviews(repoBranchProtection.RequiredPullRequestReviews)
+	required_status_checks := buildSchedulerRequiredStatusChecks(repoBranchProtection.RequiredStatusChecks)
 	restrictions := buildSchedulerRestrictions(repoBranchProtection.Restrictions)
-	if repoBranchProtection.Admins != nil || repoBranchProtection.Protect != nil || requiredPullRequestReviews != nil || requiredStatusChecks != nil || restrictions != nil {
+	if repoBranchProtection.Admins != nil || repoBranchProtection.Protect != nil || required_pull_request_reviews != nil || required_status_checks != nil || restrictions != nil {
 		repoPolicy = &schedulerapi.ProtectionPolicy{
 			Admins:                     repoBranchProtection.Admins,
 			Protect:                    repoBranchProtection.Protect,
-			RequiredPullRequestReviews: requiredPullRequestReviews,
-			RequiredStatusChecks:       requiredStatusChecks,
+			RequiredPullRequestReviews: required_pull_request_reviews,
+			RequiredStatusChecks:       required_status_checks,
 			Restrictions:               buildSchedulerRestrictions(repoBranchProtection.Restrictions),
 		}
 	}
@@ -471,25 +471,25 @@ func buildSchedulerProtectionPolicies(repo string, prowConfig *config.Config) *s
 	}
 }
 
-func buildSchedulerRequiredPullRequestReviews(requiredPullRequestReviews *branchprotection.ReviewPolicy) *schedulerapi.ReviewPolicy {
-	if requiredPullRequestReviews != nil {
+func buildSchedulerRequiredPullRequestReviews(required_pull_request_reviews *branchprotection.ReviewPolicy) *schedulerapi.ReviewPolicy {
+	if required_pull_request_reviews != nil {
 		return &schedulerapi.ReviewPolicy{
-			DismissalRestrictions: buildSchedulerRestrictions(requiredPullRequestReviews.DismissalRestrictions),
-			DismissStale:          requiredPullRequestReviews.DismissStale,
-			RequireOwners:         requiredPullRequestReviews.RequireOwners,
-			Approvals:             requiredPullRequestReviews.Approvals,
+			DismissalRestrictions: buildSchedulerRestrictions(required_pull_request_reviews.DismissalRestrictions),
+			DismissStale:          required_pull_request_reviews.DismissStale,
+			RequireOwners:         required_pull_request_reviews.RequireOwners,
+			Approvals:             required_pull_request_reviews.Approvals,
 		}
 	}
 	return nil
 }
 
-func buildSchedulerRequiredStatusChecks(requiredStatusChecks *branchprotection.ContextPolicy) *schedulerapi.BranchProtectionContextPolicy {
-	if requiredStatusChecks != nil {
+func buildSchedulerRequiredStatusChecks(required_status_checks *branchprotection.ContextPolicy) *schedulerapi.BranchProtectionContextPolicy {
+	if required_status_checks != nil {
 		return &schedulerapi.BranchProtectionContextPolicy{
 			Contexts: &schedulerapi.ReplaceableSliceOfStrings{
-				Items: requiredStatusChecks.Contexts,
+				Items: required_status_checks.Contexts,
 			},
-			Strict: requiredStatusChecks.Strict,
+			Strict: required_status_checks.Strict,
 		}
 	}
 	return nil
@@ -531,7 +531,9 @@ func buildSchedulerPresubmits(repo string, prowConfig *config.Config) *scheduler
 	presubmits := prowConfig.Presubmits[repo]
 	for presubmitIndex := range presubmits {
 		copy := presubmits[presubmitIndex]
-		schedulerPresubmits.Items = append(schedulerPresubmits.Items, &copy)
+		schedulerPresubmits.Items = append(schedulerPresubmits.Items, &schedulerapi.Presubmit{
+			Presubmit: copy,
+		})
 	}
 	return schedulerPresubmits
 }
