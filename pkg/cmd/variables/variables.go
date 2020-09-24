@@ -281,6 +281,8 @@ func (o *Options) Run() error {
 				return errors.Wrapf(err, "failed to evaluate function for variable %s", name)
 			}
 			if value != "" {
+				log.Logger().Infof("export %s=\"%s\"", name, value)
+
 				line := fmt.Sprintf("export %s=\"%s\"", name, value)
 
 				if buf.Len() == 0 {
