@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/jenkins-x/jx-helpers/pkg/files"
+	"github.com/jenkins-x/jx-logging/pkg/log"
 	"github.com/pkg/errors"
 )
 
@@ -29,10 +30,11 @@ func FindVersion(versionFile, branch, buildNumber string) (string, error) {
 		version = os.Getenv("VERSION")
 	}
 	if version == "" {
-		if strings.HasPrefix(branch, "PR-") {
+		pullNumber := os.Getenv("PULL_NUMBER")
+		if strings.HasPrefix(branch, "PR-") || pullNumber != "" {
 			return "0.0.0-SNAPSHOT-" + branch + "-" + buildNumber, nil
 		}
-		return version, errors.Errorf("could not detect version from $VERSION or version file %s. Try supply the command option: --version", versionFile)
+		log.Logger().Warnf("could not detect version from $VERSION or version file %s. Try supply the command option: --version", versionFile)
 	}
 	return version, nil
 }
