@@ -21,7 +21,7 @@ Generates the Lighthouse configuration from the SourceRepository and Scheduler r
 .SH OPTIONS
 .PP
 \fB\-d\fP, \fB\-\-dir\fP="."
-    the directory to recursively look for the *.yaml or *.yml files
+    the current working directory
 
 .PP
 \fB\-h\fP, \fB\-\-help\fP[=false]
@@ -37,7 +37,15 @@ Generates the Lighthouse configuration from the SourceRepository and Scheduler r
 
 .PP
 \fB\-o\fP, \fB\-\-out\fP=""
-    the output directory for the generated config files
+    the output directory for the generated config files. If not specified defaults to config\-root/namespaces/$ns/lighthouse\-config
+
+.PP
+\fB\-\-repo\-dir\fP=""
+    the directory to look for SourceRepository resources. If not specified defaults config\-root/namespaces/$ns
+
+.PP
+\fB\-\-scheduler\-dir\fP=""
+    the directory to look for Scheduler resources. If not specified defaults versionStream/schedulers
 
 
 .SH EXAMPLE
