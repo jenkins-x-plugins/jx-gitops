@@ -351,8 +351,11 @@ func (o *Options) findBuildNumber() (string, error) {
 	if o.BuildNumber == "" {
 		o.BuildNumber = os.Getenv("BUILD_NUMBER")
 		if o.BuildNumber == "" {
-			// TODO better implementation required!
-			o.BuildNumber = "1"
+			o.BuildNumber = os.Getenv("BUILD_ID")
+			if o.BuildNumber == "" {
+				// TODO better implementation required!
+				o.BuildNumber = "1"
+			}
 		}
 	}
 	return o.BuildNumber, nil
