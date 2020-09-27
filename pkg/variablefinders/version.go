@@ -24,6 +24,8 @@ func FindVersion(versionFile, branch, buildNumber string) (string, error) {
 				return version, errors.Wrapf(err, "failed to read version file %s", versionFile)
 			}
 			version = strings.TrimSpace(string(data))
+		} else {
+			log.Logger().Infof("version file %s does not exist", versionFile)
 		}
 	}
 	if version == "" {
