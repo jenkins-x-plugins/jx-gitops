@@ -112,7 +112,6 @@ func (o *Options) Validate() error {
 
 	// lets find the version
 	if o.Version == "" {
-		o.Version = os.Getenv("VERSION")
 		exists, err := files.FileExists(o.VersionFile)
 		if err != nil {
 			return errors.Wrapf(err, "failed to check for file %s", o.VersionFile)
@@ -123,6 +122,11 @@ func (o *Options) Validate() error {
 				return errors.Wrapf(err, "failed to read version file %s", o.VersionFile)
 			}
 			o.Version = strings.TrimSpace(string(data))
+		} else {
+			log.Logger().Infof("version file %s does not exist", info(o.VersionFile))
+		}
+		if o.Version == "" {
+			o.Version = os.Getenv("VERSION")
 		}
 		if o.Version == "" {
 			return errors.Errorf("could not detect version from $VERSION or version file %s. Try supply the command option: --version", o.VersionFile)
