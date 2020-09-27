@@ -20,6 +20,10 @@ Lazily creates a .jx/variables.sh script with common pipeline environment variab
 
 .SH OPTIONS
 .PP
+\fB\-\-build\-number\fP=""
+    the build number to use. If not specified defaults to $BUILD\_NUMBER
+
+.PP
 \fB\-\-configmap\fP="jenkins\-x\-docker\-registry"
     the ConfigMap used to load environment variables
 
@@ -62,6 +66,10 @@ Lazily creates a .jx/variables.sh script with common pipeline environment variab
 .PP
 \fB\-u\fP, \fB\-\-repo\-url\fP=""
     the URL to release to
+
+.PP
+\fB\-\-version\-file\fP=""
+    the file to load the version from if not specified directly or via a $VERSION environment variable. Defaults to VERSION in the current dir
 
 
 .SH EXAMPLE
