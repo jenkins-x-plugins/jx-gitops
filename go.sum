@@ -985,6 +985,8 @@ github.com/jenkins-x/lighthouse v0.0.827 h1:TklfiEdWlBZZTACQBze8Mk0maVDWJ2U6ClqA
 github.com/jenkins-x/lighthouse v0.0.827/go.mod h1:PDdUKNyQjbPlu1uA/IbvRgm0QXgU9wkHV+DpwWipKkE=
 github.com/jenkins-x/lighthouse v0.0.831 h1:PnyqEEdR+3dk7ifRW2vbVGKdmnfgOOZ/n+xsNFJ0FG0=
 github.com/jenkins-x/lighthouse v0.0.831/go.mod h1:9UEvPgtAbTbmfokS8AfEkIA41h3GIpRzWYYOYuXdfu8=
+github.com/jenkins-x/lighthouse v0.0.832 h1:eXAjhQhKiYO7rZPu4GLVNZt+3cNQGMV85liUzYyhwpQ=
+github.com/jenkins-x/lighthouse v0.0.832/go.mod h1:9UEvPgtAbTbmfokS8AfEkIA41h3GIpRzWYYOYuXdfu8=
 github.com/jenkins-x/logrus-stackdriver-formatter v0.2.3 h1:NuRWKUPCEX1wKlXA8ZYSG28qGKd41R7BK11YDQkPwqo=
 github.com/jenkins-x/logrus-stackdriver-formatter v0.2.3/go.mod h1:litPp7VZWDRCl8LvXuqGngy+65kkg/+T23TgFnDmfTk=
 github.com/jessevdk/go-flags v1.4.0/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=
