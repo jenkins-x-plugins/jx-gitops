@@ -194,6 +194,12 @@ func (o *Options) Validate() error {
 			},
 		},
 		{
+			Name: "PIPELINE_KIND",
+			Function: func() (string, error) {
+				return variablefinders.FindPipelineKind()
+			},
+		},
+		{
 			Name: "REPO_NAME",
 			Function: func() (string, error) {
 				return o.Options.Repository, nil
