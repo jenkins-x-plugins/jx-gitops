@@ -2,13 +2,14 @@ package variablefinders
 
 import (
 	"os"
+	"strings"
 )
 
 //  FindPipelineKind finds the pipeline kind
-func FindPipelineKind() (string, error) {
+func FindPipelineKind(branch string) (string, error) {
 	jobType := os.Getenv("JOB_TYPE")
 	prNumber := os.Getenv("PULL_NUMBER")
-	if jobType == "presubmit" || prNumber != "" {
+	if strings.HasPrefix(branch, "PR-") || jobType == "presubmit" || prNumber != "" {
 		return "pullrequest", nil
 	}
 	return "release", nil

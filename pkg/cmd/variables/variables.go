@@ -196,7 +196,7 @@ func (o *Options) Validate() error {
 		{
 			Name: "PIPELINE_KIND",
 			Function: func() (string, error) {
-				return variablefinders.FindPipelineKind()
+				return variablefinders.FindPipelineKind(o.Branch)
 			},
 		},
 		{
