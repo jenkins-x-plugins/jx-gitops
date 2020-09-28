@@ -113,7 +113,7 @@ func TestFindBuildNumber(t *testing.T) {
 
 	t.Logf("generated build number %s", buildNumber)
 
-	resources, err := o.JXClient.JenkinsV1().PipelineActivities(ns).List(metav1.ListOptions{})
+	resources, err := jxClient.JenkinsV1().PipelineActivities(ns).List(metav1.ListOptions{})
 	require.NoError(t, err, "failed to list PipelineActivities")
 	require.Len(t, resources.Items, 1, "should have found 1 PipelineActivity")
 	pa := resources.Items[0]
@@ -129,7 +129,7 @@ func TestFindBuildNumber(t *testing.T) {
 	require.NoError(t, err, "failed to find build number")
 	assert.Equal(t, "1", buildNumber, "should have created build number")
 
-	resources, err = o.JXClient.JenkinsV1().PipelineActivities(ns).List(metav1.ListOptions{})
+	resources, err = jxClient.JenkinsV1().PipelineActivities(ns).List(metav1.ListOptions{})
 	require.NoError(t, err, "failed to list PipelineActivities")
 	require.Len(t, resources.Items, 1, "should have found 1 PipelineActivity")
 }
