@@ -98,7 +98,7 @@ func (o *Options) Run() error {
 		return errors.Wrap(err, "creating git credentials")
 	}
 
-	_, _, err = gitclient.SetUserAndEmail(gitClient, o.Dir, o.UserName, o.UserEmail)
+	_, _, err = gitclient.SetUserAndEmail(gitClient, o.Dir, o.UserName, o.UserEmail, o.DisableInClusterTest)
 	if err != nil {
 		return errors.Wrapf(err, "failed to setup git user and email")
 	}
