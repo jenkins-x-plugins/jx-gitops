@@ -13,6 +13,7 @@ import (
 	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/jenkins-x/jx-helpers/pkg/kube/jxenv"
 	"github.com/jenkins-x/jx-helpers/pkg/testhelpers"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -79,4 +80,56 @@ func TestCmdVariables(t *testing.T) {
 	t.Logf("generated file %s\n", f)
 
 	testhelpers.AssertTextFilesEqual(t, filepath.Join("test_data", "expected.sh"), f, "generated file")
+}
+
+func TestFindBuildNumber(t *testing.T) {
+	kubeClient := fake.NewSimpleClientset()
+	jxClient := jxfake.NewSimpleClientset()
+
+	ns := "jx"
+	buildID := "123456"
+	owner := "myowner"
+	repository := "myrepo"
+	branch := "PR-23"
+
+	createOptions := func() *variables.Options {
+		_, o := variables.NewCmdVariables()
+		o.JXClient = jxClient
+		o.KubeClient = kubeClient
+		o.Namespace = ns
+		o.BuildID = buildID
+		o.Options.Owner = owner
+		o.Options.Repository = repository
+		o.Options.Branch = branch
+		o.Options.SourceURL = "https://github.com/" + owner + "/" + repository
+		return o
+	}
+
+	o := createOptions()
+
+	buildNumber, err := o.FindBuildNumber()
+	require.NoError(t, err, "failed to find build number")
+	assert.Equal(t, "1", buildNumber, "should have created build number")
+
+	t.Logf("generated build number %s", buildNumber)
+
+	resources, err := o.JXClient.JenkinsV1().PipelineActivities(ns).List(metav1.ListOptions{})
+	require.NoError(t, err, "failed to list PipelineActivities")
+	require.Len(t, resources.Items, 1, "should have found 1 PipelineActivity")
+	pa := resources.Items[0]
+	assert.Equal(t, "1", pa.Spec.Build, "PipelineActivity should have Spec.Build")
+	assert.Equal(t, o.Options.Owner, pa.Spec.GitOwner, "PipelineActivity should have Spec.GitOwner")
+	assert.Equal(t, o.Options.Repository, pa.Spec.GitRepository, "PipelineActivity should have Spec.GitRepository")
+	assert.Equal(t, o.Options.Branch, pa.Spec.GitBranch, "PipelineActivity should have Spec.GitRepository")
+	assert.Equal(t, o.BuildID, pa.Labels["buildID"], "PipelineActivity should have Labels['buildID'] but has labels %#v", pa.Labels)
+
+	o = createOptions()
+
+	buildNumber, err = o.FindBuildNumber()
+	require.NoError(t, err, "failed to find build number")
+	assert.Equal(t, "1", buildNumber, "should have created build number")
+
+	resources, err = o.JXClient.JenkinsV1().PipelineActivities(ns).List(metav1.ListOptions{})
+	require.NoError(t, err, "failed to list PipelineActivities")
+	require.Len(t, resources.Items, 1, "should have found 1 PipelineActivity")
 }
