@@ -107,7 +107,7 @@ func TestFindBuildNumber(t *testing.T) {
 
 	o := createOptions()
 
-	buildNumber, err := o.FindBuildNumber()
+	buildNumber, err := o.FindBuildNumber(buildID)
 	require.NoError(t, err, "failed to find build number")
 	assert.Equal(t, "1", buildNumber, "should have created build number")
 
@@ -125,7 +125,7 @@ func TestFindBuildNumber(t *testing.T) {
 
 	o = createOptions()
 
-	buildNumber, err = o.FindBuildNumber()
+	buildNumber, err = o.FindBuildNumber(buildID)
 	require.NoError(t, err, "failed to find build number")
 	assert.Equal(t, "1", buildNumber, "should have created build number")
 

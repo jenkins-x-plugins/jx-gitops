@@ -156,7 +156,7 @@ func (o *Options) Validate() error {
 		}
 	}
 
-	o.BuildNumber, err = o.FindBuildNumber()
+	o.BuildNumber, err = o.GetBuildNumber()
 	if err != nil {
 		return errors.Wrapf(err, "failed to find build number")
 	}
@@ -358,83 +358,95 @@ func (o *Options) dockerRegistryOrg() (string, error) {
 	return answer, nil
 }
 
-func (o *Options) FindBuildNumber() (string, error) {
+// GetBuildNumber returns the build number from BUILD_NUMBER or uses PipelineActivities to create/find it
+func (o *Options) GetBuildNumber() (string, error) {
 	if o.BuildNumber == "" {
 		o.BuildNumber = os.Getenv("BUILD_NUMBER")
 		if o.BuildNumber == "" {
+			var err error
 			buildID := o.GetBuildID()
 			if buildID != "" {
-				// lets try find a PipelineActivity with this build ID...
-				activityInterface := o.JXClient.JenkinsV1().PipelineActivities(o.Namespace)
-
-				owner := o.Options.Owner
-				repository := o.Options.Repository
-				branch := o.Options.Branch
-				selector := "owner=" + naming.ToValidName(owner) +
-					",repository=" + naming.ToValidName(repository) +
-					",branch=" + naming.ToValidName(branch)
-
-				resources, err := activityInterface.List(metav1.ListOptions{
-					LabelSelector: selector,
-				})
-				if err != nil && !apierrors.IsNotFound(err) {
-					return "", errors.Wrapf(err, "failed to find PipelineActivity resources in namespace %s with selector %s", o.Namespace, selector)
-				}
-
-				maxBuild := 0
-				if resources != nil {
-					for _, pa := range resources.Items {
-						labels := pa.Labels
-						if labels == nil {
-							continue
-						}
-						if labels["buildID"] == buildID {
-							if pa.Spec.Build == "" {
-								log.Logger().Warnf("PipelineActivity %s does not have a spec.build value", pa.Name)
-							} else {
-								return pa.Spec.Build, nil
-							}
-							continue
-						}
-						if pa.Spec.Build != "" {
-							i, err := strconv.Atoi(pa.Spec.Build)
-							if err != nil {
-								log.Logger().Warnf("PipelineActivity %s has an invalid spec.build number %s should be an integer: %s", pa.Name, pa.Spec.Build, err.Error())
-							} else {
-								if i > maxBuild {
-									maxBuild = i
-								}
-							}
-						}
-					}
-				}
-				o.BuildNumber = strconv.Itoa(maxBuild + 1)
-
-				// lets lazy create a new PipelineActivity for this new build number...
-				pipeline := fmt.Sprintf("%s/%s/%s", owner, repository, branch)
-				name := naming.ToValidName(pipeline + "-" + o.BuildNumber)
-
-				key := &activities.PromoteStepActivityKey{
-					PipelineActivityKey: activities.PipelineActivityKey{
-						Name:     name,
-						Pipeline: pipeline,
-						Build:    o.BuildNumber,
-						GitInfo: &giturl.GitRepository{
-							Name:         repository,
-							Organisation: owner,
-						},
-						Labels: map[string]string{
-							"buildID": buildID,
-						},
-					},
-				}
-				_, _, err = key.GetOrCreate(o.JXClient, o.Namespace)
+				o.BuildNumber, err = o.FindBuildNumber(buildID)
 				if err != nil {
-					return o.BuildNumber, errors.Wrapf(err, "failed to lazily create PipelineActivity %s", name)
+					return "", errors.Wrapf(err, "failed to find BuildNumber")
 				}
-				return o.BuildNumber, nil
+			} else {
+				log.Logger().Warnf("no $BUILD_ID found so cannot create the BUILD_NUMBER")
 			}
 		}
+	}
+	return o.BuildNumber, nil
+}
+
+// FindBuildNumber finds the build number for the given build ID
+func (o *Options) FindBuildNumber(buildID string) (string, error) {
+	// lets try find a PipelineActivity with this build ID...
+	activityInterface := o.JXClient.JenkinsV1().PipelineActivities(o.Namespace)
+
+	owner := o.Options.Owner
+	repository := o.Options.Repository
+	branch := o.Options.Branch
+	selector := "owner=" + naming.ToValidName(owner) +
+		",repository=" + naming.ToValidName(repository) +
+		",branch=" + naming.ToValidName(branch)
+
+	resources, err := activityInterface.List(metav1.ListOptions{
+		LabelSelector: selector,
+	})
+	if err != nil && !apierrors.IsNotFound(err) {
+		return "", errors.Wrapf(err, "failed to find PipelineActivity resources in namespace %s with selector %s", o.Namespace, selector)
+	}
+
+	maxBuild := 0
+	if resources != nil {
+		for _, pa := range resources.Items {
+			labels := pa.Labels
+			if labels == nil {
+				continue
+			}
+			if labels["buildID"] == buildID {
+				if pa.Spec.Build == "" {
+					log.Logger().Warnf("PipelineActivity %s does not have a spec.build value", pa.Name)
+				} else {
+					return pa.Spec.Build, nil
+				}
+				continue
+			}
+			if pa.Spec.Build != "" {
+				i, err := strconv.Atoi(pa.Spec.Build)
+				if err != nil {
+					log.Logger().Warnf("PipelineActivity %s has an invalid spec.build number %s should be an integer: %s", pa.Name, pa.Spec.Build, err.Error())
+				} else {
+					if i > maxBuild {
+						maxBuild = i
+					}
+				}
+			}
+		}
+	}
+	o.BuildNumber = strconv.Itoa(maxBuild + 1)
+
+	// lets lazy create a new PipelineActivity for this new build number...
+	pipeline := fmt.Sprintf("%s/%s/%s", owner, repository, branch)
+	name := naming.ToValidName(pipeline + "-" + o.BuildNumber)
+
+	key := &activities.PromoteStepActivityKey{
+		PipelineActivityKey: activities.PipelineActivityKey{
+			Name:     name,
+			Pipeline: pipeline,
+			Build:    o.BuildNumber,
+			GitInfo: &giturl.GitRepository{
+				Name:         repository,
+				Organisation: owner,
+			},
+			Labels: map[string]string{
+				"buildID": buildID,
+			},
+		},
+	}
+	_, _, err = key.GetOrCreate(o.JXClient, o.Namespace)
+	if err != nil {
+		return o.BuildNumber, errors.Wrapf(err, "failed to lazily create PipelineActivity %s", name)
 	}
 	return o.BuildNumber, nil
 }
