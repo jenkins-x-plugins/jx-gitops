@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/jenkins-x/go-scm/scm"
 	v1 "github.com/jenkins-x/jx-api/pkg/apis/jenkins.io/v1"
 	jxconfig "github.com/jenkins-x/jx-api/pkg/config"
 
@@ -15,8 +16,6 @@ import (
 	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
 	"github.com/jenkins-x/jx-helpers/pkg/yamls"
 	"github.com/jenkins-x/jx-logging/pkg/log"
-	"github.com/jenkins-x/lighthouse/pkg/config"
-	"github.com/jenkins-x/lighthouse/pkg/plugins"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -219,15 +218,15 @@ func (o *Options) Run() error {
 	}
 
 	// lets check for in repo config
+	flag := true
 	for _, sr := range repoList.Items {
 		if sr.Spec.Scheduler.Name == "in-repo" {
-			o.InRepoConfig = true
-			break
+			if config.ProwConfig.InRepoConfig.Enabled == nil {
+				config.ProwConfig.InRepoConfig.Enabled = map[string]*bool{}
+			}
+			fullName := scm.Join(sr.Spec.Org, sr.Spec.Repo)
+			config.ProwConfig.InRepoConfig.Enabled[fullName] = &flag
 		}
-	}
-	if o.InRepoConfig {
-		log.Logger().Infof("enabling in repo configuration for Lighthouse")
-		o.enableInRepoConfig(config, plugins)
 	}
 
 	// lets process any templated values
@@ -267,15 +266,6 @@ func (o *Options) Run() error {
 	}
 	log.Logger().Infof("generated config ConfigMap %s and plugins ConfigMap %s", termcolor.ColorInfo(configFileName), termcolor.ColorInfo(pluginsFileName))
 	return nil
-}
-
-func (o *Options) enableInRepoConfig(config *config.Config, plugins *plugins.Configuration) {
-	flag := true
-	if config.ProwConfig.InRepoConfig.Enabled == nil {
-		config.ProwConfig.InRepoConfig.Enabled = map[string]*bool{
-			"*": &flag,
-		}
-	}
 }
 
 func (o *Options) createTemplater() (func(string) (string, error), error) {

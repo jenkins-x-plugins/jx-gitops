@@ -73,7 +73,8 @@ func TestScheduler(t *testing.T) {
 		assert.Len(t, lhCfg.Postsubmits[repoName], 0, "postsubmits for %s", repoName)
 	}
 
-	assert.NotEmpty(t, lhCfg.InRepoConfig.Enabled, "should have inRepoConfig enabled")
+	assert.NotNil(t, lhCfg.InRepoConfig.Enabled, "should have inRepoConfig enabled")
+	assert.NotNil(t, lhCfg.InRepoConfig.Enabled["myorg/in-repo"], "should have inRepoConfig.Enabled['myorg/in-repo']")
 
 	assert.Equal(t, "http://deck-jx..jx.1.2.3.4.nip.io", lhCfg.Keeper.TargetURL, "config.Keeper.TargetURL")
 }
