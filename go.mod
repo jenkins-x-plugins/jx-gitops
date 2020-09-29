@@ -8,13 +8,13 @@ require (
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/google/go-cmp v0.4.1
 	github.com/h2non/gock v1.0.9
-	github.com/jenkins-x/go-scm v1.5.176
+	github.com/jenkins-x/go-scm v1.5.177
 	github.com/jenkins-x/jx-api v0.0.24
 	github.com/jenkins-x/jx-helpers v1.0.80
 	github.com/jenkins-x/jx-kube-client v0.0.8
 	github.com/jenkins-x/jx-logging v0.0.11
 	github.com/jenkins-x/jx-promote v0.0.122 // indirect
-	github.com/jenkins-x/lighthouse v0.0.834
+	github.com/jenkins-x/lighthouse v0.0.835
 	github.com/pborman/uuid v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/roboll/helmfile v0.125.7
