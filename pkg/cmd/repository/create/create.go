@@ -23,11 +23,11 @@ import (
 
 var (
 	cmdLong = templates.LongDesc(`
-		Creates any missing SourceConfig resources
+		Creates any missing SourceRepository resources
 `)
 
 	cmdExample = templates.Examples(`
-		# creates any missing SourceConfig resources  
+		# creates any missing SourceRepository resources  
 		%s repository create https://github.com/myorg/myrepo.git
 	`)
 )
@@ -46,7 +46,7 @@ func NewCmdCreateRepository() (*cobra.Command, *Options) {
 
 	cmd := &cobra.Command{
 		Use:     "create",
-		Short:   "Creates any missing SourceConfig resources",
+		Short:   "Creates any missing SourceRepository resources",
 		Long:    cmdLong,
 		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName, rootcmd.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {

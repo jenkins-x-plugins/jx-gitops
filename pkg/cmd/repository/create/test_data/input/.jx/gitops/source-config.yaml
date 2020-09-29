@@ -9,4 +9,10 @@ spec:
     repositories:
       - name: jx-cli
       - name: jx-gitops
+  - owner: mygitlaborg
+    provider: https://mygitlab.com
+    providerKind: gitlab
+    providerName: mygitlab
+    repositories:
+      - name: somegitlab
   scheduler: cheese
