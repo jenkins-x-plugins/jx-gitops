@@ -1,0 +1,20 @@
+apiVersion: jenkins.io/v1
+kind: SourceRepository
+metadata:
+  creationTimestamp: null
+  labels:
+    owner: mygitlaborg
+    provider: gitlab
+    repository: somegitlab
+  name: mygitlaborg-somegitlab
+spec:
+  httpCloneURL: https://mygitlab.com/mygitlaborg/somegitlab.git
+  org: mygitlaborg
+  provider: https://mygitlab.com
+  providerKind: gitlab
+  providerName: mygitlab
+  repo: somegitlab
+  scheduler:
+    kind: ""
+    name: cheese
+  url: https://mygitlab.com/mygitlaborg/somegitlab

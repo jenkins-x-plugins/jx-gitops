@@ -31,7 +31,7 @@ func TestCreateRepositorySourceDir(t *testing.T) {
 	expectedDir := filepath.Join("test_data", "expected", "config-root", "namespaces", "jx", "source-repositories")
 	genDir := filepath.Join(tmpDir, "config-root", "namespaces", "jx", "source-repositories")
 
-	for _, name := range []string{"jenkins-x-jx-cli.yaml", "jenkins-x-jx-gitops.yaml"} {
+	for _, name := range []string{"jenkins-x-jx-cli.yaml", "jenkins-x-jx-gitops.yaml", "mygitlaborg-somegitlab.yaml"} {
 		expectedFile := filepath.Join(expectedDir, name)
 		genFile := filepath.Join(genDir, name)
 		testhelpers.AssertTextFilesEqual(t, expectedFile, genFile, "generated SourceRepository")
