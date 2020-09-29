@@ -8,7 +8,7 @@ require (
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/google/go-cmp v0.4.1
 	github.com/h2non/gock v1.0.9
-	github.com/jenkins-x/go-scm v1.5.176
+	github.com/jenkins-x/go-scm v1.5.177
 	github.com/jenkins-x/jx-api v0.0.24
 	github.com/jenkins-x/jx-helpers v1.0.80
 	github.com/jenkins-x/jx-kube-client v0.0.8
