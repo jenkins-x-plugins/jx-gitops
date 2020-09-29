@@ -13,6 +13,7 @@ import (
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/pkg/files"
+	"github.com/jenkins-x/jx-helpers/pkg/gitclient/giturl"
 	"github.com/jenkins-x/jx-helpers/pkg/kube/jxclient"
 	"github.com/jenkins-x/jx-helpers/pkg/kyamls"
 	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
@@ -149,7 +150,12 @@ func (o *Options) populateConfig(config *v1alpha1.SourceConfig, srList []jenkins
 				log.Logger().Warnf("ignoring SourceRepository %s with no repo", sr.Name)
 				continue
 			}
-			group := sourceconfigs.GetOrCreateGroup(config, owner)
+			gitKind := sr.Spec.ProviderKind
+			gitServerURL := sr.Spec.Provider
+			if gitKind == "" {
+				gitKind = giturl.SaasGitKind(gitServerURL)
+			}
+			group := sourceconfigs.GetOrCreateGroup(config, gitKind, gitServerURL, owner)
 			repo := sourceconfigs.GetOrCreateRepository(group, repoName)
 
 			err := sourceconfigs.DefaultValues(config, group, repo)

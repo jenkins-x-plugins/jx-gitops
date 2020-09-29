@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/jenkins-x/jx-api/pkg/client/clientset/versioned"
 	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-gitops/pkg/sourceconfigs"
@@ -13,6 +14,7 @@ import (
 	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient/giturl"
 	"github.com/jenkins-x/jx-helpers/pkg/kyamls"
+	"github.com/jenkins-x/jx-helpers/pkg/scmhelpers"
 	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
 	"github.com/jenkins-x/jx-helpers/pkg/yamls"
 	"github.com/jenkins-x/jx-logging/pkg/log"
@@ -34,11 +36,13 @@ var (
 // LabelOptions the options for the command
 type Options struct {
 	kyamls.Filter
+	Args         []string
 	Dir          string
 	ConfigFile   string
 	Scheduler    string
+	Namespace    string
+	JXClient     versioned.Interface
 	ExplicitMode bool
-	Args         []string
 }
 
 // NewCmdAddRepository creates a command object for the command
@@ -60,6 +64,7 @@ func NewCmdAddRepository() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.ConfigFile, "config", "c", "", "the configuration file to load for the repository configurations. If not specified we look in .jx/gitops/source-repositories.yaml")
 	cmd.Flags().StringVarP(&o.Scheduler, "scheduler", "s", "", "the name of the Scheduler to use for the repository")
 	cmd.Flags().BoolVarP(&o.ExplicitMode, "explicit", "e", false, "Explicit mode: always populate all the fields even if they can be deduced. e.g. the git URLs for each repository are not absolutely necessary and are omitted by default are populated if this flag is enabled")
+	cmd.Flags().StringVarP(&o.Namespace, "namespace", "", "", "the namespace to discover SourceRepository resources to default the GitKind. If not specified then use the current namespace")
 
 	o.Filter.AddFlags(cmd)
 	return cmd, o
@@ -129,7 +134,13 @@ func (o *Options) ensureSourceRepositoryExists(config *v1alpha1.SourceConfig, gi
 		return errors.Wrapf(err, "failed to parse git URL %s", gitURL)
 	}
 
-	group := sourceconfigs.GetOrCreateGroup(config, gitInfo.Organisation)
+	gitServerURL := gitInfo.HostURL()
+	gitKind, err := scmhelpers.DiscoverGitKind(o.JXClient, o.Namespace, gitServerURL)
+	if err != nil {
+		return errors.Wrapf(err, "failed to discover the git kind")
+	}
+
+	group := sourceconfigs.GetOrCreateGroup(config, gitKind, gitServerURL, gitInfo.Organisation)
 	repo := sourceconfigs.GetOrCreateRepository(group, gitInfo.Name)
 
 	if o.Scheduler != "" && o.Scheduler != group.Scheduler {
