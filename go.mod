@@ -10,7 +10,7 @@ require (
 	github.com/h2non/gock v1.0.9
 	github.com/jenkins-x/go-scm v1.5.176
 	github.com/jenkins-x/jx-api v0.0.24
-	github.com/jenkins-x/jx-helpers v1.0.79
+	github.com/jenkins-x/jx-helpers v1.0.80
 	github.com/jenkins-x/jx-kube-client v0.0.8
 	github.com/jenkins-x/jx-logging v0.0.11
 	github.com/jenkins-x/jx-promote v0.0.122 // indirect

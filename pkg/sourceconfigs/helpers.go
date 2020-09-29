@@ -42,15 +42,17 @@ func DefaultValues(config *v1alpha1.SourceConfig, group *v1alpha1.RepositoryGrou
 }
 
 // GetOrCreateGroup get or create the group for the given name
-func GetOrCreateGroup(config *v1alpha1.SourceConfig, owner string) *v1alpha1.RepositoryGroup {
+func GetOrCreateGroup(config *v1alpha1.SourceConfig, gitKind string, gitServerURL string, owner string) *v1alpha1.RepositoryGroup {
 	for i := range config.Spec.Groups {
 		group := &config.Spec.Groups[i]
-		if group.Owner == owner {
+		if group.ProviderKind == gitKind && group.Provider == gitServerURL && group.Owner == owner {
 			return group
 		}
 	}
 	config.Spec.Groups = append(config.Spec.Groups, v1alpha1.RepositoryGroup{
-		Owner: owner,
+		ProviderKind: gitKind,
+		Provider:     gitServerURL,
+		Owner:        owner,
 	})
 	return &config.Spec.Groups[len(config.Spec.Groups)-1]
 }
