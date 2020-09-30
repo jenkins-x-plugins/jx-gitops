@@ -5,7 +5,7 @@
 
 .SH NAME
 .PP
-jx\-gitops\-repository\-create \- Creates any missing SourceConfig resources
+jx\-gitops\-repository\-create \- Creates any missing SourceRepository resources
 
 
 .SH SYNOPSIS
@@ -15,13 +15,13 @@ jx\-gitops\-repository\-create \- Creates any missing SourceConfig resources
 
 .SH DESCRIPTION
 .PP
-Creates any missing SourceConfig resources
+Creates any missing SourceRepository resources
 
 
 .SH OPTIONS
 .PP
 \fB\-c\fP, \fB\-\-config\fP=""
-    the configuration file to load for the repository configurations. If not specified we look in ./.jx/gitops/source\-repositories.yaml
+    the configuration file to load for the repository configurations. If not specified we look in ./.jx/gitops/source\-config.yaml
 
 .PP
 \fB\-d\fP, \fB\-\-dir\fP="."
@@ -48,7 +48,7 @@ Creates any missing SourceConfig resources
 
 .SH EXAMPLE
 .PP
-# creates any missing SourceConfig resources
+# creates any missing SourceRepository resources
   jx\-gitops repository create 
 \[la]https://github.com/myorg/myrepo.git%!(EXTRA\[ra] string=jx\-gitops)
 

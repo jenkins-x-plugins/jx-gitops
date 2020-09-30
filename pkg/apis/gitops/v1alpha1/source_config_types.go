@@ -64,6 +64,9 @@ type RepositoryGroup struct {
 
 	// Scheduler the default scheduler for this group
 	Scheduler string `json:"scheduler,omitempty"`
+
+	// Jenkins the jenkins configuration if using Jenkins
+	Jenkins *JenkinsConfig `json:"jenkins,omitempty"`
 }
 
 // Repository the name of the repository to import and the optional scheduler
@@ -73,6 +76,9 @@ type Repository struct {
 
 	// Scheduler the optional name of the scheduler to use if different to the group
 	Scheduler string `json:"scheduler,omitempty"`
+
+	// Jenkins the jenkins configuration if using Jenkins
+	Jenkins *JenkinsConfig `json:"jenkins,omitempty"`
 
 	// Description the optional description of this repository
 	Description string `json:"description,omitempty"`
@@ -85,4 +91,13 @@ type Repository struct {
 
 	// SSHCloneURL the SSH based clone URL
 	SSHCloneURL string `json:"sshCloneURL,omitempty"`
+}
+
+// JenkinsConfig the Jenkins configuration for a group or repository if applicable
+type JenkinsConfig struct {
+	// XmlTemplate the configuration template file to use to generate the projects XML configuration file
+	XmlTemplate string `json:"xmlTemplate,omitempty"`
+
+	// Server the name of the Jenkins Server to use
+	Server string `json:"server,omitempty"`
 }

@@ -1,31 +1,31 @@
-## jx-gitops pr get
+## jx-gitops pr comment
 
-Gets a pull request and displays fields from it
+Add comment to the pull request
 
 ### Usage
 
 ```
-jx-gitops pr get
+jx-gitops pr comment
 ```
 
 ### Synopsis
 
-Gets a pull request and displays fields from it
+Adds a comment to the current pull request
 
 ### Examples
 
-  # display the head source URL
-  jx-gitops pr get --head-url
+  # add comment
+  jx-gitops pr comment "Message from Jenkins"
 
 ### Options
 
 ```
+      --comment string      comment to add
       --dir string          the directory to search for the .git to discover the git source URL (default ".")
       --git-kind string     the kind of git server to connect to
       --git-server string   the git server URL to create the git provider client. If not specified its defaulted from the current source URL
       --git-token string    the git token used to operate on the git repository
-      --head-url            show the head clone URL of the PR
-  -h, --help                help for get
+  -h, --help                help for comment
       --pr int              the Pull Request number. If not specified we detect it via $PULL_NUMBER or $BRANCH_NAME environment variables
   -r, --repo string         the full git repository name of the form 'owner/name'
 ```
