@@ -10,6 +10,7 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/image"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/ingress"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/jenkins"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/kpt"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/kustomize"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/label"
@@ -46,6 +47,7 @@ func Main() *cobra.Command {
 	cmd.AddCommand(helm.NewCmdHelm())
 	cmd.AddCommand(helmfile.NewCmdHelmfile())
 	cmd.AddCommand(git.NewCmdGit())
+	cmd.AddCommand(jenkins.NewCmdJenkins())
 	cmd.AddCommand(kpt.NewCmdKpt())
 	cmd.AddCommand(pr.NewCmdPR())
 	cmd.AddCommand(requirement.NewCmdRequirement())

@@ -354,6 +354,48 @@ string
 </tr>
 </tbody>
 </table>
+<h3 id="gitops.jenkins-x.io/v1alpha1.JenkinsConfig">JenkinsConfig
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#gitops.jenkins-x.io/v1alpha1.Repository">Repository</a>, 
+<a href="#gitops.jenkins-x.io/v1alpha1.RepositoryGroup">RepositoryGroup</a>)
+</p>
+<p>
+<p>JenkinsConfig the Jenkins configuration for a group or repository if applicable</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>xmlTemplate</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>XmlTemplate the configuration template file to use to generate the projects XML configuration file</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>server</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Server the name of the Jenkins Server to use</p>
+</td>
+</tr>
+</tbody>
+</table>
 <h3 id="gitops.jenkins-x.io/v1alpha1.KptStrategyConfig">KptStrategyConfig
 </h3>
 <p>
@@ -490,6 +532,19 @@ string
 </tr>
 <tr>
 <td>
+<code>jenkins</code></br>
+<em>
+<a href="#gitops.jenkins-x.io/v1alpha1.JenkinsConfig">
+JenkinsConfig
+</a>
+</em>
+</td>
+<td>
+<p>Jenkins the jenkins configuration if using Jenkins</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>description</code></br>
 <em>
 string
@@ -617,6 +672,19 @@ string
 </td>
 <td>
 <p>Scheduler the default scheduler for this group</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>jenkins</code></br>
+<em>
+<a href="#gitops.jenkins-x.io/v1alpha1.JenkinsConfig">
+JenkinsConfig
+</a>
+</em>
+</td>
+<td>
+<p>Jenkins the jenkins configuration if using Jenkins</p>
 </td>
 </tr>
 </tbody>
@@ -802,5 +870,5 @@ string
 <hr/>
 <p><em>
 Generated with <code>gen-crd-api-reference-docs</code>
-on git commit <code>833cb04</code>.
+on git commit <code>bbc5de8</code>.
 </em></p>
