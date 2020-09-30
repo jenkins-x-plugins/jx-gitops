@@ -56,7 +56,7 @@ func NewCmdCreateRepository() (*cobra.Command, *Options) {
 	}
 	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the directory look for the 'jx-requirements.yml` file")
 	cmd.Flags().StringVarP(&o.SourceDir, "source-dir", "s", "", "the directory to look for and generate the SourceConfig files")
-	cmd.Flags().StringVarP(&o.ConfigFile, "config", "c", "", "the configuration file to load for the repository configurations. If not specified we look in ./.jx/gitops/source-repositories.yaml")
+	cmd.Flags().StringVarP(&o.ConfigFile, "config", "c", "", "the configuration file to load for the repository configurations. If not specified we look in ./.jx/gitops/source-config.yaml")
 	o.Filter.AddFlags(cmd)
 	return cmd, o
 }

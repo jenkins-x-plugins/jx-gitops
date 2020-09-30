@@ -38,6 +38,18 @@ func DefaultValues(config *v1alpha1.SourceConfig, group *v1alpha1.RepositoryGrou
 	if repo.Scheduler == "" {
 		repo.Scheduler = group.Scheduler
 	}
+
+	if repo.Jenkins == nil {
+		repo.Jenkins = group.Jenkins
+	}
+	if repo.Jenkins != nil && group.Jenkins != nil {
+		if repo.Jenkins.Server == "" {
+			repo.Jenkins.Server = group.Jenkins.Server
+		}
+		if repo.Jenkins.XmlTemplate == "" {
+			repo.Jenkins.XmlTemplate = group.Jenkins.XmlTemplate
+		}
+	}
 	return nil
 }
 
