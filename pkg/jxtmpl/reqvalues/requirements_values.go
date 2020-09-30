@@ -29,6 +29,6 @@ func SaveRequirementsValuesFile(c *config.RequirementsConfig, fileName string) e
 	if err != nil {
 		return errors.Wrapf(err, "failed to save file %s", fileName)
 	}
-	log.Logger().Infof("generated helm YAML file from jx requirements at %s", termcolor.ColorInfo(fileName))
+	log.Logger().Debugf("generated helm YAML file from jx requirements at %s", termcolor.ColorInfo(fileName))
 	return nil
 }

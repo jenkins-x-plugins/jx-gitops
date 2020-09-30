@@ -5,11 +5,14 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
+	"github.com/jenkins-x/jx-api/pkg/config"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/move"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/rename"
 	split2 "github.com/jenkins-x/jx-gitops/pkg/cmd/split"
 	"github.com/jenkins-x/jx-gitops/pkg/helmhelpers"
+	"github.com/jenkins-x/jx-gitops/pkg/jxtmpl/reqvalues"
 	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/jenkins-x/jx-helpers/pkg/yaml2s"
@@ -169,7 +172,22 @@ func (o *Options) Run() error {
 		log.Logger().Infof("only a single namespace used in the releases")
 
 		for ns := range namespaces {
-			return o.runHelmfile(o.Helmfile, ns, &helmState)
+			return o.runHelmfile(o.Helmfile, ns, o.Args, &helmState)
+		}
+	}
+
+	requirements, _, err := config.LoadRequirementsConfig(o.Dir, false)
+	if err != nil {
+		return errors.Wrapf(err, "failed to load jx-requirements.yml")
+	}
+
+	globalEnvs := helmState.Environments["default"]
+	var globalList []interface{}
+	if len(globalEnvs.Values) > 0 {
+		for _, v := range globalEnvs.Values {
+			if v != "jx-values.yaml" {
+				globalList = append(globalList, v)
+			}
 		}
 	}
 
@@ -184,22 +202,38 @@ func (o *Options) Run() error {
 				helmState2.Releases = append(helmState2.Releases, release)
 			}
 		}
+
+		jxValuesFile, err := o.createNamespaceJXValuesFile(requirements, ns)
+		if err != nil {
+			return errors.Wrapf(err, "failed to create jx-values.yaml file for namespace %s", ns)
+		}
+
+		// lets add the namespace specific jx-values.yaml file into the helmfile
+		if helmState2.Environments == nil {
+			helmState2.Environments = map[string]state.EnvironmentSpec{}
+		}
+		envs := helmState2.Environments["default"]
+		envs.Values = append(globalList, jxValuesFile)
+		helmState2.Environments["default"] = envs
+
 		err = yaml2s.SaveFile(&helmState2, fileName)
 		if err != nil {
 			return errors.Wrapf(err, "failed to save helmfile %s", fileName)
 		}
 
-		err = o.runHelmfile(fileName, ns, &helmState2)
+		args := strings.Replace(o.Args, "--values=jx-values.yaml", "--values=jx-values-"+ns+".yaml", 1)
+		err = o.runHelmfile(fileName, ns, args, &helmState2)
 		if err != nil {
 			return errors.Wrapf(err, "failed to run helmfile template")
 		}
 
-		defer os.Remove(fileName)
+		//defer os.Remove(jxValuesFile)
+		//defer os.Remove(fileName)
 	}
 	return nil
 }
 
-func (o *Options) runHelmfile(fileName string, ns string, state *state.HelmState) error {
+func (o *Options) runHelmfile(fileName string, ns, helmfileArgs string, state *state.HelmState) error {
 	outDir := filepath.Join(o.TmpDir, ns)
 
 	err := os.MkdirAll(outDir, files.DefaultDirWritePermissions)
@@ -212,8 +246,8 @@ func (o *Options) runHelmfile(fileName string, ns string, state *state.HelmState
 		args = append(args, "--debug")
 	}
 	args = append(args, "--namespace", ns, "template")
-	if o.Args != "" {
-		args = append(args, "-args", o.Args)
+	if helmfileArgs != "" {
+		args = append(args, "-args", helmfileArgs)
 	}
 	args = append(args, "--output-dir", outDir)
 
@@ -255,4 +289,33 @@ func (o *Options) runHelmfile(fileName string, ns string, state *state.HelmState
 		return errors.Wrapf(err, "failed to move the generated resources from temp dir %s", outDir)
 	}
 	return nil
+}
+
+// createNamespaceJXValuesFile lets create a jx-values-$ns.yaml file for the namespace specific ingress changes
+func (o *Options) createNamespaceJXValuesFile(requirements *config.RequirementsConfig, ns string) (string, error) {
+	req2 := *requirements
+	defaultNS := requirements.Cluster.Namespace
+	if defaultNS == "" {
+		defaultNS = "jx"
+	}
+	req2.Ingress.NamespaceSubDomain = strings.Replace(req2.Ingress.NamespaceSubDomain, defaultNS, ns, 1)
+
+	// if we are in an environment with custom ingress lets use that
+	for _, env := range requirements.Environments {
+		if defaultNS+"-"+env.Key == ns {
+			if env.Ingress.Domain != "" {
+				req2.Ingress.Domain = env.Ingress.Domain
+			}
+			if env.Ingress.NamespaceSubDomain != "" {
+				req2.Ingress.NamespaceSubDomain = env.Ingress.NamespaceSubDomain
+			}
+		}
+	}
+
+	fileName := filepath.Join(o.Dir, fmt.Sprintf("jx-values-%s.yaml", ns))
+	err := reqvalues.SaveRequirementsValuesFile(&req2, fileName)
+	if err != nil {
+		return fileName, errors.Wrapf(err, "failed to save %s", fileName)
+	}
+	return fileName, nil
 }
