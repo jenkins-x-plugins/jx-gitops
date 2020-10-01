@@ -11,6 +11,7 @@ import (
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient/cli"
 	"github.com/jenkins-x/jx-helpers/pkg/kube"
 	"github.com/jenkins-x/jx-helpers/pkg/scmhelpers"
+	"github.com/jenkins-x/jx-logging/pkg/log"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -35,6 +36,7 @@ type Options struct {
 
 	BatchMode      bool
 	DisableGitInit bool
+	IgnoreNoPR     bool
 	gitClient      gitclient.Interface
 }
 
@@ -56,6 +58,7 @@ func NewCmdPullRequestPush() (*cobra.Command, *Options) {
 	o.PullRequestOptions.AddFlags(cmd)
 	cmd.Flags().StringVarP(&o.UserName, "name", "", "", "the git user name to use if one is not setup")
 	cmd.Flags().StringVarP(&o.UserEmail, "email", "", "", "the git user email to use if one is not setup")
+	cmd.Flags().BoolVarP(&o.IgnoreNoPR, "ignore-no-pr", "", false, "if an error is returned finding the Pull Request (maybe due to missing environment variables to find the PULL_NUMBER) just push to the current branch instead")
 	return cmd, o
 }
 
@@ -79,14 +82,20 @@ func (o *Options) Run() error {
 	if o.PullRequestBranch == "" {
 		pr, err := o.DiscoverPullRequest()
 		if err != nil {
-			return errors.Wrapf(err, "failed to discover pull request")
+			if !o.IgnoreNoPR {
+				return errors.Wrapf(err, "failed to discover pull request")
+			}
+
+			log.Logger().Infof("could not find Pull Request so assuming in a release pipeline. got: %s", err.Error())
+
+			return o.pushToCurrentBranch()
 		}
 		o.PullRequestBranch = pr.Source
 	}
-	return o.pushToBranch(o.PullRequestBranch)
+	return o.pushToPullRequestBranch(o.PullRequestBranch)
 }
 
-func (o *Options) pushToBranch(branch string) error {
+func (o *Options) pushToPullRequestBranch(branch string) error {
 	argSlices := [][]string{
 		{
 			"checkout", "-b", branch,
@@ -106,6 +115,27 @@ func (o *Options) pushToBranch(branch string) error {
 		if err != nil {
 			return errors.Wrapf(err, "failed to run command %s", c.CLI())
 		}
+	}
+	return nil
+}
+
+func (o *Options) pushToCurrentBranch() error {
+	branch, err := gitclient.Branch(o.GitClient(), o.Dir)
+	if err != nil {
+		return errors.Wrapf(err, "failed to determine git branch in dir %s", o.Dir)
+	}
+	if branch == "" {
+		branch = "master"
+	}
+
+	c := &cmdrunner.Command{
+		Dir:  o.Dir,
+		Name: "git",
+		Args: []string{"push", "origin", branch},
+	}
+	_, err = o.CommandRunner(c)
+	if err != nil {
+		return errors.Wrapf(err, "failed to run command %s", c.CLI())
 	}
 	return nil
 }
