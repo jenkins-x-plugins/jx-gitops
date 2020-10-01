@@ -337,7 +337,7 @@ func buildJobConfig(jobConfig *config.JobConfig, prowConfig *config.ProwConfig,
 		}
 	}
 	if scheduler.Presubmits != nil && scheduler.Presubmits.Items != nil {
-		err := buildPresubmits(jobConfig, prowConfig, scheduler.Presubmits.Items, scheduler.Queries, org, repo)
+		err := buildPresubmits(jobConfig, scheduler.Presubmits.Items, org, repo)
 		if err != nil {
 			return errors.Wrapf(err, "building Presubmits from %v", scheduler)
 		}
@@ -428,7 +428,7 @@ func buildKeeperConfig(prowConfig *config.ProwConfig, queries []*schedulerapi.Qu
 	return nil
 }
 
-func buildPresubmits(jobConfig *config.JobConfig, prowConfig *config.ProwConfig, items []*schedulerapi.Presubmit, queries []*schedulerapi.Query, orgName string, repoName string) error {
+func buildPresubmits(jobConfig *config.JobConfig, items []*job.Presubmit, orgName string, repoName string) error {
 	if jobConfig.Presubmits == nil {
 		jobConfig.Presubmits = make(map[string][]job.Presubmit)
 	}
@@ -438,7 +438,7 @@ func buildPresubmits(jobConfig *config.JobConfig, prowConfig *config.ProwConfig,
 		if _, ok := jobConfig.Presubmits[orgSlashRepo]; !ok {
 			jobConfig.Presubmits[orgSlashRepo] = make([]job.Presubmit, 0)
 		}
-		jobConfig.Presubmits[orgSlashRepo] = append(jobConfig.Presubmits[orgSlashRepo], r.Presubmit)
+		jobConfig.Presubmits[orgSlashRepo] = append(jobConfig.Presubmits[orgSlashRepo], *r)
 	}
 	return nil
 }

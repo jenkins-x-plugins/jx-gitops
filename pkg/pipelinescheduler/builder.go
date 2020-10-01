@@ -398,12 +398,12 @@ func applyToPostSubmits(parentPostsubmits *schedulerapi.Postsubmits, childPostsu
 
 func applyToPreSubmits(parentPresubmits *schedulerapi.Presubmits, childPresubmits *schedulerapi.Presubmits) error {
 	if childPresubmits.Items == nil {
-		childPresubmits.Items = make([]*schedulerapi.Presubmit, 0)
+		childPresubmits.Items = make([]*job.Presubmit, 0)
 	}
 	// Work through each of the presubmits in the parent. If we can find a name based match in child,
 	// we apply it to the child, otherwise we append it
 	for _, parent := range parentPresubmits.Items {
-		var found []*schedulerapi.Presubmit
+		var found []*job.Presubmit
 		for _, child := range childPresubmits.Items {
 			if child.Name == parent.Name {
 				found = append(found, child)

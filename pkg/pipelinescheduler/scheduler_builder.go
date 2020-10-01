@@ -531,9 +531,7 @@ func buildSchedulerPresubmits(repo string, prowConfig *config.Config) *scheduler
 	presubmits := prowConfig.Presubmits[repo]
 	for presubmitIndex := range presubmits {
 		copy := presubmits[presubmitIndex]
-		schedulerPresubmits.Items = append(schedulerPresubmits.Items, &schedulerapi.Presubmit{
-			Presubmit: copy,
-		})
+		schedulerPresubmits.Items = append(schedulerPresubmits.Items, &copy)
 	}
 	return schedulerPresubmits
 }

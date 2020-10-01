@@ -208,15 +208,10 @@ type Postsubmits struct {
 // configurations in the parent scheduler
 type Presubmits struct {
 	// Items are the Presubmit configurtations
-	Items []*Presubmit `json:"entries,omitempty" protobuf:"bytes,1,opt,name=entries"`
+	Items []*job.Presubmit `json:"entries,omitempty" protobuf:"bytes,1,opt,name=entries"`
 	// Replace the existing entries
 	Replace bool `json:"replace,omitempty" protobuf:"bytes,2,opt,name=replace"`
 }
-
-type Presubmit struct {
-	job.Presubmit
-}
-
 // Periodics is a list of jobs to be run periodically
 type Periodics struct {
 	// Items are the post submit configurations
