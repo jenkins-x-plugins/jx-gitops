@@ -337,7 +337,7 @@ func buildJobConfig(jobConfig *config.JobConfig, prowConfig *config.ProwConfig,
 		}
 	}
 	if scheduler.Presubmits != nil && scheduler.Presubmits.Items != nil {
-		err := buildPresubmits(jobConfig, prowConfig, scheduler.Presubmits.Items, org, repo)
+		err := buildPresubmits(jobConfig, prowConfig, scheduler.Presubmits.Items, scheduler.Queries, org, repo)
 		if err != nil {
 			return errors.Wrapf(err, "building Presubmits from %v", scheduler)
 		}
@@ -348,6 +348,12 @@ func buildJobConfig(jobConfig *config.JobConfig, prowConfig *config.ProwConfig,
 			return errors.Wrapf(err, "building periodics for %v", scheduler)
 		}
 	}
+
+	err := buildKeeperConfig(prowConfig, scheduler.Queries, scheduler.MergeMethod, scheduler.ProtectionPolicy, scheduler.ContextOptions, org, repo)
+	if err != nil {
+		return errors.Wrapf(err, "building KeeperConfig from %v", scheduler)
+	}
+
 	if scheduler.Attachments != nil && len(scheduler.Attachments) > 0 {
 		buildPlank(prowConfig, scheduler.Attachments)
 	}
@@ -368,65 +374,71 @@ func buildPostsubmits(jobConfig *config.JobConfig, items []*job.Postsubmit, orgN
 	return nil
 }
 
-func buildPresubmits(jobConfig *config.JobConfig, prowConfig *config.ProwConfig,
-	items []*schedulerapi.Presubmit, orgName string, repoName string) error {
+func buildKeeperConfig(prowConfig *config.ProwConfig, queries []*schedulerapi.Query, mergeMethod *string, protectionPolicy *schedulerapi.ProtectionPolicies, contextOptions *schedulerapi.RepoContextPolicy, orgName string, repoName string) error {
+	orgSlashRepo := orgSlashRepo(orgName, repoName)
+
+	if queries != nil && len(queries) > 0 {
+		err := buildQuery(&prowConfig.Keeper, queries, orgName, repoName)
+		if err != nil {
+			return errors.Wrapf(err, "building Query for %s from %v", orgSlashRepo, queries)
+		}
+	}
+
+	if mergeMethod != nil {
+		mt := keeper.PullRequestMergeType(*mergeMethod)
+		if prowConfig.Keeper.MergeType == nil && mt != "" {
+			prowConfig.Keeper.MergeType = make(map[string]keeper.PullRequestMergeType)
+		}
+		if mt != "" {
+			prowConfig.Keeper.MergeType[orgSlashRepo] = mt
+		}
+	}
+	if protectionPolicy != nil {
+		if protectionPolicy.ProtectionPolicy != nil {
+			err := buildBranchProtection(&prowConfig.BranchProtection, protectionPolicy.ProtectionPolicy,
+				orgName, repoName, "")
+			if err != nil {
+				return errors.WithStack(err)
+			}
+		}
+		for k, v := range protectionPolicy.Items {
+			err := buildBranchProtection(&prowConfig.BranchProtection, v, orgName, repoName, k)
+			if err != nil {
+				return errors.WithStack(err)
+			}
+		}
+
+	}
+	if contextOptions != nil {
+		policy := keeper.RepoContextPolicy{}
+		err := buildRepoContextPolicy(&policy, contextOptions)
+		if err != nil {
+			return errors.Wrapf(err, "building RepoContextPolicy from %s", orgSlashRepo)
+		}
+		if prowConfig.Keeper.ContextOptions.Orgs == nil {
+			prowConfig.Keeper.ContextOptions.Orgs = make(map[string]keeper.OrgContextPolicy)
+		}
+		if _, ok := prowConfig.Keeper.ContextOptions.Orgs[orgName]; !ok {
+			prowConfig.Keeper.ContextOptions.Orgs[orgName] = keeper.OrgContextPolicy{
+				Repos: make(map[string]keeper.RepoContextPolicy),
+			}
+		}
+		prowConfig.Keeper.ContextOptions.Orgs[orgName].Repos[repoName] = policy
+	}
+	return nil
+}
+
+func buildPresubmits(jobConfig *config.JobConfig, prowConfig *config.ProwConfig, items []*schedulerapi.Presubmit, queries []*schedulerapi.Query, orgName string, repoName string) error {
 	if jobConfig.Presubmits == nil {
 		jobConfig.Presubmits = make(map[string][]job.Presubmit)
 	}
 	orgSlashRepo := orgSlashRepo(orgName, repoName)
+
 	for _, r := range items {
 		if _, ok := jobConfig.Presubmits[orgSlashRepo]; !ok {
 			jobConfig.Presubmits[orgSlashRepo] = make([]job.Presubmit, 0)
 		}
 		jobConfig.Presubmits[orgSlashRepo] = append(jobConfig.Presubmits[orgSlashRepo], r.Presubmit)
-
-		if r.Queries != nil && len(r.Queries) > 0 {
-			err := buildQuery(&prowConfig.Keeper, r.Queries, orgName, repoName)
-			if err != nil {
-				return errors.Wrapf(err, "building Query from %v", r.Queries)
-			}
-		}
-		if r.MergeType != nil {
-			mt := keeper.PullRequestMergeType(*r.MergeType)
-			if prowConfig.Keeper.MergeType == nil && mt != "" {
-				prowConfig.Keeper.MergeType = make(map[string]keeper.PullRequestMergeType)
-			}
-			if mt != "" {
-				prowConfig.Keeper.MergeType[orgSlashRepo] = mt
-			}
-		}
-		if r.Policy != nil {
-			if r.Policy.ProtectionPolicy != nil {
-				err := buildBranchProtection(&prowConfig.BranchProtection, r.Policy.ProtectionPolicy,
-					orgName, repoName, "")
-				if err != nil {
-					return errors.WithStack(err)
-				}
-			}
-			for k, v := range r.Policy.Items {
-				err := buildBranchProtection(&prowConfig.BranchProtection, v, orgName, repoName, k)
-				if err != nil {
-					return errors.WithStack(err)
-				}
-			}
-
-		}
-		if r.ContextPolicy != nil {
-			policy := keeper.RepoContextPolicy{}
-			err := buildRepoContextPolicy(&policy, r.ContextPolicy)
-			if err != nil {
-				return errors.Wrapf(err, "building RepoContextPolicy from %v", r)
-			}
-			if prowConfig.Keeper.ContextOptions.Orgs == nil {
-				prowConfig.Keeper.ContextOptions.Orgs = make(map[string]keeper.OrgContextPolicy)
-			}
-			if _, ok := prowConfig.Keeper.ContextOptions.Orgs[orgName]; !ok {
-				prowConfig.Keeper.ContextOptions.Orgs[orgName] = keeper.OrgContextPolicy{
-					Repos: make(map[string]keeper.RepoContextPolicy),
-				}
-			}
-			prowConfig.Keeper.ContextOptions.Orgs[orgName].Repos[repoName] = policy
-		}
 	}
 	return nil
 }

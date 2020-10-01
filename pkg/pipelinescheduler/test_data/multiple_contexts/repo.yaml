@@ -17,63 +17,36 @@ presubmits:
       name: integration
       rerun_command: /test this
       trigger: (?m)^/test( all| this),?(\s+|$)
-      queries:
-        - labels:
-            entries:
-              - approved
-          missingLabels:
-            entries:
-              - do-not-merge
-              - do-not-merge/hold
-              - do-not-merge/work-in-progress
-              - needs-ok-to-test
-              - needs-rebase
-      policy:
-        protect: true
-        required_status_checks:
-          contexts:
-            entries:
-              - integration
     - agent: tekton
       always_run: true
       context: context2
       name: context2
       rerun_command: /test context2
       trigger: (?m)^/test( all| context2),?(\s+|$)
-      queries:
-        - labels:
-            entries:
-              - approved
-          missingLabels:
-            entries:
-              - do-not-merge
-              - do-not-merge/hold
-              - do-not-merge/work-in-progress
-              - needs-ok-to-test
-              - needs-rebase
-      policy:
-        protect: true
-        required_status_checks:
-          contexts:
-            entries:
-              - context2
     - agent: tekton
       always_run: false
       context: context3
       name: context3
       rerun_command: /test context3
       trigger: (?m)^/test( all| context3),?(\s+|$)
-      queries:
-        - labels:
-            entries:
-              - approved
-          missingLabels:
-            entries:
-              - do-not-merge
-              - do-not-merge/hold
-              - do-not-merge/work-in-progress
-              - needs-ok-to-test
-              - needs-rebase
+queries:
+  - labels:
+      entries:
+        - approved
+    missingLabels:
+      entries:
+        - do-not-merge
+        - do-not-merge/hold
+        - do-not-merge/work-in-progress
+        - needs-ok-to-test
+        - needs-rebase
+protection_policy:
+  protect: true
+  required_status_checks:
+    contexts:
+      entries:
+        - integration
+        - context2
 merger:
   policy:
     from-branch-protection: true
