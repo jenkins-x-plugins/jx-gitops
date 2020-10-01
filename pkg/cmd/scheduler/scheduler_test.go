@@ -7,9 +7,11 @@ import (
 
 	"github.com/go-yaml/yaml"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/scheduler"
+	"github.com/jenkins-x/jx-helpers/pkg/stringhelpers"
 	"github.com/jenkins-x/jx-helpers/pkg/testhelpers"
 	"github.com/jenkins-x/jx-helpers/pkg/yamls"
 	"github.com/jenkins-x/lighthouse/pkg/config"
+	"github.com/jenkins-x/lighthouse/pkg/config/keeper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
@@ -68,13 +70,29 @@ func TestScheduler(t *testing.T) {
 		assert.Len(t, lhCfg.Postsubmits[repoName], 1, "postsubmits for %s", repoName)
 	}
 
-	for _, repoName := range []string{"myorg/in-repo"} {
+	inRepoFullName := "myorg/in-repo"
+	for _, repoName := range []string{inRepoFullName} {
 		assert.Len(t, lhCfg.Presubmits[repoName], 0, "presubmits for %s", repoName)
 		assert.Len(t, lhCfg.Postsubmits[repoName], 0, "postsubmits for %s", repoName)
 	}
 
 	assert.NotNil(t, lhCfg.InRepoConfig.Enabled, "should have inRepoConfig enabled")
-	assert.NotNil(t, lhCfg.InRepoConfig.Enabled["myorg/in-repo"], "should have inRepoConfig.Enabled['myorg/in-repo']")
+	assert.NotNil(t, lhCfg.InRepoConfig.Enabled[inRepoFullName], "should have inRepoConfig.Enabled['myorg/in-repo']")
+
+	approveQuery := keeper.Query{}
+	foundApproveQuery := false
+	for _, q := range lhCfg.Keeper.Queries {
+		if stringhelpers.StringArrayIndex(q.Repos, inRepoFullName) >= 0 && stringhelpers.StringArrayIndex(q.Labels, "approved") >= 0 {
+			approveQuery = q
+			foundApproveQuery = true
+			break
+		}
+	}
+	require.True(t, foundApproveQuery, "no approve query found for repo %s ", inRepoFullName)
+
+	requiredMissingLabel := "do-not-merge"
+
+	assert.True(t, stringhelpers.StringArrayIndex(approveQuery.MissingLabels, requiredMissingLabel) >= 0, "should have a missing label %s", requiredMissingLabel)
 
 	assert.Equal(t, "http://deck-jx..jx.1.2.3.4.nip.io", lhCfg.Keeper.TargetURL, "config.Keeper.TargetURL")
 }

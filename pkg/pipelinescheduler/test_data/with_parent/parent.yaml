@@ -32,23 +32,26 @@ presubmits:
       context: integration
       rerun_command: /test this
       trigger: (?m)^/test( all| this),?(\s+|$)
-      queries:
-        - labels:
-            entries:
-              - approved
-          missingLabels:
-            entries:
-              - do-not-merge
-              - do-not-merge/hold
-              - do-not-merge/work-in-progress
-              - needs-ok-to-test
-              - needs-rebase
-      policy:
-        protect: true
-        required_status_checks:
-          contexts:
-            entries:
-              - integration
+
+queries:
+  - labels:
+      entries:
+        - approved
+    missingLabels:
+      entries:
+        - do-not-merge
+        - do-not-merge/hold
+        - do-not-merge/work-in-progress
+        - needs-ok-to-test
+        - needs-rebase
+
+protection_policy:
+  protect: true
+  required_status_checks:
+    contexts:
+      entries:
+        - integration
+
 plugins:
   entries:
     - config-updater

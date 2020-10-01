@@ -42,6 +42,27 @@ func Build(schedulers []*schedulerapi.SchedulerSpec) (*schedulerapi.SchedulerSpe
 					return nil, errors.WithStack(err)
 				}
 			}
+
+			// combine the queries
+			if answer.Queries == nil {
+				answer.Queries = parent.Queries
+			} else {
+				applyToQueries(parent.Queries, answer.Queries)
+			}
+			if answer.MergeMethod == nil {
+				answer.MergeMethod = parent.MergeMethod
+			}
+			if answer.ProtectionPolicy == nil {
+				answer.ProtectionPolicy = parent.ProtectionPolicy
+			} else if parent.ProtectionPolicy != nil {
+				applyToProtectionPolicies(parent.ProtectionPolicy, answer.ProtectionPolicy)
+			}
+			if answer.ContextOptions == nil {
+				answer.ContextOptions = parent.ContextOptions
+			} else if parent.ContextOptions != nil {
+				applyToRepoContextPolicy(parent.ContextOptions, answer.ContextOptions)
+			}
+
 			//TODO: This should probably be an array of triggers, because the plugins yaml is expecting an array
 			if answer.Trigger == nil {
 				answer.Trigger = parent.Trigger
@@ -377,12 +398,12 @@ func applyToPostSubmits(parentPostsubmits *schedulerapi.Postsubmits, childPostsu
 
 func applyToPreSubmits(parentPresubmits *schedulerapi.Presubmits, childPresubmits *schedulerapi.Presubmits) error {
 	if childPresubmits.Items == nil {
-		childPresubmits.Items = make([]*schedulerapi.Presubmit, 0)
+		childPresubmits.Items = make([]*job.Presubmit, 0)
 	}
 	// Work through each of the presubmits in the parent. If we can find a name based match in child,
 	// we apply it to the child, otherwise we append it
 	for _, parent := range parentPresubmits.Items {
-		var found []*schedulerapi.Presubmit
+		var found []*job.Presubmit
 		for _, child := range childPresubmits.Items {
 			if child.Name == parent.Name {
 				found = append(found, child)

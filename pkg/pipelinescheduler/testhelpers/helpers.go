@@ -41,12 +41,10 @@ func CompleteScheduler() *schedulerapi.SchedulerSpec {
 			SyncPeriod:         pointerToRandomDuration(),
 		},
 		Presubmits: &schedulerapi.Presubmits{
-			Items: []*schedulerapi.Presubmit{
+			Items: []*job.Presubmit{
 				{
-					Presubmit: job.Presubmit{
-						Base: job.Base{
-							Name: "cheese",
-						},
+					Base: job.Base{
+						Name: "cheese",
 					},
 				},
 			},

@@ -50,23 +50,37 @@ type SchedulerList struct {
 
 // SchedulerSpec defines the pipeline scheduler (e.g. Prow) configuration
 type SchedulerSpec struct {
-	ScehdulerAgent  *SchedulerAgent                    `json:"schedulerAgent,omitempty" protobuf:"bytes,1,opt,name=schedulerAgent"`
-	Policy          *GlobalProtectionPolicy            `json:"policy,omitempty" protobuf:"bytes,2,opt,name=policy"`
-	Presubmits      *Presubmits                        `json:"presubmits,omitempty" protobuf:"bytes,3,opt,name=presubmits"`
-	Postsubmits     *Postsubmits                       `json:"postsubmits,omitempty" protobuf:"bytes,4,opt,name=postsubmits"`
-	Trigger         *Trigger                           `json:"trigger,omitempty" protobuf:"bytes,5,opt,name=trigger"`
-	Approve         *Approve                           `json:"approve,omitempty" protobuf:"bytes,6,opt,name=approve"`
-	LGTM            *Lgtm                              `json:"lgtm,omitempty" protobuf:"bytes,7,opt,name=lgtm"`
-	ExternalPlugins *ReplaceableSliceOfExternalPlugins `json:"external_plugins,omitempty" protobuf:"bytes,8,opt,name=external_plugins"`
+	ScehdulerAgent *SchedulerAgent         `json:"schedulerAgent,omitempty" protobuf:"bytes,1,opt,name=schedulerAgent"`
+	Policy         *GlobalProtectionPolicy `json:"policy,omitempty" protobuf:"bytes,2,opt,name=policy"`
+	Presubmits     *Presubmits             `json:"presubmits,omitempty" protobuf:"bytes,3,opt,name=presubmits"`
+	Postsubmits    *Postsubmits            `json:"postsubmits,omitempty" protobuf:"bytes,4,opt,name=postsubmits"`
 
-	Merger *Merger `json:"merger,omitempty" protobuf:"bytes,9,opt,name=merger"`
+	// Queries add keeper queries
+	Queries []*Query `json:"queries,omitempty" protobuf:"bytes,5,opt,name=query"`
+	// MergeMethod Override the default method of merge. Valid options are squash, rebase, and merge.
+	MergeMethod *string `json:"merge_method,omitempty" protobuf:"bytes,6,opt,name=merge_method"`
+	// ProtectionPolicy the protection policy
+	ProtectionPolicy *ProtectionPolicies `json:"protection_policy,omitempty" protobuf:"bytes,7,opt,name=policy"`
+
+	// ContextOptions defines the merge options. If not set it will infer
+	// the required and optional contexts from the jobs configured and use the Git Provider
+	// combined status; otherwise it may apply the branch protection setting or let user
+	// define their own options in case branch protection is not used.
+	ContextOptions *RepoContextPolicy `json:"context_options,omitempty" protobuf:"bytes,8,opt,name=contextPolicy"`
+
+	Trigger         *Trigger                           `json:"trigger,omitempty" protobuf:"bytes,9,opt,name=trigger"`
+	Approve         *Approve                           `json:"approve,omitempty" protobuf:"bytes,10,opt,name=approve"`
+	LGTM            *Lgtm                              `json:"lgtm,omitempty" protobuf:"bytes,11,opt,name=lgtm"`
+	ExternalPlugins *ReplaceableSliceOfExternalPlugins `json:"external_plugins,omitempty" protobuf:"bytes,12,opt,name=external_plugins"`
+
+	Merger *Merger `json:"merger,omitempty" protobuf:"bytes,13,opt,name=merger"`
 
 	// Plugins is a list of plugin names enabled for a repo
-	Plugins       *ReplaceableSliceOfStrings `json:"plugins,omitempty" protobuf:"bytes,10,opt,name=plugins"`
-	ConfigUpdater *ConfigUpdater             `json:"config_updater,omitempty" protobuf:"bytes,11,opt,name=config_updater"`
-	Welcome       []*Welcome                 `json:"welcome,omitempty" protobuf:"bytes,12,opt,name=welcome"`
-	Periodics     *Periodics                 `json:"periodics,omitempty" protobuf:"bytes,13,opt,name=periodics"`
-	Attachments   []*Attachment              `json:"attachments,omitempty" protobuf:"bytes,13,opt,name=attachments"`
+	Plugins       *ReplaceableSliceOfStrings `json:"plugins,omitempty" protobuf:"bytes,14,opt,name=plugins"`
+	ConfigUpdater *ConfigUpdater             `json:"config_updater,omitempty" protobuf:"bytes,15,opt,name=config_updater"`
+	Welcome       []*Welcome                 `json:"welcome,omitempty" protobuf:"bytes,16,opt,name=welcome"`
+	Periodics     *Periodics                 `json:"periodics,omitempty" protobuf:"bytes,17,opt,name=periodics"`
+	Attachments   []*Attachment              `json:"attachments,omitempty" protobuf:"bytes,18,opt,name=attachments"`
 }
 
 // ConfigMapSpec contains configuration options for the configMap being updated
@@ -194,27 +208,10 @@ type Postsubmits struct {
 // configurations in the parent scheduler
 type Presubmits struct {
 	// Items are the Presubmit configurtations
-	Items []*Presubmit `json:"entries,omitempty" protobuf:"bytes,1,opt,name=entries"`
+	Items []*job.Presubmit `json:"entries,omitempty" protobuf:"bytes,1,opt,name=entries"`
 	// Replace the existing entries
 	Replace bool `json:"replace,omitempty" protobuf:"bytes,2,opt,name=replace"`
 }
-
-type Presubmit struct {
-	job.Presubmit
-
-	// Override the default method of merge. Valid options are squash, rebase, and merge.
-	MergeType *string `json:"merge_method,omitempty" protobuf:"bytes,7,opt,name=merge_method"`
-
-	Queries []*Query `json:"queries,omitempty" protobuf:"bytes,8,opt,name=query"`
-
-	Policy *ProtectionPolicies `json:"policy,omitempty" protobuf:"bytes,9,opt,name=policy"`
-	// ContextOptions defines the merge options. If not set it will infer
-	// the required and optional contexts from the jobs configured and use the Git Provider
-	// combined status; otherwise it may apply the branch protection setting or let user
-	// define their own options in case branch protection is not used.
-	ContextPolicy *RepoContextPolicy `json:"context_options,omitempty" protobuf:"bytes,10,opt,name=contextPolicy"`
-}
-
 // Periodics is a list of jobs to be run periodically
 type Periodics struct {
 	// Items are the post submit configurations
