@@ -36,7 +36,6 @@ type Options struct {
 
 	BatchMode      bool
 	DisableGitInit bool
-	IgnoreNoPR     bool
 	gitClient      gitclient.Interface
 }
 
@@ -58,7 +57,7 @@ func NewCmdPullRequestPush() (*cobra.Command, *Options) {
 	o.PullRequestOptions.AddFlags(cmd)
 	cmd.Flags().StringVarP(&o.UserName, "name", "", "", "the git user name to use if one is not setup")
 	cmd.Flags().StringVarP(&o.UserEmail, "email", "", "", "the git user email to use if one is not setup")
-	cmd.Flags().BoolVarP(&o.IgnoreNoPR, "ignore-no-pr", "", false, "if an error is returned finding the Pull Request (maybe due to missing environment variables to find the PULL_NUMBER) just push to the current branch instead")
+	cmd.Flags().BoolVarP(&o.IgnoreMissingPullRequest, "ignore-no-pr", "", false, "if an error is returned finding the Pull Request (maybe due to missing environment variables to find the PULL_NUMBER) just push to the current branch instead")
 	return cmd, o
 }
 
@@ -82,7 +81,7 @@ func (o *Options) Run() error {
 	if o.PullRequestBranch == "" {
 		pr, err := o.DiscoverPullRequest()
 		if err != nil {
-			if !o.IgnoreNoPR {
+			if !o.IgnoreMissingPullRequest {
 				return errors.Wrapf(err, "failed to discover pull request")
 			}
 
