@@ -227,8 +227,8 @@ func (o *Options) Run() error {
 			return errors.Wrapf(err, "failed to run helmfile template")
 		}
 
-		//defer os.Remove(jxValuesFile)
-		//defer os.Remove(fileName)
+		defer os.Remove(jxValuesFile)
+		defer os.Remove(fileName)
 	}
 	return nil
 }
