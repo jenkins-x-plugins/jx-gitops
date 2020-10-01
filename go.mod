@@ -13,7 +13,7 @@ require (
 	github.com/jenkins-x/jx-helpers v1.0.87
 	github.com/jenkins-x/jx-kube-client v0.0.8
 	github.com/jenkins-x/jx-logging v0.0.11
-	github.com/jenkins-x/lighthouse v0.0.835
+	github.com/jenkins-x/lighthouse v0.0.841
 	github.com/pborman/uuid v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/roboll/helmfile v0.125.7
