@@ -26,6 +26,7 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/upgrade"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/variables"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/version"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/webhook"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/pkg/cobras"
 	"github.com/jenkins-x/jx-logging/pkg/log"
@@ -53,6 +54,7 @@ func Main() *cobra.Command {
 	cmd.AddCommand(requirement.NewCmdRequirement())
 	cmd.AddCommand(repository.NewCmdRepository())
 	cmd.AddCommand(sa.NewCmdServiceAccount())
+	cmd.AddCommand(webhook.NewCmdWebhook())
 
 	cmd.AddCommand(cobras.SplitCommand(annotate.NewCmdUpdateAnnotate()))
 	cmd.AddCommand(cobras.SplitCommand(apply.NewCmdApply()))
