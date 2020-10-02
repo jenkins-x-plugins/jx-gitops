@@ -242,7 +242,7 @@ func (o *Options) updateRepositoryWebhook(scmClient *scm.Client, owner string, r
 	hooks, _, err := scmClient.Repositories.ListHooks(ctx, fullName, scm.ListOptions{})
 	if err != nil {
 		if !scmhelpers.IsScmNotFound(err) {
-			log.Logger().Warnf("failed to find hooks for repository %s", info(fullName))
+			log.Logger().Warnf("failed to find hooks for repository %s: %s", info(fullName), err.Error())
 		}
 	}
 
