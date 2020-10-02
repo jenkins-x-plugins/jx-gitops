@@ -44,6 +44,10 @@ Pushes the current git directory to the branch used to create the Pull Request
     help for push
 
 .PP
+\fB\-\-ignore\-no\-pr\fP[=false]
+    if an error is returned finding the Pull Request (maybe due to missing environment variables to find the PULL\_NUMBER) just push to the current branch instead
+
+.PP
 \fB\-\-name\fP=""
     the git user name to use if one is not setup
 

@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/jenkins-x/jx-gitops/pkg/boot"
 	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient/cli"
@@ -16,8 +17,6 @@ import (
 	"github.com/jenkins-x/jx-helpers/pkg/kube"
 	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
 	"github.com/jenkins-x/jx-logging/pkg/log"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
@@ -135,48 +134,32 @@ func (o *Options) findCredentials() ([]credentialhelper.GitCredential, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to create kube client")
 	}
-	ns := o.Namespace
-	name := o.SecretName
-	secret, err := o.KubeClient.CoreV1().Secrets(ns).Get(name, metav1.GetOptions{})
-	if err != nil && o.OperatorNamespace != o.Namespace {
-		var err2 error
-		secret, err2 = o.KubeClient.CoreV1().Secrets(o.OperatorNamespace).Get(name, metav1.GetOptions{})
-		if err2 == nil {
-			err = nil
-		}
-	}
+	bootSecret, err := boot.LoadBootSecret(o.KubeClient, o.Namespace, o.OperatorNamespace, o.SecretName, o.UserName)
 	if err != nil {
-		if !apierrors.IsNotFound(err) {
-			log.Logger().Warnf("could not find secret %s in namespace %s", name, ns)
-			return nil, nil
-		}
-		return nil, errors.Wrapf(err, "failed to find Secret %s in namespace %s", name, ns)
+		return nil, errors.Wrapf(err, "failed to load the boot secret")
 	}
-	data := secret.Data
-	if data != nil {
-		gitURL := string(data["url"])
-		if gitURL == "" {
-			log.Logger().Warnf("secret %s in namespace %s does not have a url entry", name, ns)
-			return nil, nil
-		}
-		// lets convert the git URL into a provider URL
-		gitInfo, err := giturl.ParseGitURL(gitURL)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to parse git URL %s", gitURL)
-		}
-		gitProviderURL := gitInfo.HostURL()
 
-		username := string(data["username"])
-		if o.UserName == "" {
-			o.UserName = username
-		}
-		password := string(data["password"])
-		credential, err := credentialhelper.CreateGitCredentialFromURL(gitProviderURL, username, password)
-		if err != nil {
-			return nil, errors.Wrapf(err, "invalid git auth information")
-		}
-		credentialList = append(credentialList, credential)
+	gitURL := bootSecret.URL
+	if gitURL == "" {
+		return nil, nil
 	}
+
+	// lets convert the git URL into a provider URL
+	gitInfo, err := giturl.ParseGitURL(gitURL)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to parse git URL %s", gitURL)
+	}
+	gitProviderURL := gitInfo.HostURL()
+
+	if o.UserName == "" {
+		o.UserName = bootSecret.Username
+	}
+	password := bootSecret.Password
+	credential, err := credentialhelper.CreateGitCredentialFromURL(gitProviderURL, o.UserName, password)
+	if err != nil {
+		return nil, errors.Wrapf(err, "invalid git auth information")
+	}
+	credentialList = append(credentialList, credential)
 	return credentialList, nil
 }
 
