@@ -9,6 +9,8 @@ releases:
   version: 0.0.5
   name: tekton-pipeline
   namespace: tekton-pipelines
+  values:
+  - versionStream/charts/cdf/tekton-pipeline/values.yaml.gotmpl
 - chart: dev/dummy
   version: 1.2.3
   name: dummy
