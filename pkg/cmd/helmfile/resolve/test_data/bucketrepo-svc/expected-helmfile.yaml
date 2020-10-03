@@ -2,15 +2,15 @@ filepath: ""
 repositories:
 - name: dev
   url: http://bucketrepo/bucketrepo/charts/
-- name: jenkins-x
-  url: https://storage.googleapis.com/chartmuseum.jenkins-x.io
+- name: cdf
+  url: https://cdfoundation.github.io/tekton-helm-chart
 releases:
-- chart: jenkins-x/tekton
-  version: 0.0.56
-  name: tekton
-  namespace: jx
+- chart: cdf/tekton-pipeline
+  version: 0.0.5
+  name: tekton-pipeline
+  namespace: tekton-pipelines
   values:
-  - versionStream/charts/jenkins-x/tekton/values.yaml.gotmpl
+  - versionStream/charts/cdf/tekton-pipeline/values.yaml.gotmpl
 - chart: dev/dummy
   version: 1.2.3
   name: dummy

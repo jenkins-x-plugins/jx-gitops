@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/jenkins-x/jx-api/pkg/config"
 	"github.com/jenkins-x/jx-gitops/pkg/helmhelpers"
 	"github.com/jenkins-x/jx-gitops/pkg/jxtmpl/reqvalues"
 	"github.com/jenkins-x/jx-gitops/pkg/versionstreamer"
@@ -12,6 +13,7 @@ import (
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient/cli"
 	"github.com/jenkins-x/jx-helpers/pkg/stringhelpers"
+	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
 	"github.com/jenkins-x/jx-helpers/pkg/yaml2s"
 	"github.com/roboll/helmfile/pkg/state"
 
@@ -123,6 +125,11 @@ func (o *Options) Run() error {
 	err := o.Validate()
 	if err != nil {
 		return errors.Wrapf(err, "failed to ")
+	}
+
+	err = o.CustomUpgrades()
+	if err != nil {
+		return errors.Wrapf(err, "failed to perform custom upgrades")
 	}
 
 	resolver := o.Options.Resolver
@@ -349,6 +356,59 @@ func (o *Options) GitCommit(outDir string, commitMessage string) error {
 	err = gitclient.CommitIfChanges(gitter, outDir, commitMessage)
 	if err != nil {
 		return errors.Wrapf(err, "failed to commit changes to git in dir %s", outDir)
+	}
+	return nil
+}
+
+// CustomUpgrades performs custom upgrades outside of the version stream/kpt approach
+func (o *Options) CustomUpgrades() error {
+	requirements, fileName, err := config.LoadRequirementsConfig(o.Dir, false)
+	if err != nil {
+		return errors.Wrapf(err, "failed to load the requirements configuration")
+	}
+
+	if requirements.BuildPacks == nil {
+		requirements.BuildPacks = &config.BuildPackConfig{}
+	}
+	if requirements.BuildPacks.BuildPackLibrary == nil {
+		requirements.BuildPacks.BuildPackLibrary = &config.BuildPackLibrary{}
+	}
+
+	gitURL := requirements.BuildPacks.BuildPackLibrary.GitURL
+	if gitURL == "" || strings.HasPrefix(gitURL, "https://github.com/jenkins-x/jxr-packs-kubernetes") {
+		requirements.BuildPacks.BuildPackLibrary.GitURL = "https://github.com/jenkins-x/jx3-pipeline-catalog.git"
+
+		err = requirements.SaveConfig(fileName)
+		if err != nil {
+			return errors.Wrapf(err, "failed to save requirements file %s", fileName)
+		}
+
+		log.Logger().Infof("updated the build pack library to be %s", termcolor.ColorInfo(requirements.BuildPacks.BuildPackLibrary.GitURL))
+	}
+
+	// lets replace the old tekton chart if its being used
+	for i := range o.Results.HelmState.Releases {
+		release := &o.Results.HelmState.Releases[i]
+		if release.Chart == "jenkins-x/tekton" {
+			release.Chart = "cdf/tekton-pipeline"
+			release.Namespace = "tekton-pipelines"
+
+			// lets make sure we have a cdf repository
+			found := false
+			for _, repo := range o.Results.HelmState.Repositories {
+				if repo.Name == "cdf" {
+					found = true
+					break
+				}
+			}
+			if !found {
+				o.Results.HelmState.Repositories = append(o.Results.HelmState.Repositories, state.RepositorySpec{
+					Name: "cdf",
+					URL:  "https://cdfoundation.github.io/tekton-helm-chart",
+				})
+			}
+			break
+		}
 	}
 	return nil
 }

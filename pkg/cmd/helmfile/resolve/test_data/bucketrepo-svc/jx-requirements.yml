@@ -1,3 +1,7 @@
+buildPacks:
+  buildPackLibrary:
+    gitRef: master
+    gitURL: https://github.com/jenkins-x/jxr-packs-kubernetes.git
 cluster:
   namespace: jx
   provider: gke
