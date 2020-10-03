@@ -2,6 +2,8 @@ filepath: ""
 repositories:
 - name: doesnotexist
   url: https://storage.googleapis.com/chartmuseum.jenkins-x.io
+- name: cdf
+  url: https://cdfoundation.github.io/tekton-helm-chart
 - name: jenkins-x
   url: https://storage.googleapis.com/chartmuseum.jenkins-x.io
 - name: bitnami
@@ -9,12 +11,10 @@ repositories:
 - name: external-secrets
   url: https://godaddy.github.io/kubernetes-external-secrets
 releases:
-- chart: jenkins-x/tekton
-  version: 0.0.56
-  name: tekton
-  namespace: jx
-  values:
-  - versionStream/charts/jenkins-x/tekton/values.yaml.gotmpl
+- chart: cdf/tekton-pipeline
+  version: 0.0.5
+  name: tekton-pipeline
+  namespace: tekton-pipelines
 - chart: jenkins-x/jxboot-helmfile-resources
   version: 0.0.255
   name: jxboot-helmfile-resources
