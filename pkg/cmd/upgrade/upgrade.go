@@ -43,8 +43,15 @@ func (o *Options) Run() error {
 		return errors.Wrapf(err, "failed to update source using kpt")
 	}
 
-	log.Logger().Infof("\nnow checking the chart versions in %s\n\n", termcolor.ColorInfo("helmfile.yaml"))
+	exists, err := o.HelmfileResolve.HasHelmfile()
+	if err != nil {
+		return errors.Wrapf(err, "failed to check for helmfile")
+	}
+	if !exists {
+		return nil
+	}
 
+	log.Logger().Infof("\nnow checking the chart versions in %s\n\n", termcolor.ColorInfo("helmfile.yaml"))
 	o.HelmfileResolve.UpdateMode = true
 	err = o.HelmfileResolve.Run()
 	if err != nil {

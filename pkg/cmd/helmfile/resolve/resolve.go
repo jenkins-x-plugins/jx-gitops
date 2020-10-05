@@ -338,6 +338,19 @@ func (o *Options) Run() error {
 	return nil
 }
 
+// HasHelmfile returns true if there is a helmfile
+func (o *Options) HasHelmfile() (bool, error) {
+	if o.Helmfile == "" {
+		o.Helmfile = filepath.Join(o.Dir, "helmfile.yaml")
+	}
+
+	exists, err := files.FileExists(o.Helmfile)
+	if err != nil {
+		return false, errors.Wrapf(err, "failed to check for file %s", o.Helmfile)
+	}
+	return exists, nil
+}
+
 func valuesContains(values []interface{}, value string) bool {
 	for _, v := range values {
 		if v == value {
