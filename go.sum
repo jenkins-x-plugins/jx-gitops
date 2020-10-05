@@ -1104,6 +1104,8 @@ github.com/jenkins-x/jx-helpers v1.0.88 h1:NJvq6HJQ1+B4zCtD3reoGoFaRK8RbUJnKZFK9
 github.com/jenkins-x/jx-helpers v1.0.88/go.mod h1:k0xQ0xL1/BC2ENb7Z5EAZQJbv5BitD2hcOst+Od51UM=
 github.com/jenkins-x/jx-helpers/v3 v3.0.0 h1:4RLFZRxa5fq07XK8aDe+xuYucMPxYLwwDDnxrf+3vzQ=
 github.com/jenkins-x/jx-helpers/v3 v3.0.0/go.mod h1:gwTYDwvCi4qduS2qRSbn6P/isyObDDxmOeM5CTMfn+s=
+github.com/jenkins-x/jx-helpers/v3 v3.0.3 h1:VKNLkpLz5SxTJqVuwWbnv51SRkkpr6H2k8O6mSmnU+8=
+github.com/jenkins-x/jx-helpers/v3 v3.0.3/go.mod h1:gwTYDwvCi4qduS2qRSbn6P/isyObDDxmOeM5CTMfn+s=
 github.com/jenkins-x/jx-kube-client v0.0.8 h1:XK/TP2qnhHPb/vhaGHmvVilWGDtARIZ1DOEHp/6/h0Y=
 github.com/jenkins-x/jx-kube-client v0.0.8/go.mod h1:XvNZQAAF95wzQzSfCpehXwb5FI6WCg+5GiwVA2S4SPA=
 github.com/jenkins-x/jx-kube-client/v3 v3.0.0 h1:42Io8YswcXhIulUEMniSU21y9LscNrxPmsZ5/uZa+So=
