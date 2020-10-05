@@ -51,7 +51,6 @@ type Options struct {
 	BatchMode        bool
 	UpdateMode       bool
 	DoGitCommit      bool
-	CommandRunner    cmdrunner.CommandRunner
 	Gitter           gitclient.Interface
 	prefixes         *versionstream.RepositoryPrefixes
 	Results          Results
@@ -443,6 +442,11 @@ func (o *Options) CustomUpgrades() error {
 		_, err = o.CommandRunner(c)
 		if err != nil {
 			return errors.Wrapf(err, "failed to get environment tekton pipeline via kpt in dir %s", o.Dir)
+		}
+
+		err = gitclient.Add(o.Git(), o.Dir, ".lighthouse")
+		if err != nil {
+			return errors.Wrapf(err, "failed to add .lighthouse dir to git")
 		}
 
 		log.Logger().Infof("got tekton pipeline for envirnment at %s", lighthouseTriggerFile)
