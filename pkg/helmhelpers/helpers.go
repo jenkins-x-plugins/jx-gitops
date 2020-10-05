@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner"
+	"github.com/jenkins-x/jx-helpers/pkg/helmer"
 	"github.com/jenkins-x/jx-helpers/pkg/stringhelpers"
 	"github.com/jenkins-x/jx-logging/pkg/log"
 	"github.com/pkg/errors"
@@ -22,17 +23,16 @@ func AddHelmRepositories(helmState state.HelmState, runner cmdrunner.CommandRunn
 		repoMap[repo.Name] = repo.URL
 	}
 
+	helmClient := helmer.NewHelmCLIWithRunner(runner, "helm", "", false)
+
 	for repoName, repoURL := range repoMap {
 		if stringhelpers.StringArrayIndex(ignoreRepositories, repoURL) >= 0 {
 			continue
 		}
-		c := &cmdrunner.Command{
-			Name: "helm",
-			Args: []string{"repo", "add", repoName, repoURL},
-		}
-		err := RunCommandAndLogOutput(runner, c, nil, []string{" has been added to your repositories"})
+
+		_, err := helmer.AddHelmRepoIfMissing(helmClient, repoURL, repoName, "", "")
 		if err != nil {
-			return errors.Wrap(err, "failed to add helm repo")
+			return errors.Wrapf(err, "failed to add helm repository %s %s", repoName, repoURL)
 		}
 		log.Logger().Debugf("added helm repository %s %s", repoName, repoURL)
 	}
