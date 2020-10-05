@@ -8,7 +8,9 @@ import (
 	"github.com/jenkins-x/jx-api/pkg/config"
 	"github.com/jenkins-x/jx-gitops/pkg/helmhelpers"
 	"github.com/jenkins-x/jx-gitops/pkg/jxtmpl/reqvalues"
+	"github.com/jenkins-x/jx-gitops/pkg/plugins"
 	"github.com/jenkins-x/jx-gitops/pkg/versionstreamer"
+	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/pkg/files"
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/pkg/gitclient/cli"
@@ -45,6 +47,7 @@ type Options struct {
 	Namespace        string
 	GitCommitMessage string
 	Helmfile         string
+	KptBinary        string
 	BatchMode        bool
 	UpdateMode       bool
 	DoGitCommit      bool
@@ -117,6 +120,9 @@ func (o *Options) Validate() error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to save tempo file for jx requirements values file %s", jxReqValuesFileName)
 	}
+	if o.CommandRunner == nil {
+		o.CommandRunner = cmdrunner.DefaultCommandRunner
+	}
 	return nil
 }
 
@@ -127,9 +133,11 @@ func (o *Options) Run() error {
 		return errors.Wrapf(err, "failed to ")
 	}
 
-	err = o.CustomUpgrades()
-	if err != nil {
-		return errors.Wrapf(err, "failed to perform custom upgrades")
+	if o.UpdateMode {
+		err = o.CustomUpgrades()
+		if err != nil {
+			return errors.Wrapf(err, "failed to perform custom upgrades")
+		}
 	}
 
 	resolver := o.Options.Resolver
@@ -409,6 +417,39 @@ func (o *Options) CustomUpgrades() error {
 			}
 			break
 		}
+	}
+
+	lighthouseTriggerFile := filepath.Join(o.Dir, ".lighthouse", "jenkins-x", "triggers.yaml")
+	exists, err := files.FileExists(lighthouseTriggerFile)
+	if err != nil {
+		return errors.Wrapf(err, "failed to detect file %s", lighthouseTriggerFile)
+	}
+	if !exists {
+		bin := o.KptBinary
+		if bin == "" {
+			bin, err = plugins.GetKptBinary(plugins.KptVersion)
+			if err != nil {
+				return err
+			}
+		}
+
+		args := []string{"pkg", "get", "https://github.com/jenkins-x/jx3-pipeline-catalog.git/environment/.lighthouse", o.Dir}
+		c := &cmdrunner.Command{
+			Name: bin,
+			Args: args,
+			Dir:  o.Dir,
+		}
+		_, err = o.CommandRunner(c)
+		if err != nil {
+			return errors.Wrapf(err, "failed to get environment tekton pipeline via kpt in dir %s", o.Dir)
+		}
+
+		err = gitclient.Add(o.Git(), o.Dir, ".lighthouse")
+		if err != nil {
+			return errors.Wrapf(err, "failed to add .lighthouse dir to git")
+		}
+
+		log.Logger().Infof("got tekton pipeline for envirnment at %s", lighthouseTriggerFile)
 	}
 	return nil
 }
