@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/jenkins-x/jx-gitops/pkg/boot"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/boot"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/cli"
@@ -137,6 +137,9 @@ func (o *Options) findCredentials() ([]credentialhelper.GitCredential, error) {
 	bootSecret, err := boot.LoadBootSecret(o.KubeClient, o.Namespace, o.OperatorNamespace, o.SecretName, o.UserName)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to load the boot secret")
+	}
+	if bootSecret == nil {
+		return nil, errors.Errorf("failed to find the boot secret")
 	}
 
 	gitURL := bootSecret.URL
