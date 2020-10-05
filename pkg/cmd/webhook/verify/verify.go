@@ -5,19 +5,19 @@ import (
 	"strings"
 
 	"github.com/jenkins-x/go-scm/scm"
-	v1 "github.com/jenkins-x/jx-api/pkg/apis/jenkins.io/v1"
-	jxc "github.com/jenkins-x/jx-api/pkg/client/clientset/versioned"
-	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
-	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
-	"github.com/jenkins-x/jx-helpers/pkg/kube"
-	"github.com/jenkins-x/jx-helpers/pkg/kube/jxclient"
-	"github.com/jenkins-x/jx-helpers/pkg/kube/jxenv"
-	"github.com/jenkins-x/jx-helpers/pkg/kube/services"
-	"github.com/jenkins-x/jx-helpers/pkg/options"
-	"github.com/jenkins-x/jx-helpers/pkg/scmhelpers"
-	"github.com/jenkins-x/jx-helpers/pkg/stringhelpers"
-	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
-	"github.com/jenkins-x/jx-logging/pkg/log"
+	v1 "github.com/jenkins-x/jx-api/v3/pkg/apis/jenkins.io/v1"
+	jxc "github.com/jenkins-x/jx-api/v3/pkg/client/clientset/versioned"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/kube"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/jxclient"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/jxenv"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/services"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/options"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/scmhelpers"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/stringhelpers"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
+	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/pkg/errors"
 	"k8s.io/client-go/kubernetes"
 
@@ -135,7 +135,7 @@ func (o *Options) Run() error {
 	jxClient := o.JXClient
 	ns := o.Namespace
 
-	srList, err := jxClient.JenkinsV1().SourceRepositories(ns).List(metav1.ListOptions{})
+	srList, err := jxClient.JenkinsV1().SourceRepositories(ns).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return errors.Wrapf(err, "failed to find any SourceRepositories in namespace %s", ns)
 	}
@@ -166,7 +166,7 @@ func (o *Options) GetHMACTokenFromSecret() (string, error) {
 	kubeClient := o.KubeClient
 	ns := o.Namespace
 	name := LighthouseHMACToken
-	hmacTokenSecret, err := kubeClient.CoreV1().Secrets(ns).Get(name, metav1.GetOptions{})
+	hmacTokenSecret, err := kubeClient.CoreV1().Secrets(ns).Get(context.TODO(), name, metav1.GetOptions{})
 	if err != nil {
 		return "", errors.Wrapf(err, "could not find lighthouse hmac token %s in namespace %s", name, ns)
 	}
@@ -211,7 +211,7 @@ func (o *Options) ensureWebHookCreated(repository *v1.SourceRepository, webhookU
 		repository.Annotations = map[string]string{}
 	}
 	annotate := func() {
-		repository, err = srInterface.Update(repository)
+		repository, err = srInterface.Update(context.TODO(), repository, metav1.UpdateOptions{})
 		if err != nil {
 			log.Logger().Warnf("failed to annotate SourceRepository %s with webhook status: %s", repository.Name, err.Error())
 		}

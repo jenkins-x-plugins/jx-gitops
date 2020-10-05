@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/jenkins-x/jx-api/pkg/config"
-	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner"
-	"github.com/jenkins-x/jx-helpers/pkg/files"
-	"github.com/jenkins-x/jx-helpers/pkg/versionstream"
+	"github.com/jenkins-x/jx-api/v3/pkg/config"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/versionstream"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )

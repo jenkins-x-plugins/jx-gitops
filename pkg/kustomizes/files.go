@@ -4,7 +4,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 
-	"github.com/jenkins-x/jx-helpers/pkg/files"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/pkg/errors"
 	"sigs.k8s.io/kustomize/api/types"
 	"sigs.k8s.io/kustomize/kyaml/yaml"

@@ -5,12 +5,12 @@ import (
 	"path/filepath"
 	"testing"
 
-	jxfake "github.com/jenkins-x/jx-api/pkg/client/clientset/versioned/fake"
+	jxfake "github.com/jenkins-x/jx-api/v3/pkg/client/clientset/versioned/fake"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/repository/add"
-	"github.com/jenkins-x/jx-helpers/pkg/files"
-	"github.com/jenkins-x/jx-helpers/pkg/stringhelpers"
-	"github.com/jenkins-x/jx-helpers/pkg/testhelpers"
-	"github.com/jenkins-x/jx-helpers/pkg/testhelpers/testjx"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/stringhelpers"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/testhelpers"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/testhelpers/testjx"
 	"github.com/stretchr/testify/require"
 )
 

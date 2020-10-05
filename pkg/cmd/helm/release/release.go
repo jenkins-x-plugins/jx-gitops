@@ -1,25 +1,26 @@
 package release
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 
-	jxc "github.com/jenkins-x/jx-api/pkg/client/clientset/versioned"
+	jxc "github.com/jenkins-x/jx-api/v3/pkg/client/clientset/versioned"
 	"github.com/jenkins-x/jx-gitops/pkg/plugins"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-gitops/pkg/variablefinders"
-	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner"
-	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
-	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
-	"github.com/jenkins-x/jx-helpers/pkg/files"
-	"github.com/jenkins-x/jx-helpers/pkg/kube"
-	"github.com/jenkins-x/jx-helpers/pkg/kube/jxclient"
-	"github.com/jenkins-x/jx-helpers/pkg/stringhelpers"
-	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
-	"github.com/jenkins-x/jx-logging/pkg/log"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/kube"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/jxclient"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/stringhelpers"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
+	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -278,9 +279,9 @@ func (o *Options) findChartRepositoryUserPassword() (string, error) {
 		// lets try load them from the secret directly
 		client := o.KubeClient
 		ns := o.Namespace
-		secret, err := client.CoreV1().Secrets(ns).Get(kube.SecretJenkinsChartMuseum, metav1.GetOptions{})
+		secret, err := client.CoreV1().Secrets(ns).Get(context.TODO(), kube.SecretJenkinsChartMuseum, metav1.GetOptions{})
 		if err != nil {
-			secret, err = client.CoreV1().Secrets(ns).Get(kube.SecretBucketRepo, metav1.GetOptions{})
+			secret, err = client.CoreV1().Secrets(ns).Get(context.TODO(), kube.SecretBucketRepo, metav1.GetOptions{})
 		}
 		if err != nil {
 			log.Logger().Warnf("Could not load Secret %s or %s in namespace %s: %s", kube.SecretJenkinsChartMuseum, kube.SecretBucketRepo, ns, err)

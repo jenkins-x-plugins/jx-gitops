@@ -7,9 +7,9 @@ import (
 
 	"github.com/go-yaml/yaml"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/scheduler"
-	"github.com/jenkins-x/jx-helpers/pkg/stringhelpers"
-	"github.com/jenkins-x/jx-helpers/pkg/testhelpers"
-	"github.com/jenkins-x/jx-helpers/pkg/yamls"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/stringhelpers"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/testhelpers"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"
 	"github.com/jenkins-x/lighthouse/pkg/config"
 	"github.com/jenkins-x/lighthouse/pkg/config/keeper"
 	"github.com/stretchr/testify/assert"

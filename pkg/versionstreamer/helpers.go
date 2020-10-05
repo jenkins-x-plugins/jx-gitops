@@ -1,7 +1,7 @@
 package versionstreamer
 
 import (
-	"github.com/jenkins-x/jx-helpers/pkg/versionstream"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/versionstream"
 	"github.com/pkg/errors"
 )
 

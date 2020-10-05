@@ -5,9 +5,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/jenkins-x/jx-api/pkg/config"
+	"github.com/jenkins-x/jx-api/v3/pkg/config"
 	"github.com/jenkins-x/jx-gitops/pkg/jxtmpl/templater"
-	"github.com/jenkins-x/jx-helpers/pkg/testhelpers"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/testhelpers"
 	"github.com/stretchr/testify/require"
 )
 

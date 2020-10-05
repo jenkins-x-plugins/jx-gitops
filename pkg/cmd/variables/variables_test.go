@@ -1,18 +1,19 @@
 package variables_test
 
 import (
+	"context"
 	"io/ioutil"
 	"path/filepath"
 	"testing"
 
 	scmfake "github.com/jenkins-x/go-scm/scm/driver/fake"
-	jxfake "github.com/jenkins-x/jx-api/pkg/client/clientset/versioned/fake"
-	"github.com/jenkins-x/jx-api/pkg/config"
+	jxfake "github.com/jenkins-x/jx-api/v3/pkg/client/clientset/versioned/fake"
+	"github.com/jenkins-x/jx-api/v3/pkg/config"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/variables"
-	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner/fakerunner"
-	"github.com/jenkins-x/jx-helpers/pkg/files"
-	"github.com/jenkins-x/jx-helpers/pkg/kube/jxenv"
-	"github.com/jenkins-x/jx-helpers/pkg/testhelpers"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner/fakerunner"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/jxenv"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/testhelpers"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
@@ -113,7 +114,7 @@ func TestFindBuildNumber(t *testing.T) {
 
 	t.Logf("generated build number %s", buildNumber)
 
-	resources, err := jxClient.JenkinsV1().PipelineActivities(ns).List(metav1.ListOptions{})
+	resources, err := jxClient.JenkinsV1().PipelineActivities(ns).List(context.TODO(), metav1.ListOptions{})
 	require.NoError(t, err, "failed to list PipelineActivities")
 	require.Len(t, resources.Items, 1, "should have found 1 PipelineActivity")
 	pa := resources.Items[0]
@@ -129,7 +130,7 @@ func TestFindBuildNumber(t *testing.T) {
 	require.NoError(t, err, "failed to find build number")
 	assert.Equal(t, "1", buildNumber, "should have created build number")
 
-	resources, err = jxClient.JenkinsV1().PipelineActivities(ns).List(metav1.ListOptions{})
+	resources, err = jxClient.JenkinsV1().PipelineActivities(ns).List(context.TODO(), metav1.ListOptions{})
 	require.NoError(t, err, "failed to list PipelineActivities")
 	require.Len(t, resources.Items, 1, "should have found 1 PipelineActivity")
 }

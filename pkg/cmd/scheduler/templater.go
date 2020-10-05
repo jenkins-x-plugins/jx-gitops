@@ -5,7 +5,7 @@ import (
 	"text/template"
 
 	"github.com/Masterminds/sprig"
-	"github.com/jenkins-x/jx-api/pkg/config"
+	"github.com/jenkins-x/jx-api/v3/pkg/config"
 	"github.com/pkg/errors"
 )
 

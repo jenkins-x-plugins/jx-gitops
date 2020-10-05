@@ -1,7 +1,8 @@
 package boot
 
 import (
-	"github.com/jenkins-x/jx-logging/pkg/log"
+	"context"
+	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/pkg/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -17,10 +18,10 @@ type BootSecret struct {
 
 // LoadBootSecret loads the boot secret from the current namespace
 func LoadBootSecret(kubeClient kubernetes.Interface, ns, operatorNamespace, secretName, defaultUserName string) (*BootSecret, error) {
-	secret, err := kubeClient.CoreV1().Secrets(ns).Get(secretName, metav1.GetOptions{})
+	secret, err := kubeClient.CoreV1().Secrets(ns).Get(context.TODO(), secretName, metav1.GetOptions{})
 	if err != nil && operatorNamespace != ns {
 		var err2 error
-		secret, err2 = kubeClient.CoreV1().Secrets(operatorNamespace).Get(secretName, metav1.GetOptions{})
+		secret, err2 = kubeClient.CoreV1().Secrets(operatorNamespace).Get(context.TODO(), secretName, metav1.GetOptions{})
 		if err2 == nil {
 			err = nil
 		}

@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/image"
-	"github.com/jenkins-x/jx-helpers/pkg/files"
-	"github.com/jenkins-x/jx-helpers/pkg/testhelpers"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/testhelpers"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 )

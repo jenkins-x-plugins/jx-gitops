@@ -1,9 +1,9 @@
 package variablefinders
 
 import (
-	jxc "github.com/jenkins-x/jx-api/pkg/client/clientset/versioned"
-	"github.com/jenkins-x/jx-api/pkg/config"
-	"github.com/jenkins-x/jx-helpers/pkg/kube/jxenv"
+	jxc "github.com/jenkins-x/jx-api/v3/pkg/client/clientset/versioned"
+	"github.com/jenkins-x/jx-api/v3/pkg/config"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/jxenv"
 	"github.com/pkg/errors"
 )
 

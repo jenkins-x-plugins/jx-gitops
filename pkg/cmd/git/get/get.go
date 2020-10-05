@@ -8,18 +8,18 @@ import (
 	"path/filepath"
 
 	"github.com/jenkins-x/go-scm/scm"
-	jxc "github.com/jenkins-x/jx-api/pkg/client/clientset/versioned"
+	jxc "github.com/jenkins-x/jx-api/v3/pkg/client/clientset/versioned"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
-	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner"
-	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
-	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
-	"github.com/jenkins-x/jx-helpers/pkg/files"
-	"github.com/jenkins-x/jx-helpers/pkg/gitclient/giturl"
-	"github.com/jenkins-x/jx-helpers/pkg/kube/jxclient"
-	"github.com/jenkins-x/jx-helpers/pkg/options"
-	"github.com/jenkins-x/jx-helpers/pkg/scmhelpers"
-	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
-	"github.com/jenkins-x/jx-logging/pkg/log"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/giturl"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/jxclient"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/options"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/scmhelpers"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
+	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -143,7 +143,7 @@ func (o *Options) findEnvironmentRepository() error {
 		return errors.Wrapf(err, "failed to create jx client")
 	}
 
-	env, err := o.JXClient.JenkinsV1().Environments(o.Namespace).Get(o.Env, metav1.GetOptions{})
+	env, err := o.JXClient.JenkinsV1().Environments(o.Namespace).Get(context.TODO(), o.Env, metav1.GetOptions{})
 	if err != nil {
 		return errors.Wrapf(err, "failed to load Environment %s in namespace %s", o.Env, o.Namespace)
 	}

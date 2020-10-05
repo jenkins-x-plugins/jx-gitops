@@ -1,10 +1,11 @@
 package pipelinescheduler
 
 import (
+	"context"
 	"strings"
 
 	"github.com/jenkins-x/jx-gitops/pkg/schedulerapi"
-	"github.com/jenkins-x/jx-logging/pkg/log"
+	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/jenkins-x/lighthouse/pkg/config"
 	"github.com/jenkins-x/lighthouse/pkg/plugins"
 	v1 "k8s.io/api/core/v1"
@@ -13,8 +14,8 @@ import (
 
 	"github.com/ghodss/yaml"
 
-	jenkinsv1 "github.com/jenkins-x/jx-api/pkg/apis/jenkins.io/v1"
-	"github.com/jenkins-x/jx-api/pkg/client/clientset/versioned"
+	jenkinsv1 "github.com/jenkins-x/jx-api/v3/pkg/apis/jenkins.io/v1"
+	"github.com/jenkins-x/jx-api/v3/pkg/client/clientset/versioned"
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -162,18 +163,18 @@ func ApplyDirectly(kubeClient kubernetes.Interface, namespace string, cfg *confi
 			"plugins.yaml": string(plugsYaml),
 		},
 	}
-	_, err = kubeClient.CoreV1().ConfigMaps(namespace).Update(cfgConfigMap)
+	_, err = kubeClient.CoreV1().ConfigMaps(namespace).Update(context.TODO(), cfgConfigMap, metav1.UpdateOptions{})
 	if kubeerrors.IsNotFound(err) {
-		_, err := kubeClient.CoreV1().ConfigMaps(namespace).Create(cfgConfigMap)
+		_, err := kubeClient.CoreV1().ConfigMaps(namespace).Create(context.TODO(), cfgConfigMap, metav1.CreateOptions{})
 		if err != nil {
 			return errors.Wrapf(err, "creating ConfigMap config")
 		}
 	} else if err != nil {
 		return errors.Wrapf(err, "updating ConfigMap config")
 	}
-	_, err = kubeClient.CoreV1().ConfigMaps(namespace).Update(plugsConfigMap)
+	_, err = kubeClient.CoreV1().ConfigMaps(namespace).Update(context.TODO(), plugsConfigMap, metav1.UpdateOptions{})
 	if kubeerrors.IsNotFound(err) {
-		_, err := kubeClient.CoreV1().ConfigMaps(namespace).Create(plugsConfigMap)
+		_, err := kubeClient.CoreV1().ConfigMaps(namespace).Create(context.TODO(), plugsConfigMap, metav1.CreateOptions{})
 		if err != nil {
 			return errors.Wrapf(err, "creating ConfigMap plugins")
 		}

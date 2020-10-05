@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/postprocess"
-	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner/fakerunner"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner/fakerunner"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

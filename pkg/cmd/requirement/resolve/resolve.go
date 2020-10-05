@@ -1,23 +1,24 @@
 package resolve
 
 import (
+	"context"
 	"fmt"
 
-	"github.com/jenkins-x/jx-api/pkg/config"
-	"github.com/jenkins-x/jx-helpers/pkg/gitclient"
-	"github.com/jenkins-x/jx-helpers/pkg/gitclient/cli"
-	"github.com/jenkins-x/jx-helpers/pkg/kube"
-	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
-	"github.com/jenkins-x/jx-logging/pkg/log"
+	"github.com/jenkins-x/jx-api/v3/pkg/config"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/cli"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/kube"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
+	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
-	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner"
-	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
-	"github.com/jenkins-x/jx-helpers/pkg/cobras/templates"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -120,7 +121,7 @@ func (o *Options) resolvePipelineUsername() error {
 	}
 	ns := o.Namespace
 	name := o.SecretName
-	secret, err := o.KubeClient.CoreV1().Secrets(ns).Get(name, metav1.GetOptions{})
+	secret, err := o.KubeClient.CoreV1().Secrets(ns).Get(context.TODO(), name, metav1.GetOptions{})
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			log.Logger().Warnf("could not find secret %s in namespace %s", name, ns)

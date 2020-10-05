@@ -3,9 +3,9 @@ package upgrade
 import (
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/resolve"
 	kptupdate "github.com/jenkins-x/jx-gitops/pkg/cmd/kpt/update"
-	"github.com/jenkins-x/jx-helpers/pkg/cobras/helper"
-	"github.com/jenkins-x/jx-helpers/pkg/termcolor"
-	"github.com/jenkins-x/jx-logging/pkg/log"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
+	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
