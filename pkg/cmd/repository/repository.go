@@ -5,8 +5,8 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/repository/create"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/repository/export"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/repository/resolve"
-	"github.com/jenkins-x/jx-helpers/pkg/cobras"
-	"github.com/jenkins-x/jx-logging/pkg/log"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras"
+	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/spf13/cobra"
 )
 

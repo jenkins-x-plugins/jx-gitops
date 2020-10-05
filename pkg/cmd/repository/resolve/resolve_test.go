@@ -7,9 +7,9 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/jenkins-x/jx-api/pkg/config"
+	"github.com/jenkins-x/jx-api/v3/pkg/config"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/repository/resolve"
-	"github.com/jenkins-x/jx-helpers/pkg/files"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

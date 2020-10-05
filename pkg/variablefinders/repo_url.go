@@ -3,8 +3,8 @@ package variablefinders
 import (
 	"os"
 
-	jxc "github.com/jenkins-x/jx-api/pkg/client/clientset/versioned"
-	"github.com/jenkins-x/jx-api/pkg/config"
+	jxc "github.com/jenkins-x/jx-api/v3/pkg/client/clientset/versioned"
+	"github.com/jenkins-x/jx-api/v3/pkg/config"
 )
 
 // FindRepositoryURL finds the chart repository URL via environment variables or the dev Environment CRD

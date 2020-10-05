@@ -1,16 +1,17 @@
 package pipelinescheduler
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"reflect"
 	"strings"
 
-	jenkinsio "github.com/jenkins-x/jx-api/pkg/apis/jenkins.io"
-	v1 "github.com/jenkins-x/jx-api/pkg/apis/jenkins.io/v1"
-	"github.com/jenkins-x/jx-api/pkg/client/clientset/versioned"
-	"github.com/jenkins-x/jx-helpers/pkg/kube/naming"
-	"github.com/jenkins-x/jx-helpers/pkg/stringhelpers"
+	jenkinsio "github.com/jenkins-x/jx-api/v3/pkg/apis/jenkins.io"
+	v1 "github.com/jenkins-x/jx-api/v3/pkg/apis/jenkins.io/v1"
+	"github.com/jenkins-x/jx-api/v3/pkg/client/clientset/versioned"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/naming"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/stringhelpers"
 	"github.com/pkg/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -48,7 +49,7 @@ func FindSourceRepositoryWithoutProvider(jxClient versioned.Interface, ns string
 
 // findSourceRepositoryByLabels returns a SourceRepository matching the given label selector, if it exists.
 func findSourceRepositoryByLabels(jxClient versioned.Interface, ns string, labelSelector string) (*v1.SourceRepository, error) {
-	repos, err := jxClient.JenkinsV1().SourceRepositories(ns).List(metav1.ListOptions{
+	repos, err := jxClient.JenkinsV1().SourceRepositories(ns).List(context.TODO(), metav1.ListOptions{
 		LabelSelector: labelSelector,
 	})
 	if err != nil {
@@ -65,7 +66,7 @@ func findSourceRepositoryByLabels(jxClient versioned.Interface, ns string, label
 func FindSourceRepository(jxClient versioned.Interface, ns string, owner string, name string, providerName string) (*v1.SourceRepository, error) {
 	// Look up by resource name is retained for compatibility with SourceRepositorys created before they were always created with labels
 	resourceName := naming.ToValidName(owner + "-" + name)
-	repo, err := jxClient.JenkinsV1().SourceRepositories(ns).Get(resourceName, metav1.GetOptions{})
+	repo, err := jxClient.JenkinsV1().SourceRepositories(ns).Get(context.TODO(), resourceName, metav1.GetOptions{})
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			labelSelector := fmt.Sprintf("%s=%s,%s=%s", v1.LabelOwner, owner, v1.LabelRepository, name)
@@ -128,11 +129,11 @@ func GetOrCreateSourceRepositoryCallback(jxClient versioned.Interface, ns string
 	}
 
 	// Otherwise, update the SourceRepository and return it.
-	answer, err := repositories.Update(srCopy)
+	answer, err := repositories.Update(context.TODO(), srCopy, metav1.UpdateOptions{})
 	if err != nil {
 		return answer, errors.Wrapf(err, "failed to update SourceRepository %s", resourceName)
 	}
-	answer, err = repositories.Get(foundSr.Name, metav1.GetOptions{})
+	answer, err = repositories.Get(context.TODO(), foundSr.Name, metav1.GetOptions{})
 	if err != nil {
 		return answer, errors.Wrapf(err, "failed to get SourceRepository %s", resourceName)
 	}
@@ -198,7 +199,7 @@ func createSourceRepositoryCallback(client versioned.Interface, namespace string
 		callback(sr)
 	}
 	sr.Sanitize()
-	answer, err := client.JenkinsV1().SourceRepositories(namespace).Create(sr)
+	answer, err := client.JenkinsV1().SourceRepositories(namespace).Create(context.TODO(), sr, metav1.CreateOptions{})
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to create new SourceRepository for organisation %s and repository %s", organisation, name)
 	}

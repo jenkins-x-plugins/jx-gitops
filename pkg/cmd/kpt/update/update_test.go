@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/kpt/update"
-	"github.com/jenkins-x/jx-helpers/pkg/cmdrunner/fakerunner"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner/fakerunner"
 	"github.com/stretchr/testify/require"
 )
 
