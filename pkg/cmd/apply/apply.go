@@ -145,8 +145,15 @@ func (o *Options) Regenerate() (bool, error) {
 		return false, errors.Wrapf(err, "failed to get the last commit sha")
 	}
 
-	if secondSha == firstSha {
-		log.Logger().Infof("no commits so ")
+	lastCommitMessage, err := gitclient.GetLatestCommitMessage(o.GitClient, o.Dir)
+	if err != nil {
+		return false, errors.Wrapf(err, "failed to get last commit message")
+	}
+	lastCommitMessage = strings.TrimSpace(lastCommitMessage)
+	log.Logger().Infof("found last commit message: %s", termcolor.ColorStatus(lastCommitMessage))
+
+	if strings.Contains(lastCommitMessage, "/pipeline cancel") && secondSha == firstSha {
+		log.Logger().Infof("no commits so skipping regen-phase-2")
 		return false, nil
 	}
 
