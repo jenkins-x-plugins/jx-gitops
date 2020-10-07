@@ -215,6 +215,9 @@ func (o *Options) ensureWebHookCreated(repository *v1.SourceRepository, webhookU
 		if err != nil {
 			log.Logger().Warnf("failed to annotate SourceRepository %s with webhook status: %s", repository.Name, err.Error())
 		}
+		if repository.Annotations == nil {
+			repository.Annotations = map[string]string{}
+		}
 	}
 
 	repository.Annotations[WebHookAnnotation] = "creating"
