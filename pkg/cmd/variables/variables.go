@@ -405,7 +405,7 @@ func (o *Options) FindBuildNumber(buildID string) (string, error) {
 			if labels == nil {
 				continue
 			}
-			if labels["buildID"] == buildID {
+			if labels["buildID"] == buildID || labels["lighthouse.jenkins-x.io/buildNum"] == buildID {
 				if pa.Spec.Build == "" {
 					log.Logger().Warnf("PipelineActivity %s does not have a spec.build value", pa.Name)
 				} else {
