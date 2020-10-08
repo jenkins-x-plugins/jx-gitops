@@ -2617,6 +2617,7 @@ sigs.k8s.io/kustomize v2.0.3+incompatible h1:JUufWFNlI44MdtnjUqVnvh29rR37PQFzPbL
 sigs.k8s.io/kustomize v2.0.3+incompatible/go.mod h1:MkjgH3RdOWrievjo6c9T245dYlB5QeXV4WCbnt/PEpU=
 sigs.k8s.io/kustomize/api v0.4.1 h1:Lwco6Rsxd3TcubJzx9wAV2k7roh0M95FjrS29n76TRo=
 sigs.k8s.io/kustomize/api v0.4.1/go.mod h1:NqxqT+wbYHrD0P19Uu4dXiMsVwI1IwQs+MJHlLhmPqQ=
+sigs.k8s.io/kustomize/api v0.6.3/go.mod h1:mTwLqPB2uqh7LOcYoJKKHIfP5ioS6t3NfZ8lvia4NJY=
 sigs.k8s.io/kustomize/kyaml v0.6.1 h1:mwffj5vt3MPdbWV3fZnnwol8SO7sUoGdgejBlvseyak=
 sigs.k8s.io/kustomize/kyaml v0.6.1/go.mod h1:bEzbO5pN9OvlEeCLvFHo8Pu7SA26Herc2m60UeWZBdI=
 sigs.k8s.io/structured-merge-diff v0.0.0-20190302045857-e85c7b244fd2/go.mod h1:wWxsB5ozmmv/SG7nM11ayaAW51xMvak/t1r0CSlcokI=
