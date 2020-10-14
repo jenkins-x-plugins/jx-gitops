@@ -276,13 +276,13 @@ func (o *Options) Run() error {
 		// lets try resolve any values files in the version stream
 		found := false
 		for _, valueFileName := range valueFileNames {
-			versionStreamValuesFile := filepath.Join(versionsDir, "charts", prefix, chartName, valueFileName)
+			versionStreamValuesFile := filepath.Join(versionsDir, "charts", prefix, release.Name, valueFileName)
 			exists, err := files.FileExists(versionStreamValuesFile)
 			if err != nil {
 				return errors.Wrapf(err, "failed to check if version stream values file exists %s", versionStreamValuesFile)
 			}
 			if exists {
-				path := filepath.Join("versionStream", "charts", prefix, chartName, valueFileName)
+				path := filepath.Join("versionStream", "charts", prefix, release.Name, valueFileName)
 				if !valuesContains(release.Values, path) {
 					release.Values = append(release.Values, path)
 				}
