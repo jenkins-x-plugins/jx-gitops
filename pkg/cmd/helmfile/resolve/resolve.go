@@ -232,7 +232,7 @@ func (o *Options) Run() error {
 			}
 
 			if stringhelpers.StringArrayIndex(ignoreRepositories, repository) < 0 {
-				versionProperties, err := resolver.StableVersion(versionstream.KindChart, fullChartName)
+				versionProperties, err := resolver.StableVersion(versionstream.KindChart, prefix+"/"+release.Name)
 				if err != nil {
 					return errors.Wrapf(err, "failed to find version number for chart %s", fullChartName)
 				}
