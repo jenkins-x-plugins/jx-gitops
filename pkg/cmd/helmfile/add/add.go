@@ -196,7 +196,7 @@ func (o *Options) Run() error {
 
 	for i := range helmState.Releases {
 		release := helmState.Releases[i]
-		if release.Chart == o.Chart {
+		if release.Chart == o.Chart && release.Name == o.ReleaseName {
 			found = true
 			if release.Namespace != "" && release.Namespace != o.Namespace {
 				release.Namespace = o.Namespace
