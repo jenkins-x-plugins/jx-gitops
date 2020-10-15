@@ -2,6 +2,7 @@
 export APP_NAME="myrepo"
 export BRANCH_NAME="PR-23"
 export BUILD_NUMBER="5"
+export DOCKERFILE_PATH="Dockerfile"
 export DOCKER_REGISTRY="my-registry.com"
 export DOCKER_REGISTRY_ORG="myowner"
 export JX_CHART_REPOSITORY="http://bucketrepo/bucketrepo/charts/"

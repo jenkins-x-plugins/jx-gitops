@@ -134,3 +134,30 @@ func TestFindBuildNumber(t *testing.T) {
 	require.NoError(t, err, "failed to list PipelineActivities")
 	require.Len(t, resources.Items, 1, "should have found 1 PipelineActivity")
 }
+
+func TestDockerfilePath(t *testing.T) {
+	testCases := []struct {
+		dir      string
+		expected string
+	}{
+		{
+			dir:      "just_dockerfile",
+			expected: "Dockerfile",
+		},
+		{
+			dir:      "has_preview_dockerfile",
+			expected: "Dockerfile-preview",
+		},
+	}
+	for _, tc := range testCases {
+		dir := tc.dir
+		_, o := variables.NewCmdVariables()
+		o.Branch = "PR-123"
+		o.Dir = filepath.Join("test_data", dir)
+		actual, err := o.FindDockerfilePath()
+		require.NoError(t, err, "failed to find Dockerfile path for dir %s", dir)
+		assert.Equal(t, tc.expected, actual, "found Dockerfile path for dir %s", dir)
+
+		t.Logf("for dir %s we found dockerfile path %s\n", dir, actual)
+	}
+}
