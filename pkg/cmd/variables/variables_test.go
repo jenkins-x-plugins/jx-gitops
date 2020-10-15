@@ -66,7 +66,7 @@ func TestCmdVariables(t *testing.T) {
 			},
 		},
 	)
-	o.Options.Owner = "myowner"
+	o.Options.Owner = "MyOwner"
 	o.Options.Repository = "myrepo"
 	o.Options.Branch = "PR-23"
 	o.Options.SourceURL = "https://github.com/" + o.Options.Owner + "/" + o.Options.Repository

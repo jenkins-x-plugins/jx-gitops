@@ -354,7 +354,7 @@ func (o *Options) dockerRegistryOrg() (string, error) {
 		}
 	}
 	if answer == "" {
-		answer = o.Options.Owner
+		answer = naming.ToValidName(o.Options.Owner)
 	}
 	return answer, nil
 }
