@@ -142,6 +142,7 @@ func (o *Options) MergeChanges(changes *config.RequirementsConfig) error {
 
 	// lets pull in any values missing from the source
 	cluster.ChartRepository = mergeString(cluster.ChartRepository, to.Cluster.ChartRepository)
+	cluster.DockerRegistryOrg = mergeString(cluster.DockerRegistryOrg, to.Cluster.DockerRegistryOrg)
 	cluster.EnvironmentGitOwner = mergeString(cluster.EnvironmentGitOwner, to.Cluster.EnvironmentGitOwner)
 	cluster.ExternalDNSSAName = mergeString(cluster.ExternalDNSSAName, to.Cluster.ExternalDNSSAName)
 	cluster.GitKind = mergeString(cluster.GitKind, to.Cluster.GitKind)

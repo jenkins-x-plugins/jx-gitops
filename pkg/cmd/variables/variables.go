@@ -182,6 +182,12 @@ func (o *Options) Validate() error {
 			},
 		},
 		{
+			Name: "DOCKERFILE_PATH",
+			Function: func() (string, error) {
+				return o.FindDockerfilePath()
+			},
+		},
+		{
 			Name: "DOCKER_REGISTRY",
 			Function: func() (string, error) {
 				return o.dockerRegistry()
@@ -354,7 +360,7 @@ func (o *Options) dockerRegistryOrg() (string, error) {
 		}
 	}
 	if answer == "" {
-		answer = o.Options.Owner
+		answer = naming.ToValidName(o.Options.Owner)
 	}
 	return answer, nil
 }
@@ -458,6 +464,27 @@ func (o *Options) GetBuildID() string {
 		o.BuildID = os.Getenv("BUILD_ID")
 	}
 	return o.BuildID
+}
+
+// FindDockerfilePath finds the dockerfile path to use relative to the current directory
+func (o *Options) FindDockerfilePath() (string, error) {
+	kind, err := variablefinders.FindPipelineKind(o.Branch)
+	if err != nil {
+		return "", errors.Wrapf(err, "failed to find pipeline kind")
+	}
+	if kind == "pullrequest" {
+		name := "Dockerfile-preview"
+		path := filepath.Join(o.Dir, name)
+		exists, err := files.FileExists(path)
+		if err != nil {
+			return "", errors.Wrapf(err, "failed to detect file %s", path)
+		}
+		if exists {
+			return name, nil
+		}
+	}
+	return "Dockerfile", nil
+
 }
 
 func configMapKeyToEnvVar(k string) string {
