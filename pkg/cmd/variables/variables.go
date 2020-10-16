@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	v1 "github.com/jenkins-x/jx-api/v3/pkg/apis/jenkins.io/v1"
 	jxc "github.com/jenkins-x/jx-api/v3/pkg/client/clientset/versioned"
 	"github.com/jenkins-x/jx-api/v3/pkg/config"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
@@ -393,40 +394,50 @@ func (o *Options) FindBuildNumber(buildID string) (string, error) {
 	owner := o.Options.Owner
 	repository := o.Options.Repository
 	branch := o.Options.Branch
-	selector := "owner=" + naming.ToValidName(owner) +
-		",repository=" + naming.ToValidName(repository) +
-		",branch=" + naming.ToValidName(branch)
+	var activitySlice []v1.PipelineActivity
 
-	resources, err := activityInterface.List(context.TODO(), metav1.ListOptions{
-		LabelSelector: selector,
-	})
-	if err != nil && !apierrors.IsNotFound(err) {
-		return "", errors.Wrapf(err, "failed to find PipelineActivity resources in namespace %s with selector %s", o.Namespace, selector)
+	selectors := []string{
+		"owner=" + naming.ToValidName(owner) +
+			",repository=" + naming.ToValidName(repository) +
+			",branch=" + naming.ToValidName(branch),
+		"lighthouse.jenkins-x.io/refs.org=" + naming.ToValidName(owner) +
+			",lighthouse.jenkins-x.io/refs.repo=" + naming.ToValidName(repository) +
+			",lighthouse.jenkins-x.io/branch=" + naming.ToValidName(branch),
+	}
+	for _, selector := range selectors {
+		resources, err := activityInterface.List(context.TODO(), metav1.ListOptions{
+			LabelSelector: selector,
+		})
+		if err != nil && !apierrors.IsNotFound(err) {
+			return "", errors.Wrapf(err, "failed to find PipelineActivity resources in namespace %s with selector %s", o.Namespace, selector)
+		}
+		if resources != nil {
+			activitySlice = append(activitySlice, resources.Items...)
+		}
 	}
 
 	maxBuild := 0
-	if resources != nil {
-		for _, pa := range resources.Items {
-			labels := pa.Labels
-			if labels == nil {
-				continue
+	for i := range activitySlice {
+		pa := &activitySlice[i]
+		labels := pa.Labels
+		if labels == nil {
+			continue
+		}
+		if labels["buildID"] == buildID || labels["lighthouse.jenkins-x.io/buildNum"] == buildID {
+			if pa.Spec.Build == "" {
+				log.Logger().Warnf("PipelineActivity %s does not have a spec.build value", pa.Name)
+			} else {
+				return pa.Spec.Build, nil
 			}
-			if labels["buildID"] == buildID || labels["lighthouse.jenkins-x.io/buildNum"] == buildID {
-				if pa.Spec.Build == "" {
-					log.Logger().Warnf("PipelineActivity %s does not have a spec.build value", pa.Name)
-				} else {
-					return pa.Spec.Build, nil
-				}
-				continue
-			}
-			if pa.Spec.Build != "" {
-				i, err := strconv.Atoi(pa.Spec.Build)
-				if err != nil {
-					log.Logger().Warnf("PipelineActivity %s has an invalid spec.build number %s should be an integer: %s", pa.Name, pa.Spec.Build, err.Error())
-				} else {
-					if i > maxBuild {
-						maxBuild = i
-					}
+			continue
+		}
+		if pa.Spec.Build != "" {
+			i, err := strconv.Atoi(pa.Spec.Build)
+			if err != nil {
+				log.Logger().Warnf("PipelineActivity %s has an invalid spec.build number %s should be an integer: %s", pa.Name, pa.Spec.Build, err.Error())
+			} else {
+				if i > maxBuild {
+					maxBuild = i
 				}
 			}
 		}
@@ -451,7 +462,7 @@ func (o *Options) FindBuildNumber(buildID string) (string, error) {
 			},
 		},
 	}
-	_, _, err = key.GetOrCreate(o.JXClient, o.Namespace)
+	_, _, err := key.GetOrCreate(o.JXClient, o.Namespace)
 	if err != nil {
 		return o.BuildNumber, errors.Wrapf(err, "failed to lazily create PipelineActivity %s", name)
 	}
