@@ -402,7 +402,7 @@ func (o *Options) FindBuildNumber(buildID string) (string, error) {
 			",branch=" + naming.ToValidName(branch),
 		"lighthouse.jenkins-x.io/refs.org=" + naming.ToValidName(owner) +
 			",lighthouse.jenkins-x.io/refs.repo=" + naming.ToValidName(repository) +
-			",lighthouse.jenkins-x.io/branch=" + naming.ToValidName(branch),
+			",lighthouse.jenkins-x.io/branch=" + branch,
 	}
 	for _, selector := range selectors {
 		resources, err := activityInterface.List(context.TODO(), metav1.ListOptions{
