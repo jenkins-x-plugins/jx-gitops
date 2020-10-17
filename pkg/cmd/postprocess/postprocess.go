@@ -97,7 +97,7 @@ func (o *Options) Run() error {
 		return nil
 	}
 	if o.CommandRunner == nil {
-		o.CommandRunner = cmdrunner.DefaultCommandRunner
+		o.CommandRunner = cmdrunner.QuietCommandRunner
 	}
 	c := &cmdrunner.Command{
 		Name: o.Shell,
