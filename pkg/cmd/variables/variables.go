@@ -399,7 +399,7 @@ func (o *Options) FindBuildNumber(buildID string) (string, error) {
 	selectors := []string{
 		"owner=" + naming.ToValidName(owner) +
 			",repository=" + naming.ToValidName(repository) +
-			",branch=" + naming.ToValidName(branch),
+			",branch=" + branch,
 		"lighthouse.jenkins-x.io/refs.org=" + naming.ToValidName(owner) +
 			",lighthouse.jenkins-x.io/refs.repo=" + naming.ToValidName(repository) +
 			",lighthouse.jenkins-x.io/branch=" + branch,
