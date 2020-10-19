@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/jenkins-x/go-scm/scm"
 	v1 "github.com/jenkins-x/jx-api/v3/pkg/apis/jenkins.io/v1"
@@ -71,7 +72,7 @@ type Options struct {
 	Dir           string
 	OutDir        string
 	SourceRepoDir string
-	SchedulerDir  string
+	SchedulerDir  []string
 	Namespace     string
 	InRepoConfig  bool
 }
@@ -93,7 +94,7 @@ func NewCmdScheduler() (*cobra.Command, *Options) {
 	}
 	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the current working directory")
 	cmd.Flags().StringVarP(&o.SourceRepoDir, "repo-dir", "", "", "the directory to look for SourceRepository resources. If not specified defaults config-root/namespaces/$ns")
-	cmd.Flags().StringVarP(&o.SchedulerDir, "scheduler-dir", "", "", "the directory to look for Scheduler resources. If not specified defaults versionStream/schedulers")
+	cmd.Flags().StringArrayVarP(&o.SchedulerDir, "scheduler-dir", "", nil, "the directory to look for Scheduler resources. If not specified defaults 'schedulers' and 'versionStream/schedulers'")
 	cmd.Flags().StringVarP(&o.OutDir, "out", "o", "", "the output directory for the generated config files. If not specified defaults to config-root/namespaces/$ns/lighthouse-config")
 	cmd.Flags().StringVarP(&o.Namespace, "namespace", "n", "jx", "the namespace for the SourceRepository and Scheduler resources")
 	cmd.Flags().BoolVarP(&o.InRepoConfig, "in-repo-config", "", false, "enables in repo configuration in lighthouse")
@@ -108,8 +109,20 @@ func (o *Options) Run() error {
 	if o.SourceRepoDir == "" {
 		o.SourceRepoDir = filepath.Join(o.Dir, "config-root", "namespaces", ns)
 	}
-	if o.SchedulerDir == "" {
-		o.SchedulerDir = filepath.Join(o.Dir, "versionStream", "schedulers")
+	if len(o.SchedulerDir) == 0 {
+		paths := []string{
+			"schedulers",
+			filepath.Join(o.Dir, "versionStream", "schedulers"),
+		}
+		for _, path := range paths {
+			exists, err := files.DirExists(path)
+			if err != nil {
+				return errors.Wrapf(err, "failed to check if path exists %s", path)
+			}
+			if exists {
+				o.SchedulerDir = append(o.SchedulerDir, path)
+			}
+		}
 	}
 	if o.OutDir == "" {
 		o.OutDir = filepath.Join(o.Dir, "config-root", "namespaces", ns, "lighthouse-config")
@@ -184,12 +197,13 @@ func (o *Options) Run() error {
 		}
 		return false, nil
 	}
-	err = kyamls.ModifyFiles(o.SchedulerDir, schedulerModifyFn, schedulerResourceFilter)
-	if err != nil {
-		return errors.Wrapf(err, "failed to load resources from dir %s", o.SchedulerDir)
+	for _, scheduleDir := range o.SchedulerDir {
+		err = kyamls.ModifyFiles(scheduleDir, schedulerModifyFn, schedulerResourceFilter)
+		if err != nil {
+			return errors.Wrapf(err, "failed to load resources from dir %s", scheduleDir)
+		}
 	}
-
-	log.Logger().Infof("loaded %d Scheduler resources from %s", len(schedulerMap), o.SchedulerDir)
+	log.Logger().Infof("loaded %d Scheduler resources from dirs %s", len(schedulerMap), strings.Join(o.SchedulerDir, ", "))
 
 	if devEnv == nil {
 		devEnv = &v1.Environment{
