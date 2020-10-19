@@ -394,31 +394,24 @@ func (o *Options) FindBuildNumber(buildID string) (string, error) {
 	owner := o.Options.Owner
 	repository := o.Options.Repository
 	branch := o.Options.Branch
-	var activitySlice []v1.PipelineActivity
+	var activitySlice []*v1.PipelineActivity
 
-	selectors := []string{
-		"owner=" + naming.ToValidName(owner) +
-			",repository=" + naming.ToValidName(repository) +
-			",branch=" + naming.ToValidName(branch),
-		"lighthouse.jenkins-x.io/refs.org=" + naming.ToValidName(owner) +
-			",lighthouse.jenkins-x.io/refs.repo=" + naming.ToValidName(repository) +
-			",lighthouse.jenkins-x.io/branch=" + branch,
+	resources, err := activityInterface.List(context.TODO(), metav1.ListOptions{})
+	if err != nil && !apierrors.IsNotFound(err) {
+		return "", errors.Wrapf(err, "failed to find PipelineActivity resources in namespace %s", o.Namespace)
 	}
-	for _, selector := range selectors {
-		resources, err := activityInterface.List(context.TODO(), metav1.ListOptions{
-			LabelSelector: selector,
-		})
-		if err != nil && !apierrors.IsNotFound(err) {
-			return "", errors.Wrapf(err, "failed to find PipelineActivity resources in namespace %s with selector %s", o.Namespace, selector)
-		}
-		if resources != nil {
-			activitySlice = append(activitySlice, resources.Items...)
+	if resources != nil {
+		for i := range resources.Items {
+			pa := &resources.Items[i]
+			ps := &pa.Spec
+			if ps.GitOwner == owner && ps.GitRepository == repository && ps.GitBranch == branch {
+				activitySlice = append(activitySlice, pa)
+			}
 		}
 	}
 
 	maxBuild := 0
-	for i := range activitySlice {
-		pa := &activitySlice[i]
+	for _, pa := range activitySlice {
 		labels := pa.Labels
 		if labels == nil {
 			continue
@@ -462,7 +455,7 @@ func (o *Options) FindBuildNumber(buildID string) (string, error) {
 			},
 		},
 	}
-	_, _, err := key.GetOrCreate(o.JXClient, o.Namespace)
+	_, _, err = key.GetOrCreate(o.JXClient, o.Namespace)
 	if err != nil {
 		return o.BuildNumber, errors.Wrapf(err, "failed to lazily create PipelineActivity %s", name)
 	}
