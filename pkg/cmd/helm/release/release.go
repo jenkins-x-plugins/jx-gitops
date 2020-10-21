@@ -156,6 +156,14 @@ func (o *Options) Run() error {
 		return errors.Wrapf(err, "failed to validate")
 	}
 	dir := o.ChartsDir
+	exists, err := files.DirExists(dir)
+	if err != nil {
+		return errors.Wrapf(err, "failed to check if charts dir exists %s", dir)
+	}
+	if !exists {
+		log.Logger().Infof("no charts dir: %s", dir)
+		return nil
+	}
 	fileSlice, err := ioutil.ReadDir(dir)
 	if err != nil {
 		return errors.Wrapf(err, "failed to read dir %s", dir)
