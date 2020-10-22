@@ -329,7 +329,7 @@ func (o *Options) Run() error {
 	}
 	log.Logger().Infof("added variables to file: %s", info(file))
 
-	_, err = gitclient.AddAndCommitFiles(o.GitClient, o.Dir, "added variables")
+	_, err = gitclient.AddAndCommitFiles(o.GitClient, o.Dir, "chore: added variables")
 	if err != nil {
 		return errors.Wrapf(err, "failed to commit changes")
 	}
