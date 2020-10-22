@@ -88,7 +88,7 @@ func NewCmdHelmRelease() (*cobra.Command, *Options) {
 // Run implements the command
 func (o *Options) Validate() error {
 	if o.CommandRunner == nil {
-		o.CommandRunner = cmdrunner.DefaultCommandRunner
+		o.CommandRunner = cmdrunner.QuietCommandRunner
 	}
 	var err error
 	if o.HelmBinary == "" {
