@@ -46,10 +46,11 @@ type Options struct {
 	UserName             string
 	UserEmail            string
 	OutputFile           string
-	DisableInClusterTest bool
 	Namespace            string
 	OperatorNamespace    string
 	SecretName           string
+	TektonSecret         bool
+	DisableInClusterTest bool
 	KubeClient           kubernetes.Interface
 	CommandRunner        cmdrunner.CommandRunner
 	gitClient            gitclient.Interface
@@ -76,6 +77,7 @@ func NewCmdGitSetup() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.OperatorNamespace, "operator-namespace", "", "jx-git-operator", "the namespace used by the git operator to find the secret for the git repository if running in cluster")
 	cmd.Flags().StringVarP(&o.Namespace, "namespace", "", "", "the namespace used to find the git operator secret for the git repository if running in cluster. Defaults to the current namespace")
 	cmd.Flags().StringVarP(&o.SecretName, "secret", "", "jx-boot", "the name of the Secret to find the git URL, username and password for creating a git credential if running inside the cluster")
+	cmd.Flags().BoolVarP(&o.TektonSecret, "tekton-secret", "", false, "uses the default tekton git secret to detect the username and password")
 	cmd.Flags().BoolVarP(&o.DisableInClusterTest, "fake-in-cluster", "", false, "for testing: lets you fake running this command inside a kubernetes cluster so that it can create the file: $XDG_CONFIG_HOME/git/credentials or $HOME/git/credentials")
 	return cmd, o
 }
@@ -84,6 +86,11 @@ func NewCmdGitSetup() (*cobra.Command, *Options) {
 func (o *Options) Run() error {
 	gitClient := o.GitClient()
 
+	if o.TektonSecret {
+		if o.SecretName == "" {
+			o.SecretName = "tekton-git"
+		}
+	}
 	// lets make sure there's a git config home dir
 	homeDir := GetConfigHome()
 	err := os.MkdirAll(homeDir, files.DefaultDirWritePermissions)
@@ -143,16 +150,15 @@ func (o *Options) findCredentials() ([]credentialhelper.GitCredential, error) {
 	}
 
 	gitURL := bootSecret.URL
-	if gitURL == "" {
-		return nil, nil
+	gitProviderURL := bootSecret.GitProviderURL
+	if gitURL != "" && gitProviderURL == "" {
+		// lets convert the git URL into a provider URL
+		gitInfo, err := giturl.ParseGitURL(gitURL)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to parse git URL %s", gitURL)
+		}
+		gitProviderURL = gitInfo.HostURL()
 	}
-
-	// lets convert the git URL into a provider URL
-	gitInfo, err := giturl.ParseGitURL(gitURL)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to parse git URL %s", gitURL)
-	}
-	gitProviderURL := gitInfo.HostURL()
 
 	if o.UserName == "" {
 		o.UserName = bootSecret.Username
