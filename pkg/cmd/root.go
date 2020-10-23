@@ -4,6 +4,7 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/annotate"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/apply"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/condition"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/copy"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/git"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/hash"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helm"
@@ -59,6 +60,7 @@ func Main() *cobra.Command {
 	cmd.AddCommand(cobras.SplitCommand(annotate.NewCmdUpdateAnnotate()))
 	cmd.AddCommand(cobras.SplitCommand(apply.NewCmdApply()))
 	cmd.AddCommand(cobras.SplitCommand(condition.NewCmdCondition()))
+	cmd.AddCommand(cobras.SplitCommand(copy.NewCmdCopy()))
 	cmd.AddCommand(cobras.SplitCommand(hash.NewCmdHashAnnotate()))
 	cmd.AddCommand(cobras.SplitCommand(image.NewCmdUpdateImage()))
 	cmd.AddCommand(cobras.SplitCommand(ingress.NewCmdUpdateIngress()))
