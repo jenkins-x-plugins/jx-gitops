@@ -8,6 +8,7 @@ import (
 	"github.com/jenkins-x/jx-api/v3/pkg/config"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/resolve"
 	"github.com/jenkins-x/jx-gitops/pkg/fakekpt"
+	"github.com/jenkins-x/jx-gitops/pkg/plugins"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner/fakerunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
@@ -23,6 +24,21 @@ import (
 func TestStepHelmfileResolve(t *testing.T) {
 	fileNames, err := ioutil.ReadDir("test_data")
 	assert.NoError(t, err)
+
+	// lets find the helm binary on the $PATH or download a plugin if inside CI/CD
+	helmBin := "helm"
+	c := &cmdrunner.Command{
+		Name: "helm",
+		Args: []string{"version"},
+	}
+	_, err = cmdrunner.DefaultCommandRunner(c)
+	if err != nil {
+		t.Logf("failed to run %s so downloading the helm binary\n", c.CLI())
+
+		helmBin, err = plugins.GetHelmBinary("")
+		require.NoError(t, err, "failed to download helm binary")
+		require.NotEmpty(t, helmBin, "could not find helm plugin")
+	}
 
 	for _, f := range fileNames {
 		if f.IsDir() {
@@ -42,6 +58,7 @@ func TestStepHelmfileResolve(t *testing.T) {
 			require.NoError(t, err, "failed to copy generated crds at %s to %s", srcDir, tmpDir)
 
 			o.Dir = tmpDir
+			o.HelmBinary = helmBin
 
 			runner := &fakerunner.FakeRunner{
 				CommandRunner: func(c *cmdrunner.Command) (string, error) {
