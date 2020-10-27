@@ -15,7 +15,10 @@ import (
 
 // AddHelmRepositories ensures the repositories in the helmfile are added to helm
 // so that we can use helm templating etc
-func AddHelmRepositories(helmState state.HelmState, runner cmdrunner.CommandRunner, ignoreRepositories []string) error {
+func AddHelmRepositories(helmBin string, helmState state.HelmState, runner cmdrunner.CommandRunner, ignoreRepositories []string) error {
+	if helmBin == "" {
+		helmBin = "helm"
+	}
 	repoMap := map[string]string{
 		"jx": "http://chartmuseum.jenkins-x.io",
 	}
@@ -23,7 +26,7 @@ func AddHelmRepositories(helmState state.HelmState, runner cmdrunner.CommandRunn
 		repoMap[repo.Name] = repo.URL
 	}
 
-	helmClient := helmer.NewHelmCLIWithRunner(runner, "helm", "", false)
+	helmClient := helmer.NewHelmCLIWithRunner(runner, helmBin, "", false)
 
 	for repoName, repoURL := range repoMap {
 		if stringhelpers.StringArrayIndex(ignoreRepositories, repoURL) >= 0 {
