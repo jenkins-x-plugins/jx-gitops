@@ -23,7 +23,7 @@ var (
 
 	cmdExample = templates.Examples(`
 		# add comment
-		%s pr comment "Message from Jenkins"
+		%s pr comment -c "message from Jenkins X pipeline"
 	`)
 )
 
@@ -52,7 +52,7 @@ func NewCmdPullRequestComment() (*cobra.Command, *Options) {
 	}
 	o.PullRequestOptions.AddFlags(cmd)
 
-	cmd.Flags().StringVar(&o.Comment, "comment", "", "comment to add")
+	cmd.Flags().StringVarP(&o.Comment, "comment", "c", "", "comment to add")
 	return cmd, o
 }
 

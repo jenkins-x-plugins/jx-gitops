@@ -27,7 +27,7 @@ var (
 	info = termcolor.ColorInfo
 
 	cmdLong = templates.LongDesc(`
-		Copies kubernetes resources from a namespace to the current namespace
+		Copies kubernetes resources (by default confimaps) from a namespace to the current namespace
 `)
 
 	cmdExample = templates.Examples(`
@@ -64,7 +64,7 @@ func NewCmdCopy() (*cobra.Command, *Options) {
 
 	cmd := &cobra.Command{
 		Use:     "copy",
-		Short:   "Copies resources with the given selector or name from a source namespace to a destination namespace",
+		Short:   "Copies resources (by default confimaps) with the given selector or name from a source namespace to a destination namespace",
 		Long:    cmdLong,
 		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
