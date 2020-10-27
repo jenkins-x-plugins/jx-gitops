@@ -67,6 +67,7 @@ func NewCmdPullRequestLabel() (*cobra.Command, *Options) {
 
 	cmd.Flags().StringVarP(&o.Label, "name", "n", "", "name of the label to add")
 	cmd.Flags().StringVarP(&o.Regex, "matches", "m", "", "only label the Pull Request if there is already a label which matches the regular expression")
+	cmd.Flags().BoolVarP(&o.IgnoreMissingPullRequest, "ignore-no-pr", "", false, "if an error is returned finding the Pull Request (maybe due to missing environment variables to find the PULL_NUMBER) just push to the current branch instead")
 	return cmd, o
 }
 
@@ -103,6 +104,10 @@ func (o *Options) Run() error {
 	}
 	pr, err := o.DiscoverPullRequest()
 	if err != nil {
+		if o.IgnoreMissingPullRequest {
+			log.Logger().Infof("could not find Pull Request so not labelling it")
+			return nil
+		}
 		return errors.Wrapf(err, "failed to discover the pull request")
 	}
 	if pr == nil {
