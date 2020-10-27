@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/user"
 	"path/filepath"
 	"strings"
 
@@ -110,7 +109,7 @@ func (o *Options) Run() error {
 		}
 	}
 
-	usr, err := user.Current()
+	homedir, err := os.UserHomeDir()
 	if err != nil {
 		return err
 	}
@@ -139,7 +138,7 @@ func (o *Options) Run() error {
 		parentDir = strings.TrimSuffix(parentDir, pathSeparator)
 
 		// clear the kpt repo cache everytime else we run into issues
-		err = os.RemoveAll(filepath.Join(usr.HomeDir, ".kpt", "repos"))
+		err = os.RemoveAll(filepath.Join(homedir, ".kpt", "repos"))
 		if err != nil {
 			return err
 		}
