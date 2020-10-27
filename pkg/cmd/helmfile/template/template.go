@@ -13,6 +13,7 @@ import (
 	split2 "github.com/jenkins-x/jx-gitops/pkg/cmd/split"
 	"github.com/jenkins-x/jx-gitops/pkg/helmhelpers"
 	"github.com/jenkins-x/jx-gitops/pkg/jxtmpl/reqvalues"
+	"github.com/jenkins-x/jx-gitops/pkg/plugins"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/yaml2s"
@@ -52,11 +53,13 @@ var (
 type Options struct {
 	Dir           string
 	Helmfile      string
+	HelmBinary    string
 	Args          string
 	OutputDir     string
 	TmpDir        string
 	Namespace     string
 	Debug         bool
+	UseHelmPlugin bool
 	CommandRunner cmdrunner.CommandRunner
 }
 
@@ -86,16 +89,28 @@ func NewCmdHelmfileTemplate() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.OutputDir, "output-dir", "o", "", "the output directory. If not specified a temporary directory is created")
 	cmd.Flags().StringVarP(&o.Namespace, "namespace", "n", "", "the default namespace if none is specified in the helmfile. Defaults to the current namespace")
 	cmd.Flags().BoolVarP(&o.Debug, "debug", "", false, "enables debug logging in helmfile")
+	cmd.Flags().BoolVarP(&o.UseHelmPlugin, "use-helm-plugin", "", false, "uses the jx binary plugin for helm rather than whatever helm is on the $PATH")
 
 	return cmd, o
 }
 
 // Validate validates the options and populates any missing values
 func (o *Options) Validate() error {
+	var err error
 	if o.Helmfile == "" {
 		o.Helmfile = filepath.Join(o.Dir, "helmfile.yaml")
 	}
-	var err error
+	if o.HelmBinary == "" {
+		if o.UseHelmPlugin {
+			o.HelmBinary, err = plugins.GetHelmBinary(plugins.HelmVersion)
+			if err != nil {
+				return err
+			}
+		}
+		if o.HelmBinary == "" {
+			o.HelmBinary = "helm"
+		}
+	}
 	if o.OutputDir == "" {
 		o.OutputDir, err = ioutil.TempDir("", "")
 		if err != nil {
@@ -160,7 +175,7 @@ func (o *Options) Run() error {
 		return nil
 	}
 
-	err = helmhelpers.AddHelmRepositories(helmState, o.CommandRunner, nil)
+	err = helmhelpers.AddHelmRepositories(o.HelmBinary, helmState, o.CommandRunner, nil)
 	if err != nil {
 		return errors.Wrapf(err, "failed to add helm repositories")
 	}

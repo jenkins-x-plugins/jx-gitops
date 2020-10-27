@@ -48,9 +48,11 @@ type Options struct {
 	GitCommitMessage string
 	Helmfile         string
 	KptBinary        string
+	HelmBinary       string
 	BatchMode        bool
 	UpdateMode       bool
 	DoGitCommit      bool
+	TestOutOfCluster bool
 	Gitter           gitclient.Interface
 	prefixes         *versionstream.RepositoryPrefixes
 	Results          Results
@@ -76,6 +78,7 @@ func NewCmdHelmfileResolve() (*cobra.Command, *Options) {
 		},
 	}
 	cmd.Flags().BoolVarP(&o.UpdateMode, "update", "", false, "updates versions from the version stream if they have changed")
+	cmd.Flags().StringVarP(&o.HelmBinary, "helm-binary", "", "", "specifies the helm binary location to use. If not specified defaults to using the downloaded helm plugin")
 	o.AddFlags(cmd, "")
 	return cmd, o
 }
@@ -121,7 +124,7 @@ func (o *Options) Validate() error {
 		return errors.Wrapf(err, "failed to save tempo file for jx requirements values file %s", jxReqValuesFileName)
 	}
 	if o.CommandRunner == nil {
-		o.CommandRunner = cmdrunner.DefaultCommandRunner
+		o.CommandRunner = cmdrunner.QuietCommandRunner
 	}
 	return nil
 }
@@ -152,14 +155,14 @@ func (o *Options) Run() error {
 	helmState := o.Results.HelmState
 
 	var ignoreRepositories []string
-	if !helmhelpers.IsInCluster() {
+	if !helmhelpers.IsInCluster() || o.TestOutOfCluster {
 		ignoreRepositories, err = helmhelpers.FindClusterLocalRepositoryURLs(helmState.Repositories)
 		if err != nil {
 			return errors.Wrapf(err, "failed to find cluster local repositories")
 		}
 	}
 
-	err = helmhelpers.AddHelmRepositories(helmState, o.CommandRunner, ignoreRepositories)
+	err = helmhelpers.AddHelmRepositories(o.HelmBinary, helmState, o.QuietCommandRunner, ignoreRepositories)
 	if err != nil {
 		return errors.Wrapf(err, "failed to add helm repositories")
 	}

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
 
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 
@@ -18,7 +19,6 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/giturl"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/maps"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -37,6 +37,8 @@ var (
 	`)
 
 	pathSeparator = string(os.PathSeparator)
+
+	info = termcolor.ColorInfo
 )
 
 const (
@@ -156,7 +158,6 @@ func (o *Options) Run() error {
 			Args: args,
 			Dir:  dir,
 		}
-		log.Logger().Infof("about to run %s in dir %s", termcolor.ColorInfo(c.String()), termcolor.ColorInfo(c.Dir))
 		text, err := o.CommandRunner(c)
 		log.Logger().Infof(text)
 		if err != nil {
@@ -224,7 +225,7 @@ func (o *Options) LoadOverrideStrategies() (map[string]string, error) {
 
 	exists, err := files.FileExists(kptStrategyFilename)
 	if !exists {
-		log.Logger().Infof("no local strategy file %s found so using default merge strategies", kptStrategyFilename)
+		log.Logger().Infof("no local strategy file %s found so using default merge strategies", info(kptStrategyFilename))
 		return o.getDefaultOverrideStrategies(), nil
 	}
 	data, err := ioutil.ReadFile(kptStrategyFilename)

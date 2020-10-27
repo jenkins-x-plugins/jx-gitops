@@ -19,6 +19,7 @@ type Options struct {
 	VersionStreamURL     string
 	VersionStreamRef     string
 	CommandRunner        cmdrunner.CommandRunner
+	QuietCommandRunner   cmdrunner.CommandRunner
 	Requirements         *config.RequirementsConfig
 	RequirementsFileName string
 	Resolver             *versionstream.VersionResolver
@@ -58,6 +59,9 @@ func (o *Options) Validate() error {
 	}
 	if o.CommandRunner == nil {
 		o.CommandRunner = cmdrunner.DefaultCommandRunner
+	}
+	if o.QuietCommandRunner == nil {
+		o.QuietCommandRunner = cmdrunner.QuietCommandRunner
 	}
 	err = o.ResolveVersionStream()
 	if err != nil {

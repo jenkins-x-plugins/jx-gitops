@@ -3,6 +3,7 @@ package upgrade
 import (
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/resolve"
 	kptupdate "github.com/jenkins-x/jx-gitops/pkg/cmd/kpt/update"
+	"github.com/jenkins-x/jx-gitops/pkg/plugins"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
@@ -52,6 +53,15 @@ func (o *Options) Run() error {
 	}
 
 	log.Logger().Infof("\nnow checking the chart versions in %s\n\n", termcolor.ColorInfo("helmfile.yaml"))
+
+	if o.HelmfileResolve.HelmBinary == "" {
+		o.HelmfileResolve.HelmBinary, err = plugins.GetHelmBinary(plugins.HelmVersion)
+		if err != nil {
+			return errors.Wrapf(err, "failed to download helm binary")
+		}
+		log.Logger().Infof("using helm binary %s to verify chart repositories", termcolor.ColorInfo(o.HelmfileResolve.HelmBinary))
+	}
+
 	o.HelmfileResolve.UpdateMode = true
 	err = o.HelmfileResolve.Run()
 	if err != nil {
