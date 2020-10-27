@@ -29,6 +29,7 @@ Adds a label to the current pull request
       --git-server string   the git server URL to create the git provider client. If not specified its defaulted from the current source URL
       --git-token string    the git token used to operate on the git repository
   -h, --help                help for label
+      --ignore-no-pr        if an error is returned finding the Pull Request (maybe due to missing environment variables to find the PULL_NUMBER) just push to the current branch instead
       --log-level string    Sets the logging level. If not specified defaults to $JX_LOG_LEVEL
   -m, --matches string      only label the Pull Request if there is already a label which matches the regular expression
   -n, --name string         name of the label to add

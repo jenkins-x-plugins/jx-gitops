@@ -27,6 +27,7 @@ Runs 'helmfile template' on the helmfile for each namespace putting the results 
   -h, --help                help for template
   -n, --namespace string    the default namespace if none is specified in the helmfile. Defaults to the current namespace
   -o, --output-dir string   the output directory. If not specified a temporary directory is created
+      --use-helm-plugin     uses the jx binary plugin for helm rather than whatever helm is on the $PATH
 ```
 
 ### SEE ALSO
