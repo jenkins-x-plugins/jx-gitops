@@ -52,6 +52,7 @@ type Options struct {
 	BatchMode        bool
 	UpdateMode       bool
 	DoGitCommit      bool
+	TestOutOfCluster bool
 	Gitter           gitclient.Interface
 	prefixes         *versionstream.RepositoryPrefixes
 	Results          Results
@@ -154,7 +155,7 @@ func (o *Options) Run() error {
 	helmState := o.Results.HelmState
 
 	var ignoreRepositories []string
-	if !helmhelpers.IsInCluster() {
+	if !helmhelpers.IsInCluster() || o.TestOutOfCluster {
 		ignoreRepositories, err = helmhelpers.FindClusterLocalRepositoryURLs(helmState.Repositories)
 		if err != nil {
 			return errors.Wrapf(err, "failed to find cluster local repositories")

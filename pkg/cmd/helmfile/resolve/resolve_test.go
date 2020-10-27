@@ -59,6 +59,7 @@ func TestStepHelmfileResolve(t *testing.T) {
 
 			o.Dir = tmpDir
 			o.HelmBinary = helmBin
+			o.TestOutOfCluster = true
 
 			runner := &fakerunner.FakeRunner{
 				CommandRunner: func(c *cmdrunner.Command) (string, error) {
