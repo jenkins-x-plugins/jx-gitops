@@ -9,13 +9,13 @@ require (
 	github.com/google/go-cmp v0.5.2
 	github.com/h2non/gock v1.0.9
 	github.com/jenkins-x/gen-crd-api-reference-docs v0.1.6 // indirect
-	github.com/jenkins-x/go-scm v1.5.189
+	github.com/jenkins-x/go-scm v1.5.190
 	github.com/jenkins-x/jx-api/v3 v3.0.1
 	github.com/jenkins-x/jx-helpers/v3 v3.0.14
 	github.com/jenkins-x/jx-kube-client/v3 v3.0.1
 	github.com/jenkins-x/jx-logging/v3 v3.0.2
 	github.com/jenkins-x/jx-secret v0.0.172 // indirect
-	github.com/jenkins-x/lighthouse v0.0.863
+	github.com/jenkins-x/lighthouse v0.0.865
 	github.com/pborman/uuid v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/roboll/helmfile v0.125.7
