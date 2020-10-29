@@ -410,6 +410,15 @@ func (o *Options) CustomUpgrades() error {
 		log.Logger().Infof("updated the build pack library to be %s", termcolor.ColorInfo(requirements.BuildPacks.BuildPackLibrary.GitURL))
 	}
 
+	// lets replace the old tekton repositories if they are being used
+	for i := range o.Results.HelmState.Repositories {
+		repo := &o.Results.HelmState.Repositories[i]
+		if strings.TrimSuffix(repo.URL, "/") == "https://kubernetes-charts.storage.googleapis.com" {
+			repo.URL = "https://charts.helm.sh/stable"
+			break
+		}
+	}
+
 	// lets replace the old tekton chart if its being used
 	for i := range o.Results.HelmState.Releases {
 		release := &o.Results.HelmState.Releases[i]
