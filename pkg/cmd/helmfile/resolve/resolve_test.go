@@ -103,7 +103,7 @@ func TestStepHelmfileResolve(t *testing.T) {
 				}
 			}
 
-			testhelpers.AssertTextFilesEqual(t, filepath.Join(tmpDir, "expected-helmfile.yaml"), filepath.Join(tmpDir, "helmfile.yaml"), "generated file")
+			testhelpers.AssertTextFilesEqual(t, filepath.Join(tmpDir, "expected-helmfile.yaml"), filepath.Join(tmpDir, "helmfile.yaml"), "generated file: "+name)
 
 			// lets assert that we don't add the bucket repo if we are not in a cluster
 			if !IsInCluster() {

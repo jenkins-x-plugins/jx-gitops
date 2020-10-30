@@ -4,6 +4,8 @@ repositories:
   url: http://bucketrepo/bucketrepo/charts/
 - name: cdf
   url: https://cdfoundation.github.io/tekton-helm-chart
+- name: jx3
+  url: https://storage.googleapis.com/jenkinsxio/charts
 releases:
 - chart: cdf/tekton-pipeline
   version: 0.0.5
@@ -14,6 +16,9 @@ releases:
 - chart: dev/dummy
   version: 1.2.3
   name: dummy
+  namespace: jx
+- chart: jx3/jx-build-controller
+  name: jx-build-controller
   namespace: jx
 templates: {}
 missingFileHandler: ""
