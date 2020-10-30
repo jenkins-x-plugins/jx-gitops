@@ -234,7 +234,17 @@ func (o *Options) Run() error {
 	// lets check for in repo config
 	flag := true
 	for _, sr := range repoList.Items {
-		if sr.Spec.Scheduler.Name == "in-repo" {
+		schedulerName := sr.Spec.Scheduler.Name
+		inRepo := schedulerName == "in-repo"
+		if schedulerName != "" {
+			scheduler := schedulerMap[schedulerName]
+			if scheduler == nil {
+				log.Logger().Warnf("no scheduler %s found for SourceRepository %s with URL %s", schedulerName, sr.Name, sr.Spec.URL)
+			} else if scheduler.Spec.InRepo {
+				inRepo = true
+			}
+		}
+		if inRepo {
 			if config.ProwConfig.InRepoConfig.Enabled == nil {
 				config.ProwConfig.InRepoConfig.Enabled = map[string]*bool{}
 			}

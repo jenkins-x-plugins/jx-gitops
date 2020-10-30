@@ -89,7 +89,7 @@ func buildScheduler(repo string, prowConfig *config.Config, pluginConfig *plugin
 			Name: strings.Replace(repo, "/", "-", -1) + "-scheduler",
 		},
 		Spec: schedulerapi.SchedulerSpec{
-			ScehdulerAgent:  buildSchedulerAgent(),
+			SchedulerAgent:  buildSchedulerAgent(),
 			Policy:          buildSchedulerGlobalProtectionPolicy(prowConfig),
 			Presubmits:      buildSchedulerPresubmits(repo, prowConfig),
 			Postsubmits:     buildSchedulerPostsubmits(repo, prowConfig),
