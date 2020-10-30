@@ -111,8 +111,8 @@ func (o *Options) Run() error {
 	}
 	if len(o.SchedulerDir) == 0 {
 		paths := []string{
-			"schedulers",
 			filepath.Join(o.Dir, "versionStream", "schedulers"),
+			"schedulers",
 		}
 		for _, path := range paths {
 			exists, err := files.DirExists(path)
