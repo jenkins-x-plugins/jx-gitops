@@ -16,10 +16,10 @@ func Build(schedulers []*schedulerapi.SchedulerSpec) (*schedulerapi.SchedulerSpe
 		if answer == nil {
 			answer = parent
 		} else {
-			if answer.ScehdulerAgent == nil {
-				answer.ScehdulerAgent = parent.ScehdulerAgent
-			} else if parent.ScehdulerAgent != nil {
-				applyToSchedulerAgent(parent.ScehdulerAgent, answer.ScehdulerAgent)
+			if answer.SchedulerAgent == nil {
+				answer.SchedulerAgent = parent.SchedulerAgent
+			} else if parent.SchedulerAgent != nil {
+				applyToSchedulerAgent(parent.SchedulerAgent, answer.SchedulerAgent)
 			}
 			if answer.Policy == nil {
 				answer.Policy = parent.Policy

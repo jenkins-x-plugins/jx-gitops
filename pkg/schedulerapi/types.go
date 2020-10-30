@@ -50,7 +50,7 @@ type SchedulerList struct {
 
 // SchedulerSpec defines the pipeline scheduler (e.g. Prow) configuration
 type SchedulerSpec struct {
-	ScehdulerAgent *SchedulerAgent         `json:"schedulerAgent,omitempty" protobuf:"bytes,1,opt,name=schedulerAgent"`
+	SchedulerAgent *SchedulerAgent         `json:"schedulerAgent,omitempty" protobuf:"bytes,1,opt,name=schedulerAgent"`
 	Policy         *GlobalProtectionPolicy `json:"policy,omitempty" protobuf:"bytes,2,opt,name=policy"`
 	Presubmits     *Presubmits             `json:"presubmits,omitempty" protobuf:"bytes,3,opt,name=presubmits"`
 	Postsubmits    *Postsubmits            `json:"postsubmits,omitempty" protobuf:"bytes,4,opt,name=postsubmits"`
@@ -81,6 +81,9 @@ type SchedulerSpec struct {
 	Welcome       []*Welcome                 `json:"welcome,omitempty" protobuf:"bytes,16,opt,name=welcome"`
 	Periodics     *Periodics                 `json:"periodics,omitempty" protobuf:"bytes,17,opt,name=periodics"`
 	Attachments   []*Attachment              `json:"attachments,omitempty" protobuf:"bytes,18,opt,name=attachments"`
+
+	// InRepo if enabled specifies that the repositories using this scheduler will enable in-repo
+	InRepo bool `json:"in_repo,omitempty" protobuf:"bytes,19,opt,name=in_repo"`
 }
 
 // ConfigMapSpec contains configuration options for the configMap being updated
@@ -212,6 +215,7 @@ type Presubmits struct {
 	// Replace the existing entries
 	Replace bool `json:"replace,omitempty" protobuf:"bytes,2,opt,name=replace"`
 }
+
 // Periodics is a list of jobs to be run periodically
 type Periodics struct {
 	// Items are the post submit configurations

@@ -64,7 +64,7 @@ func CompleteScheduler() *schedulerapi.SchedulerSpec {
 			OnlyOrgMembers: pointerToTrue(),
 			TrustedOrg:     pointerToUUID(),
 		},
-		ScehdulerAgent: &schedulerapi.SchedulerAgent{
+		SchedulerAgent: &schedulerapi.SchedulerAgent{
 			Agent: pointerToUUID(),
 		},
 		Approve: &schedulerapi.Approve{

@@ -71,6 +71,7 @@ func TestScheduler(t *testing.T) {
 	}
 
 	inRepoFullName := "myorg/in-repo"
+	otherInRepoFullName := "myorg/another-in-repo"
 	for _, repoName := range []string{inRepoFullName} {
 		assert.Len(t, lhCfg.Presubmits[repoName], 0, "presubmits for %s", repoName)
 		assert.Len(t, lhCfg.Postsubmits[repoName], 0, "postsubmits for %s", repoName)
@@ -78,6 +79,7 @@ func TestScheduler(t *testing.T) {
 
 	assert.NotNil(t, lhCfg.InRepoConfig.Enabled, "should have inRepoConfig enabled")
 	assert.NotNil(t, lhCfg.InRepoConfig.Enabled[inRepoFullName], "should have inRepoConfig.Enabled['myorg/in-repo']")
+	assert.NotNil(t, lhCfg.InRepoConfig.Enabled[otherInRepoFullName], "should have inRepoConfig.Enabled['myorg/another-in-repo']")
 
 	approveQuery := keeper.Query{}
 	foundApproveQuery := false
