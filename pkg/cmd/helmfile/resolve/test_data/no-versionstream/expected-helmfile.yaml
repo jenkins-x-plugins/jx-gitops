@@ -4,6 +4,8 @@ repositories:
   url: https://storage.googleapis.com/chartmuseum.jenkins-x.io
 - name: cdf
   url: https://cdfoundation.github.io/tekton-helm-chart
+- name: jx3
+  url: https://storage.googleapis.com/jenkinsxio/charts
 - name: jenkins-x
   url: https://storage.googleapis.com/chartmuseum.jenkins-x.io
 - name: bitnami
@@ -35,6 +37,9 @@ releases:
   - values/kubernetes-external-secrets/values.yaml.gotmpl
 - chart: doesnotexist/bucketrepo
   name: bucketrepo
+  namespace: jx
+- chart: jx3/jx-build-controller
+  name: jx-build-controller
   namespace: jx
 templates: {}
 missingFileHandler: ""

@@ -28,11 +28,16 @@ import (
 
 var (
 	kptLong = templates.LongDesc(`
-		Updates the kpt packages in the given directory
+		Updates any kpt packages installed in a sub directory
+
+		If you know a specific directory which needs updating you can always use 'kpt' directly via:
+
+  		    kpt pkg update mySubDir
 `)
 
 	kptExample = templates.Examples(`
-		# updates the kpt of all the yaml resources in the given directory
+		# recurses the current dir looking for directories with Kptfile inside 
+		# and upgrades the kpt package found there to the latest version
 		%s kpt --dir .
 	`)
 
@@ -62,7 +67,7 @@ func NewCmdKptUpdate() (*cobra.Command, *Options) {
 
 	cmd := &cobra.Command{
 		Use:     "update",
-		Short:   "Updates the kpt packages in the given directory",
+		Short:   "Updates any kpt packages installed in a sub directory",
 		Long:    kptLong,
 		Example: fmt.Sprintf(kptExample, rootcmd.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {

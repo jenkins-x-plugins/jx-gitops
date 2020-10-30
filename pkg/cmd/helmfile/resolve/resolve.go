@@ -444,6 +444,41 @@ func (o *Options) CustomUpgrades() error {
 		}
 	}
 
+	// lets ensure we have the jx-build-controller installed
+	found := false
+	for i := range o.Results.HelmState.Releases {
+		release := &o.Results.HelmState.Releases[i]
+		if release.Chart == "jx3/jx-build-controller" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		ns := requirements.Cluster.Namespace
+		if ns == "" {
+			ns = "jx"
+		}
+		o.Results.HelmState.Releases = append(o.Results.HelmState.Releases, state.ReleaseSpec{
+			Chart:     "jx3/jx-build-controller",
+			Namespace: ns,
+		})
+
+		// lets make sure we have a jx3 repository
+		found = false
+		for _, repo := range o.Results.HelmState.Repositories {
+			if repo.Name == "jx3" {
+				found = true
+				break
+			}
+		}
+		if !found {
+			o.Results.HelmState.Repositories = append(o.Results.HelmState.Repositories, state.RepositorySpec{
+				Name: "jx3",
+				URL:  "https://storage.googleapis.com/jenkinsxio/charts",
+			})
+		}
+	}
+
 	lighthouseTriggerFile := filepath.Join(o.Dir, ".lighthouse", "jenkins-x", "triggers.yaml")
 	exists, err := files.FileExists(lighthouseTriggerFile)
 	if err != nil {
