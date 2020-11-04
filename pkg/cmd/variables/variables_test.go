@@ -4,7 +4,6 @@ import (
 	"context"
 	"io/ioutil"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	scmfake "github.com/jenkins-x/go-scm/scm/driver/fake"
@@ -24,86 +23,64 @@ import (
 )
 
 func TestCmdVariables(t *testing.T) {
+	runner := &fakerunner.FakeRunner{}
 
 	tmpDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err, "failed to create temp dir")
 
-	testDir := filepath.Join("test_data", "tests")
-	fs, err := ioutil.ReadDir(testDir)
-	require.NoError(t, err, "failed to read test dir %s", testDir)
-	for _, f := range fs {
-		if f == nil || !f.IsDir() {
-			continue
-		}
-		name := f.Name()
-		if strings.HasPrefix(name, ".") {
-			continue
-		}
-		srcDir := filepath.Join(testDir, name)
-		runDir := filepath.Join(tmpDir, name)
+	version := "1.2.3"
+	versionFile := filepath.Join(tmpDir, "VERSION")
+	err = ioutil.WriteFile(versionFile, []byte(version), files.DefaultFileWritePermissions)
+	require.NoError(t, err, "failed to write file %s", versionFile)
 
-		err := files.CopyDirOverwrite(srcDir, runDir)
-		require.NoError(t, err, "failed to copy from %s to %s", srcDir, runDir)
+	ns := "jx"
+	devEnv := jxenv.CreateDefaultDevEnvironment(ns)
+	devEnv.Namespace = ns
+	devEnv.Spec.Source.URL = "https://github.com/myorg/myrepo.git"
 
-		t.Logf("running test %s in dir %s\n", name, runDir)
+	requirements := config.NewRequirementsConfig()
+	requirements.Cluster.ChartRepository = "http://bucketrepo/bucketrepo/charts/"
+	data, err := yaml.Marshal(requirements)
+	require.NoError(t, err, "failed to marshal requirements")
+	devEnv.Spec.TeamSettings.BootRequirements = string(data)
 
-		version := "1.2.3"
-		versionFile := filepath.Join(runDir, "VERSION")
-		err = ioutil.WriteFile(versionFile, []byte(version), files.DefaultFileWritePermissions)
-		require.NoError(t, err, "failed to write file %s", versionFile)
+	jxClient := jxfake.NewSimpleClientset(devEnv)
+	scmFake, _ := scmfake.NewDefault()
 
-		ns := "jx"
-		devEnv := jxenv.CreateDefaultDevEnvironment(ns)
-		devEnv.Namespace = ns
-		devEnv.Spec.Source.URL = "https://github.com/myorg/myrepo.git"
+	_, o := variables.NewCmdVariables()
+	o.Dir = tmpDir
+	o.CommandRunner = runner.Run
+	o.JXClient = jxClient
+	o.Namespace = ns
+	o.BuildNumber = "5"
 
-		requirements := config.NewRequirementsConfig()
-		requirements.Cluster.ChartRepository = "http://bucketrepo/bucketrepo/charts/"
-		data, err := yaml.Marshal(requirements)
-		require.NoError(t, err, "failed to marshal requirements")
-		devEnv.Spec.TeamSettings.BootRequirements = string(data)
-
-		runner := &fakerunner.FakeRunner{}
-
-		jxClient := jxfake.NewSimpleClientset(devEnv)
-		scmFake, _ := scmfake.NewDefault()
-
-		_, o := variables.NewCmdVariables()
-		o.Dir = runDir
-		o.CommandRunner = runner.Run
-		o.JXClient = jxClient
-		o.Namespace = ns
-		o.BuildNumber = "5"
-
-		o.KubeClient = fake.NewSimpleClientset(
-			&corev1.ConfigMap{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      o.ConfigMapName,
-					Namespace: ns,
-				},
-				Data: map[string]string{
-					"docker.registry": "my-registry.com",
-					"kaniko.flags":    "cheese",
-				},
+	o.KubeClient = fake.NewSimpleClientset(
+		&corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      o.ConfigMapName,
+				Namespace: ns,
 			},
-		)
-		o.Options.Owner = "MyOwner"
-		o.Options.Repository = "myrepo"
-		o.Options.Branch = "PR-23"
-		o.Options.SourceURL = "https://github.com/" + o.Options.Owner + "/" + o.Options.Repository
-		o.Options.ScmClient = scmFake
+			Data: map[string]string{
+				"docker.registry": "my-registry.com",
+				"kaniko.flags":    "cheese",
+			},
+		},
+	)
+	o.Options.Owner = "MyOwner"
+	o.Options.Repository = "myrepo"
+	o.Options.Branch = "PR-23"
+	o.Options.SourceURL = "https://github.com/" + o.Options.Owner + "/" + o.Options.Repository
+	o.Options.ScmClient = scmFake
 
-		err = o.Run()
+	err = o.Run()
 
-		require.NoError(t, err, "failed to run the command")
+	require.NoError(t, err, "failed to run the command")
 
-		f := filepath.Join(runDir, o.File)
-		require.FileExists(t, f, "should have generated file")
-		t.Logf("generated file %s\n", f)
+	f := filepath.Join(tmpDir, o.File)
+	require.FileExists(t, f, "should have generated file")
+	t.Logf("generated file %s\n", f)
 
-		testhelpers.AssertTextFilesEqual(t, filepath.Join(runDir, "expected.sh"), f, "generated file")
-	}
-
+	testhelpers.AssertTextFilesEqual(t, filepath.Join("test_data", "expected.sh"), f, "generated file")
 }
 
 func TestFindBuildNumber(t *testing.T) {
