@@ -114,16 +114,17 @@ func (o *Options) Validate() error {
 	if o.Options.CommandRunner == nil {
 		o.Options.CommandRunner = cmdrunner.QuietCommandRunner
 	}
-	err := o.Options.Validate()
-	if err != nil {
-		return errors.Wrapf(err, "failed to validate repository options")
-	}
-
+	var err error
 	if o.FromRepository == "" && o.Env != "" {
 		err = o.findEnvironmentRepository()
 		if err != nil {
 			return errors.Wrapf(err, "failed to find repository of environment %s", o.Env)
 		}
+	}
+
+	err = o.Options.Validate()
+	if err != nil {
+		return errors.Wrapf(err, "failed to validate repository options")
 	}
 
 	if o.FromRepository == "" {
@@ -150,7 +151,7 @@ func (o *Options) findEnvironmentRepository() error {
 		return errors.Wrapf(err, "failed to load Environment %s in namespace %s", envName, o.Namespace)
 	}
 	gitURL := env.Spec.Source.URL
-	log.Logger().Infof("environment %s in namespace %s has git URL %s", info(envName), info(gitURL))
+	log.Logger().Infof("environment %s in namespace %s has git URL %s", info(envName), info(o.Namespace), info(gitURL))
 
 	if gitURL == "" {
 		return errors.Errorf("no env.Spec.Source.URL for environment %s", envName)
