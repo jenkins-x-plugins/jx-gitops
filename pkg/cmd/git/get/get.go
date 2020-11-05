@@ -114,16 +114,17 @@ func (o *Options) Validate() error {
 	if o.Options.CommandRunner == nil {
 		o.Options.CommandRunner = cmdrunner.QuietCommandRunner
 	}
-	err := o.Options.Validate()
-	if err != nil {
-		return errors.Wrapf(err, "failed to validate repository options")
-	}
-
+	var err error
 	if o.FromRepository == "" && o.Env != "" {
 		err = o.findEnvironmentRepository()
 		if err != nil {
 			return errors.Wrapf(err, "failed to find repository of environment %s", o.Env)
 		}
+	}
+
+	err = o.Options.Validate()
+	if err != nil {
+		return errors.Wrapf(err, "failed to validate repository options")
 	}
 
 	if o.FromRepository == "" {
@@ -143,16 +144,20 @@ func (o *Options) findEnvironmentRepository() error {
 		return errors.Wrapf(err, "failed to create jx client")
 	}
 
-	env, err := o.JXClient.JenkinsV1().Environments(o.Namespace).Get(context.TODO(), o.Env, metav1.GetOptions{})
+	envName := o.Env
+	env, err := o.JXClient.JenkinsV1().Environments(o.Namespace).Get(context.TODO(), envName, metav1.GetOptions{})
 	if err != nil {
-		return errors.Wrapf(err, "failed to load Environment %s in namespace %s", o.Env, o.Namespace)
+		log.Logger().Warnf("could not find environment %s in namespace %s ", envName, o.Namespace)
+		return errors.Wrapf(err, "failed to load Environment %s in namespace %s", envName, o.Namespace)
 	}
 	gitURL := env.Spec.Source.URL
+	log.Logger().Infof("environment %s in namespace %s has git URL %s", info(envName), info(o.Namespace), info(gitURL))
+
 	if gitURL == "" {
-		return errors.Errorf("no env.Spec.Source.URL for environment %s", env.Name)
+		return errors.Errorf("no env.Spec.Source.URL for environment %s", envName)
 	}
 
-	log.Logger().Infof("environment %s has git URL %s", info(env.Name), info(gitURL))
+	o.SourceURL = gitURL
 
 	gitInfo, err := giturl.ParseGitURL(gitURL)
 	if err != nil {
@@ -160,5 +165,7 @@ func (o *Options) findEnvironmentRepository() error {
 	}
 
 	o.FromRepository = scm.Join(gitInfo.Organisation, gitInfo.Name)
+	o.Owner = gitInfo.Organisation
+	o.Repository = gitInfo.Name
 	return nil
 }
