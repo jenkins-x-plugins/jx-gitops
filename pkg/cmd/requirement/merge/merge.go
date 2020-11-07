@@ -162,7 +162,9 @@ func (o *Options) MergeChanges(changes *config.RequirementsConfig) error {
 	if changes.Ingress.TLS.Production {
 		to.Ingress.TLS.Production = true
 	}
-
+	if changes.Ingress.Domain != "" {
+		to.Ingress.Domain = changes.Ingress.Domain
+	}
 	if cluster.ClusterName != "" {
 		to.Cluster.ClusterName = cluster.ClusterName
 	}

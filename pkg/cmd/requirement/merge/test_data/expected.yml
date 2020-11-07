@@ -50,7 +50,7 @@ environments:
   key: production
 gitops: true
 ingress:
-  domain: ""
+  domain: foo.io
   externalDNS: false
   namespaceSubDomain: -jx.
   tls:
