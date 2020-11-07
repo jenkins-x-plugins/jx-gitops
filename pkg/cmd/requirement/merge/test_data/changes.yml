@@ -14,7 +14,7 @@ environments:
 - key: staging
 - key: production
 ingress:
-  domain: ""
+  domain: "foo.io"
   externalDNS: false
   tls:
     email: ""
