@@ -165,6 +165,9 @@ func (o *Options) MergeChanges(changes *config.RequirementsConfig) error {
 	if changes.Ingress.Domain != "" {
 		to.Ingress.Domain = changes.Ingress.Domain
 	}
+	if changes.Ingress.ExternalDNS {
+		to.Ingress.ExternalDNS = changes.Ingress.ExternalDNS
+	}
 	if cluster.ClusterName != "" {
 		to.Cluster.ClusterName = cluster.ClusterName
 	}
