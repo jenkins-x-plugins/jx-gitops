@@ -14,16 +14,26 @@ const (
 	RequirementsValuesFileName = "jx-values.yaml"
 )
 
+type HelmfileConditional struct {
+	Enabled bool `json:"enabled"`
+}
+
 // RequirementsValues contains the logical installation requirements in the `jx-requirements.yml` file as helm values
 type RequirementsValues struct {
 	// RequirementsConfig contains the logical installation requirements
-	RequirementsConfig *config.RequirementsConfig `json:"jxRequirements,omitempty"`
+	RequirementsConfig          *config.RequirementsConfig `json:"jxRequirements,omitempty"`
+	IngressExternalDNSCondition *HelmfileConditional       `json:"jxRequirementsIngressExternalDNS,omitempty"`
+	IngressTLSCondition         *HelmfileConditional       `json:"jxRequirementsIngressTLS,omitempty"`
+	VaultCondition              *HelmfileConditional       `json:"jxRequirementsVault,omitempty"`
 }
 
 // SaveRequirementsValuesFile saves the requirements yaml file for use with helmfile / helm 3
 func SaveRequirementsValuesFile(c *config.RequirementsConfig, fileName string) error {
 	y := &RequirementsValues{
-		RequirementsConfig: c,
+		RequirementsConfig:          c,
+		IngressExternalDNSCondition: &HelmfileConditional{Enabled: c.Ingress.ExternalDNS},
+		IngressTLSCondition:         &HelmfileConditional{Enabled: c.Ingress.TLS.Enabled},
+		VaultCondition:              &HelmfileConditional{Enabled: c.SecretStorage == config.SecretStorageTypeVault},
 	}
 	err := yamls.SaveFile(y, fileName)
 	if err != nil {
