@@ -33,7 +33,8 @@ var (
 	Plugins = []jenkinsv1.Plugin{
 		CreateHelmPlugin(HelmVersion),
 		CreateHelmfilePlugin(HelmfileVersion),
-		CreateKptPlugin(KptVersion),
+		// disable as no arm image yet
+		//CreateKptPlugin(KptVersion),
 		CreateKubectlPlugin(KubectlVersion),
 	}
 )
