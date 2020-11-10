@@ -12,6 +12,9 @@ const (
 	// KptPluginName the default name of the kpt plugin
 	KptPluginName = "kpt"
 
+	// KubectlPluginName the default name of the kubectl plugin
+	KubectlPluginName = "kubectl"
+
 	// HelmVersion the default version of helm to use
 	HelmVersion = "3.4.0"
 
@@ -20,6 +23,9 @@ const (
 
 	// KptVersion the default version of kpt to use
 	KptVersion = "0.33.0"
+
+	// KubectlVersion the default version of kpt to use
+	KubectlVersion = "1.16.15"
 )
 
 var (
@@ -28,5 +34,6 @@ var (
 		CreateHelmPlugin(HelmVersion),
 		CreateHelmfilePlugin(HelmfileVersion),
 		CreateKptPlugin(KptVersion),
+		CreateKubectlPlugin(KubectlVersion),
 	}
 )

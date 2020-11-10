@@ -117,3 +117,37 @@ func CreateKptPlugin(version string) jenkinsv1.Plugin {
 	}
 	return plugin
 }
+
+// GetKubectlBinary returns the path to the locally installed kpt 3 extension
+func GetKubectlBinary(version string) (string, error) {
+	if version == "" {
+		version = KubectlVersion
+	}
+	pluginBinDir, err := homedir.PluginBinDir(os.Getenv("JX_GITOPS_HOME"), ".jx-gitops")
+	if err != nil {
+		return "", errors.Wrapf(err, "failed to find plugin home dir")
+	}
+	plugin := CreateKubectlPlugin(version)
+	return extensions.EnsurePluginInstalled(plugin, pluginBinDir)
+}
+
+// CreateKubectlPlugin creates the kpt 3 plugin
+func CreateKubectlPlugin(version string) jenkinsv1.Plugin {
+	binaries := extensions.CreateBinaries(func(p extensions.Platform) string {
+		return fmt.Sprintf("https://storage.googleapis.com/kubernetes-release/release/v%s/bin/%s/%s/kubectl", version, strings.ToLower(p.Goos), strings.ToLower(p.Goarch))
+	})
+
+	plugin := jenkinsv1.Plugin{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: KubectlPluginName,
+		},
+		Spec: jenkinsv1.PluginSpec{
+			SubCommand:  "kubectl",
+			Binaries:    binaries,
+			Description: "kubectl binary",
+			Name:        KubectlPluginName,
+			Version:     version,
+		},
+	}
+	return plugin
+}

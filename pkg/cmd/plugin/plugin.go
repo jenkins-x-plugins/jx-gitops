@@ -1,6 +1,7 @@
 package plugin
 
 import (
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/plugin/get"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/plugin/upgrade"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
@@ -19,6 +20,7 @@ func NewCmdPlugin() *cobra.Command {
 			}
 		},
 	}
+	command.AddCommand(cobras.SplitCommand(get.NewCmdPluginGet()))
 	command.AddCommand(cobras.SplitCommand(upgrade.NewCmdUpgradePlugins()))
 	return command
 }
