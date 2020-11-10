@@ -112,3 +112,39 @@ func TestKptPlugin(t *testing.T) {
 	assert.True(t, foundMac, "did not find a mac binary in the plugin %#v", plugin)
 	assert.True(t, foundWindows, "did not find a windows binary in the plugin %#v", plugin)
 }
+
+func TestKubectlPlugin(t *testing.T) {
+	t.Parallel()
+
+	v := plugins.KubectlVersion
+	plugin := plugins.CreateKubectlPlugin(v)
+
+	assert.Equal(t, plugins.KubectlPluginName, plugin.Name, "plugin.Name")
+	assert.Equal(t, plugins.KubectlPluginName, plugin.Spec.Name, "plugin.Spec.Name")
+
+	foundLinux := false
+	foundMac := false
+	foundWindows := false
+	for _, b := range plugin.Spec.Binaries {
+		if b.Goarch != "amd64" {
+			continue
+		}
+		switch b.Goos {
+		case "Darwin":
+			foundMac = true
+			assert.Equal(t, "https://storage.googleapis.com/kubernetes-release/release/v"+v+"/bin/darwin/amd64/kubectl", b.URL, "URL for linux binary")
+			t.Logf("found mac binary URL %s", b.URL)
+		case "Linux":
+			foundLinux = true
+			assert.Equal(t, "https://storage.googleapis.com/kubernetes-release/release/v"+v+"/bin/linux/amd64/kubectl", b.URL, "URL for linux binary")
+			t.Logf("found linux binary URL %s", b.URL)
+		case "Windows":
+			foundWindows = true
+			assert.Equal(t, "https://storage.googleapis.com/kubernetes-release/release/v"+v+"/bin/windows/amd64/kubectl", b.URL, "URL for windows binary")
+			t.Logf("found windows binary URL %s", b.URL)
+		}
+	}
+	assert.True(t, foundLinux, "did not find a linux binary in the plugin %#v", plugin)
+	assert.True(t, foundMac, "did not find a mac binary in the plugin %#v", plugin)
+	assert.True(t, foundWindows, "did not find a windows binary in the plugin %#v", plugin)
+}
