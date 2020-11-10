@@ -62,6 +62,14 @@ func GetHelmfileBinary(version string) (string, error) {
 // CreateHelmfilePlugin creates the helmfile plugin
 func CreateHelmfilePlugin(version string) jenkinsv1.Plugin {
 	binaries := extensions.CreateBinaries(func(p extensions.Platform) string {
+
+		// workaround for this issue:
+		//   https://github.com/roboll/helmfile/issues/1433
+		// if this PR is merged and released it can hopefully be removed:
+		//   https://github.com/roboll/helmfile/pull/1580
+		if p.Goarch == "arm" {
+			return "https://github.com/jstrachan/helmfile/releases/download/v0.134.0.1/helmfile_linux_arm"
+		}
 		ext := ""
 		if p.IsWindows() {
 			ext = ".exe"

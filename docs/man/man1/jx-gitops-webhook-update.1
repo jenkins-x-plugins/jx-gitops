@@ -83,11 +83,16 @@ Updates the webhooks for all the source repositories optionally filtering by own
 .SH EXAMPLE
 .PP
 # update all the webhooks for all SourceRepository and Environment resource:
-  jx update webhooks
+  jx\-gitops update
 
 .PP
 # only update the webhooks for a given owner
-  jx update webhooks \-\-org=mycorp
+  jx\-gitops update \-\-org=mycorp
+
+.PP
+# use a custom hook webhook endpoint (e.g. if you are on premise using node ports or something)
+  jx\-gitops update \-\-endpoint 
+\[la]http://mything.com\[ra]
 
 
 .SH SEE ALSO
