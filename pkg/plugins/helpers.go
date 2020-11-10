@@ -46,6 +46,44 @@ func CreateHelmPlugin(version string) jenkinsv1.Plugin {
 	return plugin
 }
 
+// GetHelmfileBinary returns the path to the locally installed helmfile extension
+func GetHelmfileBinary(version string) (string, error) {
+	if version == "" {
+		version = HelmfileVersion
+	}
+	pluginBinDir, err := homedir.PluginBinDir(os.Getenv("JX_GITOPS_HOME"), ".jx-gitops")
+	if err != nil {
+		return "", errors.Wrapf(err, "failed to find plugin home dir")
+	}
+	plugin := CreateHelmfilePlugin(version)
+	return extensions.EnsurePluginInstalled(plugin, pluginBinDir)
+}
+
+// CreateHelmfilePlugin creates the helmfile plugin
+func CreateHelmfilePlugin(version string) jenkinsv1.Plugin {
+	binaries := extensions.CreateBinaries(func(p extensions.Platform) string {
+		ext := ""
+		if p.IsWindows() {
+			ext = ".exe"
+		}
+		return fmt.Sprintf("https://github.com/roboll/helmfile/releases/download/v%s/helmfile_%s_%s%s", version, strings.ToLower(p.Goos), strings.ToLower(p.Goarch), ext)
+	})
+
+	plugin := jenkinsv1.Plugin{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: HelmfilePluginName,
+		},
+		Spec: jenkinsv1.PluginSpec{
+			SubCommand:  "helmfile",
+			Binaries:    binaries,
+			Description: "helmfile binary",
+			Name:        HelmfilePluginName,
+			Version:     version,
+		},
+	}
+	return plugin
+}
+
 // GetKptBinary returns the path to the locally installed kpt 3 extension
 func GetKptBinary(version string) (string, error) {
 	if version == "" {

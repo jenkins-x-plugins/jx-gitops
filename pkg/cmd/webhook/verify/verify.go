@@ -2,11 +2,13 @@ package verify
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/jenkins-x/go-scm/scm"
 	v1 "github.com/jenkins-x/jx-api/v3/pkg/apis/jenkins.io/v1"
 	jxc "github.com/jenkins-x/jx-api/v3/pkg/client/clientset/versioned"
+	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube"
@@ -54,10 +56,13 @@ var (
 
 	cmdExample = templates.Examples(`
 		# update all the webhooks for all SourceRepository and Environment resource:
-		jx update webhooks
+		%s update
 
 		# only update the webhooks for a given owner
-		jx update webhooks --org=mycorp
+		%s update --org=mycorp
+
+		# use a custom hook webhook endpoint (e.g. if you are on premise using node ports or something)
+		%s update --endpoint http://mything.com
 
 `)
 )
@@ -69,7 +74,7 @@ func NewCmdWebHookVerify() (*cobra.Command, *Options) {
 		Use:     "update",
 		Short:   "Updates the webhooks for all the source repositories optionally filtering by owner and/or repository",
 		Long:    cmdLong,
-		Example: cmdExample,
+		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName, rootcmd.BinaryName, rootcmd.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
 			err := o.Run()
 			helper.CheckErr(err)
