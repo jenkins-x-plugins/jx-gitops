@@ -16,6 +16,7 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/kustomize"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/label"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/namespace"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/plugin"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/postprocess"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/pr"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/rename"
@@ -51,6 +52,7 @@ func Main() *cobra.Command {
 	cmd.AddCommand(git.NewCmdGit())
 	cmd.AddCommand(jenkins.NewCmdJenkins())
 	cmd.AddCommand(kpt.NewCmdKpt())
+	cmd.AddCommand(plugin.NewCmdPlugin())
 	cmd.AddCommand(pr.NewCmdPR())
 	cmd.AddCommand(requirement.NewCmdRequirement())
 	cmd.AddCommand(repository.NewCmdRepository())
