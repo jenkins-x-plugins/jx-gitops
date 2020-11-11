@@ -152,4 +152,7 @@ func TestRequirementsResolvePipelineUser(t *testing.T) {
 
 	assert.Equal(t, expectedPipelineUser, pipelineUser.Username, "requirements.PipelineUser.Username for file %s", fileName)
 	assert.Equal(t, expectedPipelineEmail, pipelineUser.Email, "requirements.PipelineUser.Email for file %s", fileName)
+
+	assert.NotEmpty(t, requirements.Cluster.ChartRepository, "should have requirements.Cluster.ChartRepository")
+	t.Logf("have chart repository %s\n", requirements.Cluster.ChartRepository)
 }

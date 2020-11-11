@@ -86,9 +86,14 @@ func (o *Options) Run() error {
 		return errors.Errorf("missing kubernetes provider name at 'cluster.provider' in file: %s", o.requirementsFileName)
 	}
 
+	err = o.resolveChartRepository()
+	if err != nil {
+		return errors.Wrapf(err, "failed to resolve chart repository")
+	}
+
 	err = o.resolvePipelineUsername()
 	if err != nil {
-		return errors.Wrapf(err, "failed to resolve pipeilne user")
+		return errors.Wrapf(err, "failed to resolve pipeline user")
 	}
 
 	switch provider {
@@ -105,6 +110,25 @@ func (o *Options) GitClient() gitclient.Interface {
 		o.gitClient = cli.NewCLIClient("", o.CommandRunner)
 	}
 	return o.gitClient
+}
+
+func (o *Options) resolveChartRepository() error {
+	if o.requirements.Cluster.ChartRepository != "" {
+		return nil
+	}
+
+	ns := o.requirements.Cluster.Namespace
+	if ns == "" {
+		ns = "jx"
+	}
+	o.requirements.Cluster.ChartRepository = fmt.Sprintf(" http://jenkins-x-chartmuseum.%s.svc.cluster.local:8080", ns)
+	err := o.requirements.SaveConfig(o.requirementsFileName)
+	if err != nil {
+		return errors.Wrapf(err, "failed to save modified requirements file %s", o.requirementsFileName)
+
+	}
+	log.Logger().Infof("modified the chart repository in %s", termcolor.ColorInfo(o.requirementsFileName))
+	return nil
 }
 
 func (o *Options) resolvePipelineUsername() error {
