@@ -121,7 +121,7 @@ func (o *Options) resolveChartRepository() error {
 	if ns == "" {
 		ns = "jx"
 	}
-	o.requirements.Cluster.ChartRepository = fmt.Sprintf(" http://jenkins-x-chartmuseum.%s.svc.cluster.local:8080", ns)
+	o.requirements.Cluster.ChartRepository = fmt.Sprintf("http://jenkins-x-chartmuseum.%s.svc.cluster.local:8080", ns)
 	err := o.requirements.SaveConfig(o.requirementsFileName)
 	if err != nil {
 		return errors.Wrapf(err, "failed to save modified requirements file %s", o.requirementsFileName)
