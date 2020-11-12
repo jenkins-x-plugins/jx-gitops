@@ -4,6 +4,8 @@ repositories:
   url: https://storage.googleapis.com/chartmuseum.jenkins-x.io
 - name: cdf
   url: https://cdfoundation.github.io/tekton-helm-chart
+- name: stable
+  url: https://charts.helm.sh/stable
 - name: jx3
   url: https://storage.googleapis.com/jenkinsxio/charts
 - name: external-secrets
@@ -19,6 +21,12 @@ releases:
   namespace: secret-infra
   values:
   - values/kubernetes-external-secrets/values.yaml.gotmpl
+- chart: stable/chartmuseum
+  version: 2.4.1
+  name: chartmuseum
+  namespace: jx
+  values:
+  - versionStream/charts/stable/chartmuseum/values.yaml.gotmpl
 - chart: cdf/tekton-pipeline
   version: 0.0.5
   name: tekton-pipeline
