@@ -455,6 +455,7 @@ func (o *Options) CustomUpgrades() error {
 				release.Version = ""
 			}
 			release.Version = versionProperties.Version
+			release.Values = []interface{}{"versionStream/charts/stable/chartmuseum/values.yaml.gotmpl"}
 
 			// lets make sure we have a cdf repository
 			found := false
