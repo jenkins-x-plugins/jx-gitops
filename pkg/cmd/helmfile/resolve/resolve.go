@@ -494,6 +494,39 @@ func (o *Options) CustomUpgrades() error {
 		}
 	}
 
+	// lets replace the old jx-labs/ charts...
+	for _, name := range []string{"jenkins-x-crds", "pusher-wave", "vault-instance"} {
+		chartName := "jx-labs/" + name
+		for i := range o.Results.HelmState.Releases {
+			release := &o.Results.HelmState.Releases[i]
+			if release.Chart == chartName {
+				release.Chart = "jx3/" + name
+				if name == "jenkins-x-crds" {
+					release.Values = []interface{}{"versionStream/charts/jx3/jenkins-x-crds/values.yaml.gotmpl"}
+				}
+				o.updateVersionFromVersionStream(release)
+				break
+			}
+		}
+	}
+
+	// remove jx-labs repository if we have no more charts left using the prefix
+	jxLabsCount := 0
+	for i := range o.Results.HelmState.Releases {
+		release := &o.Results.HelmState.Releases[i]
+		if strings.HasPrefix(release.Chart, "jx-labs/") {
+			jxLabsCount++
+		}
+	}
+	if jxLabsCount == 0 {
+		for i := range o.Results.HelmState.Repositories {
+			if o.Results.HelmState.Repositories[i].Name == "jx-labs" {
+				o.Results.HelmState.Repositories = append(o.Results.HelmState.Repositories[0:i], o.Results.HelmState.Repositories[i+1:]...)
+				break
+			}
+		}
+	}
+
 	// lets ensure we have the jx-build-controller installed
 	found := false
 	for i := range o.Results.HelmState.Releases {
