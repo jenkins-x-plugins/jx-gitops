@@ -224,7 +224,7 @@ func (o *Options) Run() error {
 		sr := &repoList.Items[i]
 		if sr.Spec.URL == devEnv.Spec.Source.URL {
 			if sr.Spec.Scheduler.Name == "" {
-				sr.Spec.Scheduler.Name = "environment"
+				sr.Spec.Scheduler.Name = "in-repo"
 			}
 			break
 		}
