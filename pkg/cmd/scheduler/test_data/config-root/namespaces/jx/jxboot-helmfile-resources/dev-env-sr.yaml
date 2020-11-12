@@ -15,6 +15,3 @@ spec:
   repo: "env-mycluster-dev"
   httpCloneURL: "https://github.com/fake/env-mycluster-dev.git"
   url: "https://github.com/fake/env-mycluster-dev.git"
-  scheduler:
-    kind: Scheduler
-    name: "environment"

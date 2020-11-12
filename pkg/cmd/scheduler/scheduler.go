@@ -219,6 +219,17 @@ func (o *Options) Run() error {
 	}
 	teamSettings := &devEnv.Spec.TeamSettings
 
+	// lets default the dev env scheduler if it doesn't have one:
+	for i := range repoList.Items {
+		sr := &repoList.Items[i]
+		if sr.Spec.URL == devEnv.Spec.Source.URL {
+			if sr.Spec.Scheduler.Name == "" {
+				sr.Spec.Scheduler.Name = "environment"
+			}
+			break
+		}
+	}
+
 	resources = append(resources, devEnv)
 	jxClient := fake.NewSimpleClientset(resources...)
 
