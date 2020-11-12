@@ -106,15 +106,15 @@ func TestKptPlugin(t *testing.T) {
 		switch b.Goos {
 		case "Darwin":
 			foundMac = true
-			assert.Equal(t, "https://github.com/GoogleContainerTools/kpt/releases/download/v"+v+"/kpt_darwin_amd64_"+v+".tar.gz", b.URL, "URL for linux binary")
+			assert.Equal(t, "https://github.com/GoogleContainerTools/kpt/releases/download/v"+v+"/kpt_darwin_amd64-"+v+".tar.gz", b.URL, "URL for linux binary")
 			t.Logf("found mac binary URL %s", b.URL)
 		case "Linux":
 			foundLinux = true
-			assert.Equal(t, "https://github.com/GoogleContainerTools/kpt/releases/download/v"+v+"/kpt_linux_amd64_"+v+".tar.gz", b.URL, "URL for linux binary")
+			assert.Equal(t, "https://github.com/GoogleContainerTools/kpt/releases/download/v"+v+"/kpt_linux_amd64-"+v+".tar.gz", b.URL, "URL for linux binary")
 			t.Logf("found linux binary URL %s", b.URL)
 		case "Windows":
 			foundWindows = true
-			assert.Equal(t, "https://github.com/GoogleContainerTools/kpt/releases/download/v"+v+"/kpt_windows_amd64_"+v+".tar.gz", b.URL, "URL for windows binary")
+			assert.Equal(t, "https://github.com/GoogleContainerTools/kpt/releases/download/v"+v+"/kpt_windows_amd64-"+v+".tar.gz", b.URL, "URL for windows binary")
 			t.Logf("found windows binary URL %s", b.URL)
 		}
 	}

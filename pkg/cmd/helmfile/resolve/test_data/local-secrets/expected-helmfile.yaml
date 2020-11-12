@@ -1,0 +1,40 @@
+filepath: ""
+repositories:
+- name: jenkins-x
+  url: https://storage.googleapis.com/chartmuseum.jenkins-x.io
+- name: cdf
+  url: https://cdfoundation.github.io/tekton-helm-chart
+- name: jx3
+  url: https://storage.googleapis.com/jenkinsxio/charts
+releases:
+- chart: cdf/tekton-pipeline
+  version: 0.0.5
+  name: tekton-pipeline
+  namespace: tekton-pipelines
+  values:
+  - versionStream/charts/cdf/tekton-pipeline/values.yaml.gotmpl
+- chart: jenkins-x/jxboot-helmfile-resources
+  version: 0.0.255
+  name: jxboot-helmfile-resources
+  namespace: jx
+- chart: jx3/jenkins-x-crds
+  version: 1.0.7
+  name: jenkins-x-crds
+  namespace: jx
+  values:
+  - versionStream/charts/jx3/jenkins-x-crds/values.yaml.gotmpl
+- chart: jx3/vault-instance
+  name: vault-instance
+  namespace: secret-infra
+- chart: jx3/pusher-wave
+  name: pusher-wave
+  namespace: secret-infra
+- chart: jx3/local-external-secrets
+  version: 0.0.3
+  name: local-external-secrets
+  namespace: jx
+- chart: jx3/jx-build-controller
+  name: jx-build-controller
+  namespace: jx
+templates: {}
+missingFileHandler: ""

@@ -1,0 +1,27 @@
+enabled: true
+
+fullnameOverride: jenkins-x-chartmuseum
+
+
+service:
+  servicename: jenkins-x-chartmuseum
+
+persistence:
+  enabled: true
+  accessMode: ReadWriteOnce
+  size: 8Gi
+
+env:
+  open:
+    AUTH_ANONYMOUS_GET: true
+    DISABLE_API: false
+  secret:
+    BASIC_AUTH_USER: dummy
+    BASIC_AUTH_PASS: dummy
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 160m
+    memory: 128Mi

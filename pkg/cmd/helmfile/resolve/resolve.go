@@ -449,12 +449,8 @@ func (o *Options) CustomUpgrades() error {
 		release := &o.Results.HelmState.Releases[i]
 		if release.Chart == "jenkins-x/chartmuseum" {
 			release.Chart = "stable/chartmuseum"
-			versionProperties, err := o.Options.Resolver.StableVersion(versionstream.KindChart, release.Chart)
-			if err != nil {
-				log.Logger().Warnf("failed to find version number for chart %s", release.Chart)
-				release.Version = ""
-			}
-			release.Version = versionProperties.Version
+			o.updateVersionFromVersionStream(release)
+			release.Values = []interface{}{"versionStream/charts/stable/chartmuseum/values.yaml.gotmpl"}
 
 			// lets make sure we have a cdf repository
 			found := false
@@ -473,6 +469,63 @@ func (o *Options) CustomUpgrades() error {
 			break
 		}
 	}
+	ns := requirements.Cluster.Namespace
+	if ns == "" {
+		ns = "jx"
+	}
+
+	if requirements.SecretStorage == config.SecretStorageTypeLocal {
+		// lets make sure the local external secrets chart is included
+		found := false
+		for i := range o.Results.HelmState.Releases {
+			release := &o.Results.HelmState.Releases[i]
+			if release.Chart == "jx3/local-external-secrets" {
+				found = true
+				break
+			}
+		}
+		if !found {
+			release := state.ReleaseSpec{
+				Chart:     "jx3/local-external-secrets",
+				Namespace: ns,
+			}
+			o.updateVersionFromVersionStream(&release)
+			o.Results.HelmState.Releases = append(o.Results.HelmState.Releases, release)
+		}
+	}
+
+	// lets replace the old jx-labs/ charts...
+	for _, name := range []string{"jenkins-x-crds", "pusher-wave", "vault-instance"} {
+		chartName := "jx-labs/" + name
+		for i := range o.Results.HelmState.Releases {
+			release := &o.Results.HelmState.Releases[i]
+			if release.Chart == chartName {
+				release.Chart = "jx3/" + name
+				if name == "jenkins-x-crds" {
+					release.Values = []interface{}{"versionStream/charts/jx3/jenkins-x-crds/values.yaml.gotmpl"}
+				}
+				o.updateVersionFromVersionStream(release)
+				break
+			}
+		}
+	}
+
+	// remove jx-labs repository if we have no more charts left using the prefix
+	jxLabsCount := 0
+	for i := range o.Results.HelmState.Releases {
+		release := &o.Results.HelmState.Releases[i]
+		if strings.HasPrefix(release.Chart, "jx-labs/") {
+			jxLabsCount++
+		}
+	}
+	if jxLabsCount == 0 {
+		for i := range o.Results.HelmState.Repositories {
+			if o.Results.HelmState.Repositories[i].Name == "jx-labs" {
+				o.Results.HelmState.Repositories = append(o.Results.HelmState.Repositories[0:i], o.Results.HelmState.Repositories[i+1:]...)
+				break
+			}
+		}
+	}
 
 	// lets ensure we have the jx-build-controller installed
 	found := false
@@ -484,10 +537,6 @@ func (o *Options) CustomUpgrades() error {
 		}
 	}
 	if !found {
-		ns := requirements.Cluster.Namespace
-		if ns == "" {
-			ns = "jx"
-		}
 		o.Results.HelmState.Releases = append(o.Results.HelmState.Releases, state.ReleaseSpec{
 			Chart:     "jx3/jx-build-controller",
 			Namespace: ns,
@@ -508,6 +557,8 @@ func (o *Options) CustomUpgrades() error {
 			})
 		}
 	}
+
+	// TODO lets remove the jx-labs repository if its no longer referenced...
 
 	lighthouseTriggerFile := filepath.Join(o.Dir, ".lighthouse", "jenkins-x", "triggers.yaml")
 	exists, err := files.FileExists(lighthouseTriggerFile)
@@ -542,4 +593,13 @@ func (o *Options) CustomUpgrades() error {
 		log.Logger().Infof("got tekton pipeline for envirnment at %s", lighthouseTriggerFile)
 	}
 	return nil
+}
+
+func (o *Options) updateVersionFromVersionStream(release *state.ReleaseSpec) {
+	versionProperties, err := o.Options.Resolver.StableVersion(versionstream.KindChart, release.Chart)
+	if err != nil {
+		log.Logger().Warnf("failed to find version number for chart %s", release.Chart)
+		release.Version = ""
+	}
+	release.Version = versionProperties.Version
 }

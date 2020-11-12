@@ -108,7 +108,7 @@ func GetKptBinary(version string) (string, error) {
 // CreateKptPlugin creates the kpt 3 plugin
 func CreateKptPlugin(version string) jenkinsv1.Plugin {
 	binaries := extensions.CreateBinaries(func(p extensions.Platform) string {
-		return fmt.Sprintf("https://github.com/GoogleContainerTools/kpt/releases/download/v%s/kpt_%s_%s_%s.tar.gz", version, strings.ToLower(p.Goos), strings.ToLower(p.Goarch), version)
+		return fmt.Sprintf("https://github.com/GoogleContainerTools/kpt/releases/download/v%s/kpt_%s_%s-%s.tar.gz", version, strings.ToLower(p.Goos), strings.ToLower(p.Goarch), version)
 	})
 
 	plugin := jenkinsv1.Plugin{

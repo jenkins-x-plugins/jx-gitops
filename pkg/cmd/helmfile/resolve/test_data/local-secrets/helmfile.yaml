@@ -1,0 +1,22 @@
+repositories:
+- name: jenkins-x
+  url: https://storage.googleapis.com/chartmuseum.jenkins-x.io
+- name: jx-labs
+  url: https://storage.googleapis.com/jenkinsxio-labs-private/charts
+releases:
+  - chart: jenkins-x/tekton
+  - chart: jenkins-x/jxboot-helmfile-resources
+  - chart: jx-labs/jenkins-x-crds
+    version: 0.0.7
+    name: jenkins-x-crds
+    namespace: jx
+    values:
+    - versionStream/charts/jx-labs/jenkins-x-crds/values.yaml
+  - chart: jx-labs/vault-instance
+    version: 0.0.1
+    name: vault-instance
+    namespace: secret-infra
+  - chart: jx-labs/pusher-wave
+    version: 1.0.0
+    name: pusher-wave
+    namespace: secret-infra
