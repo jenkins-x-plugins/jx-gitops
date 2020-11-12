@@ -449,12 +449,7 @@ func (o *Options) CustomUpgrades() error {
 		release := &o.Results.HelmState.Releases[i]
 		if release.Chart == "jenkins-x/chartmuseum" {
 			release.Chart = "stable/chartmuseum"
-			versionProperties, err := o.Options.Resolver.StableVersion(versionstream.KindChart, release.Chart)
-			if err != nil {
-				log.Logger().Warnf("failed to find version number for chart %s", release.Chart)
-				release.Version = ""
-			}
-			release.Version = versionProperties.Version
+			o.updateVersionFromVersionStream(release)
 			release.Values = []interface{}{"versionStream/charts/stable/chartmuseum/values.yaml.gotmpl"}
 
 			// lets make sure we have a cdf repository
@@ -474,6 +469,30 @@ func (o *Options) CustomUpgrades() error {
 			break
 		}
 	}
+	ns := requirements.Cluster.Namespace
+	if ns == "" {
+		ns = "jx"
+	}
+
+	if requirements.SecretStorage == config.SecretStorageTypeLocal {
+		// lets make sure the local external secrets chart is included
+		found := false
+		for i := range o.Results.HelmState.Releases {
+			release := &o.Results.HelmState.Releases[i]
+			if release.Chart == "jx3/local-external-secrets" {
+				found = true
+				break
+			}
+		}
+		if !found {
+			release := state.ReleaseSpec{
+				Chart:     "jx3/local-external-secrets",
+				Namespace: ns,
+			}
+			o.updateVersionFromVersionStream(&release)
+			o.Results.HelmState.Releases = append(o.Results.HelmState.Releases, release)
+		}
+	}
 
 	// lets ensure we have the jx-build-controller installed
 	found := false
@@ -485,10 +504,6 @@ func (o *Options) CustomUpgrades() error {
 		}
 	}
 	if !found {
-		ns := requirements.Cluster.Namespace
-		if ns == "" {
-			ns = "jx"
-		}
 		o.Results.HelmState.Releases = append(o.Results.HelmState.Releases, state.ReleaseSpec{
 			Chart:     "jx3/jx-build-controller",
 			Namespace: ns,
@@ -509,6 +524,8 @@ func (o *Options) CustomUpgrades() error {
 			})
 		}
 	}
+
+	// TODO lets remove the jx-labs repository if its no longer referenced...
 
 	lighthouseTriggerFile := filepath.Join(o.Dir, ".lighthouse", "jenkins-x", "triggers.yaml")
 	exists, err := files.FileExists(lighthouseTriggerFile)
@@ -543,4 +560,13 @@ func (o *Options) CustomUpgrades() error {
 		log.Logger().Infof("got tekton pipeline for envirnment at %s", lighthouseTriggerFile)
 	}
 	return nil
+}
+
+func (o *Options) updateVersionFromVersionStream(release *state.ReleaseSpec) {
+	versionProperties, err := o.Options.Resolver.StableVersion(versionstream.KindChart, release.Chart)
+	if err != nil {
+		log.Logger().Warnf("failed to find version number for chart %s", release.Chart)
+		release.Version = ""
+	}
+	release.Version = versionProperties.Version
 }

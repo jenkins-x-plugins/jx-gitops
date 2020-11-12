@@ -1,0 +1,41 @@
+filepath: ""
+repositories:
+- name: doesnotexist
+  url: https://storage.googleapis.com/chartmuseum.jenkins-x.io
+- name: cdf
+  url: https://cdfoundation.github.io/tekton-helm-chart
+- name: jx3
+  url: https://storage.googleapis.com/jenkinsxio/charts
+- name: jenkins-x
+  url: https://storage.googleapis.com/chartmuseum.jenkins-x.io
+- name: bitnami
+  url: https://charts.bitnami.com/bitnami
+releases:
+- chart: cdf/tekton-pipeline
+  version: 0.0.5
+  name: tekton-pipeline
+  namespace: tekton-pipelines
+  values:
+  - versionStream/charts/cdf/tekton-pipeline/values.yaml.gotmpl
+- chart: jenkins-x/jxboot-helmfile-resources
+  version: 0.0.255
+  name: jxboot-helmfile-resources
+  namespace: jx
+- chart: bitnami/external-dns
+  version: 3.1.2
+  name: external-dns
+  namespace: foo
+  values:
+  - values/external-dns/values.yaml
+- chart: doesnotexist/bucketrepo
+  name: bucketrepo
+  namespace: jx
+- chart: jx3/local-external-secrets
+  version: 0.0.3
+  name: local-external-secrets
+  namespace: jx
+- chart: jx3/jx-build-controller
+  name: jx-build-controller
+  namespace: jx
+templates: {}
+missingFileHandler: ""
