@@ -444,6 +444,36 @@ func (o *Options) CustomUpgrades() error {
 		}
 	}
 
+	// lets replace the old chartmuseum chart if its being used
+	for i := range o.Results.HelmState.Releases {
+		release := &o.Results.HelmState.Releases[i]
+		if release.Chart == "jenkins-x/chartmuseum" {
+			release.Chart = "stable/chartmuseum"
+			versionProperties, err := o.Options.Resolver.StableVersion(versionstream.KindChart, release.Chart)
+			if err != nil {
+				log.Logger().Warnf("failed to find version number for chart %s", release.Chart)
+				release.Version = ""
+			}
+			release.Version = versionProperties.Version
+
+			// lets make sure we have a cdf repository
+			found := false
+			for _, repo := range o.Results.HelmState.Repositories {
+				if repo.Name == "stable" {
+					found = true
+					break
+				}
+			}
+			if !found {
+				o.Results.HelmState.Repositories = append(o.Results.HelmState.Repositories, state.RepositorySpec{
+					Name: "stable",
+					URL:  "https://charts.helm.sh/stable",
+				})
+			}
+			break
+		}
+	}
+
 	// lets ensure we have the jx-build-controller installed
 	found := false
 	for i := range o.Results.HelmState.Releases {

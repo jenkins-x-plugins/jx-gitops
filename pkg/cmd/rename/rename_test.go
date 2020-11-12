@@ -32,6 +32,8 @@ func TestRenameYamlFiles(t *testing.T) {
 	expectedFiles := []string{
 		"tekton-pipelines-webhook-sa.yaml",
 		"pipelines.tekton.dev-crd.yaml",
+		"cheese-svc.yaml",
+		"cheese-ksvc.yaml",
 	}
 
 	for _, f := range expectedFiles {

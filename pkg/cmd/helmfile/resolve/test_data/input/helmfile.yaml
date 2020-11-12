@@ -1,5 +1,7 @@
 releases:
   - chart: external-secrets/kubernetes-external-secrets
+  - chart: jenkins-x/chartmuseum
+    version: 1.1.7
   - chart: jenkins-x/tekton
   - chart: jenkins-x/jxboot-helmfile-resources
   - chart: bitnami/external-dns

@@ -1,0 +1,21 @@
+---
+# Source: cheese/templates/kservice.yaml
+apiVersion: serving.knative.dev/v1alpha1
+kind: Service
+metadata:
+  name: cheese
+  labels:
+    helm.sh/chart: istio-test-1.3.0
+    app.kubernetes.io/name: istio-test
+    app.kubernetes.io/instance: istio-test
+    app.kubernetes.io/managed-by: Helm
+spec:
+  runLatest:
+    configuration:
+      revisionTemplate:
+        spec:
+          container:
+            image: cheese:1.2.3
+            env:
+              - name: CHEESE
+                value: brie
