@@ -76,11 +76,12 @@ func (o *Options) Run() error {
 		}
 
 		kind := kyamls.GetKind(node, path)
+		apiVersion := kyamls.GetAPIVersion(node, path)
 
 		dir, file := filepath.Split(path)
 		ext := filepath.Ext(path)
 
-		cn := o.canonicalName(kind, name)
+		cn := o.canonicalName(apiVersion, kind, name)
 
 		newFile := cn + ext
 		newPath := filepath.Join(dir, newFile)
@@ -120,9 +121,12 @@ var (
 	}
 )
 
-func (o *Options) canonicalName(kind string, name string) string {
+func (o *Options) canonicalName(apiVersion, kind, name string) string {
 	lk := strings.ToLower(kind)
 	suffix := kindSuffixes[lk]
+	if suffix == "svc" && strings.Contains(apiVersion, "knative") {
+		suffix = "ksvc"
+	}
 	if suffix == "" {
 		suffix = lk
 	}
