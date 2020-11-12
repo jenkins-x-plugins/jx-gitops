@@ -65,10 +65,13 @@ func TestScheduler(t *testing.T) {
 	lhCfg, err := config.LoadYAMLConfig([]byte(configYaml))
 	require.NoError(t, err, "failed to load config file %s into lighthouse config", configFile)
 
-	for _, repoName := range []string{"myorg/default", "myorg/env-mycluster-dev"} {
-		assert.Len(t, lhCfg.Presubmits[repoName], 1, "presubmits for %s", repoName)
-		assert.Len(t, lhCfg.Postsubmits[repoName], 1, "postsubmits for %s", repoName)
-	}
+	repoName := "myorg/default"
+	assert.Len(t, lhCfg.Presubmits[repoName], 1, "presubmits for %s", repoName)
+	assert.Len(t, lhCfg.Postsubmits[repoName], 1, "postsubmits for %s", repoName)
+
+	repoName = "myorg/env-mycluster-dev"
+	assert.Len(t, lhCfg.Presubmits[repoName], 0, "presubmits for %s", repoName)
+	assert.Len(t, lhCfg.Postsubmits[repoName], 0, "postsubmits for %s", repoName)
 
 	inRepoFullName := "myorg/in-repo"
 	otherInRepoFullName := "myorg/another-in-repo"
@@ -80,6 +83,7 @@ func TestScheduler(t *testing.T) {
 	assert.NotNil(t, lhCfg.InRepoConfig.Enabled, "should have inRepoConfig enabled")
 	assert.NotNil(t, lhCfg.InRepoConfig.Enabled[inRepoFullName], "should have inRepoConfig.Enabled['myorg/in-repo']")
 	assert.NotNil(t, lhCfg.InRepoConfig.Enabled[otherInRepoFullName], "should have inRepoConfig.Enabled['myorg/another-in-repo']")
+	assert.NotNil(t, lhCfg.InRepoConfig.Enabled["myorg/env-mycluster-dev"], "should have inRepoConfig.Enabled['myorg/env-mycluster-dev']")
 
 	approveQuery := keeper.Query{}
 	foundApproveQuery := false
