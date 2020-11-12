@@ -46,10 +46,6 @@ var (
 	info = termcolor.ColorInfo
 )
 
-const (
-	defaultKptStrategy = "alpha-git-patch"
-)
-
 // KptOptions the options for the command
 type Options struct {
 	Dir             string
@@ -58,6 +54,7 @@ type Options struct {
 	RepositoryOwner string
 	RepositoryName  string
 	KptBinary       string
+	Strategy        string
 	CommandRunner   cmdrunner.CommandRunner
 }
 
@@ -87,6 +84,7 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&o.RepositoryOwner, "owner", "o", "", "filter on the Kptfile repository owner (user/organisation) for which packages to update")
 	cmd.Flags().StringVarP(&o.RepositoryName, "repo", "r", "", "filter on the Kptfile repository name  for which packages to update")
 	cmd.Flags().StringVarP(&o.KptBinary, "bin", "", "", "the 'kpt' binary name to use. If not specified this command will download the jx binary plugin into ~/.jx3/plugins/bin and use that")
+	cmd.Flags().StringVarP(&o.Strategy, "strategy", "s", "alpha-git-patch", "the 'kpt' strategy to use. To see available strategies type 'kpt pkg update --help'. Typical values are: resource-merge, fast-forward, alpha-git-patch, force-delete-replace")
 }
 
 // Run implements the command
@@ -150,7 +148,7 @@ func (o *Options) Run() error {
 			return err
 		}
 
-		strategy := defaultKptStrategy
+		strategy := o.Strategy
 		log.Logger().Infof("looking at dir %s in %v", rel, strategies)
 		if strategies[rel] != "" {
 			strategy = strategies[rel]
