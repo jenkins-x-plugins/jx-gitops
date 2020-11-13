@@ -165,8 +165,8 @@ func (o *Options) Run() error {
 		log.Logger().Infof(text)
 		if err != nil {
 			lines := strings.Split(strings.TrimSpace(text), "\n")
-			errText := lines[len(lines)-1]
-			if errText == "Error: no updates" {
+			errText := strings.ToLower(lines[len(lines)-1])
+			if errText == "error: no updates" {
 				return nil
 			}
 			return errors.Wrapf(err, "failed to run kpt command")
