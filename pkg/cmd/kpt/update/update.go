@@ -162,12 +162,18 @@ func (o *Options) Run() error {
 			Dir:  dir,
 		}
 		text, err := o.CommandRunner(c)
-		log.Logger().Infof(text)
 		if err != nil {
 			lines := strings.Split(strings.TrimSpace(text), "\n")
 			errText := strings.ToLower(lines[len(lines)-1])
 			if errText == "error: no updates" {
 				return nil
+			}
+
+			if strings.Contains(text, "update failed") {
+				handled, err2 := o.handleKptfileConflictsAndContinue(dir, lines)
+				if handled && err2 == nil {
+					return nil
+				}
 			}
 			return errors.Wrapf(err, "failed to run kpt command")
 		}
@@ -177,6 +183,46 @@ func (o *Options) Run() error {
 		return errors.Wrapf(err, "failed to upgrade kpt packages in dir %s", dir)
 	}
 	return nil
+}
+
+// handleKptfileConflictsAndContinue if there's only a single conflict for the Kptfile lets
+// handle it and continue
+func (o *Options) handleKptfileConflictsAndContinue(dir string, lines []string) (bool, error) {
+	conflicts := 0
+	kptConflict := false
+
+	for _, line := range lines {
+		if strings.HasPrefix(line, "CONFLICT (content): Merge conflict in ") {
+			conflicts++
+			if strings.HasSuffix(line, "Kptfile") {
+				kptConflict = true
+			}
+		}
+	}
+	if !kptConflict || conflicts != 1 {
+		return false, nil
+	}
+
+	log.Logger().Infof("lets work around the Kptfile merge conflict that kpt generated - its probably whitespace related...")
+
+	// lets accept their change to the Kptfile and continue with the merge
+	argsList := [][]string{
+		{"checkout", "--theirs", "."},
+		{"add", "-u"},
+		{"am", "--continue"},
+	}
+	for _, args := range argsList {
+		c := &cmdrunner.Command{
+			Dir:  dir,
+			Name: "git",
+			Args: args,
+		}
+		_, err := o.CommandRunner(c)
+		if err != nil {
+			return false, errors.Wrapf(err, "failed to run %s", c.CLI())
+		}
+	}
+	return true, nil
 }
 
 // Matches returns true if this kpt file matches the filters
