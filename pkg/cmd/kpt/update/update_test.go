@@ -114,8 +114,8 @@ func TestOptions_loadOverrideStrategies(t *testing.T) {
 		want    map[string]string
 		wantErr bool
 	}{
-		{name: "validate_pass", want: map[string]string{"foo": "bar", "cheese": "wine"}, wantErr: false},
-		{name: "validate_fail", want: map[string]string{}, wantErr: true},
+		{name: "validate_pass", want: map[string]string{"foo": "bar", "cheese": "wine", "versionStream": "force-delete-replace"}, wantErr: false},
+		{name: "validate_fail", want: map[string]string{"versionStream": "force-delete-replace"}, wantErr: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
