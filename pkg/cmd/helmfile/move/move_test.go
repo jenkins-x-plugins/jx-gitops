@@ -26,7 +26,8 @@ func TestUpdateNamespaceInYamlFiles(t *testing.T) {
 	require.NoError(t, err, "failed to run helmfile move")
 
 	expectedFiles := []string{
-		filepath.Join(tmpDir, "cluster", "jx", "lighthouse", "lighthousejobs-crd.yaml"),
+		filepath.Join(tmpDir, "customresourcedefinitions", "jx", "lighthouse", "lighthousejobs-crd.yaml"),
+		filepath.Join(tmpDir, "cluster", "nginx", "nginx-ingress", "clusterrole.yaml"),
 		filepath.Join(tmpDir, "namespaces", "jx", "lighthouse", "foghorn-deployment.yaml"),
 	}
 	for _, ef := range expectedFiles {

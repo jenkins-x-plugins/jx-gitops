@@ -50,7 +50,7 @@ func TestStepHelmfileTemplate(t *testing.T) {
 	assert.FileExists(t, filepath.Join(o.OutputDir, "cluster", "namespaces", "jx-production.yaml"), "expected generated namespace")
 	assert.FileExists(t, filepath.Join(o.OutputDir, "cluster", "namespaces", "secret-infra.yaml"), "expected generated namespace")
 
-	assert.FileExists(t, filepath.Join(o.OutputDir, "cluster", "secret-infra", "kubernetes-external-secrets", "externalsecrets.kubernetes-client.io-crd.yaml"), "expected generated CRD file")
+	assert.FileExists(t, filepath.Join(o.OutputDir, "customresourcedefinitions", "secret-infra", "kubernetes-external-secrets", "externalsecrets.kubernetes-client.io-crd.yaml"), "expected generated CRD file")
 }
 
 func skipTestIfCommandFails(t *testing.T, name string, args ...string) {
