@@ -50,14 +50,15 @@ and then moves any CRDs or cluster level resources into 'config-root/cluster/$re
 // NamespaceOptions the options for the command
 type Options struct {
 	kyamls.Filter
-	Helmfile             string
-	Dir                  string
-	OutputDir            string
-	ClusterDir           string
-	ClusterNamespacesDir string
-	NamespacesDir        string
-	SingleNamespace      string
-	HelmState            *state.HelmState
+	Helmfile                     string
+	Dir                          string
+	OutputDir                    string
+	ClusterDir                   string
+	ClusterNamespacesDir         string
+	CustomResourceDefinitionsDir string
+	NamespacesDir                string
+	SingleNamespace              string
+	HelmState                    *state.HelmState
 }
 
 // NewCmdHelmfileMove creates a command object for the command
@@ -106,6 +107,9 @@ func (o *Options) Run() error {
 		if err != nil {
 			return errors.Wrapf(err, "failed to create cluster namespaces dir %s", o.ClusterNamespacesDir)
 		}
+	}
+	if o.CustomResourceDefinitionsDir == "" {
+		o.CustomResourceDefinitionsDir = filepath.Join(o.OutputDir, "customresourcedefinitions")
 	}
 
 	g := filepath.Join(o.Dir, "*/*")
@@ -255,7 +259,10 @@ func (o *Options) moveFilesToClusterOrNamespacesFolder(dir string, ns string, re
 
 		kind := kyamls.GetKind(node, path)
 		outDir := filepath.Join(o.ClusterDir, ns, releaseName)
-		if !kyamls.IsClusterKind(kind) {
+
+		if kyamls.IsCustomResourceDefinition(kind) {
+			outDir = filepath.Join(o.CustomResourceDefinitionsDir, ns, releaseName)
+		} else if !kyamls.IsClusterKind(kind) {
 			err := node.PipeE(yaml.LookupCreate(yaml.ScalarNode, "metadata", "namespace"), yaml.FieldSetter{StringValue: ns})
 			if err != nil {
 				return errors.Wrapf(err, "failed to set metadata.namespace to %s for path %s", ns, path)
