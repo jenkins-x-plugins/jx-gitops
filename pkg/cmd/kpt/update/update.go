@@ -269,13 +269,13 @@ func (o *Options) Matches(path string) (bool, error) {
 }
 
 func (o *Options) LoadOverrideStrategies() (map[string]string, error) {
-	strategies := map[string]string{}
+	strategies := map[string]string{"versionStream": "force-delete-replace"}
 	kptStrategyFilename := filepath.Join(o.Dir, ".jx", "gitops", v1alpha1.KptStragegyFileName)
 
 	exists, err := files.FileExists(kptStrategyFilename)
 	if !exists {
 		log.Logger().Infof("no local strategy file %s found so using default merge strategies", info(kptStrategyFilename))
-		return o.getDefaultOverrideStrategies(), nil
+		return strategies, nil
 	}
 	data, err := ioutil.ReadFile(kptStrategyFilename)
 	if err != nil {
@@ -294,8 +294,4 @@ func (o *Options) LoadOverrideStrategies() (map[string]string, error) {
 		strategies[fileStrategy.RelativePath] = fileStrategy.Strategy
 	}
 	return strategies, nil
-}
-
-func (o *Options) getDefaultOverrideStrategies() map[string]string {
-	return map[string]string{"versionStream": "force-delete-replace"}
 }
