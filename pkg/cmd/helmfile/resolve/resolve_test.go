@@ -121,6 +121,8 @@ func TestStepHelmfileResolve(t *testing.T) {
 			for _, c := range runner.OrderedCommands {
 				t.Logf("fake command: %s\n", c.CLI())
 			}
+
+			require.FileExists(t, filepath.Join(o.Dir, ".jx", "git-operator", "filename.txt"), "should have generated the git operator job file name")
 		}
 	}
 }
