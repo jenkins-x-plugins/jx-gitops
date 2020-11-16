@@ -237,12 +237,28 @@ func (o *Options) Run() error {
 			}
 
 			if stringhelpers.StringArrayIndex(ignoreRepositories, repository) < 0 {
+				// first try and match using the prefix and release name as we might have a version stream folder that uses helm alias
 				versionProperties, err := resolver.StableVersion(versionstream.KindChart, prefix+"/"+release.Name)
 				if err != nil {
-					return errors.Wrapf(err, "failed to find version number for chart %s", fullChartName)
+					if err != nil {
+						return errors.Wrapf(err, "failed to find version number for chart %s", release.Name)
+					}
+
+				}
+
+				// lets fall back to using the full chart name
+				if versionProperties.Version == "" {
+					versionProperties, err = resolver.StableVersion(versionstream.KindChart, fullChartName)
+					if err != nil {
+						return errors.Wrapf(err, "failed to find version number for chart %s", fullChartName)
+					}
 				}
 
 				version := versionProperties.Version
+
+				if version == "" {
+					log.Logger().Warnf("could not find version for chart %s so using latest found in helm repository %s", fullChartName, repository)
+				}
 
 				versionChanged := false
 				if release.Version == "" {
@@ -254,10 +270,6 @@ func (o *Options) Run() error {
 				}
 				if versionChanged {
 					log.Logger().Infof("resolved chart %s version %s", fullChartName, version)
-				}
-
-				if version == "" {
-					log.Logger().Warnf("could not find version for chart %s so using latest found in helm repository %s", fullChartName, repository)
 				}
 
 				if release.Namespace == "" && versionProperties.Namespace != "" {
@@ -278,24 +290,16 @@ func (o *Options) Run() error {
 			releaseNames = []string{release.Name, chartName}
 		}
 
-		// lets try resolve any values files in the version stream
-		found := false
-		for _, valueFileName := range valueFileNames {
-			versionStreamValuesFile := filepath.Join(versionsDir, "charts", prefix, release.Name, valueFileName)
-			exists, err := files.FileExists(versionStreamValuesFile)
+		// lets try resolve any values files in the version stream using the prefix and chart name first
+		found, err := o.addValues(versionsDir, filepath.Join(prefix, release.Name), &release)
+		if err != nil {
+			return errors.Wrapf(err, "failed to add values")
+		}
+		if !found {
+			// next try the full chart name
+			found, err = o.addValues(versionsDir, fullChartName, &release)
 			if err != nil {
-				return errors.Wrapf(err, "failed to check if version stream values file exists %s", versionStreamValuesFile)
-			}
-			if exists {
-				path := filepath.Join("versionStream", "charts", prefix, release.Name, valueFileName)
-				if !valuesContains(release.Values, path) {
-					release.Values = append(release.Values, path)
-				}
-				found = true
-				break
-			}
-			if found {
-				break
+				return errors.Wrapf(err, "failed to add values")
 			}
 		}
 
@@ -341,6 +345,29 @@ func (o *Options) Run() error {
 		}
 	}
 	return nil
+}
+
+func (o *Options) addValues(versionsDir string, name string, release *state.ReleaseSpec) (bool, error) {
+	found := false
+	for _, valueFileName := range valueFileNames {
+		versionStreamValuesFile := filepath.Join(versionsDir, "charts", name, valueFileName)
+		exists, err := files.FileExists(versionStreamValuesFile)
+		if err != nil {
+			return false, errors.Wrapf(err, "failed to check if version stream values file exists %s", versionStreamValuesFile)
+		}
+		if exists {
+			path := filepath.Join("versionStream", "charts", name, valueFileName)
+			if !valuesContains(release.Values, path) {
+				release.Values = append(release.Values, path)
+			}
+			found = true
+			break
+		}
+		if found {
+			break
+		}
+	}
+	return found, nil
 }
 
 // HasHelmfile returns true if there is a helmfile
