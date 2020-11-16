@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jenkins-x/jx-api/v3/pkg/config"
+
 	"github.com/jenkins-x/go-scm/scm"
 	v1 "github.com/jenkins-x/jx-api/v3/pkg/apis/jenkins.io/v1"
 	jxc "github.com/jenkins-x/jx-api/v3/pkg/client/clientset/versioned"
@@ -254,6 +256,15 @@ func (o *Options) updateRepositoryWebhook(scmClient *scm.Client, owner string, r
 		}
 	}
 
+	skipVerify := false
+	requirements, _, err := config.LoadRequirementsConfig("", false)
+	if err != nil {
+		log.Logger().Warnf("unable to load requirements from the local directory so defaulting skipVerify option on the webhook to false")
+	}
+	if requirements != nil {
+		skipVerify = !requirements.Ingress.TLS.Production
+	}
+
 	webHookArgs := &scm.HookInput{
 		Name:   "",
 		Target: webhookURL,
@@ -268,7 +279,8 @@ func (o *Options) updateRepositoryWebhook(scmClient *scm.Client, owner string, r
 			ReviewComment:      true,
 			Tag:                true,
 		},
-		SkipVerify:   false,
+
+		SkipVerify:   skipVerify,
 		NativeEvents: nil,
 	}
 	webHookArgs.Secret = hmacToken
@@ -278,7 +290,6 @@ func (o *Options) updateRepositoryWebhook(scmClient *scm.Client, owner string, r
 		// lets remove any previous matching hooks
 		for _, hook := range hooks {
 			if o.matchesWebhookURL(hook, webhookURL) {
-
 				// lets remove any old ones
 				log.Logger().Infof("Found matching hook for url %s", info(hook.Target))
 				_, err = scmClient.Repositories.DeleteHook(ctx, fullName, hook.ID)
