@@ -48,14 +48,15 @@ var (
 
 // KptOptions the options for the command
 type Options struct {
-	Dir             string
-	Version         string
-	RepositoryURL   string
-	RepositoryOwner string
-	RepositoryName  string
-	KptBinary       string
-	Strategy        string
-	CommandRunner   cmdrunner.CommandRunner
+	Dir                    string
+	Version                string
+	RepositoryURL          string
+	RepositoryOwner        string
+	RepositoryName         string
+	KptBinary              string
+	Strategy               string
+	IgnoreYamlContentError bool
+	CommandRunner          cmdrunner.CommandRunner
 }
 
 // NewCmdKptUpdate creates a command object for the command
@@ -85,6 +86,8 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&o.RepositoryName, "repo", "r", "", "filter on the Kptfile repository name  for which packages to update")
 	cmd.Flags().StringVarP(&o.KptBinary, "bin", "", "", "the 'kpt' binary name to use. If not specified this command will download the jx binary plugin into ~/.jx3/plugins/bin and use that")
 	cmd.Flags().StringVarP(&o.Strategy, "strategy", "s", "alpha-git-patch", "the 'kpt' strategy to use. To see available strategies type 'kpt pkg update --help'. Typical values are: resource-merge, fast-forward, alpha-git-patch, force-delete-replace")
+
+	cmd.Flags().BoolVarP(&o.IgnoreYamlContentError, "ignore-yaml-error", "", false, "ignore kpt errors of the form: yaml: did not find expected node content")
 }
 
 // Run implements the command
@@ -169,6 +172,9 @@ func (o *Options) Run() error {
 				return nil
 			}
 
+			if o.IgnoreYamlContentError && strings.Contains(text, "yaml: did not find expected node content") {
+				return nil
+			}
 			if strings.Contains(text, "update failed") {
 				handled, err2 := o.handleKptfileConflictsAndContinue(dir, lines)
 				if handled && err2 == nil {
