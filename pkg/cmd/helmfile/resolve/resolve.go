@@ -603,7 +603,7 @@ func (o *Options) customBootJob(requirements *config.RequirementsConfig) error {
 	if secretText == "" {
 		secretKind = config.SecretStorageTypeLocal
 	}
-	fileName := "job.yaml"
+	jobFileName := "job.yaml"
 	if secretText != "local" {
 		name := "job-" + secretText + ".yaml"
 		fileName := filepath.Join(o.Dir, "versionStream", "git-operator", name)
@@ -614,7 +614,7 @@ func (o *Options) customBootJob(requirements *config.RequirementsConfig) error {
 		if !exists {
 			log.Logger().Warnf("file does not exist %s so defaulting to boot job file: job.yaml", fileName)
 		} else {
-			fileName = name
+			jobFileName = name
 		}
 	}
 	dir := filepath.Join(o.Dir, ".jx", "git-operator")
@@ -623,7 +623,7 @@ func (o *Options) customBootJob(requirements *config.RequirementsConfig) error {
 		return errors.Wrapf(err, "failed to create dir %s", dir)
 	}
 	f := filepath.Join(dir, "filename.txt")
-	err = ioutil.WriteFile(f, []byte(fileName), files.DefaultFileWritePermissions)
+	err = ioutil.WriteFile(f, []byte(jobFileName), files.DefaultFileWritePermissions)
 	if err != nil {
 		return errors.Wrapf(err, "failed to write file %s", f)
 	}
