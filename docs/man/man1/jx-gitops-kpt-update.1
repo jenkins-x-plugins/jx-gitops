@@ -44,12 +44,20 @@ If you know a specific directory which needs updating you can always use 'kpt' d
     help for update
 
 .PP
+\fB\-\-ignore\-yaml\-error\fP[=false]
+    ignore kpt errors of the form: yaml: did not find expected node content
+
+.PP
 \fB\-o\fP, \fB\-\-owner\fP=""
     filter on the Kptfile repository owner (user/organisation) for which packages to update
 
 .PP
 \fB\-r\fP, \fB\-\-repo\fP=""
     filter on the Kptfile repository name  for which packages to update
+
+.PP
+\fB\-s\fP, \fB\-\-strategy\fP="alpha\-git\-patch"
+    the 'kpt' strategy to use. To see available strategies type 'kpt pkg update \-\-help'. Typical values are: resource\-merge, fast\-forward, alpha\-git\-patch, force\-delete\-replace
 
 .PP
 \fB\-u\fP, \fB\-\-url\fP=""
