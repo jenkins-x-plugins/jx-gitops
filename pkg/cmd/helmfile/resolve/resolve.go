@@ -442,9 +442,12 @@ func (o *Options) CustomUpgrades() error {
 	// lets replace the old tekton repositories if they are being used
 	for i := range o.Results.HelmState.Repositories {
 		repo := &o.Results.HelmState.Repositories[i]
-		if strings.TrimSuffix(repo.URL, "/") == "https://kubernetes-charts.storage.googleapis.com" {
+		cleanURL := strings.TrimSuffix(repo.URL, "/")
+		switch cleanURL {
+		case "https://kubernetes-charts.storage.googleapis.com":
 			repo.URL = "https://charts.helm.sh/stable"
-			break
+		case "https://godaddy.github.io/kubernetes-external-secrets":
+			repo.URL = "https://external-secrets.github.io/kubernetes-external-secrets"
 		}
 	}
 
