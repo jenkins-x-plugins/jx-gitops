@@ -26,6 +26,7 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/jxclient"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/naming"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/scmhelpers"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/stringhelpers"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/pkg/errors"
@@ -151,6 +152,9 @@ func (o *Options) Validate() error {
 				o.ConfigMapData[name] = v
 			}
 		}
+		if o.ConfigMapData["MINK_AS"] == "" {
+			o.ConfigMapData["MINK_AS"] = "tekton-bot"
+		}
 	}
 
 	if o.RepositoryURL == "" {
@@ -206,6 +210,12 @@ func (o *Options) Validate() error {
 			Name: "JX_CHART_REPOSITORY",
 			Function: func() (string, error) {
 				return variablefinders.FindRepositoryURL(o.JXClient, o.Namespace, o.Requirements)
+			},
+		},
+		{
+			Name: "MINK_IMAGE",
+			Function: func() (string, error) {
+				return o.minkImage()
 			},
 		},
 		{
@@ -384,6 +394,26 @@ func (o *Options) dockerRegistryOrg() (string, error) {
 		answer = naming.ToValidName(o.Options.Owner)
 	}
 	return answer, nil
+}
+
+func (o *Options) minkImage() (string, error) {
+	registry, err := o.dockerRegistry()
+	if err != nil {
+		return "", errors.Wrapf(err, "failed to get the docker registry")
+	}
+
+	registryOrg, err := o.dockerRegistryOrg()
+	if err != nil {
+		return "", errors.Wrapf(err, "failed to get the docker registry")
+	}
+
+	version, err := variablefinders.FindVersion(o.VersionFile, o.Options.Branch, o.BuildNumber)
+	if err != nil {
+		return "", errors.Wrapf(err, "failed to find version")
+	}
+
+	image := o.Options.Repository + ":" + version
+	return stringhelpers.UrlJoin(registry, registryOrg, image), nil
 }
 
 // GetBuildNumber returns the build number from BUILD_NUMBER or uses PipelineActivities to create/find it
