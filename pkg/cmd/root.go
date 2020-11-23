@@ -15,6 +15,7 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/kpt"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/kustomize"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/label"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/mink"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/namespace"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/plugin"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/postprocess"
@@ -68,6 +69,7 @@ func Main() *cobra.Command {
 	cmd.AddCommand(cobras.SplitCommand(ingress.NewCmdUpdateIngress()))
 	cmd.AddCommand(cobras.SplitCommand(kustomize.NewCmdKustomize()))
 	cmd.AddCommand(cobras.SplitCommand(label.NewCmdUpdateLabel()))
+	cmd.AddCommand(cobras.SplitCommand(mink.NewCmdMink()))
 	cmd.AddCommand(cobras.SplitCommand(namespace.NewCmdUpdateNamespace()))
 	cmd.AddCommand(cobras.SplitCommand(rename.NewCmdRename()))
 	cmd.AddCommand(cobras.SplitCommand(postprocess.NewCmdPostProcess()))
