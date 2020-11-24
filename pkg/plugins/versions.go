@@ -19,9 +19,7 @@ const (
 	HelmVersion = "3.4.0"
 
 	// HelmfileVersion the default version of helmfile to use
-	// TODO broken...
-	//HelmfileVersion = "0.134.0"
-	HelmfileVersion = "0.132.1"
+	HelmfileVersion = "0.135.0"
 
 	// KptVersion the default version of kpt to use
 	KptVersion = "0.37.0"
