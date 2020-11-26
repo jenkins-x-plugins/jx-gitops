@@ -13,12 +13,19 @@ releases:
   namespace: tekton-pipelines
   values:
   - versionStream/charts/cdf/tekton-pipeline/values.yaml.gotmpl
+  forceNamespace: ""
+  skipDeps: null
 - chart: dev/dummy
   version: 1.2.3
   name: dummy
   namespace: jx
+  forceNamespace: ""
+  skipDeps: null
 - chart: jx3/jx-build-controller
   name: jx-build-controller
   namespace: jx
+  forceNamespace: ""
+  skipDeps: null
 templates: {}
 missingFileHandler: ""
+renderedvalues: {}

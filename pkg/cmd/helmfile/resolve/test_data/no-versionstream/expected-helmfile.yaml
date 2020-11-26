@@ -19,27 +19,40 @@ releases:
   namespace: tekton-pipelines
   values:
   - versionStream/charts/cdf/tekton-pipeline/values.yaml.gotmpl
+  forceNamespace: ""
+  skipDeps: null
 - chart: jenkins-x/jxboot-helmfile-resources
   version: 0.0.255
   name: jxboot-helmfile-resources
   namespace: jx
+  forceNamespace: ""
+  skipDeps: null
 - chart: bitnami/external-dns
   version: 3.1.2
   name: external-dns
   namespace: foo
   values:
   - values/external-dns/values.yaml
+  forceNamespace: ""
+  skipDeps: null
 - chart: external-secrets/kubernetes-external-secrets
   version: 4.0.0
   name: kubernetes-external-secrets
   namespace: external-secrets
   values:
   - values/kubernetes-external-secrets/values.yaml.gotmpl
+  forceNamespace: ""
+  skipDeps: null
 - chart: doesnotexist/bucketrepo
   name: bucketrepo
   namespace: jx
+  forceNamespace: ""
+  skipDeps: null
 - chart: jx3/jx-build-controller
   name: jx-build-controller
   namespace: jx
+  forceNamespace: ""
+  skipDeps: null
 templates: {}
 missingFileHandler: ""
+renderedvalues: {}

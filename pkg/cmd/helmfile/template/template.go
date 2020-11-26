@@ -260,7 +260,7 @@ func (o *Options) runHelmfile(fileName string, ns, helmfileArgs string, state *s
 	if o.Debug {
 		args = append(args, "--debug")
 	}
-	args = append(args, "--namespace", ns, "template")
+	args = append(args, "--namespace", ns, "template", "--include-crds")
 	if helmfileArgs != "" {
 		args = append(args, "-args", helmfileArgs)
 	}
