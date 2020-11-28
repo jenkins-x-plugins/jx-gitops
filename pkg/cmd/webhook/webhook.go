@@ -3,9 +3,14 @@ package webhook
 import (
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/webhook/verify"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/spf13/cobra"
 )
+
+var webHookUpdateRetriableErrors = []string{
+	"dial tcp \\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}:\\d+: i/o timeout",
+}
 
 // NewCmdWebhook creates the new command
 func NewCmdWebhook() *cobra.Command {
@@ -20,6 +25,6 @@ func NewCmdWebhook() *cobra.Command {
 			}
 		},
 	}
-	command.AddCommand(cobras.SplitCommand(verify.NewCmdWebHookVerify()))
+	command.AddCommand(helper.RetryOnErrorCommand(cobras.SplitCommand(verify.NewCmdWebHookVerify()), helper.RegexRetryFunction(webHookUpdateRetriableErrors)))
 	return command
 }

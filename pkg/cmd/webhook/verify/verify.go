@@ -11,7 +11,6 @@ import (
 	v1 "github.com/jenkins-x/jx-api/v3/pkg/apis/jenkins.io/v1"
 	jxc "github.com/jenkins-x/jx-api/v3/pkg/client/clientset/versioned"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/jxclient"
@@ -77,9 +76,8 @@ func NewCmdWebHookVerify() (*cobra.Command, *Options) {
 		Short:   "Updates the webhooks for all the source repositories optionally filtering by owner and/or repository",
 		Long:    cmdLong,
 		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName, rootcmd.BinaryName, rootcmd.BinaryName),
-		Run: func(cmd *cobra.Command, args []string) {
-			err := o.Run()
-			helper.CheckErr(err)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return o.Run()
 		},
 	}
 
