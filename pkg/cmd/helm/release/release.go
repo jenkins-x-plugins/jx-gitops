@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	jxc "github.com/jenkins-x/jx-api/v3/pkg/client/clientset/versioned"
+	jxc "github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned"
 	"github.com/jenkins-x/jx-gitops/pkg/plugins"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-gitops/pkg/variablefinders"

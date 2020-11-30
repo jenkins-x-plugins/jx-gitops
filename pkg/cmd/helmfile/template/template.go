@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jenkins-x/jx-api/v3/pkg/config"
+	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/move"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/rename"
 	split2 "github.com/jenkins-x/jx-gitops/pkg/cmd/split"
@@ -191,10 +191,11 @@ func (o *Options) Run() error {
 		}
 	}
 
-	requirements, _, err := config.LoadRequirementsConfig(o.Dir, false)
+	requirementsResource, _, err := jxcore.LoadRequirementsConfig(o.Dir, false)
 	if err != nil {
 		return errors.Wrapf(err, "failed to load jx-requirements.yml")
 	}
+	requirements := &requirementsResource.Spec
 
 	globalEnvs := helmState.Environments["default"]
 	var globalList []interface{}
@@ -307,12 +308,10 @@ func (o *Options) runHelmfile(fileName string, ns, helmfileArgs string, state *s
 }
 
 // createNamespaceJXValuesFile lets create a jx-values-$ns.yaml file for the namespace specific ingress changes
-func (o *Options) createNamespaceJXValuesFile(requirements *config.RequirementsConfig, ns string) (string, error) {
+func (o *Options) createNamespaceJXValuesFile(requirements *jxcore.RequirementsConfig, ns string) (string, error) {
 	req2 := *requirements
-	defaultNS := requirements.Cluster.Namespace
-	if defaultNS == "" {
-		defaultNS = "jx"
-	}
+	defaultNS := jxcore.DefaultNamespace
+
 	req2.Ingress.NamespaceSubDomain = strings.Replace(req2.Ingress.NamespaceSubDomain, defaultNS, ns, 1)
 
 	// if we are in an environment with custom ingress lets use that

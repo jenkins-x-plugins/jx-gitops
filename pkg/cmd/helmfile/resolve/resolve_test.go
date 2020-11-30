@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/jenkins-x/jx-api/v3/pkg/config"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/resolve"
 	"github.com/jenkins-x/jx-gitops/pkg/fakekpt"
 	"github.com/jenkins-x/jx-gitops/pkg/plugins"
@@ -113,10 +112,6 @@ func TestStepHelmfileResolve(t *testing.T) {
 					}
 				}
 			}
-
-			requirements, _, err := config.LoadRequirementsConfig(o.Dir, false)
-			require.NoError(t, err, "failed to load requirements file from dir %s", o.Dir)
-			assert.Equal(t, "https://github.com/jenkins-x/jx3-pipeline-catalog.git", requirements.BuildPacks.BuildPackLibrary.GitURL, "requirements.BuildPacks.BuildPackLibrary.GitURL")
 
 			for _, c := range runner.OrderedCommands {
 				t.Logf("fake command: %s\n", c.CLI())

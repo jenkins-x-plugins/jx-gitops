@@ -14,16 +14,16 @@ import (
 
 	"github.com/ghodss/yaml"
 
-	jenkinsv1 "github.com/jenkins-x/jx-api/v3/pkg/apis/jenkins.io/v1"
-	"github.com/jenkins-x/jx-api/v3/pkg/client/clientset/versioned"
+	jenkinsv1 "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
+	"github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned"
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // GenerateProw will generate the prow config for the namespace
-func GenerateProw(gitOps bool, autoApplyConfigUpdater bool, jxClient versioned.Interface, namespace string, teamSchedulerName string, devEnv *jenkinsv1.Environment, loadSchedulerResourcesFunc func(versioned.Interface, string) (map[string]*schedulerapi.Scheduler, *jenkinsv1.SourceRepositoryGroupList, *jenkinsv1.SourceRepositoryList, error)) (*config.Config,
+func GenerateProw(gitOps bool, autoApplyConfigUpdater bool, jxClient versioned.Interface, namespace string, teamSchedulerName string, devEnv *jenkinsv1.Environment, loadSchedulerResourcesFunc func(versioned.Interface, string) (map[string]*schedulerapi.Scheduler, *jenkinsv1.SourceRepositoryList, error)) (*config.Config,
 	*plugins.Configuration, error) {
-	schedulers, sourceRepoGroups, sourceRepos, err := loadSchedulerResourcesFunc(jxClient, namespace)
+	schedulers, sourceRepos, err := loadSchedulerResourcesFunc(jxClient, namespace)
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "loading scheduler resources")
 	}
@@ -38,8 +38,6 @@ func GenerateProw(gitOps bool, autoApplyConfigUpdater bool, jxClient versioned.I
 		applicableSchedulers = addConfigUpdaterToDevEnv(gitOps, autoApplyConfigUpdater, applicableSchedulers, devEnv, &sourceRepo.Spec)
 		// Apply repo scheduler
 		applicableSchedulers = addRepositoryScheduler(sourceRepo, schedulers, applicableSchedulers)
-		// Apply project schedulers
-		applicableSchedulers = addProjectSchedulers(sourceRepoGroups, sourceRepo, schedulers, applicableSchedulers)
 		// Apply team scheduler
 		applicableSchedulers = addTeamScheduler(teamSchedulerName, defaultScheduler, applicableSchedulers)
 		if len(applicableSchedulers) < 1 {
@@ -87,26 +85,6 @@ func addRepositoryScheduler(sourceRepo jenkinsv1.SourceRepository, lookup map[st
 			applicableSchedulers = append([]*schedulerapi.SchedulerSpec{&scheduler.Spec}, applicableSchedulers...)
 		} else {
 			log.Logger().Warnf("A scheduler named %s is referenced by repository(%s) but could not be found", sourceRepo.Spec.Scheduler.Name, sourceRepo.Name)
-		}
-	}
-	return applicableSchedulers
-}
-
-func addProjectSchedulers(sourceRepoGroups *jenkinsv1.SourceRepositoryGroupList, sourceRepo jenkinsv1.SourceRepository, lookup map[string]*schedulerapi.Scheduler, applicableSchedulers []*schedulerapi.SchedulerSpec) []*schedulerapi.SchedulerSpec {
-	if sourceRepoGroups != nil {
-		for _, sourceGroup := range sourceRepoGroups.Items {
-			for _, groupRepo := range sourceGroup.Spec.SourceRepositorySpec {
-				if groupRepo.Name == sourceRepo.Name {
-					if sourceGroup.Spec.Scheduler.Name != "" {
-						scheduler := lookup[sourceGroup.Spec.Scheduler.Name]
-						if scheduler != nil {
-							applicableSchedulers = append([]*schedulerapi.SchedulerSpec{&scheduler.Spec}, applicableSchedulers...)
-						} else {
-							log.Logger().Warnf("A scheduler named %s is referenced by repository group(%s) but could not be found", sourceGroup.Spec.Scheduler.Name, sourceGroup.Name)
-						}
-					}
-				}
-			}
 		}
 	}
 	return applicableSchedulers

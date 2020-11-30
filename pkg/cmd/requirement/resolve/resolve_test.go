@@ -2,11 +2,12 @@ package resolve_test
 
 import (
 	"io/ioutil"
+	"path"
 	"path/filepath"
 	"testing"
 
 	"github.com/h2non/gock"
-	"github.com/jenkins-x/jx-api/v3/pkg/config"
+	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/requirement/resolve"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner/fakerunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
@@ -91,16 +92,16 @@ func TestRequirementsResolveGKE(t *testing.T) {
 	err = o.Run()
 	require.NoError(t, err, "failed to run git setup")
 
-	requirements, fileName, err := config.LoadRequirementsConfig(tmpDir, false)
+	requirements, fileName, err := jxcore.LoadRequirementsConfig(tmpDir, false)
 	require.NoError(t, err, "failed to load requirements from %s", tmpDir)
 	require.NotNil(t, requirements, "no requirements loaded in dir %s, tmpDir")
 
 	t.Logf("modified file %s\n", fileName)
 
-	assert.Equal(t, expectedProject, requirements.Cluster.ProjectID, "requirements.Cluster.ProjectID for file %s", fileName)
-	assert.Equal(t, expectedProjectNumber, requirements.Cluster.GKEConfig.ProjectNumber, "requirements.Cluster.GKEConfig.ProjectNumber for file %s", fileName)
-	assert.Equal(t, expectedClusterName, requirements.Cluster.ClusterName, "requirements.Cluster.ClusterName for file %s", fileName)
-	assert.Equal(t, expectedLocation, requirements.Cluster.Zone, "requirements.Cluster.Zone for file %s", fileName)
+	assert.Equal(t, expectedProject, requirements.Spec.Cluster.ProjectID, "requirements.Cluster.ProjectID for file %s", fileName)
+	assert.Equal(t, expectedProjectNumber, requirements.Spec.Cluster.GKEConfig.ProjectNumber, "requirements.Cluster.GKEConfig.ProjectNumber for file %s", fileName)
+	assert.Equal(t, expectedClusterName, requirements.Spec.Cluster.ClusterName, "requirements.Cluster.ClusterName for file %s", fileName)
+	assert.Equal(t, expectedLocation, requirements.Spec.Cluster.Zone, "requirements.Cluster.Zone for file %s", fileName)
 }
 
 func TestRequirementsResolvePipelineUser(t *testing.T) {
@@ -142,10 +143,10 @@ func TestRequirementsResolvePipelineUser(t *testing.T) {
 	err = o.Run()
 	require.NoError(t, err, "failed to run git setup")
 
-	requirements, fileName, err := config.LoadRequirementsConfig(tmpDir, false)
+	requirements, fileName, err := jxcore.LoadRequirementsConfig(tmpDir, false)
 	require.NoError(t, err, "failed to load requirements from %s", tmpDir)
 	require.NotNil(t, requirements, "no requirements loaded in dir %s, tmpDir")
-	pipelineUser := requirements.PipelineUser
+	pipelineUser := requirements.Spec.PipelineUser
 	require.NotNil(t, pipelineUser, "no requirements.PipelineUser loaded in dir %s, tmpDir")
 
 	t.Logf("modified file %s\n", fileName)
@@ -153,6 +154,20 @@ func TestRequirementsResolvePipelineUser(t *testing.T) {
 	assert.Equal(t, expectedPipelineUser, pipelineUser.Username, "requirements.PipelineUser.Username for file %s", fileName)
 	assert.Equal(t, expectedPipelineEmail, pipelineUser.Email, "requirements.PipelineUser.Email for file %s", fileName)
 
-	t.Logf("have chart repository %s\n", requirements.Cluster.ChartRepository)
-	assert.Equal(t, "http://jenkins-x-chartmuseum.jx.svc.cluster.local:8080", requirements.Cluster.ChartRepository, "requirements.Cluster.ChartRepository for file %s", fileName)
+	t.Logf("have chart repository %s\n", requirements.Spec.Cluster.ChartRepository)
+	assert.Equal(t, "http://jenkins-x-chartmuseum.jx.svc.cluster.local:8080", requirements.Spec.Cluster.ChartRepository, "requirements.Cluster.ChartRepository for file %s", fileName)
+}
+
+func TestGetRequirementsConfigFromTeamSettings(t *testing.T) {
+
+	content, err := ioutil.ReadFile(path.Join("test_data", "get_req_team_settings", "boot_requirements.yaml"))
+	assert.NoError(t, err)
+
+	settings := &jxcore.TeamSettings{
+		BootRequirements: string(content),
+	}
+
+	req, err := jxcore.GetRequirementsConfigFromTeamSettings(settings)
+	assert.NoError(t, err)
+	assert.Equal(t, "http://bucketrepo/bucketrepo/charts/", req.Cluster.ChartRepository)
 }

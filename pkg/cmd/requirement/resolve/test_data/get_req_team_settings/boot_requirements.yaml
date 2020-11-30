@@ -4,13 +4,12 @@ spec:
   autoUpdate:
     enabled: false
     schedule: ""
-  cluster: {}
+  cluster:
+    chartRepository: http://bucketrepo/bucketrepo/charts/
   ingress:
-    domain: my.domain.com
+    domain: ""
     externalDNS: false
-    namespaceSubDomain: -jx.
-    tls:
-      email: ""
-      enabled: false
-      production: false
+    namespaceSubDomain: ""
+  secretStorage: local
   vault: {}
+  webhook: lighthouse

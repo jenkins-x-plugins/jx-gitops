@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/jenkins-x/jx-api/v3/pkg/config"
+	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/versionstream"
@@ -20,7 +20,7 @@ type Options struct {
 	VersionStreamRef     string
 	CommandRunner        cmdrunner.CommandRunner
 	QuietCommandRunner   cmdrunner.CommandRunner
-	Requirements         *config.RequirementsConfig
+	Requirements         *jxcore.RequirementsConfig
 	RequirementsFileName string
 	Resolver             *versionstream.VersionResolver
 }
@@ -32,27 +32,28 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&o.VersionStreamRef, "version-stream-ref", "", "", "the git ref (branch, tag, revision) of the version stream to git clone. If not specified it defaults to the value in the jx-requirements.yml")
 }
 
+const (
+	defaultVersionStreamURL = "https://github.com/jenkins-x/jxr-versions.git"
+	defaultVersionStreamRef = "master"
+)
+
 // Validate validates the options and populates any missing values
 func (o *Options) Validate() error {
 	var err error
 	if o.Requirements == nil {
-		o.Requirements, o.RequirementsFileName, err = config.LoadRequirementsConfig(o.Dir, false)
+		var requirementsResource *jxcore.Requirements
+		requirementsResource, o.RequirementsFileName, err = jxcore.LoadRequirementsConfig(o.Dir, false)
 		if err != nil {
 			return errors.Wrapf(err, "failed to load jx-requirements.yml")
 		}
+		o.Requirements = &requirementsResource.Spec
 	}
-	requirements := o.Requirements
 	if o.VersionStreamURL == "" {
-		o.VersionStreamURL = requirements.VersionStream.URL
-		if o.VersionStreamURL == "" {
-			o.VersionStreamURL = requirements.VersionStream.URL
-		}
+		o.VersionStreamURL = defaultVersionStreamURL
 	}
 	if o.VersionStreamRef == "" {
-		o.VersionStreamRef = requirements.VersionStream.Ref
-		if o.VersionStreamRef == "" {
-			o.VersionStreamRef = "master"
-		}
+		o.VersionStreamRef = defaultVersionStreamRef
+
 	}
 	if o.VersionStreamDir == "" {
 		o.VersionStreamDir = filepath.Join(o.Dir, "versionStream")

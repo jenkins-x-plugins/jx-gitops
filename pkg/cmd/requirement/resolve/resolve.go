@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/jenkins-x/jx-api/v3/pkg/config"
+	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/cli"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube"
@@ -46,7 +46,7 @@ type Options struct {
 	GKEConfig            GKEConfig
 	KubeClient           kubernetes.Interface
 	gitClient            gitclient.Interface
-	requirements         *config.RequirementsConfig
+	requirements         *jxcore.Requirements
 	requirementsFileName string
 }
 
@@ -74,14 +74,14 @@ func NewCmdRequirementsResolve() (*cobra.Command, *Options) {
 // Run implements the command
 func (o *Options) Run() error {
 	var err error
-	o.requirements, o.requirementsFileName, err = config.LoadRequirementsConfig(o.Dir, false)
+	o.requirements, o.requirementsFileName, err = jxcore.LoadRequirementsConfig(o.Dir, false)
 	if err != nil {
 		return errors.Wrapf(err, "failed to load requirements in dir %s", o.Dir)
 	}
 	if o.requirements == nil {
 		return errors.Errorf("no 'jx-requirements.yml' file found in dir %s", o.Dir)
 	}
-	provider := o.requirements.Cluster.Provider
+	provider := o.requirements.Spec.Cluster.Provider
 	if provider == "" {
 		return errors.Errorf("missing kubernetes provider name at 'cluster.provider' in file: %s", o.requirementsFileName)
 	}
@@ -113,15 +113,13 @@ func (o *Options) GitClient() gitclient.Interface {
 }
 
 func (o *Options) resolveChartRepository() error {
-	if o.requirements.Cluster.ChartRepository != "" {
+	if o.requirements.Spec.Cluster.ChartRepository != "" {
 		return nil
 	}
 
-	ns := o.requirements.Cluster.Namespace
-	if ns == "" {
-		ns = "jx"
-	}
-	o.requirements.Cluster.ChartRepository = fmt.Sprintf("http://jenkins-x-chartmuseum.%s.svc.cluster.local:8080", ns)
+	ns := jxcore.DefaultNamespace
+
+	o.requirements.Spec.Cluster.ChartRepository = fmt.Sprintf("http://jenkins-x-chartmuseum.%s.svc.cluster.local:8080", ns)
 	err := o.requirements.SaveConfig(o.requirementsFileName)
 	if err != nil {
 		return errors.Wrapf(err, "failed to save modified requirements file %s", o.requirementsFileName)
@@ -132,10 +130,10 @@ func (o *Options) resolveChartRepository() error {
 }
 
 func (o *Options) resolvePipelineUsername() error {
-	if o.requirements.PipelineUser == nil {
-		o.requirements.PipelineUser = &config.UserNameEmailConfig{}
+	if o.requirements.Spec.PipelineUser == nil {
+		o.requirements.Spec.PipelineUser = &jxcore.UserNameEmailConfig{}
 	}
-	if o.requirements.PipelineUser.Username != "" && o.requirements.PipelineUser.Email != "" {
+	if o.requirements.Spec.PipelineUser.Username != "" && o.requirements.Spec.PipelineUser.Email != "" {
 		return nil
 	}
 	var err error
@@ -167,12 +165,12 @@ func (o *Options) resolvePipelineUsername() error {
 		log.Logger().Warnf("no email in secret %s in namespace %s", name, ns)
 	}
 	modified := false
-	if o.requirements.PipelineUser.Username == "" && username != "" {
-		o.requirements.PipelineUser.Username = username
+	if o.requirements.Spec.PipelineUser.Username == "" && username != "" {
+		o.requirements.Spec.PipelineUser.Username = username
 		modified = true
 	}
-	if o.requirements.PipelineUser.Email == "" && email != "" {
-		o.requirements.PipelineUser.Email = email
+	if o.requirements.Spec.PipelineUser.Email == "" && email != "" {
+		o.requirements.Spec.PipelineUser.Email = email
 		modified = true
 	}
 

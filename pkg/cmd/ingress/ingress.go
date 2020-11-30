@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jenkins-x/jx-api/v3/pkg/config"
+	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
@@ -62,11 +62,11 @@ func NewCmdUpdateIngress() (*cobra.Command, *Options) {
 
 // Run implements the command
 func (o *Options) Run() error {
-	requirements, requirementsFileName, err := config.LoadRequirementsConfig(o.Dir, false)
+	requirementsResource, requirementsFileName, err := jxcore.LoadRequirementsConfig(o.Dir, false)
 	if err != nil {
 		return errors.Wrapf(err, "failed to load requirements in dir %s", o.Dir)
 	}
-
+	requirements := &requirementsResource.Spec
 	newDomain := requirements.Ingress.Domain
 	if newDomain == "" {
 		log.Logger().Warnf("not modifying Ingress resources as the requirements file %s does not contain Ingress.Domain", requirementsFileName)

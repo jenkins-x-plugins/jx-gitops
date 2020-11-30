@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/jenkins-x/jx-api/v3/pkg/config"
+	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/requirement/merge"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/testhelpers"
@@ -36,7 +36,7 @@ func TestRequirementsMergeFile(t *testing.T) {
 	err = o.Run()
 	require.NoError(t, err, "failed to run merge")
 
-	testhelpers.AssertTextFilesEqual(t, filepath.Join(tmpDir, "expected.yml"), filepath.Join(tmpDir, config.RequirementsConfigFileName), "merged file")
+	testhelpers.AssertTextFilesEqual(t, filepath.Join(tmpDir, "expected.yml"), filepath.Join(tmpDir, jxcore.RequirementsConfigFileName), "merged file")
 }
 
 func TestRequirementsMergeConfigMap(t *testing.T) {
@@ -76,7 +76,7 @@ func TestRequirementsMergeConfigMap(t *testing.T) {
 	err = o.Run()
 	require.NoError(t, err, "failed to run merge")
 
-	testhelpers.AssertTextFilesEqual(t, filepath.Join(tmpDir, "expected.yml"), filepath.Join(tmpDir, config.RequirementsConfigFileName), "merged file")
+	testhelpers.AssertTextFilesEqual(t, filepath.Join(tmpDir, "expected.yml"), filepath.Join(tmpDir, jxcore.RequirementsConfigFileName), "merged file")
 }
 
 func TestRequirementsMergeConfigMapDoesNotExist(t *testing.T) {

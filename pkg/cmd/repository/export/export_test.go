@@ -5,9 +5,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	jenkinsio "github.com/jenkins-x/jx-api/v3/pkg/apis/jenkins.io"
-	jenkinsv1 "github.com/jenkins-x/jx-api/v3/pkg/apis/jenkins.io/v1"
-	"github.com/jenkins-x/jx-api/v3/pkg/client/clientset/versioned/fake"
+	jenkinsio "github.com/jenkins-x/jx-api/v4/pkg/apis/core"
+	jenkinsv1 "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
+	"github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned/fake"
 	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/repository/export"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/testhelpers"

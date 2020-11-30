@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jenkins-x/jx-api/v3/pkg/config"
-
 	"github.com/jenkins-x/go-scm/scm"
-	v1 "github.com/jenkins-x/jx-api/v3/pkg/apis/jenkins.io/v1"
-	jxc "github.com/jenkins-x/jx-api/v3/pkg/client/clientset/versioned"
+	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
+	v1 "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
+	jxc "github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube"
@@ -140,7 +139,7 @@ func (o *Options) Run() error {
 	jxClient := o.JXClient
 	ns := o.Namespace
 
-	srList, err := jxClient.JenkinsV1().SourceRepositories(ns).List(context.TODO(), metav1.ListOptions{})
+	srList, err := jxClient.CoreV4beta1().SourceRepositories(ns).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return errors.Wrapf(err, "failed to find any SourceRepositories in namespace %s", ns)
 	}
@@ -211,7 +210,7 @@ func (o *Options) ensureWebHookCreated(repository *v1.SourceRepository, webhookU
 		return errors.Wrapf(err, "failed to create Scm client for %s", spec.URL)
 	}
 
-	srInterface := o.JXClient.JenkinsV1().SourceRepositories(o.Namespace)
+	srInterface := o.JXClient.CoreV4beta1().SourceRepositories(o.Namespace)
 	if repository.Annotations == nil {
 		repository.Annotations = map[string]string{}
 	}
@@ -255,12 +254,14 @@ func (o *Options) updateRepositoryWebhook(scmClient *scm.Client, owner string, r
 	}
 
 	skipVerify := false
-	requirements, _, err := config.LoadRequirementsConfig("", false)
+	requirements, _, err := jxcore.LoadRequirementsConfig("", false)
 	if err != nil {
 		log.Logger().Warnf("unable to load requirements from the local directory so defaulting skipVerify option on the webhook to false")
 	}
 	if requirements != nil {
-		skipVerify = !requirements.Ingress.TLS.Production
+		if requirements.Spec.Ingress.TLS != nil {
+			skipVerify = !requirements.Spec.Ingress.TLS.Production
+		}
 	}
 
 	webHookArgs := &scm.HookInput{

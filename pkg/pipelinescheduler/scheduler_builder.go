@@ -3,8 +3,8 @@ package pipelinescheduler
 import (
 	"strings"
 
-	jenkinsio "github.com/jenkins-x/jx-api/v3/pkg/apis/jenkins.io"
-	jenkinsv1 "github.com/jenkins-x/jx-api/v3/pkg/apis/jenkins.io/v1"
+	jenkinsio "github.com/jenkins-x/jx-api/v4/pkg/apis/core"
+	jenkinsv1 "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	"github.com/jenkins-x/jx-gitops/pkg/schedulerapi"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/giturl"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/stringhelpers"
@@ -26,7 +26,7 @@ const (
 )
 
 // BuildSchedulers turns prow config in to schedulers
-func BuildSchedulers(prowConfig *config.Config, pluginConfig *plugins.Configuration) ([]*jenkinsv1.SourceRepositoryGroup, []*jenkinsv1.SourceRepository, map[string]*jenkinsv1.SourceRepository, map[string]*schedulerapi.Scheduler, error) {
+func BuildSchedulers(prowConfig *config.Config, pluginConfig *plugins.Configuration) ([]*jenkinsv1.SourceRepository, map[string]*jenkinsv1.SourceRepository, map[string]*schedulerapi.Scheduler, error) {
 	log.Logger().Info("Building scheduler resources from prow config")
 	sourceRepos := make(map[string]*jenkinsv1.SourceRepository, 0)
 	if prowConfig.Presubmits != nil {
@@ -61,7 +61,7 @@ func BuildSchedulers(prowConfig *config.Config, pluginConfig *plugins.Configurat
 		schedulers[defaultScheduler.Name] = defaultScheduler
 	}
 	// TODO Dedupe in to source repo groups
-	return nil, sourceRepoSlice, sourceRepos, schedulers, nil
+	return sourceRepoSlice, sourceRepos, schedulers, nil
 }
 
 func buildSourceRepo(org string, repo string) *jenkinsv1.SourceRepository {

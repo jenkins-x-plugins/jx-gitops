@@ -1,8 +1,14 @@
-cluster:
-  provider: eks
-gitops: true
-webhook: lighthouse
-versionStream:
-  ref: "master"
-  url: https://github.com/jenkins-x/jxr-versions.git
-
+apiVersion: core.jenkins-x.io/v4beta1
+kind: Requirements
+spec:
+  autoUpdate:
+    enabled: false
+    schedule: ""
+  cluster:
+    provider: eks
+  ingress:
+    domain: ""
+    externalDNS: false
+    namespaceSubDomain: ""
+  vault: {}
+  webhook: lighthouse

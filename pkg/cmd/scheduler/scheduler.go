@@ -7,11 +7,10 @@ import (
 	"strings"
 
 	"github.com/jenkins-x/go-scm/scm"
-	v1 "github.com/jenkins-x/jx-api/v3/pkg/apis/jenkins.io/v1"
-	jxconfig "github.com/jenkins-x/jx-api/v3/pkg/config"
+	v1 "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 
-	"github.com/jenkins-x/jx-api/v3/pkg/client/clientset/versioned"
-	"github.com/jenkins-x/jx-api/v3/pkg/client/clientset/versioned/fake"
+	"github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned"
+	"github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned/fake"
 	"github.com/jenkins-x/jx-gitops/pkg/schedulerapi"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
@@ -136,7 +135,6 @@ func (o *Options) Run() error {
 	var resources []runtime.Object
 
 	schedulerMap := map[string]*schedulerapi.Scheduler{}
-	repoListGroup := &v1.SourceRepositoryGroupList{}
 	repoList := &v1.SourceRepositoryList{}
 
 	sourceModifyFn := func(node *yaml.RNode, path string) (bool, error) {
@@ -233,8 +231,8 @@ func (o *Options) Run() error {
 	resources = append(resources, devEnv)
 	jxClient := fake.NewSimpleClientset(resources...)
 
-	loadSchedulers := func(jxClient versioned.Interface, ns string) (map[string]*schedulerapi.Scheduler, *v1.SourceRepositoryGroupList, *v1.SourceRepositoryList, error) {
-		return schedulerMap, repoListGroup, repoList, nil
+	loadSchedulers := func(jxClient versioned.Interface, ns string) (map[string]*schedulerapi.Scheduler, *v1.SourceRepositoryList, error) {
+		return schedulerMap, repoList, nil
 	}
 
 	config, plugins, err := pipelinescheduler.GenerateProw(true, true, jxClient, ns, teamSettings.DefaultScheduler.Name, devEnv, loadSchedulers)
@@ -304,10 +302,11 @@ func (o *Options) Run() error {
 }
 
 func (o *Options) createTemplater() (func(string) (string, error), error) {
-	requirements, _, err := jxconfig.LoadRequirementsConfig(o.Dir, false)
+	requirementsResource, _, err := v1.LoadRequirementsConfig(o.Dir, false)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to load requirements in dir %s", o.Dir)
 	}
+	requirements := &requirementsResource.Spec
 	return func(templateText string) (string, error) {
 		return EvaluateTemplate(templateText, requirements)
 	}, nil

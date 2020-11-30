@@ -3,7 +3,7 @@ package v1alpha1
 import (
 	"io/ioutil"
 
-	"github.com/jenkins-x/jx-api/v3/pkg/util"
+	"github.com/jenkins-x/jx-api/v4/pkg/util"
 
 	"github.com/pkg/errors"
 	"gopkg.in/validator.v2"

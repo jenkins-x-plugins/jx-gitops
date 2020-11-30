@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/jenkins-x/go-scm/scm/driver/fake"
-	jxfake "github.com/jenkins-x/jx-api/v3/pkg/client/clientset/versioned/fake"
+	jxfake "github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned/fake"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/git/get"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/jxenv"
 	"github.com/stretchr/testify/require"

@@ -1,64 +1,34 @@
-autoUpdate:
-  enabled: false
-  schedule: ""
-bootConfigURL: https://github.com/jenkins-x/jx3-boot-config
-buildPacks:
-  buildPackLibrary:
-    gitRef: master
-    gitURL: https://github.com/jenkins-x/jxr-packs-kubernetes.git
-cluster:
-  clusterName: todo
-  devEnvApprovers:
-  - todo
-  environmentGitOwner: "todo"
-  gitKind: github
-  gitName: github
-  gitServer: https://github.com
-  namespace: jx
-  project:  "todo"
-  provider: gke
-  registry: gcr.io
-  zone: europe-west1-b
-environments:
-- key: dev
-  owner: ""
-  repository: ""
-- key: staging
-  owner: ""
-  repository: ""
-- key: production
-  owner: ""
-  repository: ""
-gitops: true
-ingress:
-  domain: ""
-  externalDNS: false
-  namespaceSubDomain: -jx.
-  tls:
-    email: ""
+apiVersion: core.jenkins-x.io/v4beta1
+kind: Requirements
+spec:
+  autoUpdate:
     enabled: false
-    production: false
-kaniko: true
-repository: nexus
-secretStorage: vault
-storage:
-  backup:
-    enabled: false
-    url: ""
-  logs:
-    enabled: false
-    url: ""
-  reports:
-    enabled: false
-    url: ""
-  repository:
-    enabled: false
-    url: ""
-vault: {}
-velero:
-  schedule: ""
-  ttl: ""
-versionStream:
-  ref: master
-  url: https://github.com/jenkins-x/jxr-versions.git
-webhook: lighthouse
+    schedule: ""
+  cluster:
+    clusterName: todo
+    devEnvApprovers:
+    - todo
+    environmentGitOwner: todo
+    gitKind: github
+    gitName: github
+    gitServer: https://github.com
+    project: todo
+    provider: gke
+    registry: gcr.io
+    zone: europe-west1-b
+  environments:
+  - key: dev
+  - key: staging
+  - key: production
+  ingress:
+    domain: ""
+    externalDNS: false
+    namespaceSubDomain: -jx.
+    tls:
+      email: ""
+      enabled: false
+      production: false
+  repository: nexus
+  secretStorage: vault
+  vault: {}
+  webhook: lighthouse

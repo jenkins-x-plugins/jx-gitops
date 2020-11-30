@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/jenkins-x/jx-api/v3/pkg/config"
+	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/httphelpers"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/stringhelpers"
@@ -41,9 +41,9 @@ type GKEConfig struct {
 
 // ResolveGKE resolves any missing GKE metadata
 func (o *Options) ResolveGKE() error {
-	cluster := &o.requirements.Cluster
+	cluster := &o.requirements.Spec.Cluster
 	if cluster.GKEConfig == nil {
-		cluster.GKEConfig = &config.GKEConfig{}
+		cluster.GKEConfig = &jxcore.GKEConfig{}
 	}
 	projectID := cluster.ProjectID
 	clusterName := cluster.ClusterName
@@ -152,7 +152,7 @@ func (o *Options) getGKEMetadataEndpoint() string {
 }
 
 func (o *Options) logGKEMetadata() {
-	cluster := &o.requirements.Cluster
+	cluster := &o.requirements.Spec.Cluster
 	info := termcolor.ColorInfo
 
 	log.Logger().Infof("GKE project: %s", info(cluster.ProjectID))

@@ -1,9 +1,16 @@
-cluster:
-  namespace: jx
-  provider: gke
-  clusterName: mycluster
-  project: myproject
-secretStorage: local
-versionStream:
-  ref: master
-  url: https://github.com/jenkins-x/jxr-versions.git
+apiVersion: core.jenkins-x.io/v4beta1
+kind: Requirements
+spec:
+  autoUpdate:
+    enabled: false
+    schedule: ""
+  cluster:
+    clusterName: mycluster
+    project: myproject
+    provider: gke
+  ingress:
+    domain: ""
+    externalDNS: false
+    namespaceSubDomain: ""
+  secretStorage: local
+  vault: {}
