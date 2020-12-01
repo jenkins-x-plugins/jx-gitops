@@ -920,14 +920,10 @@ github.com/jenkins-x/go-scm v1.5.65/go.mod h1:MgGRkJScE/rJ30J/bXYqduN5sDPZqZFITJ
 github.com/jenkins-x/go-scm v1.5.79/go.mod h1:PCT338UhP/pQ0IeEeMEf/hoLTYKcH7qjGEKd7jPkeYg=
 github.com/jenkins-x/go-scm v1.5.117/go.mod h1:PCT338UhP/pQ0IeEeMEf/hoLTYKcH7qjGEKd7jPkeYg=
 github.com/jenkins-x/go-scm v1.5.178/go.mod h1:xk/KnuS3rVHKBEASsShBZGABm9cGrwntQffiy3BfTCc=
-github.com/jenkins-x/go-scm v1.5.186/go.mod h1:pTp8HHrCEVGs24H/8Cy+X/CDXFlKv9VC6zmrXBYNkfE=
 github.com/jenkins-x/go-scm v1.5.191 h1:LBFt8veqB7MkPy5XSc9PPOOkm8ia9HjnRh27oQoSgdg=
 github.com/jenkins-x/go-scm v1.5.191/go.mod h1:pTp8HHrCEVGs24H/8Cy+X/CDXFlKv9VC6zmrXBYNkfE=
-github.com/jenkins-x/jx-api/v3 v3.0.1/go.mod h1:T/Q15bSgPAq9+4k5gMZIuVVmj6rfCDqF4XYLJXkM3Q8=
 github.com/jenkins-x/jx-api/v3 v3.0.3 h1:jiRlPKn5hebsfHDi+Pq3IPKGPcTnvyfLXTQYuMFrn+A=
 github.com/jenkins-x/jx-api/v3 v3.0.3/go.mod h1:8akIl/53O1P/DfyXz6ZysWl/9AfdVlJpZK/xOajgXos=
-github.com/jenkins-x/jx-helpers/v3 v3.0.24 h1:mRzyJvEPa+63Y9F0QceKSqfn4bCt1iqh5CSkfuFRk0k=
-github.com/jenkins-x/jx-helpers/v3 v3.0.24/go.mod h1:UEnvjBpO7QzoIwjyq0FeSt79jj8Xtv9OEEzdUb4Gvb8=
 github.com/jenkins-x/jx-helpers/v3 v3.0.25 h1:YmFT73KVT/iKwdbgqLeVP3gaL8mnDZ26LicvZQlgQak=
 github.com/jenkins-x/jx-helpers/v3 v3.0.25/go.mod h1:UEnvjBpO7QzoIwjyq0FeSt79jj8Xtv9OEEzdUb4Gvb8=
 github.com/jenkins-x/jx-kube-client/v3 v3.0.1 h1:zMnxoLRXJJ85PAd9OVPlgXT5T8xHgbmxSMhpYPTF5mw=
