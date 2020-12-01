@@ -446,6 +446,10 @@ func (o *Options) FindBuildNumber(buildID string) (string, error) {
 	branch := o.Options.Branch
 	var activitySlice []*v1.PipelineActivity
 
+	safeOwner := naming.ToValidName(owner)
+	safeRepository := naming.ToValidName(repository)
+	safeBranch := naming.ToValidName(branch)
+
 	resources, err := activityInterface.List(context.TODO(), metav1.ListOptions{})
 	if err != nil && !apierrors.IsNotFound(err) {
 		return "", errors.Wrapf(err, "failed to find PipelineActivity resources in namespace %s", o.Namespace)
@@ -454,7 +458,9 @@ func (o *Options) FindBuildNumber(buildID string) (string, error) {
 		for i := range resources.Items {
 			pa := &resources.Items[i]
 			ps := &pa.Spec
-			if ps.GitOwner == owner && ps.GitRepository == repository && ps.GitBranch == branch {
+			if (ps.GitOwner == owner || ps.GitOwner == safeOwner) &&
+				(ps.GitRepository == repository || ps.GitRepository == safeRepository) &&
+				(ps.GitBranch == branch || ps.GitBranch == safeBranch) {
 				activitySlice = append(activitySlice, pa)
 			}
 		}
