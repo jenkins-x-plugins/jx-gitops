@@ -256,7 +256,7 @@ func (o *Options) Run() error {
 
 				version := versionProperties.Version
 
-				if version == "" {
+				if release.Version == "" && version == "" {
 					log.Logger().Warnf("could not find version for chart %s so using latest found in helm repository %s", fullChartName, repository)
 				}
 
