@@ -8,6 +8,7 @@ import (
 
 	"github.com/h2non/gock"
 	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
+	v1 "github.com/jenkins-x/jx-api/v4/pkg/apis/jenkins.io/v1"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/requirement/resolve"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner/fakerunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
@@ -163,7 +164,7 @@ func TestGetRequirementsConfigFromTeamSettings(t *testing.T) {
 	content, err := ioutil.ReadFile(path.Join("test_data", "get_req_team_settings", "boot_requirements.yaml"))
 	assert.NoError(t, err)
 
-	settings := &jxcore.TeamSettings{
+	settings := &v1.TeamSettings{
 		BootRequirements: string(content),
 	}
 

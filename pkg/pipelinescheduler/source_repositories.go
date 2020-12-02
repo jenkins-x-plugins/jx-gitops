@@ -7,8 +7,8 @@ import (
 	"reflect"
 	"strings"
 
-	jenkinsio "github.com/jenkins-x/jx-api/v4/pkg/apis/core"
-	v1 "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
+	jenkinsio "github.com/jenkins-x/jx-api/v4/pkg/apis/jenkins.io"
+	v1 "github.com/jenkins-x/jx-api/v4/pkg/apis/jenkins.io/v1"
 	"github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/naming"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/stringhelpers"
@@ -49,7 +49,7 @@ func FindSourceRepositoryWithoutProvider(jxClient versioned.Interface, ns string
 
 // findSourceRepositoryByLabels returns a SourceRepository matching the given label selector, if it exists.
 func findSourceRepositoryByLabels(jxClient versioned.Interface, ns string, labelSelector string) (*v1.SourceRepository, error) {
-	repos, err := jxClient.CoreV4beta1().SourceRepositories(ns).List(context.TODO(), metav1.ListOptions{
+	repos, err := jxClient.JenkinsV1().SourceRepositories(ns).List(context.TODO(), metav1.ListOptions{
 		LabelSelector: labelSelector,
 	})
 	if err != nil {
@@ -66,7 +66,7 @@ func findSourceRepositoryByLabels(jxClient versioned.Interface, ns string, label
 func FindSourceRepository(jxClient versioned.Interface, ns string, owner string, name string, providerName string) (*v1.SourceRepository, error) {
 	// Look up by resource name is retained for compatibility with SourceRepositorys created before they were always created with labels
 	resourceName := naming.ToValidName(owner + "-" + name)
-	repo, err := jxClient.CoreV4beta1().SourceRepositories(ns).Get(context.TODO(), resourceName, metav1.GetOptions{})
+	repo, err := jxClient.JenkinsV1().SourceRepositories(ns).Get(context.TODO(), resourceName, metav1.GetOptions{})
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			labelSelector := fmt.Sprintf("%s=%s,%s=%s", v1.LabelOwner, owner, v1.LabelRepository, name)
@@ -86,7 +86,7 @@ func FindSourceRepository(jxClient versioned.Interface, ns string, owner string,
 func GetOrCreateSourceRepositoryCallback(jxClient versioned.Interface, ns string, name, organisation, providerURL string, callback func(*v1.SourceRepository)) (*v1.SourceRepository, error) {
 	resourceName := naming.ToValidName(organisation + "-" + name)
 
-	repositories := jxClient.CoreV4beta1().SourceRepositories(ns)
+	repositories := jxClient.JenkinsV1().SourceRepositories(ns)
 
 	providerName := ToProviderName(providerURL)
 
@@ -199,7 +199,7 @@ func createSourceRepositoryCallback(client versioned.Interface, namespace string
 		callback(sr)
 	}
 	sr.Sanitize()
-	answer, err := client.CoreV4beta1().SourceRepositories(namespace).Create(context.TODO(), sr, metav1.CreateOptions{})
+	answer, err := client.JenkinsV1().SourceRepositories(namespace).Create(context.TODO(), sr, metav1.CreateOptions{})
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to create new SourceRepository for organisation %s and repository %s", organisation, name)
 	}

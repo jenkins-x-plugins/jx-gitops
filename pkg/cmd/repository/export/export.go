@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	jenkinsv1 "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
+	jenkinsv1 "github.com/jenkins-x/jx-api/v4/pkg/apis/jenkins.io/v1"
 	"github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned"
 	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
@@ -78,7 +78,7 @@ func (o *Options) Run() error {
 	}
 
 	ns := o.Namespace
-	srList, err := o.JXClient.CoreV4beta1().SourceRepositories(ns).List(context.TODO(), metav1.ListOptions{})
+	srList, err := o.JXClient.JenkinsV1().SourceRepositories(ns).List(context.TODO(), metav1.ListOptions{})
 	if err != nil && !apierrors.IsNotFound(err) {
 		return errors.Wrapf(err, "failed to load SourceRepositories in namespace %s", ns)
 	}

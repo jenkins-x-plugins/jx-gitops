@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
-	v1 "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
+	v1 "github.com/jenkins-x/jx-api/v4/pkg/apis/jenkins.io/v1"
 	jxc "github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-gitops/pkg/variablefinders"
@@ -439,7 +439,7 @@ func (o *Options) GetBuildNumber() (string, error) {
 // FindBuildNumber finds the build number for the given build ID
 func (o *Options) FindBuildNumber(buildID string) (string, error) {
 	// lets try find a PipelineActivity with this build ID...
-	activityInterface := o.JXClient.CoreV4beta1().PipelineActivities(o.Namespace)
+	activityInterface := o.JXClient.JenkinsV1().PipelineActivities(o.Namespace)
 
 	owner := o.Options.Owner
 	repository := o.Options.Repository

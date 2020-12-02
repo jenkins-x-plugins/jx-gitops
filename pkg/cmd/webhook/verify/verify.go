@@ -7,7 +7,7 @@ import (
 
 	"github.com/jenkins-x/go-scm/scm"
 	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
-	v1 "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
+	v1 "github.com/jenkins-x/jx-api/v4/pkg/apis/jenkins.io/v1"
 	jxc "github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
@@ -139,7 +139,7 @@ func (o *Options) Run() error {
 	jxClient := o.JXClient
 	ns := o.Namespace
 
-	srList, err := jxClient.CoreV4beta1().SourceRepositories(ns).List(context.TODO(), metav1.ListOptions{})
+	srList, err := jxClient.JenkinsV1().SourceRepositories(ns).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return errors.Wrapf(err, "failed to find any SourceRepositories in namespace %s", ns)
 	}
@@ -210,7 +210,7 @@ func (o *Options) ensureWebHookCreated(repository *v1.SourceRepository, webhookU
 		return errors.Wrapf(err, "failed to create Scm client for %s", spec.URL)
 	}
 
-	srInterface := o.JXClient.CoreV4beta1().SourceRepositories(o.Namespace)
+	srInterface := o.JXClient.JenkinsV1().SourceRepositories(o.Namespace)
 	if repository.Annotations == nil {
 		repository.Annotations = map[string]string{}
 	}
