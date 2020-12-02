@@ -5,12 +5,12 @@ import (
 	"text/template"
 
 	"github.com/Masterminds/sprig"
-	"github.com/jenkins-x/jx-api/v3/pkg/config"
+	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	"github.com/pkg/errors"
 )
 
 // EvaluateTemplate evaluates the go template for the given value
-func EvaluateTemplate(templateText string, requirements *config.RequirementsConfig) (string, error) {
+func EvaluateTemplate(templateText string, requirements *jxcore.RequirementsConfig) (string, error) {
 	if templateText == "" {
 		return "", nil
 	}

@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/jenkins-x/go-scm/scm"
-	jxc "github.com/jenkins-x/jx-api/v3/pkg/client/clientset/versioned"
+	jxc "github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
@@ -145,7 +145,7 @@ func (o *Options) findEnvironmentRepository() error {
 	}
 
 	envName := o.Env
-	env, err := o.JXClient.JenkinsV1().Environments(o.Namespace).Get(context.TODO(), envName, metav1.GetOptions{})
+	env, err := o.JXClient.CoreV4beta1().Environments(o.Namespace).Get(context.TODO(), envName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger().Warnf("could not find environment %s in namespace %s ", envName, o.Namespace)
 		return errors.Wrapf(err, "failed to load Environment %s in namespace %s", envName, o.Namespace)

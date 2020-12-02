@@ -1,1 +1,4 @@
-gitops: true
+apiVersion: core.jenkins-x.io/v4beta1
+kind: Requirements
+spec:
+  webhook: lighthouse

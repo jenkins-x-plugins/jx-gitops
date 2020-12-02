@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/jenkins-x/jx-api/v3/pkg/config"
-	"github.com/jenkins-x/jx-api/v3/pkg/util"
+	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
+	"github.com/jenkins-x/jx-api/v4/pkg/util"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
@@ -159,7 +159,7 @@ func (o *Options) modifySourceRepository(node *yaml.RNode, path string) (bool, e
 
 func (o *Options) modifyRequirements() error {
 	dir := o.Dir
-	fileName := filepath.Join(dir, config.RequirementsConfigFileName)
+	fileName := filepath.Join(dir, jxcore.RequirementsConfigFileName)
 	exists, err := util.FileExists(fileName)
 	if err != nil {
 		return errors.Wrapf(err, "failed to check if file exists %s", fileName)
@@ -169,10 +169,11 @@ func (o *Options) modifyRequirements() error {
 		return nil
 	}
 
-	requirements, err := config.LoadRequirementsConfigFile(fileName, true)
+	requirementsResource, err := jxcore.LoadRequirementsConfigFile(fileName, true)
 	if err != nil {
 		return errors.Wrapf(err, "failed to load file %s", fileName)
 	}
+	requirements := &requirementsResource.Spec
 
 	repository := o.gitInfo.Name
 	owner := o.gitInfo.Organisation
@@ -190,7 +191,7 @@ func (o *Options) modifyRequirements() error {
 		return errors.Errorf("could not find a 'dev' environment in the file %s", fileName)
 	}
 	log.Logger().Infof("saving %s", fileName)
-	err = requirements.SaveConfig(fileName)
+	err = requirementsResource.SaveConfig(fileName)
 	if err != nil {
 		return errors.Wrapf(err, "failed to save file %s", fileName)
 	}

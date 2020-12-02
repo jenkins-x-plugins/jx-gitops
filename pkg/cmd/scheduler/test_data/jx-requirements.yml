@@ -1,4 +1,12 @@
-ingress:
-  domain: 1.2.3.4.nip.io
-  namespaceSubDomain: .jx.
-  
+apiVersion: core.jenkins-x.io/v4beta1
+kind: Requirements
+spec:
+  autoUpdate:
+    enabled: false
+    schedule: ""
+  cluster: {}
+  ingress:
+    domain: 1.2.3.4.nip.io
+    externalDNS: false
+    namespaceSubDomain: .jx.
+  vault: {}

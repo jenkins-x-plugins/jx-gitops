@@ -1,8 +1,16 @@
-ingress:
-  domain: "my.domain.com"
-  externalDNS: false
-  namespaceSubDomain: -jx.
-  tls:
-    email: ""
-    enabled: true
-    production: false
+apiVersion: core.jenkins-x.io/v4beta1
+kind: Requirements
+spec:
+  autoUpdate:
+    enabled: false
+    schedule: ""
+  cluster: {}
+  ingress:
+    domain: my.domain.com
+    externalDNS: false
+    namespaceSubDomain: -jx.
+    tls:
+      email: ""
+      enabled: true
+      production: false
+  vault: {}

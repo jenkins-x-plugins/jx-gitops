@@ -10,9 +10,9 @@ import (
 	"strconv"
 	"strings"
 
-	v1 "github.com/jenkins-x/jx-api/v3/pkg/apis/jenkins.io/v1"
-	jxc "github.com/jenkins-x/jx-api/v3/pkg/client/clientset/versioned"
-	"github.com/jenkins-x/jx-api/v3/pkg/config"
+	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
+	v1 "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
+	jxc "github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-gitops/pkg/variablefinders"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
@@ -62,7 +62,7 @@ type Options struct {
 	BuildID        string
 	KubeClient     kubernetes.Interface
 	JXClient       jxc.Interface
-	Requirements   *config.RequirementsConfig
+	Requirements   *jxcore.RequirementsConfig
 	ConfigMapData  map[string]string
 	entries        map[string]*Entry
 	factories      []Factory
@@ -439,7 +439,7 @@ func (o *Options) GetBuildNumber() (string, error) {
 // FindBuildNumber finds the build number for the given build ID
 func (o *Options) FindBuildNumber(buildID string) (string, error) {
 	// lets try find a PipelineActivity with this build ID...
-	activityInterface := o.JXClient.JenkinsV1().PipelineActivities(o.Namespace)
+	activityInterface := o.JXClient.CoreV4beta1().PipelineActivities(o.Namespace)
 
 	owner := o.Options.Owner
 	repository := o.Options.Repository

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"path/filepath"
 
-	v1 "github.com/jenkins-x/jx-api/v3/pkg/apis/jenkins.io/v1"
-	"github.com/jenkins-x/jx-api/v3/pkg/config"
+	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
+	v1 "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"
@@ -37,7 +37,7 @@ type Options struct {
 	Dir                  string
 	EnvFile              string
 	Namespace            string
-	requirements         *config.RequirementsConfig
+	requirements         *jxcore.RequirementsConfig
 	requirementsFileName string
 }
 
@@ -56,7 +56,7 @@ func NewCmdRequirementsPublish() (*cobra.Command, *Options) {
 		},
 	}
 	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the directory to run the git push command from")
-	cmd.Flags().StringVarP(&o.Namespace, "namespace", "", "", "the namespace used to find the git operator secret for the git repository if running in cluster. Defaults to the current namespace")
+	cmd.Flags().StringVarP(&o.Namespace, "namespace", "", "jx", "the namespace used to find dev-environment.yaml")
 	cmd.Flags().StringVarP(&o.EnvFile, "env-file", "", "", "the file name for the dev Environment. If not specified it defaults config-root/namespaces/jx/jxboot-helmfile-resources/dev-environment.yaml to within the directory")
 	return cmd, o
 }
@@ -64,28 +64,25 @@ func NewCmdRequirementsPublish() (*cobra.Command, *Options) {
 // Run implements the command
 func (o *Options) Run() error {
 	var err error
-	o.requirements, o.requirementsFileName, err = config.LoadRequirementsConfig(o.Dir, false)
+	var requirementsResource *jxcore.Requirements
+	requirementsResource, o.requirementsFileName, err = jxcore.LoadRequirementsConfig(o.Dir, false)
 	if err != nil {
 		return errors.Wrapf(err, "failed to load requirements in dir %s", o.Dir)
 	}
+	o.requirements = &requirementsResource.Spec
 	if o.requirements == nil {
 		return errors.Errorf("no 'jx-requirements.yml' file found in dir %s", o.Dir)
 	}
 
-	ns := o.requirements.Cluster.Namespace
-	if ns == "" {
-		ns = o.Namespace
-		if ns == "" {
-			ns, err = kubeclient.CurrentNamespace()
-			if err != nil {
-				return errors.Wrapf(err, "failed to find current namespace")
-			}
+	if o.Namespace == "" {
+		o.Namespace, err = kubeclient.CurrentNamespace()
+		if err != nil {
+			return errors.Wrapf(err, "failed to find current namespace")
 		}
 	}
-	o.Namespace = ns
 
 	if o.EnvFile == "" {
-		o.EnvFile = filepath.Join(o.Dir, "config-root", "namespaces", ns, "jxboot-helmfile-resources", "dev-environment.yaml")
+		o.EnvFile = filepath.Join(o.Dir, "config-root", "namespaces", o.Namespace, "jxboot-helmfile-resources", "dev-environment.yaml")
 	}
 
 	exists, err := files.FileExists(o.EnvFile)

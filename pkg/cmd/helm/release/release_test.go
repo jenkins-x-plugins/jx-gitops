@@ -4,8 +4,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	jxfake "github.com/jenkins-x/jx-api/v3/pkg/client/clientset/versioned/fake"
-	"github.com/jenkins-x/jx-api/v3/pkg/config"
+	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
+
+	jxfake "github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned/fake"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helm/release"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner/fakerunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube"
@@ -26,8 +27,8 @@ func TestStepHelmRelease(t *testing.T) {
 	devEnv.Namespace = ns
 	devEnv.Spec.Source.URL = "https://github.com/myorg/myrepo.git"
 
-	requirements := config.NewRequirementsConfig()
-	requirements.Cluster.ChartRepository = "http://bucketrepo/bucketrepo/charts/"
+	requirements := jxcore.NewRequirementsConfig()
+	requirements.Spec.Cluster.ChartRepository = "http://bucketrepo/bucketrepo/charts/"
 	data, err := yaml.Marshal(requirements)
 	require.NoError(t, err, "failed to marshal requirements")
 	devEnv.Spec.TeamSettings.BootRequirements = string(data)

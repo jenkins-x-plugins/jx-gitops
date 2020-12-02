@@ -1,7 +1,7 @@
 package reqvalues
 
 import (
-	"github.com/jenkins-x/jx-api/v3/pkg/config"
+	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
@@ -21,20 +21,25 @@ type HelmfileConditional struct {
 // RequirementsValues contains the logical installation requirements in the `jx-requirements.yml` file as helm values
 type RequirementsValues struct {
 	// RequirementsConfig contains the logical installation requirements
-	RequirementsConfig          *config.RequirementsConfig `json:"jxRequirements,omitempty"`
+	RequirementsConfig          *jxcore.RequirementsConfig `json:"jxRequirements,omitempty"`
 	IngressExternalDNSCondition *HelmfileConditional       `json:"jxRequirementsIngressExternalDNS,omitempty"`
 	IngressTLSCondition         *HelmfileConditional       `json:"jxRequirementsIngressTLS,omitempty"`
 	VaultCondition              *HelmfileConditional       `json:"jxRequirementsVault,omitempty"`
 }
 
 // SaveRequirementsValuesFile saves the requirements yaml file for use with helmfile / helm 3
-func SaveRequirementsValuesFile(c *config.RequirementsConfig, fileName string) error {
+func SaveRequirementsValuesFile(c *jxcore.RequirementsConfig, fileName string) error {
+	// lets initialise an empty struct to handle backwards compatibility
+	if c.Ingress.TLS == nil {
+		c.Ingress.TLS = &jxcore.TLSConfig{}
+	}
 	y := &RequirementsValues{
 		RequirementsConfig:          c,
 		IngressExternalDNSCondition: &HelmfileConditional{Enabled: c.Ingress.ExternalDNS},
 		IngressTLSCondition:         &HelmfileConditional{Enabled: c.Ingress.TLS.Enabled},
-		VaultCondition:              &HelmfileConditional{Enabled: c.SecretStorage == config.SecretStorageTypeVault},
+		VaultCondition:              &HelmfileConditional{Enabled: c.SecretStorage == jxcore.SecretStorageTypeVault},
 	}
+
 	err := yamls.SaveFile(y, fileName)
 	if err != nil {
 		return errors.Wrapf(err, "failed to save file %s", fileName)

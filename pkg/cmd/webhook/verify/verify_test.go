@@ -4,9 +4,10 @@ import (
 	"context"
 	"testing"
 
+	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
+
 	"github.com/jenkins-x/go-scm/scm"
-	fakejx "github.com/jenkins-x/jx-api/v3/pkg/client/clientset/versioned/fake"
-	"github.com/jenkins-x/jx-api/v3/pkg/config"
+	fakejx "github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned/fake"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/webhook/verify"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/boot"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/jxenv"
@@ -53,8 +54,8 @@ func TestWebhookVerify(t *testing.T) {
 		},
 	)
 
-	requirements := config.NewRequirementsConfig()
-	requirements.Cluster.ChartRepository = "http://bucketrepo/bucketrepo/charts/"
+	requirements := jxcore.NewRequirementsConfig()
+	requirements.Spec.Cluster.ChartRepository = "http://bucketrepo/bucketrepo/charts/"
 	data, err := yaml.Marshal(requirements)
 	require.NoError(t, err, "failed to marshal requirements")
 
@@ -84,7 +85,7 @@ func TestWebhookVerify(t *testing.T) {
 		t.Logf("found hook %s for %s with events %#v\n", h.ID, h.Target, h.Events)
 	}
 
-	sr, err = jxClient.JenkinsV1().SourceRepositories(ns).Get(context.TODO(), sr.Name, metav1.GetOptions{})
+	sr, err = jxClient.CoreV4beta1().SourceRepositories(ns).Get(context.TODO(), sr.Name, metav1.GetOptions{})
 	require.NoError(t, err, "failed to lookup SourceRepository %s", sr.Name)
 	testhelpers.AssertAnnotation(t, verify.WebHookAnnotation, "true", sr.ObjectMeta, "for SourceRepository: "+sr.Name)
 	t.Logf("SourceRepository %s has annotation %s = %s\n", sr.Name, verify.WebHookAnnotation, sr.Annotations[verify.WebHookAnnotation])

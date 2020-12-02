@@ -1,0 +1,20 @@
+apiVersion: core.jenkins-x.io/v4beta1
+kind: Requirements
+spec:
+  autoUpdate:
+    enabled: true
+    schedule: 0 0 * * *
+  cluster:
+    environmentGitPublic: true
+    gitKind: github
+    gitName: github
+    gitPublic: true
+    gitServer: https://github.com
+    gke:
+      projectNumber: "1055835833001"
+    provider: gke
+    registry: gcr.io
+    zone: us-east1-c
+  repository: nexus
+  secretStorage: vault
+  webhook: lighthouse

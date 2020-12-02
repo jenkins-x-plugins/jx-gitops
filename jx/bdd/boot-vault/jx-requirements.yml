@@ -1,43 +1,31 @@
-gitops: true
-cluster:
-  clusterName: bdd-boot
-  environmentGitOwner: jenkins-x-bot-test
-  project: jenkins-x-bdd3
-  provider: gke
-  zone: europe-west1-c
-environments:
+apiVersion: core.jenkins-x.io/v4beta1
+kind: Requirements
+spec:
+  autoUpdate:
+    enabled: false
+    schedule: ""
+  cluster:
+    clusterName: bdd-boot
+    environmentGitOwner: jenkins-x-bot-test
+    project: jenkins-x-bdd3
+    provider: gke
+    zone: europe-west1-c
+  environments:
   - key: dev
-    owner: ""
-    repository: ""
   - key: staging
-    owner: ""
-    repository: ""
   - key: production
-    owner: ""
-    repository: ""
-ingress:
-  domain: ""
-  externalDNS: false
-  tls:
-    email: ""
-    enabled: false
-    production: false
-kaniko: true
-secretStorage: vault
-storage:
-  logs:
-    enabled: true
-    url: "gs://jx-bdd-log-store-jxpr"
-  reports:
-    enabled: false
-    url: ""
-  repository:
-    enabled: false
-    url: ""
-webhook: prow
-vault:
-  disableURLDiscovery: true
-versionStream:
-  ref: "master"
-  url: https://github.com/jenkins-x/jenkins-x-versions.git
-
+  ingress:
+    domain: ""
+    externalDNS: false
+    namespaceSubDomain: ""
+    tls:
+      email: ""
+      enabled: false
+      production: false
+  secretStorage: vault
+  storage:
+  - name: logs
+    url: gs://jx-bdd-log-store-jxpr
+  vault:
+    disableURLDiscovery: true
+  webhook: prow

@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/jenkins-x/jx-api/v3/pkg/config"
+	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 )
 
 func TestCmdRequirementsEdit(t *testing.T) {
@@ -23,7 +23,7 @@ func TestCmdRequirementsEdit(t *testing.T) {
 	type testData struct {
 		name        string
 		args        []string
-		callback    func(t *testing.T, req *config.RequirementsConfig)
+		callback    func(t *testing.T, req *jxcore.RequirementsConfig)
 		fail        bool
 		initialFile string
 	}
@@ -33,34 +33,16 @@ func TestCmdRequirementsEdit(t *testing.T) {
 		{
 			name: "bbs",
 			args: []string{"--git-kind=bitbucketserver"},
-			callback: func(t *testing.T, req *config.RequirementsConfig) {
+			callback: func(t *testing.T, req *jxcore.RequirementsConfig) {
 				assert.Equal(t, "bitbucketserver", req.Cluster.GitKind, "req.Cluster.GitKind")
-				assert.True(t, req.GitOps, "req.GitOps")
-			},
-			initialFile: gitOpsEnabled,
-		},
-		{
-			name: "enable-gitops",
-			args: []string{"--gitops"},
-			callback: func(t *testing.T, req *config.RequirementsConfig) {
-				assert.True(t, req.GitOps, "req.GitOps")
-			},
-			initialFile: gitOpsEnabled,
-		},
-		{
-			name: "disable-gitops",
-			args: []string{"--gitops=false"},
-			callback: func(t *testing.T, req *config.RequirementsConfig) {
-				assert.False(t, req.GitOps, "req.GitOps")
 			},
 			initialFile: gitOpsEnabled,
 		},
 		{
 			name: "bucket-logs",
 			args: []string{"--bucket-logs", "gs://foo"},
-			callback: func(t *testing.T, req *config.RequirementsConfig) {
-				assert.Equal(t, "gs://foo", req.Storage.Logs.URL, "req.Storage.Logs.URL")
-				assert.True(t, req.Storage.Logs.Enabled, "req.Storage.Logs.Enabled")
+			callback: func(t *testing.T, req *jxcore.RequirementsConfig) {
+				assert.Equal(t, "gs://foo", req.GetStorageURL("logs"), "req.Storage.Logs.URL")
 			},
 			initialFile: gitOpsEnabled,
 		},
@@ -92,7 +74,7 @@ func TestCmdRequirementsEdit(t *testing.T) {
 		err = os.MkdirAll(dir, files.DefaultDirWritePermissions)
 		require.NoError(t, err, "failed to create dir %s", dir)
 
-		localReqFile := filepath.Join(dir, config.RequirementsConfigFileName)
+		localReqFile := filepath.Join(dir, jxcore.RequirementsConfigFileName)
 		if tt.initialFile != "" {
 			err = files.CopyFile(tt.initialFile, localReqFile)
 			require.NoError(t, err, "failed to copy %s to %s", tt.initialFile, localReqFile)
@@ -122,11 +104,11 @@ func TestCmdRequirementsEdit(t *testing.T) {
 		file := localReqFile
 		require.FileExists(t, file, "should have generated the requirements file")
 
-		req, _, err := config.LoadRequirementsConfig(dir, config.DefaultFailOnValidationError)
+		req, _, err := jxcore.LoadRequirementsConfig(dir, jxcore.DefaultFailOnValidationError)
 		require.NoError(t, err, "failed to load requirements from dir %s", dir)
 
 		if tt.callback != nil {
-			tt.callback(t, req)
+			tt.callback(t, &req.Spec)
 		}
 
 	}

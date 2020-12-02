@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"text/template"
 
-	"github.com/jenkins-x/jx-api/v3/pkg/config"
+	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
@@ -16,19 +16,19 @@ import (
 
 // Templater a templater of values yaml
 type Templater struct {
-	Requirements *config.RequirementsConfig
+	Requirements *jxcore.RequirementsConfig
 	ValuesFiles  []string
 }
 
 // NewTemplater creates a new templater
-func NewTemplater(requirements *config.RequirementsConfig, valuesFiles []string) *Templater {
+func NewTemplater(requirements *jxcore.RequirementsConfig, valuesFiles []string) *Templater {
 	return &Templater{
 		Requirements: requirements,
 		ValuesFiles:  valuesFiles,
 	}
 }
 
-func (o *Templater) createFuncMap(requirements *config.RequirementsConfig) (template.FuncMap, error) {
+func (o *Templater) createFuncMap(requirements *jxcore.RequirementsConfig) (template.FuncMap, error) {
 	funcMap := NewFunctionMap()
 	return funcMap, nil
 }

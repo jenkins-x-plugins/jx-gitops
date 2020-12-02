@@ -7,7 +7,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jenkins-x/jx-api/v3/pkg/config"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
+
+	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	"github.com/jenkins-x/jx-gitops/pkg/helmhelpers"
 	"github.com/jenkins-x/jx-gitops/pkg/jxtmpl/reqvalues"
 	"github.com/jenkins-x/jx-gitops/pkg/plugins"
@@ -17,7 +19,6 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/cli"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/stringhelpers"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/yaml2s"
 	"github.com/roboll/helmfile/pkg/state"
 
@@ -88,7 +89,7 @@ func NewCmdHelmfileResolve() (*cobra.Command, *Options) {
 func (o *Options) AddFlags(cmd *cobra.Command, prefix string) {
 	cmd.Flags().StringVarP(&o.Helmfile, "helmfile", "", "", "the helmfile to resolve. If not specified defaults to 'helmfile.yaml' in the dir")
 	cmd.Flags().StringVarP(&o.GitCommitMessage, prefix+"commit-message", "", "chore: generated kubernetes resources from helm chart", "the git commit message used")
-	cmd.Flags().StringVarP(&o.Namespace, "namespace", "", "jx", "the default namespace if none is specified in the helmfile.yaml or jx-requirements.yml")
+	cmd.Flags().StringVarP(&o.Namespace, "namespace", "", "jx", "the default namespace if none is specified in the helmfile.yaml")
 
 	// git commit stuff....
 	cmd.Flags().BoolVarP(&o.DoGitCommit, prefix+"git-commit", "", false, "if set then the template command will git commit the modified helmfile.yaml files")
@@ -278,10 +279,10 @@ func (o *Options) Run() error {
 			}
 		}
 
-		if release.Namespace == "" && o.Options.Requirements != nil {
-			release.Namespace = o.Options.Requirements.Cluster.Namespace
+		if release.Namespace == "" {
+			release.Namespace = o.Namespace
 			if release.Namespace == "" {
-				release.Namespace = o.Namespace
+				release.Namespace = jxcore.DefaultNamespace
 			}
 		}
 
@@ -415,30 +416,16 @@ func (o *Options) GitCommit(outDir string, commitMessage string) error {
 
 // CustomUpgrades performs custom upgrades outside of the version stream/kpt approach
 func (o *Options) CustomUpgrades() error {
-	requirements, fileName, err := config.LoadRequirementsConfig(o.Dir, false)
+	err := o.migrateRequirementsToV4()
+	if err != nil {
+		return errors.Wrapf(err, "failed to migrate jx-requirements.yml")
+	}
+
+	requirementsResource, _, err := jxcore.LoadRequirementsConfig(o.Dir, false)
 	if err != nil {
 		return errors.Wrapf(err, "failed to load the requirements configuration")
 	}
-
-	if requirements.BuildPacks == nil {
-		requirements.BuildPacks = &config.BuildPackConfig{}
-	}
-	if requirements.BuildPacks.BuildPackLibrary == nil {
-		requirements.BuildPacks.BuildPackLibrary = &config.BuildPackLibrary{}
-	}
-
-	gitURL := requirements.BuildPacks.BuildPackLibrary.GitURL
-	if gitURL == "" || strings.HasPrefix(gitURL, "https://github.com/jenkins-x/jxr-packs-kubernetes") {
-		requirements.BuildPacks.BuildPackLibrary.GitURL = "https://github.com/jenkins-x/jx3-pipeline-catalog.git"
-
-		err = requirements.SaveConfig(fileName)
-		if err != nil {
-			return errors.Wrapf(err, "failed to save requirements file %s", fileName)
-		}
-
-		log.Logger().Infof("updated the build pack library to be %s", termcolor.ColorInfo(requirements.BuildPacks.BuildPackLibrary.GitURL))
-	}
-
+	requirements := &requirementsResource.Spec
 	// lets replace the old tekton repositories if they are being used
 	for i := range o.Results.HelmState.Repositories {
 		repo := &o.Results.HelmState.Repositories[i]
@@ -501,12 +488,9 @@ func (o *Options) CustomUpgrades() error {
 			break
 		}
 	}
-	ns := requirements.Cluster.Namespace
-	if ns == "" {
-		ns = "jx"
-	}
+	ns := jxcore.DefaultNamespace
 
-	if requirements.SecretStorage == config.SecretStorageTypeLocal {
+	if requirements.SecretStorage == jxcore.SecretStorageTypeLocal {
 		// lets make sure the local external secrets chart is included
 		found := false
 		for i := range o.Results.HelmState.Releases {
@@ -624,14 +608,49 @@ func (o *Options) CustomUpgrades() error {
 
 		log.Logger().Infof("got tekton pipeline for envirnment at %s", lighthouseTriggerFile)
 	}
+
 	return o.customBootJob(requirements)
 }
 
-func (o *Options) customBootJob(requirements *config.RequirementsConfig) error {
+func (o *Options) migrateRequirementsToV4() error {
+	path := filepath.Join(o.Dir, "jx-requirements.yml")
+	exists, err := files.FileExists(path)
+	if err != nil {
+		return errors.Wrapf(err, "failed checking if jx-requirements.yml exists")
+	}
+	if !exists {
+		return fmt.Errorf("failed to migrate jx-requirements.yml as it does not exist in directory %s", o.Dir)
+	}
+
+	if exists {
+		file, err := ioutil.ReadFile(path)
+		if err != nil {
+			return errors.Wrapf(err, "failed to read %s", path)
+		}
+
+		if !jxcore.IsNewRequirementsFile(string(file)) {
+			log.Logger().Info(termcolor.ColorInfo("Migrating your jx-requirements.yml file, please ignore warnings about validation failures in YAML"))
+
+			reqs, filename, err := jxcore.LoadRequirementsConfig(o.Dir, false)
+			if err != nil {
+				return errors.Wrapf(err, "failed loading jx-requirements.yml in directory %s", o.Dir)
+			}
+			err = reqs.SaveConfig(filename)
+			if err != nil {
+				return errors.Wrap(err, "failed checking if jx-requirements.yml exists")
+			}
+		}
+
+	}
+
+	return nil
+}
+
+func (o *Options) customBootJob(requirements *jxcore.RequirementsConfig) error {
 	secretKind := requirements.SecretStorage
 	secretText := string(secretKind)
 	if secretText == "" {
-		secretKind = config.SecretStorageTypeLocal
+		secretKind = jxcore.SecretStorageTypeLocal
 	}
 	jobFileName := "job.yaml"
 	if secretText != "local" {

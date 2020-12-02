@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	scmfake "github.com/jenkins-x/go-scm/scm/driver/fake"
-	jxfake "github.com/jenkins-x/jx-api/v3/pkg/client/clientset/versioned/fake"
-	"github.com/jenkins-x/jx-api/v3/pkg/config"
+	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
+	jxfake "github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned/fake"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/variables"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner/fakerunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
@@ -57,8 +57,8 @@ func TestCmdVariables(t *testing.T) {
 		devEnv.Namespace = ns
 		devEnv.Spec.Source.URL = "https://github.com/myorg/myrepo.git"
 
-		requirements := config.NewRequirementsConfig()
-		requirements.Cluster.ChartRepository = "http://bucketrepo/bucketrepo/charts/"
+		requirements := jxcore.NewRequirementsConfig()
+		requirements.Spec.Cluster.ChartRepository = "http://bucketrepo/bucketrepo/charts/"
 		data, err := yaml.Marshal(requirements)
 		require.NoError(t, err, "failed to marshal requirements")
 		devEnv.Spec.TeamSettings.BootRequirements = string(data)
@@ -137,7 +137,7 @@ func TestFindBuildNumber(t *testing.T) {
 
 	t.Logf("generated build number %s", buildNumber)
 
-	resources, err := jxClient.JenkinsV1().PipelineActivities(ns).List(context.TODO(), metav1.ListOptions{})
+	resources, err := jxClient.CoreV4beta1().PipelineActivities(ns).List(context.TODO(), metav1.ListOptions{})
 	require.NoError(t, err, "failed to list PipelineActivities")
 	require.Len(t, resources.Items, 1, "should have found 1 PipelineActivity")
 	pa := resources.Items[0]
@@ -153,7 +153,7 @@ func TestFindBuildNumber(t *testing.T) {
 	require.NoError(t, err, "failed to find build number")
 	assert.Equal(t, "1", buildNumber, "should have created build number")
 
-	resources, err = jxClient.JenkinsV1().PipelineActivities(ns).List(context.TODO(), metav1.ListOptions{})
+	resources, err = jxClient.CoreV4beta1().PipelineActivities(ns).List(context.TODO(), metav1.ListOptions{})
 	require.NoError(t, err, "failed to list PipelineActivities")
 	require.Len(t, resources.Items, 1, "should have found 1 PipelineActivity")
 }
