@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
+
 	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	"github.com/jenkins-x/jx-gitops/pkg/helmhelpers"
 	"github.com/jenkins-x/jx-gitops/pkg/jxtmpl/reqvalues"
@@ -414,6 +416,11 @@ func (o *Options) GitCommit(outDir string, commitMessage string) error {
 
 // CustomUpgrades performs custom upgrades outside of the version stream/kpt approach
 func (o *Options) CustomUpgrades() error {
+	err := o.migrateRequirementsToV4()
+	if err != nil {
+		return errors.Wrapf(err, "failed to migrate jx-requirements.yml")
+	}
+
 	requirementsResource, _, err := jxcore.LoadRequirementsConfig(o.Dir, false)
 	if err != nil {
 		return errors.Wrapf(err, "failed to load the requirements configuration")
@@ -601,7 +608,42 @@ func (o *Options) CustomUpgrades() error {
 
 		log.Logger().Infof("got tekton pipeline for envirnment at %s", lighthouseTriggerFile)
 	}
+
 	return o.customBootJob(requirements)
+}
+
+func (o *Options) migrateRequirementsToV4() error {
+	path := filepath.Join(o.Dir, "jx-requirements.yml")
+	exists, err := files.FileExists(path)
+	if err != nil {
+		return errors.Wrapf(err, "failed checking if jx-requirements.yml exists")
+	}
+	if !exists {
+		return fmt.Errorf("failed to migrate jx-requirements.yml as it does not exist in directory %s", o.Dir)
+	}
+
+	if exists {
+		file, err := ioutil.ReadFile(path)
+		if err != nil {
+			return errors.Wrapf(err, "failed to read %s", path)
+		}
+
+		if !jxcore.IsNewRequirementsFile(string(file)) {
+			log.Logger().Info(termcolor.ColorInfo("Migrating your jx-requirements.yml file, please ignore warnings about validation failures in YAML"))
+
+			reqs, filename, err := jxcore.LoadRequirementsConfig(o.Dir, false)
+			if err != nil {
+				return errors.Wrapf(err, "failed loading jx-requirements.yml in directory %s", o.Dir)
+			}
+			err = reqs.SaveConfig(filename)
+			if err != nil {
+				return errors.Wrap(err, "failed checking if jx-requirements.yml exists")
+			}
+		}
+
+	}
+
+	return nil
 }
 
 func (o *Options) customBootJob(requirements *jxcore.RequirementsConfig) error {
