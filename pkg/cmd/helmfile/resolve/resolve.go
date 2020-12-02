@@ -631,11 +631,11 @@ func (o *Options) migrateRequirementsToV4() error {
 		if !jxcore.IsNewRequirementsFile(string(file)) {
 			log.Logger().Info(termcolor.ColorInfo("Migrating your jx-requirements.yml file, please ignore warnings about validation failures in YAML"))
 
-			reqs, filename, err := jxcore.LoadRequirementsConfig(o.Dir, false)
+			reqs, err := jxcore.LoadRequirementsConfigFileNoDefaults(path, false)
 			if err != nil {
 				return errors.Wrapf(err, "failed loading jx-requirements.yml in directory %s", o.Dir)
 			}
-			err = reqs.SaveConfig(filename)
+			err = reqs.SaveConfig(path)
 			if err != nil {
 				return errors.Wrap(err, "failed checking if jx-requirements.yml exists")
 			}

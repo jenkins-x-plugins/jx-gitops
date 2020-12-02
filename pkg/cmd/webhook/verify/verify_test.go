@@ -85,7 +85,7 @@ func TestWebhookVerify(t *testing.T) {
 		t.Logf("found hook %s for %s with events %#v\n", h.ID, h.Target, h.Events)
 	}
 
-	sr, err = jxClient.CoreV4beta1().SourceRepositories(ns).Get(context.TODO(), sr.Name, metav1.GetOptions{})
+	sr, err = jxClient.JenkinsV1().SourceRepositories(ns).Get(context.TODO(), sr.Name, metav1.GetOptions{})
 	require.NoError(t, err, "failed to lookup SourceRepository %s", sr.Name)
 	testhelpers.AssertAnnotation(t, verify.WebHookAnnotation, "true", sr.ObjectMeta, "for SourceRepository: "+sr.Name)
 	t.Logf("SourceRepository %s has annotation %s = %s\n", sr.Name, verify.WebHookAnnotation, sr.Annotations[verify.WebHookAnnotation])

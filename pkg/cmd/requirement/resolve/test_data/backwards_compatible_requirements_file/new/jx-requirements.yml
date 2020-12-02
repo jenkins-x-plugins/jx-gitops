@@ -15,6 +15,11 @@ spec:
     provider: gke
     registry: gcr.io
     zone: us-east1-c
+  ingress:
+    domain: ""
+    externalDNS: false
+    namespaceSubDomain: ""
   repository: nexus
   secretStorage: vault
+  vault: {}
   webhook: lighthouse

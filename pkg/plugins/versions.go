@@ -1,6 +1,6 @@
 package plugins
 
-import jenkinsv1 "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
+import jenkinsv1 "github.com/jenkins-x/jx-api/v4/pkg/apis/jenkins.io/v1"
 
 const (
 	// HelmPluginName the default name of the helm plugin

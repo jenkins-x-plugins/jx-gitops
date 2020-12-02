@@ -6,8 +6,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
+
 	"github.com/jenkins-x/go-scm/scm"
-	v1 "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
+	v1 "github.com/jenkins-x/jx-api/v4/pkg/apis/jenkins.io/v1"
 
 	"github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned"
 	"github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned/fake"
@@ -302,7 +304,7 @@ func (o *Options) Run() error {
 }
 
 func (o *Options) createTemplater() (func(string) (string, error), error) {
-	requirementsResource, _, err := v1.LoadRequirementsConfig(o.Dir, false)
+	requirementsResource, _, err := jxcore.LoadRequirementsConfig(o.Dir, false)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to load requirements in dir %s", o.Dir)
 	}
