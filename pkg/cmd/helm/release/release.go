@@ -16,6 +16,8 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/cli"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/jxclient"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/stringhelpers"
@@ -55,6 +57,7 @@ type Options struct {
 	Namespace          string
 	KubeClient         kubernetes.Interface
 	JXClient           jxc.Interface
+	GitClient          gitclient.Interface
 	CommandRunner      cmdrunner.CommandRunner
 }
 
@@ -134,7 +137,10 @@ func (o *Options) Validate() error {
 		}
 	}
 
-	requirements, err := variablefinders.FindRequirements(o.JXClient, o.Namespace)
+	if o.GitClient == nil {
+		o.GitClient = cli.NewCLIClient("", o.CommandRunner)
+	}
+	requirements, err := variablefinders.FindRequirements(o.JXClient, o.Namespace, o.GitClient)
 	if err != nil {
 		return errors.Wrapf(err, "failed to load requirements")
 	}
