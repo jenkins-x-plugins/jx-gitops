@@ -10,6 +10,7 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
 
 	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/structure"
 	"github.com/jenkins-x/jx-gitops/pkg/helmhelpers"
 	"github.com/jenkins-x/jx-gitops/pkg/jxtmpl/reqvalues"
 	"github.com/jenkins-x/jx-gitops/pkg/plugins"
@@ -31,6 +32,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const (
+	versionStreamDir = "versionStream"
+)
+
 var (
 	cmdLong = templates.LongDesc(`
 		Resolves the helmfile.yaml from the version stream to specify versions and helm values
@@ -42,7 +47,13 @@ var (
 	`)
 
 	valueFileNames = []string{"values.yaml.gotmpl", "values.yaml"}
+	pathSeparator  = string(os.PathSeparator)
 )
+
+type Helmfile struct {
+	filepath           string
+	relativePathToRoot string
+}
 
 // Options the options for the command
 type Options struct {
@@ -50,6 +61,7 @@ type Options struct {
 	Namespace        string
 	GitCommitMessage string
 	Helmfile         string
+	Helmfiles        []Helmfile
 	KptBinary        string
 	HelmBinary       string
 	BatchMode        bool
@@ -62,7 +74,6 @@ type Options struct {
 }
 
 type Results struct {
-	HelmState                  state.HelmState
 	RequirementsValuesFileName string
 }
 
@@ -95,6 +106,26 @@ func (o *Options) AddFlags(cmd *cobra.Command, prefix string) {
 	cmd.Flags().BoolVarP(&o.DoGitCommit, prefix+"git-commit", "", false, "if set then the template command will git commit the modified helmfile.yaml files")
 }
 
+func gatherHelmfiles(helmfile string) ([]Helmfile, error) {
+	helmState := state.HelmState{}
+	err := yaml2s.LoadFile(helmfile, &helmState)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to load helmfile %s", helmfile)
+	}
+
+	helmfiles := []Helmfile{
+		{helmfile, ""},
+	}
+	parentHelmfileDir := filepath.Dir(helmfile)
+	for _, nested := range helmState.Helmfiles {
+		nestedHelmfileDepth := len(strings.Split(filepath.Dir(nested.Path), pathSeparator))
+		relativePath := strings.Repeat("../", nestedHelmfileDepth)
+
+		helmfiles = append(helmfiles, Helmfile{filepath.Join(parentHelmfileDir, nested.Path), relativePath})
+	}
+	return helmfiles, nil
+}
+
 // Validate validates the options and populates any missing values
 func (o *Options) Validate() error {
 	err := o.Options.Validate()
@@ -106,10 +137,11 @@ func (o *Options) Validate() error {
 		o.Helmfile = filepath.Join(o.Dir, "helmfile.yaml")
 	}
 
-	err = yaml2s.LoadFile(o.Helmfile, &o.Results.HelmState)
+	helmfiles, err := gatherHelmfiles(o.Helmfile)
 	if err != nil {
-		return errors.Wrapf(err, "failed to load helmfile %s", o.Helmfile)
+		return errors.Wrapf(err, "failed to gather nested helmfiles")
 	}
+	o.Helmfiles = helmfiles
 
 	if o.GitCommitMessage == "" {
 		o.GitCommitMessage = "chore: resolved charts and values from the version stream"
@@ -139,35 +171,112 @@ func (o *Options) Run() error {
 		return errors.Wrapf(err, "failed to ")
 	}
 
+	resolver := o.Options.Resolver
+	if resolver == nil {
+		return errors.Errorf("failed to create the VersionResolver")
+	}
+
+	count := 0
+
 	if o.UpdateMode {
-		err = o.CustomUpgrades()
+		increment, err := o.upgradeHelmfileStructure(o.Dir)
+		count += increment
 		if err != nil {
 			return errors.Wrapf(err, "failed to perform custom upgrades")
 		}
 	}
 
-	resolver := o.Options.Resolver
-	if resolver == nil {
-		return errors.Errorf("failed to create the VersionResolver")
+	for _, helmfile := range o.Helmfiles {
+		increment, err := o.processHelmfile(helmfile)
+		if err != nil {
+			return errors.Wrapf(err, "failed to process helmfile %s", helmfile.filepath)
+		}
+		count += increment
 	}
-	versionsDir := resolver.VersionsDir
-	appsCfgDir := o.Dir
 
 	log.Logger().Infof("resolving versions and values files from the version stream %s ref %s in dir %s", o.VersionStreamURL, o.VersionStreamRef, o.VersionStreamDir)
 
-	helmState := o.Results.HelmState
+	if !o.DoGitCommit {
+		return nil
+	}
+	if count > 0 {
+		log.Logger().Infof("committing changes: %s", o.GitCommitMessage)
+		err = o.GitCommit(o.Dir, o.GitCommitMessage)
+		if err != nil {
+			return errors.Wrapf(err, "failed to commit changes")
+		}
+	}
+	return nil
+}
 
+func (o *Options) processHelmfile(helmfile Helmfile) (int, error) {
+	helmState := state.HelmState{}
+	err := yaml2s.LoadFile(helmfile.filepath, &helmState)
+	if err != nil {
+		return 0, errors.Wrapf(err, "failed to load helmfile %s", helmfile)
+	}
+
+	if o.UpdateMode {
+		err = o.CustomUpgrades(&helmState)
+		if err != nil {
+			return 0, errors.Wrapf(err, "failed to perform custom upgrades")
+		}
+	}
+	increment, err := o.resolveHelmfile(&helmState, helmfile)
+	if err != nil {
+		return 0, errors.Wrapf(err, "failed to resolve helmfile %s", helmfile)
+	}
+
+	err = yaml2s.SaveFile(helmState, helmfile.filepath)
+	if err != nil {
+		return 0, errors.Wrapf(err, "failed to save file %s", helmfile)
+	}
+	return increment, nil
+}
+
+func (o *Options) upgradeHelmfileStructure(dir string) (int, error) {
+	if exists, _ := files.DirExists(filepath.Join(dir, structure.HelmfileFolder)); exists {
+		return 0, nil
+	}
+	// First let's resolve parent helmfile before restructuring
+	count := 0
+	increment, err := o.processHelmfile(o.Helmfiles[0])
+	if err != nil {
+		return 0, errors.Wrapf(err, "error processing parent helmfile before restructure")
+	}
+
+	count += increment
+	so := structure.Options{
+		Dir: dir,
+	}
+	err = so.Run()
+	if err != nil {
+		return 0, errors.Wrapf(err, "error restructuring helmfiles during resolve upgrade")
+	}
+	count++
+
+	helmfiles, err := gatherHelmfiles(o.Helmfile)
+	if err != nil {
+		return 0, errors.Wrapf(err, "error gathering helmfiles")
+	}
+	o.Helmfiles = helmfiles
+	return count, nil
+}
+
+func (o *Options) resolveHelmfile(helmState *state.HelmState, helmfile Helmfile) (int, error) {
+
+	var err error
 	var ignoreRepositories []string
 	if !helmhelpers.IsInCluster() || o.TestOutOfCluster {
 		ignoreRepositories, err = helmhelpers.FindClusterLocalRepositoryURLs(helmState.Repositories)
 		if err != nil {
-			return errors.Wrapf(err, "failed to find cluster local repositories")
+			return 0, errors.Wrapf(err, "failed to find cluster local repositories")
 		}
 	}
 
-	err = helmhelpers.AddHelmRepositories(o.HelmBinary, helmState, o.QuietCommandRunner, ignoreRepositories)
+	err = helmhelpers.AddHelmRepositories(o.HelmBinary, *helmState, o.QuietCommandRunner, ignoreRepositories)
 	if err != nil {
-		return errors.Wrapf(err, "failed to add helm repositories")
+		return 0, errors.Wrapf(err, "failed to add helm repositories")
 	}
 
 	/*
@@ -211,11 +320,11 @@ func (o *Options) Run() error {
 			if repository == "" && prefix != "" {
 				repository, err = versionstreamer.MatchRepositoryPrefix(o.prefixes, prefix)
 				if err != nil {
-					return errors.Wrapf(err, "failed to match prefix %s with repositories from versionstream %s", prefix, o.VersionStreamURL)
+					return 0, errors.Wrapf(err, "failed to match prefix %s with repositories from versionstream %s", prefix, o.VersionStreamURL)
 				}
 			}
 			if repository == "" && prefix != "" {
-				return errors.Wrapf(err, "failed to find repository URL, not defined in helmfile.yaml or versionstream %s", o.VersionStreamURL)
+				return 0, errors.Wrapf(err, "failed to find repository URL, not defined in helmfile.yaml or versionstream %s", o.VersionStreamURL)
 			}
 			if repository != "" && prefix != "" {
 				// lets ensure we've got a repository for this URL in the apps file
@@ -223,7 +332,7 @@ func (o *Options) Run() error {
 				for _, r := range helmState.Repositories {
 					if r.Name == prefix {
 						if r.URL != repository {
-							return errors.Errorf("release %s has prefix %s for repository URL %s which is also mapped to prefix %s", release.Name, prefix, r.URL, r.Name)
+							return 0, errors.Errorf("release %s has prefix %s for repository URL %s which is also mapped to prefix %s", release.Name, prefix, r.URL, r.Name)
 						}
 						found = true
 						break
@@ -239,19 +348,19 @@ func (o *Options) Run() error {
 
 			if stringhelpers.StringArrayIndex(ignoreRepositories, repository) < 0 {
 				// first try and match using the prefix and release name as we might have a version stream folder that uses helm alias
-				versionProperties, err := resolver.StableVersion(versionstream.KindChart, prefix+"/"+release.Name)
+				versionProperties, err := o.Options.Resolver.StableVersion(versionstream.KindChart, prefix+"/"+release.Name)
 				if err != nil {
 					if err != nil {
-						return errors.Wrapf(err, "failed to find version number for chart %s", release.Name)
+						return 0, errors.Wrapf(err, "failed to find version number for chart %s", release.Name)
 					}
 
 				}
 
 				// lets fall back to using the full chart name
 				if versionProperties.Version == "" {
-					versionProperties, err = resolver.StableVersion(versionstream.KindChart, fullChartName)
+					versionProperties, err = o.Options.Resolver.StableVersion(versionstream.KindChart, fullChartName)
 					if err != nil {
-						return errors.Wrapf(err, "failed to find version number for chart %s", fullChartName)
+						return 0, errors.Wrapf(err, "failed to find version number for chart %s", fullChartName)
 					}
 				}
 
@@ -273,13 +382,13 @@ func (o *Options) Run() error {
 					log.Logger().Infof("resolved chart %s version %s", fullChartName, version)
 				}
 
-				if release.Namespace == "" && versionProperties.Namespace != "" {
+				if release.Namespace == "" && helmState.OverrideNamespace == "" && versionProperties.Namespace != "" {
 					release.Namespace = versionProperties.Namespace
 				}
 			}
 		}
 
-		if release.Namespace == "" {
+		if release.Namespace == "" && helmState.OverrideNamespace == "" {
 			release.Namespace = o.Namespace
 			if release.Namespace == "" {
 				release.Namespace = jxcore.DefaultNamespace
@@ -292,15 +401,15 @@ func (o *Options) Run() error {
 		}
 
 		// lets try resolve any values files in the version stream using the prefix and chart name first
-		found, err := o.addValues(versionsDir, filepath.Join(prefix, release.Name), &release)
+		found, err := o.addValues(helmfile, filepath.Join(prefix, release.Name), &release)
 		if err != nil {
-			return errors.Wrapf(err, "failed to add values")
+			return 0, errors.Wrapf(err, "failed to add values")
 		}
 		if !found {
 			// next try the full chart name
-			found, err = o.addValues(versionsDir, fullChartName, &release)
+			found, err = o.addValues(helmfile, fullChartName, &release)
 			if err != nil {
-				return errors.Wrapf(err, "failed to add values")
+				return 0, errors.Wrapf(err, "failed to add values")
 			}
 		}
 
@@ -308,11 +417,11 @@ func (o *Options) Run() error {
 		found = false
 		for _, releaseName := range releaseNames {
 			for _, valueFileName := range valueFileNames {
-				path := filepath.Join("values", releaseName, valueFileName)
-				appValuesFile := filepath.Join(appsCfgDir, path)
+				path := filepath.Join(helmfile.relativePathToRoot, "values", releaseName, valueFileName)
+				appValuesFile := filepath.Join(o.Dir, path)
 				exists, err := files.FileExists(appValuesFile)
 				if err != nil {
-					return errors.Wrapf(err, "failed to check if release values file exists %s", appValuesFile)
+					return 0, errors.Wrapf(err, "failed to check if release values file exists %s", appValuesFile)
 				}
 				if exists {
 					if !valuesContains(release.Values, path) {
@@ -330,34 +439,20 @@ func (o *Options) Run() error {
 		helmState.Releases[i] = release
 	}
 
-	err = yaml2s.SaveFile(helmState, o.Helmfile)
-	if err != nil {
-		return errors.Wrapf(err, "failed to save file %s", o.Helmfile)
-	}
+	return count, nil
 
-	if !o.DoGitCommit {
-		return nil
-	}
-	if count > 0 {
-		log.Logger().Infof("committing changes: %s", o.GitCommitMessage)
-		err = o.GitCommit(o.Dir, o.GitCommitMessage)
-		if err != nil {
-			return errors.Wrapf(err, "failed to commit changes")
-		}
-	}
-	return nil
 }
 
-func (o *Options) addValues(versionsDir string, name string, release *state.ReleaseSpec) (bool, error) {
+func (o *Options) addValues(helmfile Helmfile, name string, release *state.ReleaseSpec) (bool, error) {
 	found := false
 	for _, valueFileName := range valueFileNames {
-		versionStreamValuesFile := filepath.Join(versionsDir, "charts", name, valueFileName)
+		versionStreamValuesFile := filepath.Join(o.Resolver.VersionsDir, "charts", name, valueFileName)
 		exists, err := files.FileExists(versionStreamValuesFile)
 		if err != nil {
 			return false, errors.Wrapf(err, "failed to check if version stream values file exists %s", versionStreamValuesFile)
 		}
 		if exists {
-			path := filepath.Join("versionStream", "charts", name, valueFileName)
+			path := filepath.Join(helmfile.relativePathToRoot, versionStreamDir, "charts", name, valueFileName)
 			if !valuesContains(release.Values, path) {
 				release.Values = append(release.Values, path)
 			}
@@ -415,7 +510,7 @@ func (o *Options) GitCommit(outDir string, commitMessage string) error {
 }
 
 // CustomUpgrades performs custom upgrades outside of the version stream/kpt approach
-func (o *Options) CustomUpgrades() error {
+func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
 	err := o.migrateRequirementsToV4()
 	if err != nil {
 		return errors.Wrapf(err, "failed to migrate jx-requirements.yml")
@@ -427,8 +522,8 @@ func (o *Options) CustomUpgrades() error {
 	}
 	requirements := &requirementsResource.Spec
 	// lets replace the old tekton repositories if they are being used
-	for i := range o.Results.HelmState.Repositories {
-		repo := &o.Results.HelmState.Repositories[i]
+	for i := range helmstate.Repositories {
+		repo := &helmstate.Repositories[i]
 		cleanURL := strings.TrimSuffix(repo.URL, "/")
 		switch cleanURL {
 		case "https://kubernetes-charts.storage.googleapis.com":
@@ -439,22 +534,22 @@ func (o *Options) CustomUpgrades() error {
 	}
 
 	// lets replace the old tekton chart if its being used
-	for i := range o.Results.HelmState.Releases {
-		release := &o.Results.HelmState.Releases[i]
+	for i := range helmstate.Releases {
+		release := &helmstate.Releases[i]
 		if release.Chart == "jenkins-x/tekton" {
 			release.Chart = "cdf/tekton-pipeline"
 			release.Namespace = "tekton-pipelines"
 
 			// lets make sure we have a cdf repository
 			found := false
-			for _, repo := range o.Results.HelmState.Repositories {
+			for _, repo := range helmstate.Repositories {
 				if repo.Name == "cdf" {
 					found = true
 					break
 				}
 			}
 			if !found {
-				o.Results.HelmState.Repositories = append(o.Results.HelmState.Repositories, state.RepositorySpec{
+				helmstate.Repositories = append(helmstate.Repositories, state.RepositorySpec{
 					Name: "cdf",
 					URL:  "https://cdfoundation.github.io/tekton-helm-chart",
 				})
@@ -464,8 +559,8 @@ func (o *Options) CustomUpgrades() error {
 	}
 
 	// lets replace the old chartmuseum chart if its being used
-	for i := range o.Results.HelmState.Releases {
-		release := &o.Results.HelmState.Releases[i]
+	for i := range helmstate.Releases {
+		release := &helmstate.Releases[i]
 		if release.Chart == "jenkins-x/chartmuseum" {
 			release.Chart = "stable/chartmuseum"
 			o.updateVersionFromVersionStream(release)
@@ -473,14 +568,14 @@ func (o *Options) CustomUpgrades() error {
 
 			// lets make sure we have a cdf repository
 			found := false
-			for _, repo := range o.Results.HelmState.Repositories {
+			for _, repo := range helmstate.Repositories {
 				if repo.Name == "stable" {
 					found = true
 					break
 				}
 			}
 			if !found {
-				o.Results.HelmState.Repositories = append(o.Results.HelmState.Repositories, state.RepositorySpec{
+				helmstate.Repositories = append(helmstate.Repositories, state.RepositorySpec{
 					Name: "stable",
 					URL:  "https://charts.helm.sh/stable",
 				})
@@ -490,11 +585,11 @@ func (o *Options) CustomUpgrades() error {
 	}
 	ns := jxcore.DefaultNamespace
 
-	if requirements.SecretStorage == jxcore.SecretStorageTypeLocal {
+	if requirements.SecretStorage == jxcore.SecretStorageTypeLocal && helmstate.OverrideNamespace == ns {
 		// lets make sure the local external secrets chart is included
 		found := false
-		for i := range o.Results.HelmState.Releases {
-			release := &o.Results.HelmState.Releases[i]
+		for i := range helmstate.Releases {
+			release := &helmstate.Releases[i]
 			if release.Chart == "jx3/local-external-secrets" {
 				found = true
 				break
@@ -502,19 +597,18 @@ func (o *Options) CustomUpgrades() error {
 		}
 		if !found {
 			release := state.ReleaseSpec{
-				Chart:     "jx3/local-external-secrets",
-				Namespace: ns,
+				Chart: "jx3/local-external-secrets",
 			}
 			o.updateVersionFromVersionStream(&release)
-			o.Results.HelmState.Releases = append(o.Results.HelmState.Releases, release)
+			helmstate.Releases = append(helmstate.Releases, release)
 		}
 	}
 
 	// lets replace the old jx-labs/ charts...
 	for _, name := range []string{"jenkins-x-crds", "pusher-wave", "vault-instance"} {
 		chartName := "jx-labs/" + name
-		for i := range o.Results.HelmState.Releases {
-			release := &o.Results.HelmState.Releases[i]
+		for i := range helmstate.Releases {
+			release := &helmstate.Releases[i]
 			if release.Chart == chartName {
 				release.Chart = "jx3/" + name
 				if name == "jenkins-x-crds" {
@@ -528,16 +622,16 @@ func (o *Options) CustomUpgrades() error {
 
 	// remove jx-labs repository if we have no more charts left using the prefix
 	jxLabsCount := 0
-	for i := range o.Results.HelmState.Releases {
-		release := &o.Results.HelmState.Releases[i]
+	for i := range helmstate.Releases {
+		release := &helmstate.Releases[i]
 		if strings.HasPrefix(release.Chart, "jx-labs/") {
 			jxLabsCount++
 		}
 	}
 	if jxLabsCount == 0 {
-		for i := range o.Results.HelmState.Repositories {
-			if o.Results.HelmState.Repositories[i].Name == "jx-labs" {
-				o.Results.HelmState.Repositories = append(o.Results.HelmState.Repositories[0:i], o.Results.HelmState.Repositories[i+1:]...)
+		for i := range helmstate.Repositories {
+			if helmstate.Repositories[i].Name == "jx-labs" {
+				helmstate.Repositories = append(helmstate.Repositories[0:i], helmstate.Repositories[i+1:]...)
 				break
 			}
 		}
@@ -545,29 +639,28 @@ func (o *Options) CustomUpgrades() error {
 
 	// lets ensure we have the jx-build-controller installed
 	found := false
-	for i := range o.Results.HelmState.Releases {
-		release := &o.Results.HelmState.Releases[i]
+	for i := range helmstate.Releases {
+		release := &helmstate.Releases[i]
 		if release.Chart == "jx3/jx-build-controller" {
 			found = true
 			break
 		}
 	}
-	if !found {
-		o.Results.HelmState.Releases = append(o.Results.HelmState.Releases, state.ReleaseSpec{
-			Chart:     "jx3/jx-build-controller",
-			Namespace: ns,
+	if !found && helmstate.OverrideNamespace == "jx" {
+		helmstate.Releases = append(helmstate.Releases, state.ReleaseSpec{
+			Chart: "jx3/jx-build-controller",
 		})
 
 		// lets make sure we have a jx3 repository
 		found = false
-		for _, repo := range o.Results.HelmState.Repositories {
+		for _, repo := range helmstate.Repositories {
 			if repo.Name == "jx3" {
 				found = true
 				break
 			}
 		}
 		if !found {
-			o.Results.HelmState.Repositories = append(o.Results.HelmState.Repositories, state.RepositorySpec{
+			helmstate.Repositories = append(helmstate.Repositories, state.RepositorySpec{
 				Name: "jx3",
 				URL:  "https://storage.googleapis.com/jenkinsxio/charts",
 			})

@@ -24,33 +24,38 @@ func TestStepHelmfileTemplate(t *testing.T) {
 	skipTestIfCommandFails(t, "helm", "version")
 	skipTestIfCommandFails(t, "helmfile", "version")
 
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "failed to create tmp dir")
+	srcDirs := []string{"basic", "nested"}
+	for _, d := range srcDirs {
 
-	srcDir := filepath.Join("test_data")
-	require.DirExists(t, srcDir)
+		srcDir := filepath.Join("test_data", d)
+		require.DirExists(t, srcDir)
 
-	err = files.CopyDirOverwrite(srcDir, tmpDir)
-	require.NoError(t, err, "failed to copy generated crds at %s to %s", srcDir, tmpDir)
+		tmpDir, err := ioutil.TempDir("", "")
+		require.NoError(t, err, "failed to create tmp dir")
 
-	_, o := template.NewCmdHelmfileTemplate()
-	o.Dir = tmpDir
-	o.Args = "--include-crds"
+		err = files.CopyDirOverwrite(srcDir, tmpDir)
+		require.NoError(t, err, "failed to copy generated crds at %s to %s", srcDir, tmpDir)
 
-	err = o.Run()
-	require.NoError(t, err, "failed to run the command")
+		_, o := template.NewCmdHelmfileTemplate()
+		o.Dir = tmpDir
+		o.Args = "--include-crds"
 
-	t.Logf("generated files to %s\n", o.OutputDir)
+		err = o.Run()
+		require.NoError(t, err, "failed to run the command")
 
-	assert.FileExists(t, filepath.Join(o.OutputDir, "namespaces", "jx", "tekton", "tekton-pipelines-controller-deploy.yaml"), "expected generated file")
-	assert.FileExists(t, filepath.Join(o.OutputDir, "namespaces", "secret-infra", "kubernetes-external-secrets", "es-kubernetes-external-secrets-deploy.yaml"), "expected generated file")
-	assert.FileExists(t, filepath.Join(o.OutputDir, "namespaces", "jx-production", "kubernetes-external-secrets", "es-kubernetes-external-secrets-deploy.yaml"), "expected generated file")
+		t.Logf("generated files to %s\n", o.OutputDir)
 
-	assert.FileExists(t, filepath.Join(o.OutputDir, "cluster", "namespaces", "jx.yaml"), "expected generated namespace")
-	assert.FileExists(t, filepath.Join(o.OutputDir, "cluster", "namespaces", "jx-production.yaml"), "expected generated namespace")
-	assert.FileExists(t, filepath.Join(o.OutputDir, "cluster", "namespaces", "secret-infra.yaml"), "expected generated namespace")
+		assert.FileExists(t, filepath.Join(o.OutputDir, "namespaces", "jx", "tekton", "tekton-pipelines-controller-deploy.yaml"), "expected generated file")
+		assert.FileExists(t, filepath.Join(o.OutputDir, "namespaces", "secret-infra", "kubernetes-external-secrets", "es-kubernetes-external-secrets-deploy.yaml"), "expected generated file")
+		assert.FileExists(t, filepath.Join(o.OutputDir, "namespaces", "jx-production", "kubernetes-external-secrets", "es-kubernetes-external-secrets-deploy.yaml"), "expected generated file")
 
-	assert.FileExists(t, filepath.Join(o.OutputDir, "customresourcedefinitions", "secret-infra", "kubernetes-external-secrets", "externalsecrets.kubernetes-client.io-crd.yaml"), "expected generated CRD file")
+		assert.FileExists(t, filepath.Join(o.OutputDir, "cluster", "namespaces", "jx.yaml"), "expected generated namespace")
+		assert.FileExists(t, filepath.Join(o.OutputDir, "cluster", "namespaces", "jx-production.yaml"), "expected generated namespace")
+		assert.FileExists(t, filepath.Join(o.OutputDir, "cluster", "namespaces", "secret-infra.yaml"), "expected generated namespace")
+
+		assert.FileExists(t, filepath.Join(o.OutputDir, "customresourcedefinitions", "secret-infra", "kubernetes-external-secrets", "externalsecrets.kubernetes-client.io-crd.yaml"), "expected generated CRD file")
+
+	}
 }
 
 func skipTestIfCommandFails(t *testing.T, name string, args ...string) {

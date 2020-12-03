@@ -1,0 +1,4 @@
+helmfiles:
+  - path: ./helmfiles/jx/helmfile.yaml
+  - path: ./helmfiles/jx-production/helmfile.yaml
+  - path: helmfiles/secret-infra/helmfile.yaml

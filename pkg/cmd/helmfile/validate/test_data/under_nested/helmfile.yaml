@@ -1,0 +1,2 @@
+helmfiles:
+  - path: ./helmfiles/helmfile.yaml
