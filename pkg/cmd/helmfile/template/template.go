@@ -316,7 +316,7 @@ func (o *Options) createNamespaceJXValuesFile(requirements *jxcore.RequirementsC
 
 	// if we are in an environment with custom ingress lets use that
 	for _, env := range requirements.Environments {
-		if defaultNS+"-"+env.Key == ns {
+		if defaultNS+"-"+env.Key == ns && env.Ingress != nil {
 			if env.Ingress.Domain != "" {
 				req2.Ingress.Domain = env.Ingress.Domain
 			}
