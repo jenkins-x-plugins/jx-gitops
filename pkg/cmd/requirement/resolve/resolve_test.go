@@ -2,13 +2,11 @@ package resolve_test
 
 import (
 	"io/ioutil"
-	"path"
 	"path/filepath"
 	"testing"
 
 	"github.com/h2non/gock"
 	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
-	v1 "github.com/jenkins-x/jx-api/v4/pkg/apis/jenkins.io/v1"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/requirement/resolve"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner/fakerunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
@@ -157,18 +155,4 @@ func TestRequirementsResolvePipelineUser(t *testing.T) {
 
 	t.Logf("have chart repository %s\n", requirements.Spec.Cluster.ChartRepository)
 	assert.Equal(t, "http://jenkins-x-chartmuseum.jx.svc.cluster.local:8080", requirements.Spec.Cluster.ChartRepository, "requirements.Cluster.ChartRepository for file %s", fileName)
-}
-
-func TestGetRequirementsConfigFromTeamSettings(t *testing.T) {
-
-	content, err := ioutil.ReadFile(path.Join("test_data", "get_req_team_settings", "boot_requirements.yaml"))
-	assert.NoError(t, err)
-
-	settings := &v1.TeamSettings{
-		BootRequirements: string(content),
-	}
-
-	req, err := jxcore.GetRequirementsConfigFromTeamSettings(settings)
-	assert.NoError(t, err)
-	assert.Equal(t, "http://bucketrepo/bucketrepo/charts/", req.Cluster.ChartRepository)
 }
