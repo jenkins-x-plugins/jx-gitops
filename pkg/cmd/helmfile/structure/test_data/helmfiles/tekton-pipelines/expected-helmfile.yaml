@@ -1,0 +1,21 @@
+filepath: ""
+environments:
+  default:
+    values:
+    - ../../jx-values.yaml
+    - ../../versionStream/src/fake-secrets.yaml.gotmpl
+namespace: tekton-pipelines
+repositories:
+- name: cdf
+  url: https://cdfoundation.github.io/tekton-helm-chart
+releases:
+- chart: cdf/tekton-pipeline
+  version: 0.18.0-1
+  name: tekton-pipeline
+  values:
+  - ../../versionStream/charts/cdf/tekton-pipeline/values.yaml.gotmpl
+  forceNamespace: ""
+  skipDeps: null
+templates: {}
+missingFileHandler: ""
+renderedvalues: {}

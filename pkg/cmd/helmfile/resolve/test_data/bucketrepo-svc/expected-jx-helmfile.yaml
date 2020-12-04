@@ -1,0 +1,20 @@
+filepath: ""
+namespace: jx
+repositories:
+- name: dev
+  url: http://bucketrepo/bucketrepo/charts/
+- name: jx3
+  url: https://storage.googleapis.com/jenkinsxio/charts
+releases:
+- chart: dev/dummy
+  version: 1.2.3
+  name: dummy
+  forceNamespace: ""
+  skipDeps: null
+- chart: jx3/jx-build-controller
+  name: jx-build-controller
+  forceNamespace: ""
+  skipDeps: null
+templates: {}
+missingFileHandler: ""
+renderedvalues: {}

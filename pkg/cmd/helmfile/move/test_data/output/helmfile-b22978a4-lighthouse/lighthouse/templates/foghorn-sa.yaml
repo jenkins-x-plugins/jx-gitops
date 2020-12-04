@@ -1,6 +1,0 @@
----
-# Source: lighthouse/templates/foghorn-sa.yaml
-kind: ServiceAccount
-apiVersion: v1
-metadata:
-  name: lighthouse-foghorn

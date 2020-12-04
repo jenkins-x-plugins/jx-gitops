@@ -1,9 +1,0 @@
----
-# Source: jxboot-helmfile-resources/templates/jenkins-x-devpod-config.yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: "jenkins-x-devpod-config"
-data:
-  versions: |-
-    theia: 0.3.14

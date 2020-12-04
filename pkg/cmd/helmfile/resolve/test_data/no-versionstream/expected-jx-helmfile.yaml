@@ -1,0 +1,26 @@
+filepath: ""
+namespace: jx
+repositories:
+- name: jenkins-x
+  url: https://storage.googleapis.com/chartmuseum.jenkins-x.io
+- name: doesnotexist
+  url: https://storage.googleapis.com/chartmuseum.jenkins-x.io
+- name: jx3
+  url: https://storage.googleapis.com/jenkinsxio/charts
+releases:
+- chart: jenkins-x/jxboot-helmfile-resources
+  version: 0.0.255
+  name: jxboot-helmfile-resources
+  forceNamespace: ""
+  skipDeps: null
+- chart: doesnotexist/bucketrepo
+  name: bucketrepo
+  forceNamespace: ""
+  skipDeps: null
+- chart: jx3/jx-build-controller
+  name: jx-build-controller
+  forceNamespace: ""
+  skipDeps: null
+templates: {}
+missingFileHandler: ""
+renderedvalues: {}

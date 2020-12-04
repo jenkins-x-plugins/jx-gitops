@@ -1,6 +1,0 @@
----
-# Source: lighthouse/templates/keeper-sa.yaml
-kind: ServiceAccount
-apiVersion: v1
-metadata:
-  name: lighthouse-keeper

@@ -18,7 +18,6 @@ func TestUpdateNamespaceInYamlFiles(t *testing.T) {
 
 	t.Logf("generating output to %s\n", tmpDir)
 
-	o.Helmfile = filepath.Join("test_data", "helmfile.yaml")
 	o.Dir = filepath.Join("test_data", "output")
 	o.OutputDir = tmpDir
 
@@ -26,9 +25,9 @@ func TestUpdateNamespaceInYamlFiles(t *testing.T) {
 	require.NoError(t, err, "failed to run helmfile move")
 
 	expectedFiles := []string{
-		filepath.Join(tmpDir, "customresourcedefinitions", "jx", "lighthouse", "lighthousejobs-crd.yaml"),
-		filepath.Join(tmpDir, "cluster", "nginx", "nginx-ingress", "clusterrole.yaml"),
-		filepath.Join(tmpDir, "namespaces", "jx", "lighthouse", "foghorn-deployment.yaml"),
+		filepath.Join(tmpDir, "customresourcedefinitions", "jx", "lighthouse", "lighthousejobs.lighthouse.jenkins.io-crd.yaml"),
+		filepath.Join(tmpDir, "cluster", "nginx", "nginx-ingress", "nginx-ingress-clusterrole.yaml"),
+		filepath.Join(tmpDir, "namespaces", "jx", "lighthouse", "lighthouse-foghorn-deploy.yaml"),
 	}
 	for _, ef := range expectedFiles {
 		assert.FileExists(t, ef)

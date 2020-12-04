@@ -1,0 +1,8 @@
+releases:
+  - chart: stable/chartmuseum
+    version: 2.4.1
+    name: chartmuseum
+    namespace: secret-infra
+repositories:
+  - name: stable
+    url: someurl

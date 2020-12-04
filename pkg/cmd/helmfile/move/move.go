@@ -13,10 +13,7 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kyamls"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/options"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/stringhelpers"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/yaml2s"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/pkg/errors"
@@ -50,7 +47,6 @@ and then moves any CRDs or cluster level resources into 'config-root/cluster/$re
 // NamespaceOptions the options for the command
 type Options struct {
 	kyamls.Filter
-	Helmfile                     string
 	Dir                          string
 	OutputDir                    string
 	ClusterDir                   string
@@ -76,7 +72,6 @@ func NewCmdHelmfileMove() (*cobra.Command, *Options) {
 			helper.CheckErr(err)
 		},
 	}
-	cmd.Flags().StringVarP(&o.Helmfile, "helmfile", "f", "helmfile.yaml", "the 'helmfile.yaml' file to find the namespaces for each release name")
 	cmd.Flags().StringVarP(&o.Dir, "dir", "", "", "the directory containing the generated resources")
 	cmd.Flags().StringVarP(&o.OutputDir, "output-dir", "o", "config-root", "the output directory")
 	o.Filter.AddFlags(cmd)
@@ -85,16 +80,6 @@ func NewCmdHelmfileMove() (*cobra.Command, *Options) {
 
 // Run implements the command
 func (o *Options) Run() error {
-	if o.HelmState == nil {
-		o.HelmState = &state.HelmState{}
-		if o.Helmfile == "" {
-			return options.MissingOption("helmfile")
-		}
-		err := yaml2s.LoadFile(o.Helmfile, o.HelmState)
-		if err != nil {
-			return errors.Wrapf(err, "failed to load helmfile %s", o.Helmfile)
-		}
-	}
 	if o.ClusterDir == "" {
 		o.ClusterDir = filepath.Join(o.OutputDir, "cluster")
 	}
@@ -130,16 +115,11 @@ func (o *Options) Run() error {
 			continue
 		}
 
-		_, name := filepath.Split(dir)
-		ns := o.findNamespaceForReleaseName(name)
-		if ns == "" {
-			return errors.Errorf("could not find namespace for release name %s in path %s", name, dir)
-		}
-		if stringhelpers.StringArrayIndex(namespaces, ns) < 0 {
-			namespaces = append(namespaces, ns)
-		}
+		_, releaseName := filepath.Split(dir)
+		_, ns := filepath.Split(filepath.Dir(dir))
+		namespaces = append(namespaces, ns)
 
-		err = o.moveFilesToClusterOrNamespacesFolder(dir, ns, name)
+		err = o.moveFilesToClusterOrNamespacesFolder(dir, ns, releaseName)
 		if err != nil {
 			return errors.Wrapf(err, "failed to ")
 		}
@@ -153,20 +133,6 @@ func (o *Options) Run() error {
 		}
 	}
 	return nil
-}
-
-func (o *Options) findNamespaceForReleaseName(name string) string {
-	if o.SingleNamespace != "" {
-		return o.SingleNamespace
-	}
-	ns := ""
-	for _, r := range o.HelmState.Releases {
-		if r.Name == name {
-			ns = r.Namespace
-			break
-		}
-	}
-	return ns
 }
 
 func (o *Options) lazyCreateNamespaceResource(ns string) error {

@@ -27,3 +27,6 @@ repositories:
   - prefix: banzaicloud-stable
     urls:
       - https://kubernetes-charts.banzaicloud.com
+  - prefix: jx3
+    urls:
+      - https://storage.googleapis.com/jenkinsxio/charts
