@@ -8,7 +8,7 @@ require (
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/go-logr/logr v0.3.0 // indirect
 	github.com/go-yaml/yaml v2.1.0+incompatible
-	github.com/google/go-cmp v0.5.2
+	github.com/google/go-cmp v0.5.4
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/h2non/gock v1.0.9
 	github.com/huandu/xstrings v1.3.2 // indirect
