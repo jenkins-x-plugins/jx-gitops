@@ -5,10 +5,10 @@ import (
 	"testing"
 
 	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
+	"github.com/jenkins-x/jx-gitops/pkg/fakerunners"
 
 	jxfake "github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned/fake"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helm/release"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner/fakerunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/jxenv"
 	"github.com/stretchr/testify/require"
@@ -19,16 +19,13 @@ import (
 )
 
 func TestStepHelmRelease(t *testing.T) {
-	// TODO fixme very soon!
-	t.SkipNow()
-
-	runner := &fakerunner.FakeRunner{}
+	runner := fakerunners.NewFakeRunnerWithGitClone()
 	helmBin := "helm"
 
 	ns := "jx"
 	devEnv := jxenv.CreateDefaultDevEnvironment(ns)
 	devEnv.Namespace = ns
-	devEnv.Spec.Source.URL = "https://github.com/myorg/myrepo.git"
+	devEnv.Spec.Source.URL = "https://github.com/jx3-gitops-repositories/jx3-kubernetes.git"
 
 	requirements := jxcore.NewRequirementsConfig()
 	requirements.Spec.Cluster.ChartRepository = "http://bucketrepo/bucketrepo/charts/"

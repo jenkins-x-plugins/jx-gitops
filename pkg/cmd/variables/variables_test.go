@@ -11,7 +11,7 @@ import (
 	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	jxfake "github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned/fake"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/variables"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner/fakerunner"
+	"github.com/jenkins-x/jx-gitops/pkg/fakerunners"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/jxenv"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/testhelpers"
@@ -24,9 +24,6 @@ import (
 )
 
 func TestCmdVariables(t *testing.T) {
-	// TODO fixme very soon!
-	t.SkipNow()
-
 	tmpDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err, "failed to create temp dir")
 
@@ -57,7 +54,7 @@ func TestCmdVariables(t *testing.T) {
 		ns := "jx"
 		devEnv := jxenv.CreateDefaultDevEnvironment(ns)
 		devEnv.Namespace = ns
-		devEnv.Spec.Source.URL = "https://github.com/myorg/myrepo.git"
+		devEnv.Spec.Source.URL = "https://github.com/jx3-gitops-repositories/jx3-kubernetes.git"
 
 		requirements := jxcore.NewRequirementsConfig()
 		requirements.Spec.Cluster.ChartRepository = "http://bucketrepo/bucketrepo/charts/"
@@ -65,7 +62,7 @@ func TestCmdVariables(t *testing.T) {
 		require.NoError(t, err, "failed to marshal requirements")
 		devEnv.Spec.TeamSettings.BootRequirements = string(data)
 
-		runner := &fakerunner.FakeRunner{}
+		runner := fakerunners.NewFakeRunnerWithGitClone()
 
 		jxClient := jxfake.NewSimpleClientset(devEnv)
 		scmFake, _ := scmfake.NewDefault()
