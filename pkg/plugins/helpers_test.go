@@ -43,9 +43,6 @@ func TestHelmPlugin(t *testing.T) {
 }
 
 func TestHelmfilePlugin(t *testing.T) {
-	// TODO fixme very soon!
-	t.SkipNow()
-
 	t.Parallel()
 
 	plugin := plugins.CreateHelmfilePlugin(plugins.HelmfileVersion)
@@ -59,11 +56,11 @@ func TestHelmfilePlugin(t *testing.T) {
 	foundArm := false
 	for _, b := range plugin.Spec.Binaries {
 		switch b.Goarch {
-		case "arm":
+		case "arm64":
 			switch b.Goos {
 			case "Linux":
 				foundArm = true
-				assert.Equal(t, "https://github.com/jstrachan/helmfile/releases/download/v0.134.0.1/helmfile_linux_arm", b.URL, "URL for arm linux binary")
+				assert.Equal(t, "https://github.com/jstrachan/helmfile/releases/download/v0.135.0.arm/helmfile_linux_arm64", b.URL, "URL for arm linux binary")
 				t.Logf("found linux binary URL %s", b.URL)
 			}
 
