@@ -184,7 +184,11 @@ func (o Options) structureTemplateOutput() error {
 
 func (o Options) templateHelmfile() error {
 
-	args := []string{"--file", o.Helmfile, "template", "--include-crds", "--output-dir", o.TmpDir, "--output-dir-template", "{{ .OutputDir }}/{{ .Release.Namespace }}"}
+	args := []string{"--file", o.Helmfile, "template", "--include-crds", "--output-dir", o.TmpDir}
+	if o.Args != "" {
+		args = append(args, "--args", o.Args)
+	}
+	args = append(args, "--output-dir-template", "{{ .OutputDir }}/{{ .Release.Namespace }}")
 	if o.Debug {
 		args = append(args, "--debug")
 	}

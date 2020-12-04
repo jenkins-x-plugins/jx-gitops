@@ -1,0 +1,83 @@
+jxRequirements:
+  autoUpdate:
+    enabled: false
+    schedule: ""
+  bootConfigURL: https://github.com/jenkins-x/jx3-boot-config
+  buildPacks:
+    buildPackLibrary:
+      gitRef: master
+      gitURL: https://github.com/jenkins-x/jx3-pipeline-catalog.git
+  cluster:
+    chartRepository: http://jenkins-x-chartmuseum.jx.svc.cluster.local:8080
+    clusterName: rarity
+    environmentGitOwner: todo
+    gitKind: github
+    gitName: github
+    gitServer: https://github.com
+    namespace: jx
+    provider: aks
+    registry: unknown
+  environments:
+    - ingress:
+        domain: ""
+        externalDNS: false
+        namespaceSubDomain: ""
+        tls:
+          email: ""
+          enabled: false
+          production: false
+      key: dev
+      owner: noone
+      repository: remote
+    - ingress:
+        domain: ""
+        externalDNS: false
+        namespaceSubDomain: ""
+        tls:
+          email: ""
+          enabled: false
+          production: false
+      key: staging
+    - ingress:
+        domain: ""
+        externalDNS: false
+        namespaceSubDomain: ""
+        tls:
+          email: ""
+          enabled: false
+          production: false
+      key: production
+  gitops: true
+  ingress:
+    domain: twilightsparkle
+    externalDNS: true
+    namespaceSubDomain: -jx.
+    tls:
+      email: ""
+      enabled: false
+      production: false
+  kaniko: true
+  pipelineUser:
+    username: bob
+  repository: nexus
+  secretStorage: vault
+  storage:
+    backup:
+      enabled: false
+      url: ""
+    logs:
+      enabled: false
+      url: ""
+    reports:
+      enabled: false
+      url: ""
+    repository:
+      enabled: false
+      url: ""
+  velero:
+    schedule: ""
+    ttl: ""
+  versionStream:
+    ref: master
+    url: https://github.com/jenkins-x/jxr-versions.git
+  webhook: lighthouse
