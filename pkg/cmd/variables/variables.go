@@ -58,6 +58,7 @@ type Options struct {
 	ConfigMapName  string
 	Namespace      string
 	VersionFile    string
+	Commit         bool
 	BuildNumber    string
 	BuildID        string
 	KubeClient     kubernetes.Interface
@@ -103,6 +104,7 @@ func NewCmdVariables() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.BuildNumber, "build-number", "", "", "the build number to use. If not specified defaults to $BUILD_NUMBER")
 	cmd.Flags().StringVarP(&o.ConfigMapName, "configmap", "", "jenkins-x-docker-registry", "the ConfigMap used to load environment variables")
 	cmd.Flags().StringVarP(&o.VersionFile, "version-file", "", "", "the file to load the version from if not specified directly or via a $VERSION environment variable. Defaults to VERSION in the current dir")
+	cmd.Flags().BoolVarP(&o.Commit, "commit", "", true, "commit variables.sh")
 	o.Options.AddFlags(cmd)
 	return cmd, o
 }
@@ -359,9 +361,11 @@ func (o *Options) Run() error {
 	}
 	log.Logger().Infof("added variables to file: %s", info(file))
 
-	_, err = gitclient.AddAndCommitFiles(o.GitClient, o.Dir, "chore: added variables")
-	if err != nil {
-		return errors.Wrapf(err, "failed to commit changes")
+	if o.Commit {
+		_, err = gitclient.AddAndCommitFiles(o.GitClient, o.Dir, "chore: add variables")
+		if err != nil {
+			return errors.Wrapf(err, "failed to commit changes")
+		}
 	}
 	return nil
 }
