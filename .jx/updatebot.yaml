@@ -7,6 +7,6 @@ spec:
       changes:
         - regex:
             pattern: |
-              \\s+GitOpsVersion = "(.*)"
+              \s+GitOpsVersion = "(.*)"
             files:
               - "pkg/plugins/versions.go"
