@@ -46,7 +46,6 @@ require (
 
 replace (
 	github.com/jenkins-x/lighthouse => github.com/rawlingsj/lighthouse v0.0.0-20201005083317-4d21277f7992
-
 	// Until https://github.com/roboll/helmfile/pull/1604 is merged
 	github.com/roboll/helmfile => github.com/chrismellard/helmfile v0.135.1-0.20201126102036-a8ed1e09c756
 	// fix yaml comment parsing issue

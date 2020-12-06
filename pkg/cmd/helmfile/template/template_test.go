@@ -38,7 +38,7 @@ func TestStepHelmfileTemplate(t *testing.T) {
 
 		_, o := template.NewCmdHelmfileTemplate()
 		o.Dir = tmpDir
-		o.Args = "\"--values=jx-values.yaml\""
+		o.Values = []string{"jx-values.yaml"}
 
 		err = o.Run()
 		require.NoError(t, err, "failed to run the command")

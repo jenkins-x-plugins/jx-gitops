@@ -28,7 +28,7 @@ var (
 
 	cmdExample = templates.Examples(`
 		# splits the helmfile.yaml into separate files for each namespace and runs 'helm template' on each one	
-		%s helmfile template --args="--include-crds --values=jx-values.yaml --values=src/fake-secrets.yaml.gotmpl" --output-dir config-root/namespaces
+		%s helmfile template --include-crds --values=jx-values.yaml --values=src/fake-secrets.yaml.gotmpl --output-dir config-root/namespaces
 	`)
 
 	// debugInfoPrefixes lets use debug level logging for lines starting with the following prefixes in the output of helmfile or helm commands
@@ -47,7 +47,7 @@ type Options struct {
 	Dir           string
 	Helmfile      string
 	HelmBinary    string
-	Args          string
+	Values        []string
 	OutputDir     string
 	TmpDir        string
 	Namespace     string
@@ -78,7 +78,7 @@ func NewCmdHelmfileTemplate() (*cobra.Command, *Options) {
 
 	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the directory to run the commands inside")
 	cmd.Flags().StringVarP(&o.Helmfile, "helmfile", "", "", "the helmfile to template. Defaults to 'helmfile.yaml' in the directory")
-	cmd.Flags().StringVarP(&o.Args, "args", "a", "", "the arguments passed through to helm")
+	cmd.Flags().StringSliceVarP(&o.Values, "values", "f", []string{}, "additional values files to pass to helm. If relative paths are specified these are resolved relative to --dir")
 	cmd.Flags().StringVarP(&o.OutputDir, "output-dir", "o", "", "the output directory. If not specified a temporary directory is created")
 	cmd.Flags().StringVarP(&o.Namespace, "namespace", "n", "", "the default namespace if none is specified in the helmfile. Defaults to the current namespace")
 	cmd.Flags().BoolVarP(&o.Debug, "debug", "", false, "enables debug logging in helmfile")
@@ -185,9 +185,17 @@ func (o Options) structureTemplateOutput() error {
 func (o Options) templateHelmfile() error {
 
 	args := []string{"--file", o.Helmfile, "template", "--include-crds", "--output-dir", o.TmpDir}
-	if o.Args != "" {
-		args = append(args, o.Args)
+
+	for _, v := range o.Values {
+		var valuePath string
+		if filepath.IsAbs(v) {
+			valuePath = v
+		} else {
+			valuePath = filepath.Join(o.Dir, v)
+		}
+		args = append(args, "--values", valuePath)
 	}
+
 	args = append(args, "--output-dir-template", "{{ .OutputDir }}/{{ .Release.Namespace }}")
 	if o.Debug {
 		args = append(args, "--debug")
