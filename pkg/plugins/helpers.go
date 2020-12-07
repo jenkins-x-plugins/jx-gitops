@@ -66,7 +66,7 @@ func CreateHelmfilePlugin(version string) jenkinsv1.Plugin {
 		// workaround until this PR is merged and released it can hopefully be removed:
 		//   https://github.com/roboll/helmfile/pull/1612
 		if p.Goarch == "arm64" {
-			return "https://github.com/jstrachan/helmfile/releases/download/v0.135.0.arm/helmfile_linux_arm64"
+			return "https://github.com/docularxu/helmfile/releases/tag/v0.135.0.arm64"
 		}
 		ext := ""
 		if p.IsWindows() {
