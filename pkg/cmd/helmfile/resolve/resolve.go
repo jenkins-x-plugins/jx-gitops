@@ -295,7 +295,28 @@ func (o *Options) resolveHelmfile(helmState *state.HelmState, helmfile Helmfile)
 		if helmState.Environments == nil {
 			helmState.Environments = map[string]state.EnvironmentSpec{}
 		}
+		// lets remove any old legacy files in the root dir
+		oldFiles := []string{
+			filepath.Join("..", "..", reqvalues.RequirementsValuesFileName),
+			filepath.Join("..", "..", "versionStream", "src", "fake-secrets.yaml.gotmpl"),
+		}
 		envSpec := helmState.Environments["default"]
+		for _, f := range oldFiles {
+			for i, v := range envSpec.Values {
+				s, ok := v.(string)
+				if ok && s == f {
+					newValues := envSpec.Values[0:i]
+					if len(envSpec.Values) > i+1 {
+						newValues = append(newValues, envSpec.Values[i+1:]...)
+					}
+					envSpec.Values = newValues
+					helmState.Environments["default"] = envSpec
+					break
+				}
+			}
+		}
+
+		envSpec = helmState.Environments["default"]
 		foundValuesFile := false
 		for _, v := range envSpec.Values {
 			s, ok := v.(string)
