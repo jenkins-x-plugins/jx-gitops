@@ -648,7 +648,7 @@ func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
 		if release.Chart == "stable/nginx-ingress" {
 			release.Chart = "ingress-nginx/ingress-nginx"
 			o.updateVersionFromVersionStream(release)
-			release.Values = []interface{}{"versionStream/charts/ingress-nginx/values.yaml.gotmpl"}
+			release.Values = []interface{}{"../../versionStream/charts/ingress-nginx/values.yaml.gotmpl"}
 
 			// lets make sure we have the ingress-nginx repository
 			found := false
