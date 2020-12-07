@@ -1,4 +1,8 @@
 filepath: ""
+environments:
+  default:
+    values:
+    - jx-values.yaml
 namespace: jx
 repositories:
 - name: jenkins-x
@@ -11,14 +15,20 @@ releases:
 - chart: jenkins-x/jxboot-helmfile-resources
   version: 0.0.255
   name: jxboot-helmfile-resources
+  values:
+  - jx-values.yaml
   forceNamespace: ""
   skipDeps: null
 - chart: doesnotexist/bucketrepo
   name: bucketrepo
+  values:
+  - jx-values.yaml
   forceNamespace: ""
   skipDeps: null
 - chart: jx3/jx-build-controller
   name: jx-build-controller
+  values:
+  - jx-values.yaml
   forceNamespace: ""
   skipDeps: null
 templates: {}

@@ -7,12 +7,12 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/jenkins-x/jx-gitops/pkg/jxtmpl/reqvalues"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
 
 	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/structure"
 	"github.com/jenkins-x/jx-gitops/pkg/helmhelpers"
-	"github.com/jenkins-x/jx-gitops/pkg/jxtmpl/reqvalues"
 	"github.com/jenkins-x/jx-gitops/pkg/plugins"
 	"github.com/jenkins-x/jx-gitops/pkg/versionstreamer"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner"
@@ -152,12 +152,6 @@ func (o *Options) Validate() error {
 		return errors.Wrapf(err, "failed to load repository prefixes at %s", o.VersionStreamDir)
 	}
 
-	jxReqValuesFileName := filepath.Join(o.Dir, reqvalues.RequirementsValuesFileName)
-	o.Results.RequirementsValuesFileName = reqvalues.RequirementsValuesFileName
-	err = reqvalues.SaveRequirementsValuesFile(o.Options.Requirements, jxReqValuesFileName)
-	if err != nil {
-		return errors.Wrapf(err, "failed to save tempo file for jx requirements values file %s", jxReqValuesFileName)
-	}
 	if o.CommandRunner == nil {
 		o.CommandRunner = cmdrunner.QuietCommandRunner
 	}
@@ -211,7 +205,8 @@ func (o *Options) Run() error {
 
 func (o *Options) processHelmfile(helmfile Helmfile) (int, error) {
 	helmState := state.HelmState{}
-	err := yaml2s.LoadFile(helmfile.filepath, &helmState)
+	path := helmfile.filepath
+	err := yaml2s.LoadFile(path, &helmState)
 	if err != nil {
 		return 0, errors.Wrapf(err, "failed to load helmfile %s", helmfile)
 	}
@@ -222,12 +217,29 @@ func (o *Options) processHelmfile(helmfile Helmfile) (int, error) {
 			return 0, errors.Wrapf(err, "failed to perform custom upgrades")
 		}
 	}
+
+	if helmfile.relativePathToRoot != "" {
+		helmfileDir := filepath.Dir(path)
+		jxReqValuesFileName := filepath.Join(helmfileDir, reqvalues.RequirementsValuesFileName)
+		o.Results.RequirementsValuesFileName = reqvalues.RequirementsValuesFileName
+		requirements := *o.Options.Requirements
+		if err != nil {
+			return 0, errors.Wrapf(err, "failed to save tempo file for jx requirements values file %s", jxReqValuesFileName)
+		}
+		ns := helmState.OverrideNamespace
+		if ns == "" {
+			_, ns = filepath.Split(helmfileDir)
+		}
+		requirements.Ingress.NamespaceSubDomain = strings.ReplaceAll(requirements.Ingress.NamespaceSubDomain, "jx", ns)
+		err = reqvalues.SaveRequirementsValuesFile(&requirements, o.Dir, jxReqValuesFileName)
+	}
+
 	increment, err := o.resolveHelmfile(&helmState, helmfile)
 	if err != nil {
 		return 0, errors.Wrapf(err, "failed to resolve helmfile %s", helmfile)
 	}
 
-	err = yaml2s.SaveFile(helmState, helmfile.filepath)
+	err = yaml2s.SaveFile(helmState, path)
 	if err != nil {
 		return 0, errors.Wrapf(err, "failed to save file %s", helmfile)
 	}
@@ -264,7 +276,6 @@ func (o *Options) upgradeHelmfileStructure(dir string) (int, error) {
 }
 
 func (o *Options) resolveHelmfile(helmState *state.HelmState, helmfile Helmfile) (int, error) {
-
 	var err error
 	var ignoreRepositories []string
 	if !helmhelpers.IsInCluster() || o.TestOutOfCluster {
@@ -279,16 +290,48 @@ func (o *Options) resolveHelmfile(helmState *state.HelmState, helmfile Helmfile)
 		return 0, errors.Wrapf(err, "failed to add helm repositories")
 	}
 
-	/*
-		TODO lazily create environments file?
-		requirementsValuesFiles := o.Results.RequirementsValuesFileName
-		if requirementsValuesFiles != "" {
-			if stringhelpers.StringArrayIndex(helmState.Values, requirementsValuesFiles) < 0 {
-				helmState.Values = append(helmState.Values, requirementsValuesFiles)
+	if helmfile.relativePathToRoot != "" {
+		// ensure we have added the jx-values.yaml file in the envirionment
+		if helmState.Environments == nil {
+			helmState.Environments = map[string]state.EnvironmentSpec{}
+		}
+		// lets remove any old legacy files in the root dir
+		oldFiles := []string{
+			filepath.Join("..", "..", reqvalues.RequirementsValuesFileName),
+			filepath.Join("..", "..", "versionStream", "src", "fake-secrets.yaml.gotmpl"),
+		}
+		envSpec := helmState.Environments["default"]
+		for _, f := range oldFiles {
+			for i, v := range envSpec.Values {
+				s, ok := v.(string)
+				if ok && s == f {
+					newValues := envSpec.Values[0:i]
+					if len(envSpec.Values) > i+1 {
+						newValues = append(newValues, envSpec.Values[i+1:]...)
+					}
+					envSpec.Values = newValues
+					helmState.Environments["default"] = envSpec
+					break
+				}
 			}
 		}
 
-	*/
+		envSpec = helmState.Environments["default"]
+		foundValuesFile := false
+		for _, v := range envSpec.Values {
+			s, ok := v.(string)
+			if ok && s == reqvalues.RequirementsValuesFileName {
+				foundValuesFile = true
+				break
+			}
+		}
+		if !foundValuesFile {
+			envValue := helmState.Environments["default"]
+			envValue.Values = append(envValue.Values, reqvalues.RequirementsValuesFileName)
+			helmState.Environments["default"] = envValue
+		}
+	}
+
 	count := 0
 	for i, release := range helmState.Releases {
 		// TODO
@@ -433,6 +476,19 @@ func (o *Options) resolveHelmfile(helmState *state.HelmState, helmfile Helmfile)
 			}
 		}
 
+		if helmfile.relativePathToRoot != "" {
+			foundValuesFile := false
+			for _, v := range release.Values {
+				s, ok := v.(string)
+				if ok && s == reqvalues.RequirementsValuesFileName {
+					foundValuesFile = true
+					break
+				}
+			}
+			if !foundValuesFile {
+				release.Values = append(release.Values, reqvalues.RequirementsValuesFileName)
+			}
+		}
 		helmState.Releases[i] = release
 	}
 

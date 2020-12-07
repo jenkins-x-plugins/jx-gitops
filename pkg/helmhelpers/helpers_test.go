@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestStepHelmfileResolve(t *testing.T) {
+func TestFindClusterLocalRepositoryURLs(t *testing.T) {
 	repos := []state.RepositorySpec{
 		{
 			Name: "jx",

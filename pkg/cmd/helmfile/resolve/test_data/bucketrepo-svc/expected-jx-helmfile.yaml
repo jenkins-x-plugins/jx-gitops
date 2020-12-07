@@ -1,4 +1,8 @@
 filepath: ""
+environments:
+  default:
+    values:
+    - jx-values.yaml
 namespace: jx
 repositories:
 - name: dev
@@ -9,10 +13,14 @@ releases:
 - chart: dev/dummy
   version: 1.2.3
   name: dummy
+  values:
+  - jx-values.yaml
   forceNamespace: ""
   skipDeps: null
 - chart: jx3/jx-build-controller
   name: jx-build-controller
+  values:
+  - jx-values.yaml
   forceNamespace: ""
   skipDeps: null
 templates: {}
