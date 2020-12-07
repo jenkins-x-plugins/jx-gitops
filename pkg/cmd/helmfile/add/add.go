@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jenkins-x/jx-gitops/pkg/jxtmpl/reqvalues"
 	"github.com/jenkins-x/jx-gitops/pkg/versionstreamer"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/cli"
@@ -121,13 +120,6 @@ func (o *Options) Validate() error {
 	o.prefixes, err = o.Options.Resolver.GetRepositoryPrefixes()
 	if err != nil {
 		return errors.Wrapf(err, "failed to load repository prefixes at %s", o.VersionStreamDir)
-	}
-
-	jxReqValuesFileName := filepath.Join(o.Dir, reqvalues.RequirementsValuesFileName)
-	o.Results.RequirementsValuesFileName = reqvalues.RequirementsValuesFileName
-	err = reqvalues.SaveRequirementsValuesFile(o.Options.Requirements, jxReqValuesFileName)
-	if err != nil {
-		return errors.Wrapf(err, "failed to save tempo file for jx requirements values file %s", jxReqValuesFileName)
 	}
 	return nil
 }

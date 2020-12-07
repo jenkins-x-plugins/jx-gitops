@@ -1,4 +1,8 @@
 filepath: ""
+environments:
+  default:
+    values:
+    - jx-values.yaml
 namespace: foo
 repositories:
 - name: bitnami
@@ -9,6 +13,7 @@ releases:
   name: external-dns
   values:
   - ../../values/external-dns/values.yaml
+  - jx-values.yaml
   forceNamespace: ""
   skipDeps: null
 templates: {}

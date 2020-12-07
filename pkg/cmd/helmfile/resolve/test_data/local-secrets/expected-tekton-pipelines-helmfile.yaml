@@ -1,4 +1,8 @@
 filepath: ""
+environments:
+  default:
+    values:
+    - jx-values.yaml
 namespace: tekton-pipelines
 repositories:
 - name: cdf
@@ -9,6 +13,7 @@ releases:
   name: tekton-pipeline
   values:
   - ../../versionStream/charts/cdf/tekton-pipeline/values.yaml.gotmpl
+  - jx-values.yaml
   forceNamespace: ""
   skipDeps: null
 templates: {}
