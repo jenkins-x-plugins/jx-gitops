@@ -180,7 +180,12 @@ func (o *Options) Run() error {
 		}
 	}
 
-	for _, helmfile := range o.Helmfiles {
+	helmfiles, err := gatherHelmfiles(o.Helmfile)
+	if err != nil {
+		return errors.Wrapf(err, "error gathering helmfiles")
+	}
+
+	for _, helmfile := range helmfiles {
 		increment, err := o.processHelmfile(helmfile)
 		if err != nil {
 			return errors.Wrapf(err, "failed to process helmfile %s", helmfile.filepath)
