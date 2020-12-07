@@ -310,7 +310,7 @@ func (o *Options) resolveHelmfile(helmState *state.HelmState, helmfile Helmfile)
 		if prefix != "." && prefix != ".." {
 			// lets resolve the chart prefix from a local repository from the file or from a
 			// prefix in the versions stream
-			if repository == "" && prefix != "" {
+			if prefix != "" {
 				for _, r := range helmState.Repositories {
 					if r.Name == prefix {
 						repository = r.URL
@@ -350,10 +350,7 @@ func (o *Options) resolveHelmfile(helmState *state.HelmState, helmfile Helmfile)
 				// first try and match using the prefix and release name as we might have a version stream folder that uses helm alias
 				versionProperties, err := o.Options.Resolver.StableVersion(versionstream.KindChart, prefix+"/"+release.Name)
 				if err != nil {
-					if err != nil {
-						return 0, errors.Wrapf(err, "failed to find version number for chart %s", release.Name)
-					}
-
+					return 0, errors.Wrapf(err, "failed to find version number for chart %s", release.Name)
 				}
 
 				// lets fall back to using the full chart name
@@ -583,6 +580,33 @@ func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
 			break
 		}
 	}
+
+	// Replace old nginx ingress chart
+	for i := range helmstate.Releases {
+		release := &helmstate.Releases[i]
+		if release.Chart == "stable/nginx-ingress" {
+			release.Chart = "ingress-nginx/ingress-nginx"
+			o.updateVersionFromVersionStream(release)
+			release.Values = []interface{}{"versionStream/charts/ingress-nginx/values.yaml.gotmpl"}
+
+			// lets make sure we have the ingress-nginx repository
+			found := false
+			for _, repo := range helmstate.Repositories {
+				if repo.Name == "ingress-nginx" {
+					found = true
+					break
+				}
+			}
+			if !found {
+				helmstate.Repositories = append(helmstate.Repositories, state.RepositorySpec{
+					Name: "ingress-nginx",
+					URL:  "https://kubernetes.github.io/ingress-nginx",
+				})
+			}
+			break
+		}
+	}
+
 	ns := jxcore.DefaultNamespace
 
 	if requirements.SecretStorage == jxcore.SecretStorageTypeLocal && helmstate.OverrideNamespace == ns {
@@ -778,5 +802,12 @@ func (o *Options) updateVersionFromVersionStream(release *state.ReleaseSpec) {
 		log.Logger().Warnf("failed to find version number for chart %s", release.Chart)
 		release.Version = ""
 	}
+
+	if versionProperties == nil {
+		log.Logger().Warnf("failed to find version number for chart %s", release.Chart)
+		release.Version = ""
+		return
+	}
+
 	release.Version = versionProperties.Version
 }
