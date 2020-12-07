@@ -28,6 +28,7 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/upgrade"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/variables"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/version"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/versionstream"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/webhook"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras"
@@ -76,5 +77,6 @@ func Main() *cobra.Command {
 	cmd.AddCommand(cobras.SplitCommand(upgrade.NewCmdUpgrade()))
 	cmd.AddCommand(cobras.SplitCommand(variables.NewCmdVariables()))
 	cmd.AddCommand(cobras.SplitCommand(version.NewCmdVersion()))
+	cmd.AddCommand(cobras.SplitCommand(versionstream.NewCmdVersionstream()))
 	return cmd
 }

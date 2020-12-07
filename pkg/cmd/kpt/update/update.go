@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"sigs.k8s.io/kustomize/kyaml/yaml"
+
 	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
 
@@ -23,7 +25,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"sigs.k8s.io/yaml"
 )
 
 var (
@@ -80,7 +81,7 @@ func NewCmdKptUpdate() (*cobra.Command, *Options) {
 // AddFlags adds CLI flags
 func (o *Options) AddFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&o.Dir, "dir", "", ".", "the directory to recursively look for the *.yaml or *.yml files")
-	cmd.Flags().StringVarP(&o.Version, "version", "v", "master", "the git version of the kpt package to upgrade to")
+	cmd.Flags().StringVarP(&o.Version, "version", "v", "", "the git version of the kpt package to upgrade to")
 	cmd.Flags().StringVarP(&o.RepositoryURL, "url", "u", "", "filter on the Kptfile repository URL for which packages to update")
 	cmd.Flags().StringVarP(&o.RepositoryOwner, "owner", "o", "", "filter on the Kptfile repository owner (user/organisation) for which packages to update")
 	cmd.Flags().StringVarP(&o.RepositoryName, "repo", "r", "", "filter on the Kptfile repository name  for which packages to update")
@@ -157,7 +158,22 @@ func (o *Options) Run() error {
 			strategy = strategies[rel]
 		}
 
-		folderExpression := fmt.Sprintf("%s@%s", rel, o.Version)
+		folderExpression := rel
+		if o.Version != "" {
+			folderExpression = fmt.Sprintf("%s@%s", rel, o.Version)
+		} else {
+			node, err := yaml.ReadFile(path)
+			if err == nil {
+				refNode, err := node.Pipe(yaml.Lookup("upstream", "git", "ref"))
+				if err == nil {
+					nodeText, err := refNode.String()
+					if err != nil {
+						folderExpression = fmt.Sprintf("%s@%s", rel, strings.TrimSpace(nodeText))
+					}
+				}
+			}
+		}
+
 		args := []string{"pkg", "update", folderExpression, "--strategy", strategy}
 		c := &cmdrunner.Command{
 			Name: bin,
