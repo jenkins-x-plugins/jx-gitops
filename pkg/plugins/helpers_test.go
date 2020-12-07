@@ -60,7 +60,7 @@ func TestHelmfilePlugin(t *testing.T) {
 			switch b.Goos {
 			case "Linux":
 				foundArm = true
-				assert.Equal(t, "https://github.com/docularxu/helmfile/releases/tag/v0.135.0.arm64", b.URL, "URL for arm linux binary")
+				assert.Equal(t, "https://github.com/docularxu/helmfile/releases/download/v0.135.0.arm64/helmfile-0.135.0", b.URL, "URL for arm linux binary")
 				t.Logf("found linux binary URL %s", b.URL)
 			}
 
