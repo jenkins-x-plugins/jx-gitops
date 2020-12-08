@@ -57,6 +57,7 @@ func TestStepHelmfileAdd(t *testing.T) {
 		o.Dir = tmpDir
 		o.Chart = tc.chart
 		o.Repository = tc.repository
+		o.Namespace = "jx"
 
 		t.Logf("installing chart %s\n", o.Chart)
 
@@ -69,5 +70,5 @@ func TestStepHelmfileAdd(t *testing.T) {
 
 	t.Logf("generated files to %s\n", tmpDir)
 
-	testhelpers.AssertTextFilesEqual(t, filepath.Join(tmpDir, "expected-helmfile.yaml"), filepath.Join(tmpDir, "helmfile.yaml"), "generated file")
+	testhelpers.AssertTextFilesEqual(t, filepath.Join(tmpDir, "expected-helmfile.yaml"), filepath.Join(tmpDir, "helmfiles", "jx", "helmfile.yaml"), "generated file")
 }

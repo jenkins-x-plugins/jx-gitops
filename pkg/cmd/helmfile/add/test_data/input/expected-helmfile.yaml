@@ -1,28 +1,16 @@
 filepath: ""
 repositories:
-- name: doesnotexist
-  url: https://storage.googleapis.com/chartmuseum.jenkins-x.io
 - name: jenkins-x
   url: https://storage.googleapis.com/chartmuseum.jenkins-x.io
 - name: jenkins
   url: https://raw.githubusercontent.com/jenkinsci/kubernetes-operator/master/chart
 releases:
-- chart: jenkins-x/tekton
-  forceNamespace: ""
-  skipDeps: null
-- chart: jenkins-x/jxboot-helmfile-resources
-  forceNamespace: ""
-  skipDeps: null
-- chart: bitnami/external-dns
-  forceNamespace: ""
-  skipDeps: null
-- chart: doesnotexist/bucketrepo
-  forceNamespace: ""
-  skipDeps: null
 - chart: jenkins-x/jx-test-collector
+  namespace: jx
   forceNamespace: ""
   skipDeps: null
 - chart: jenkins/jenkins-operator
+  namespace: jx
   forceNamespace: ""
   skipDeps: null
 templates: {}
