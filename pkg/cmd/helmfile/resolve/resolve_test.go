@@ -145,6 +145,9 @@ func TestStepHelmfileResolve(t *testing.T) {
 
 		require.FileExists(t, filepath.Join(o.Dir, ".jx", "git-operator", "filename.txt"), "should have generated the git operator job file name")
 
+		if name == "input" {
+			require.FileExists(t, filepath.Join(o.Dir, "jx-global-values.yaml"), "should have renamed imagePullSecrets.yaml")
+		}
 	}
 }
 
