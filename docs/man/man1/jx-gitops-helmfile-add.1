@@ -48,7 +48,7 @@ Adds a chart to the local 'helmfile.yaml' file
     the name of the helm release
 
 .PP
-\fB\-n\fP, \fB\-\-namespace\fP=""
+\fB\-n\fP, \fB\-\-namespace\fP="jx"
     the namespace to install the chart
 
 .PP
@@ -62,14 +62,6 @@ Adds a chart to the local 'helmfile.yaml' file
 .PP
 \fB\-\-version\-stream\-dir\fP=""
     the directory for the version stream. Defaults to 'versionStream' in the current \-\-dir
-
-.PP
-\fB\-\-version\-stream\-ref\fP=""
-    the git ref (branch, tag, revision) of the version stream to git clone. If not specified it defaults to the value in the jx\-requirements.yml
-
-.PP
-\fB\-\-version\-stream\-url\fP=""
-    the git clone URL of the version stream. If not specified it defaults to the value in the jx\-requirements.yml
 
 
 .SH EXAMPLE

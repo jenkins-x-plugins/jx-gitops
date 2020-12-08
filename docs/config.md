@@ -18,6 +18,8 @@ Resource Types:
 <ul><li>
 <a href="#gitops.jenkins-x.io/v1alpha1.KptStrategies">KptStrategies</a>
 </li><li>
+<a href="#gitops.jenkins-x.io/v1alpha1.PipelineCatalog">PipelineCatalog</a>
+</li><li>
 <a href="#gitops.jenkins-x.io/v1alpha1.SecretMapping">SecretMapping</a>
 </li><li>
 <a href="#gitops.jenkins-x.io/v1alpha1.SourceConfig">SourceConfig</a>
@@ -63,6 +65,84 @@ string
 </td>
 <td>
 <p>KptStrategyConfig contains a collection of merge strategies Jenkins X will use when performing kpt updates</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="gitops.jenkins-x.io/v1alpha1.PipelineCatalog">PipelineCatalog
+</h3>
+<p>
+<p>PipelineCatalog represents a collection quickstart project</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>apiVersion</code></br>
+string</td>
+<td>
+<code>
+gitops.jenkins-x.io/v1alpha1
+</code>
+</td>
+</tr>
+<tr>
+<td>
+<code>kind</code></br>
+string
+</td>
+<td><code>PipelineCatalog</code></td>
+</tr>
+<tr>
+<td>
+<code>metadata</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#objectmeta-v1-meta">
+Kubernetes meta/v1.ObjectMeta
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+Refer to the Kubernetes API documentation for the fields of the
+<code>metadata</code> field.
+</td>
+</tr>
+<tr>
+<td>
+<code>spec</code></br>
+<em>
+<a href="#gitops.jenkins-x.io/v1alpha1.PipelineCatalogSpec">
+PipelineCatalogSpec
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Spec holds the desired state of the PipelineCatalog from the client</p>
+<br/>
+<br/>
+<table>
+<tr>
+<td>
+<code>repositories</code></br>
+<em>
+<a href="#gitops.jenkins-x.io/v1alpha1.PipelineCatalogSource">
+[]PipelineCatalogSource
+</a>
+</em>
+</td>
+<td>
+<p>Repositories the repositories containing pipeline catalogs</p>
+</td>
+</tr>
+</table>
 </td>
 </tr>
 </tbody>
@@ -491,6 +571,97 @@ string
 </tr>
 </tbody>
 </table>
+<h3 id="gitops.jenkins-x.io/v1alpha1.PipelineCatalogSource">PipelineCatalogSource
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#gitops.jenkins-x.io/v1alpha1.PipelineCatalogSpec">PipelineCatalogSpec</a>)
+</p>
+<p>
+<p>PipelineCatalogSource the source of a pipeline catalog</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>id</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>label</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>gitUrl</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>gitRef</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="gitops.jenkins-x.io/v1alpha1.PipelineCatalogSpec">PipelineCatalogSpec
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#gitops.jenkins-x.io/v1alpha1.PipelineCatalog">PipelineCatalog</a>)
+</p>
+<p>
+<p>PipelineCatalogSpec defines the desired state of PipelineCatalog.</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>repositories</code></br>
+<em>
+<a href="#gitops.jenkins-x.io/v1alpha1.PipelineCatalogSource">
+[]PipelineCatalogSource
+</a>
+</em>
+</td>
+<td>
+<p>Repositories the repositories containing pipeline catalogs</p>
+</td>
+</tr>
+</tbody>
+</table>
 <h3 id="gitops.jenkins-x.io/v1alpha1.Repository">Repository
 </h3>
 <p>
@@ -870,5 +1041,5 @@ string
 <hr/>
 <p><em>
 Generated with <code>gen-crd-api-reference-docs</code>
-on git commit <code>724558a</code>.
+on git commit <code>af8cf06</code>.
 </em></p>

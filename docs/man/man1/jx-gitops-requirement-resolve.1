@@ -39,6 +39,10 @@ For example if the provider is GKE then this step will automatically default the
     disables performing a git commit if there are changes
 
 .PP
+\fB\-\-retries\fP=3
+    Specify the number of times the command should be reattempted on failure
+
+.PP
 \fB\-\-secret\fP="jx\-boot"
     the name of the Secret to find the git URL, username and password for creating a git credential if running inside the cluster
 
