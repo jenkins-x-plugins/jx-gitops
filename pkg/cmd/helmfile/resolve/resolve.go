@@ -8,7 +8,9 @@ import (
 	"strings"
 
 	"github.com/jenkins-x/jx-gitops/pkg/jxtmpl/reqvalues"
+	"github.com/jenkins-x/jx-gitops/pkg/pipelinecatalogs"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"
 
 	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/structure"
@@ -37,6 +39,8 @@ const (
 )
 
 var (
+	info = termcolor.ColorInfo
+
 	cmdLong = templates.LongDesc(`
 		Resolves the helmfile.yaml from the version stream to specify versions and helm values
 `)
@@ -177,6 +181,11 @@ func (o *Options) Run() error {
 		count += increment
 		if err != nil {
 			return errors.Wrapf(err, "failed to perform custom upgrades")
+		}
+
+		err = o.upgradePipelineCatalog()
+		if err != nil {
+			return errors.Wrapf(err, "failed to upgrade pipeline catalog")
 		}
 	}
 
@@ -929,5 +938,39 @@ func (o *Options) renameImagePullSecretsFile() error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to add files to git")
 	}
+	return nil
+}
+
+func (o *Options) upgradePipelineCatalog() error {
+	pc, path, err := pipelinecatalogs.LoadPipelineCatalogs(o.Dir)
+	if err != nil {
+		return errors.Wrapf(err, "failed to load pipeline catalogs")
+	}
+
+	modified := false
+	for i := range pc.Spec.Repositories {
+		repo := &pc.Spec.Repositories[i]
+		gitURL := repo.GitURL
+		if gitURL != "" {
+			version, err := o.Options.Resolver.ResolveGitVersion(gitURL)
+			if err != nil {
+				return errors.Wrapf(err, "failed to find stable version of pipeline catalog %s", gitURL)
+			}
+			if version != "" && version != repo.GitRef {
+				modified = true
+				repo.GitRef = version
+				log.Logger().Infof("updated version of pipeline catalog %s to %s", info(gitURL), info(version))
+			}
+		}
+	}
+	if !modified {
+		return nil
+	}
+
+	err = yamls.SaveFile(pc, path)
+	if err != nil {
+		return errors.Wrapf(err, "failed to save file %s", path)
+	}
+	log.Logger().Infof("modified %s", info(path))
 	return nil
 }

@@ -8,6 +8,7 @@ import (
 
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/resolve"
 	"github.com/jenkins-x/jx-gitops/pkg/fakekpt"
+	"github.com/jenkins-x/jx-gitops/pkg/pipelinecatalogs"
 	"github.com/jenkins-x/jx-gitops/pkg/plugins"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner/fakerunner"
@@ -147,6 +148,15 @@ func TestStepHelmfileResolve(t *testing.T) {
 
 		if name == "input" {
 			require.FileExists(t, filepath.Join(o.Dir, "jx-global-values.yaml"), "should have renamed imagePullSecrets.yaml")
+
+			// lets check we have updated the pipeline catalog
+			pc, _, err := pipelinecatalogs.LoadPipelineCatalogs(o.Dir)
+			require.NoError(t, err, "failed to load catalogs in dir %s", o.Dir)
+			require.NotNil(t, pc, "no PipelineCatalogs found")
+			require.Len(t, pc.Spec.Repositories, 1, "should have loaded one PipelineCatalog repository")
+			pipelineCatalogGitRef := pc.Spec.Repositories[0].GitRef
+			t.Logf("modified the PipelineCatalog git ref to %s\n", pipelineCatalogGitRef)
+			assert.Equal(t, "beta", pipelineCatalogGitRef, "should have modified the pipeline catalog ref")
 		}
 	}
 }
