@@ -579,7 +579,21 @@ func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
 		versionStreamPath = "versionStream"
 	} else {
 		versionStreamPath = "../../versionStream"
+
+		// lets remove the old top level jx-values.yaml as we are using multi-level helmfiles
+		oldJXValues := filepath.Join(o.Dir, "jx-values.yaml")
+		exists, err := files.FileExists(oldJXValues)
+		if err != nil {
+			return errors.Wrapf(err, "failed to check if file exists %s", oldJXValues)
+		}
+		if exists {
+			err = os.Remove(oldJXValues)
+			if err != nil {
+				return errors.Wrapf(err, "failed to remove old file %s", oldJXValues)
+			}
+		}
 	}
+
 	requirementsResource, _, err := jxcore.LoadRequirementsConfig(o.Dir, false)
 	if err != nil {
 		return errors.Wrapf(err, "failed to load the requirements configuration")
