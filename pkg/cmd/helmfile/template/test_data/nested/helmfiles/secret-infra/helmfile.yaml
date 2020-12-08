@@ -1,7 +1,0 @@
-repositories:
-- name: external-secrets
-  url: https://external-secrets.github.io/kubernetes-external-secrets
-releases:
-- chart: external-secrets/kubernetes-external-secrets
-  name: es
-  namespace: secret-infra
