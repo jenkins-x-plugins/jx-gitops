@@ -7,7 +7,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"sigs.k8s.io/kustomize/kyaml/yaml"
+	"sigs.k8s.io/yaml"
+
+	kyaml "sigs.k8s.io/kustomize/kyaml/yaml"
 
 	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
@@ -162,12 +164,12 @@ func (o *Options) Run() error {
 		if o.Version != "" {
 			folderExpression = fmt.Sprintf("%s@%s", rel, o.Version)
 		} else {
-			node, err := yaml.ReadFile(path)
+			node, err := kyaml.ReadFile(path)
 			if err == nil {
-				refNode, err := node.Pipe(yaml.Lookup("upstream", "git", "ref"))
+				refNode, err := node.Pipe(kyaml.Lookup("upstream", "git", "ref"))
 				if err == nil {
 					nodeText, err := refNode.String()
-					if err != nil {
+					if err == nil {
 						folderExpression = fmt.Sprintf("%s@%s", rel, strings.TrimSpace(nodeText))
 					}
 				}

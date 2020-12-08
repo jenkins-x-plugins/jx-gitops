@@ -7,5 +7,5 @@ upstream:
   git:
     commit: 49c9579ed07f43569939a6a90f65e1f1e98337be
     repo: https://github.com/foo/bar
-    directory: /
+    directory: wine
     ref: cheese

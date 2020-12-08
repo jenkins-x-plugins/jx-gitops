@@ -57,6 +57,7 @@ func TestOptions_Run(t *testing.T) {
 		Custom bool
 		GitURL string
 		GitRef string
+		GitDir string
 		Dir    string
 	}
 	tests := []struct {
@@ -66,7 +67,7 @@ func TestOptions_Run(t *testing.T) {
 	}{
 		{name: "lts", fields: fields{LTS: true}, wantErr: false},
 		{name: "latest", fields: fields{Latest: true}, wantErr: false},
-		{name: "custom", fields: fields{Custom: true, GitURL: "https://github.com/foo/bar", GitRef: "cheese"}, wantErr: false},
+		{name: "custom", fields: fields{Custom: true, GitURL: "https://github.com/foo/bar", GitRef: "cheese", GitDir: "wine"}, wantErr: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -80,10 +81,11 @@ func TestOptions_Run(t *testing.T) {
 				Custom: tt.fields.Custom,
 				GitURL: tt.fields.GitURL,
 				GitRef: tt.fields.GitRef,
+				GitDir: tt.fields.GitDir,
 				Dir:    tmpDir,
 			}
 
-			if err := o.Run(); (err != nil) != tt.wantErr {
+			if err := o.switchVersionStream(); (err != nil) != tt.wantErr {
 				t.Errorf("Run() error = %v, wantErr %v", err, tt.wantErr)
 			} else {
 				testhelpers.AssertTextFilesEqual(t, filepath.Join("test_data", tt.name, "expected"), filepath.Join(tmpDir, "versionStream", "Kptfile"), "updated Kptfile does not match expected")

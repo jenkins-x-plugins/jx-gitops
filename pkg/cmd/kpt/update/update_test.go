@@ -22,7 +22,7 @@ func TestUpdateKptNoFilter(t *testing.T) {
 	runner := &fakerunner.FakeRunner{}
 	uk.CommandRunner = runner.Run
 	uk.Dir = sourceDir
-
+	uk.Version = "master"
 	err = uk.Run()
 	require.NoError(t, err, "failed to run update kpt")
 
@@ -51,6 +51,7 @@ func TestUpdateKptFilterRepositoryURL(t *testing.T) {
 	uk.CommandRunner = runner.Run
 	uk.Dir = sourceDir
 	uk.RepositoryURL = "https://github.com/another/thing"
+	uk.Version = "master"
 
 	err = uk.Run()
 	require.NoError(t, err, "failed to run update kpt")
@@ -75,6 +76,7 @@ func TestUpdateKptFilterRepositoryName(t *testing.T) {
 	uk.CommandRunner = runner.Run
 	uk.Dir = sourceDir
 	uk.RepositoryName = "jxr-kube-resources"
+	uk.Version = "master"
 
 	err = uk.Run()
 	require.NoError(t, err, "failed to run update kpt")
@@ -100,6 +102,7 @@ func TestUpdateKptFilterNotMatching(t *testing.T) {
 	uk.CommandRunner = runner.Run
 	uk.Dir = sourceDir
 	uk.RepositoryURL = "https://does/not/exist.git"
+	uk.Version = "master"
 
 	err = uk.Run()
 	require.NoError(t, err, "failed to run update kpt")
