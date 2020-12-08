@@ -1,7 +1,0 @@
-repositories:
-- name: jenkins-x
-  url: https://storage.googleapis.com/chartmuseum.jenkins-x.io
-releases:
-- chart: jenkins-x/tekton
-  name: tekton
-  namespace: jx

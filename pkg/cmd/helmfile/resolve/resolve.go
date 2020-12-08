@@ -651,10 +651,11 @@ func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
 	// Replace old nginx ingress chart
 	for i := range helmstate.Releases {
 		release := &helmstate.Releases[i]
-		if release.Chart == "stable/nginx-ingress" {
+		switch release.Chart {
+		case "stable/nginx-ingress":
 			release.Chart = "ingress-nginx/ingress-nginx"
 			o.updateVersionFromVersionStream(release)
-			release.Values = []interface{}{fmt.Sprintf("%s/charts/ingress-nginx/values.yaml.gotmpl", versionStreamPath)}
+			release.Values = []interface{}{fmt.Sprintf("%s/charts/ingress-nginx/ingress-nginx/values.yaml.gotmpl", versionStreamPath)}
 
 			// lets make sure we have the ingress-nginx repository
 			found := false
@@ -671,6 +672,16 @@ func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
 				})
 			}
 			break
+		case "ingress-nginx/ingress-nginx":
+			for i := range release.Values {
+				v := release.Values[i]
+				s, ok := v.(string)
+				// lets switch invalid paths to the one inside a chart repo folder
+				if ok && s == fmt.Sprintf("%s/charts/ingress-nginx/values.yaml.gotmpl", versionStreamPath) {
+					release.Values[i] = fmt.Sprintf("%s/charts/ingress-nginx/ingress-nginx/values.yaml.gotmpl", versionStreamPath)
+					break
+				}
+			}
 		}
 	}
 

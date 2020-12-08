@@ -2,10 +2,12 @@ package add
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/jenkins-x/jx-gitops/pkg/versionstreamer"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/cli"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/options"
@@ -78,7 +80,7 @@ func NewCmdHelmfileAdd() (*cobra.Command, *Options) {
 
 	// chart flags
 	cmd.Flags().StringVarP(&o.Chart, "chart", "c", "", "the name of the helm chart to add")
-	cmd.Flags().StringVarP(&o.Namespace, "namespace", "n", "", "the namespace to install the chart")
+	cmd.Flags().StringVarP(&o.Namespace, "namespace", "n", "jx", "the namespace to install the chart")
 	cmd.Flags().StringVarP(&o.ReleaseName, "name", "", "", "the name of the helm release")
 	cmd.Flags().StringVarP(&o.Repository, "repository", "r", "", "the helm chart repository URL of the chart")
 	cmd.Flags().StringVarP(&o.Version, "version", "v", "", "the version of the helm chart. If not specified the versionStream will be checked otherwise the latest version is used")
@@ -100,7 +102,7 @@ func (o *Options) Validate() error {
 		return options.MissingOption("chart")
 	}
 	if o.Helmfile == "" {
-		o.Helmfile = filepath.Join(o.Dir, "helmfile.yaml")
+		o.Helmfile = filepath.Join(o.Dir, "helmfiles", o.Namespace, "helmfile.yaml")
 	}
 
 	o.prefixes, err = o.Options.Resolver.GetRepositoryPrefixes()
@@ -208,6 +210,12 @@ func (o *Options) Run() error {
 	if !modified {
 		log.Logger().Infof("no changes were made to file %s", o.Helmfile)
 		return nil
+	}
+
+	dir := filepath.Dir(o.Helmfile)
+	err = os.MkdirAll(dir, files.DefaultDirWritePermissions)
+	if err != nil {
+		return errors.Wrapf(err, "failed to create dir %s", dir)
 	}
 
 	err = yaml2s.SaveFile(helmState, o.Helmfile)
