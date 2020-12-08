@@ -275,6 +275,11 @@ func (o *Options) upgradeHelmfileStructure(dir string) (int, error) {
 		return 0, errors.Wrapf(err, "error gathering helmfiles")
 	}
 	o.Helmfiles = helmfiles
+
+	err = gitclient.Add(o.Git(), o.Dir, "helmfiles")
+	if err != nil {
+		return count, errors.Wrapf(err, "failed to add files to git")
+	}
 	return count, nil
 }
 
@@ -919,6 +924,10 @@ func (o *Options) renameImagePullSecretsFile() error {
 	err = os.Rename(oldPath, newPath)
 	if err != nil {
 		return errors.Wrapf(err, "failed to rename %s to %s", oldPath, newPath)
+	}
+	err = gitclient.Add(o.Git(), o.Dir, "jx-global-values.yaml")
+	if err != nil {
+		return errors.Wrapf(err, "failed to add files to git")
 	}
 	return nil
 }
