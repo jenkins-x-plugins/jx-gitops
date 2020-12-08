@@ -28,14 +28,7 @@ type Options struct {
 func (o *Options) AddFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the directory that contains the jx-requirements.yml")
 	cmd.Flags().StringVarP(&o.VersionStreamDir, "version-stream-dir", "", "", "the directory for the version stream. Defaults to 'versionStream' in the current --dir")
-	cmd.Flags().StringVarP(&o.VersionStreamURL, "version-stream-url", "", "", "the git clone URL of the version stream. If not specified it defaults to the value in the jx-requirements.yml")
-	cmd.Flags().StringVarP(&o.VersionStreamRef, "version-stream-ref", "", "", "the git ref (branch, tag, revision) of the version stream to git clone. If not specified it defaults to the value in the jx-requirements.yml")
 }
-
-const (
-	defaultVersionStreamURL = "https://github.com/jenkins-x/jxr-versions.git"
-	defaultVersionStreamRef = "master"
-)
 
 // Validate validates the options and populates any missing values
 func (o *Options) Validate() error {
@@ -48,13 +41,7 @@ func (o *Options) Validate() error {
 		}
 		o.Requirements = &requirementsResource.Spec
 	}
-	if o.VersionStreamURL == "" {
-		o.VersionStreamURL = defaultVersionStreamURL
-	}
-	if o.VersionStreamRef == "" {
-		o.VersionStreamRef = defaultVersionStreamRef
 
-	}
 	if o.VersionStreamDir == "" {
 		o.VersionStreamDir = filepath.Join(o.Dir, "versionStream")
 	}

@@ -193,8 +193,6 @@ func (o *Options) Run() error {
 		count += increment
 	}
 
-	log.Logger().Infof("resolving versions and values files from the version stream %s ref %s in dir %s", o.VersionStreamURL, o.VersionStreamRef, o.VersionStreamDir)
-
 	if !o.DoGitCommit {
 		return nil
 	}

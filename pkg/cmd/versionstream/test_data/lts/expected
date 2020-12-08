@@ -1,0 +1,11 @@
+apiVersion: kpt.dev/v1alpha1
+kind: Kptfile
+metadata:
+  name: versionStream
+upstream:
+  type: git
+  git:
+    commit: 49c9579ed07f43569939a6a90f65e1f1e98337be
+    repo: https://github.com/jenkins-x/jx3-lts-versions
+    directory: versionStream
+    ref: main
