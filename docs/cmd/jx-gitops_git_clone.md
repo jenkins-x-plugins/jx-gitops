@@ -1,31 +1,30 @@
-## jx-gitops git setup
+## jx-gitops git clone
 
-Sets up git to ensure the git user name and email is setup
+Clones the cluster git repository using the URL, git user and token from the Secret
 
 ### Usage
 
 ```
-jx-gitops git setup
+jx-gitops git clone
 ```
 
 ### Synopsis
 
-Sets up git to ensure the git user name and email is setup.
-  
-This is typically used in a pipeline to ensure git can do commits.
+Clones the cluster git repository using the URL, git user and token from the Secret
 
 ### Examples
 
-  jx-gitops git setup
+  jx-gitops git clone
 
 ### Options
 
 ```
+      --clone-dir string            the directory to clone the repository to
       --credentials-file string     The destination of the git credentials file to generate. If not specified uses $XDG_CONFIG_HOME/git/credentials or $HOME/git/credentials
   -d, --dir string                  the directory to run the git setup command from
   -e, --email string                the git user email to use if one is not setup
       --fake-in-cluster             for testing: lets you fake running this command inside a kubernetes cluster so that it can create the file: $XDG_CONFIG_HOME/git/credentials or $HOME/git/credentials
-  -h, --help                        help for setup
+  -h, --help                        help for clone
   -n, --name string                 the git user name to use if one is not setup
       --namespace string            the namespace used to find the git operator secret for the git repository if running in cluster. Defaults to the current namespace
       --operator-namespace string   the namespace used by the git operator to find the secret for the git repository if running in cluster (default "jx-git-operator")
