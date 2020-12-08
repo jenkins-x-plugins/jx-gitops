@@ -574,6 +574,12 @@ func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
 		return errors.Wrapf(err, "failed to migrate jx-requirements.yml")
 	}
 
+	var versionStreamPath string
+	if helmstate.OverrideNamespace == "" {
+		versionStreamPath = "versionStream"
+	} else {
+		versionStreamPath = "../../versionStream"
+	}
 	requirementsResource, _, err := jxcore.LoadRequirementsConfig(o.Dir, false)
 	if err != nil {
 		return errors.Wrapf(err, "failed to load the requirements configuration")
@@ -622,7 +628,7 @@ func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
 		if release.Chart == "jenkins-x/chartmuseum" {
 			release.Chart = "stable/chartmuseum"
 			o.updateVersionFromVersionStream(release)
-			release.Values = []interface{}{"versionStream/charts/stable/chartmuseum/values.yaml.gotmpl"}
+			release.Values = []interface{}{fmt.Sprintf("%s/charts/stable/chartmuseum/values.yaml.gotmpl", versionStreamPath)}
 
 			// lets make sure we have a cdf repository
 			found := false
@@ -648,7 +654,7 @@ func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
 		if release.Chart == "stable/nginx-ingress" {
 			release.Chart = "ingress-nginx/ingress-nginx"
 			o.updateVersionFromVersionStream(release)
-			release.Values = []interface{}{"../../versionStream/charts/ingress-nginx/values.yaml.gotmpl"}
+			release.Values = []interface{}{fmt.Sprintf("%s/charts/ingress-nginx/values.yaml.gotmpl", versionStreamPath)}
 
 			// lets make sure we have the ingress-nginx repository
 			found := false
@@ -697,7 +703,7 @@ func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
 			if release.Chart == chartName {
 				release.Chart = "jx3/" + name
 				if name == "jenkins-x-crds" {
-					release.Values = []interface{}{"versionStream/charts/jx3/jenkins-x-crds/values.yaml.gotmpl"}
+					release.Values = []interface{}{fmt.Sprintf("%s/charts/jx3/jenkins-x-crds/values.yaml.gotmpl", versionStreamPath)}
 				}
 				o.updateVersionFromVersionStream(release)
 				break
