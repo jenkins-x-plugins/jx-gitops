@@ -573,6 +573,10 @@ func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to migrate jx-requirements.yml")
 	}
+	err = o.renameImagePullSecretsFile()
+	if err != nil {
+		return errors.Wrapf(err, "failed to rename old image pull secrets file")
+	}
 
 	var versionStreamPath string
 	if helmstate.OverrideNamespace == "" {
@@ -902,4 +906,21 @@ func (o *Options) updateVersionFromVersionStream(release *state.ReleaseSpec) {
 	}
 
 	release.Version = versionProperties.Version
+}
+
+func (o *Options) renameImagePullSecretsFile() error {
+	oldPath := filepath.Join(o.Dir, "imagePullSecrets.yaml")
+	newPath := filepath.Join(o.Dir, "jx-global-values.yaml")
+	exists, err := files.FileExists(oldPath)
+	if err != nil {
+		return errors.Wrapf(err, "failed to check for %s", oldPath)
+	}
+	if !exists {
+		return nil
+	}
+	err = os.Rename(oldPath, newPath)
+	if err != nil {
+		return errors.Wrapf(err, "failed to rename %s to %s", oldPath, newPath)
+	}
+	return nil
 }
