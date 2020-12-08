@@ -228,6 +228,10 @@ func gatherNamespaceReleases(helmstate *state.HelmState) map[string]*state.HelmS
 		hs.Releases = append(hs.Releases, r)
 
 		repoName := getRepoFromChart(r.Chart)
+		if repoName == "." || repoName == ".." {
+			// skip if repository is pointing at a local chart
+			continue
+		}
 		if _, ok := addedRepos[ns][repoName]; !ok {
 			hs.Repositories = append(hs.Repositories, repositories[repoName])
 			addedRepos[ns][repoName] = true
