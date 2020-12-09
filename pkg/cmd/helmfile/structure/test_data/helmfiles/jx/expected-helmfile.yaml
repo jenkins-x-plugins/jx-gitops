@@ -18,55 +18,38 @@ releases:
   name: jxboot-helmfile-resources
   values:
   - ../../versionStream/charts/jenkins-x/jxboot-helmfile-resources/values.yaml.gotmpl
-  forceNamespace: ""
-  skipDeps: null
 - chart: jx3/jenkins-x-crds
   version: 3.0.5
   name: jenkins-x-crds
   values:
   - ../../versionStream/charts/jx3/jenkins-x-crds/values.yaml.gotmpl
-  forceNamespace: ""
-  skipDeps: null
 - chart: jx3/jx-pipelines-visualizer
   version: 0.0.52
   name: jx-pipelines-visualizer
   values:
   - ../../versionStream/charts/jx3/jx-pipelines-visualizer/values.yaml.gotmpl
-  forceNamespace: ""
-  skipDeps: null
 - chart: jx3/jx-preview
   version: 0.0.116
   name: jx-preview
-  forceNamespace: ""
-  skipDeps: null
 - chart: jenkins-x/lighthouse
   version: 0.0.874
   name: lighthouse
   values:
   - ../../versionStream/charts/jenkins-x/lighthouse/values.yaml.gotmpl
-  forceNamespace: ""
-  skipDeps: null
 - chart: jenkins-x/nexus
   version: 0.1.35
   name: nexus
   values:
   - ../../versionStream/charts/jenkins-x/nexus/values.yaml.gotmpl
-  forceNamespace: ""
-  skipDeps: null
 - chart: stable/chartmuseum
   version: 2.4.1
   name: chartmuseum
   values:
   - ../../versionStream/charts/stable/chartmuseum/values.yaml.gotmpl
-  forceNamespace: ""
-  skipDeps: null
 - chart: jx3/jx-build-controller
   version: 0.0.14
   name: jx-build-controller
   values:
   - ../../versionStream/charts/jx3/jx-build-controller/values.yaml.gotmpl
-  forceNamespace: ""
-  skipDeps: null
 templates: {}
-missingFileHandler: ""
 renderedvalues: {}

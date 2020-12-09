@@ -4,5 +4,4 @@ helmfiles:
 - path: helmfiles/secret-infra/helmfile.yaml
 - path: helmfiles/tekton-pipelines/helmfile.yaml
 templates: {}
-missingFileHandler: ""
 renderedvalues: {}

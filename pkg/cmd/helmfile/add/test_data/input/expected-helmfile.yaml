@@ -7,12 +7,7 @@ repositories:
 releases:
 - chart: jenkins-x/jx-test-collector
   namespace: jx
-  forceNamespace: ""
-  skipDeps: null
 - chart: jenkins/jenkins-operator
   namespace: jx
-  forceNamespace: ""
-  skipDeps: null
 templates: {}
-missingFileHandler: ""
 renderedvalues: {}
