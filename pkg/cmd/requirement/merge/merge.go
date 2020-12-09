@@ -162,6 +162,9 @@ func (o *Options) MergeChanges(reqs *jxcore.Requirements) error {
 	if changes.Ingress.TLS.Production {
 		to.Ingress.TLS.Production = true
 	}
+	if changes.Ingress.TLS.Email != "" {
+		to.Ingress.TLS.Email = changes.Ingress.TLS.Email
+	}
 	if changes.Ingress.Domain != "" {
 		to.Ingress.Domain = changes.Ingress.Domain
 	}
