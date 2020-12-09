@@ -15,29 +15,20 @@ releases:
   name: jxboot-helmfile-resources
   values:
   - jx-values.yaml
-  forceNamespace: ""
-  skipDeps: null
 - chart: jx3/jenkins-x-crds
   version: 1.0.7
   name: jenkins-x-crds
   values:
   - ../../versionStream/charts/jx3/jenkins-x-crds/values.yaml.gotmpl
   - jx-values.yaml
-  forceNamespace: ""
-  skipDeps: null
 - chart: jx3/local-external-secrets
   version: 0.0.3
   name: local-external-secrets
   values:
   - jx-values.yaml
-  forceNamespace: ""
-  skipDeps: null
 - chart: jx3/jx-build-controller
   name: jx-build-controller
   values:
   - jx-values.yaml
-  forceNamespace: ""
-  skipDeps: null
 templates: {}
-missingFileHandler: ""
 renderedvalues: {}

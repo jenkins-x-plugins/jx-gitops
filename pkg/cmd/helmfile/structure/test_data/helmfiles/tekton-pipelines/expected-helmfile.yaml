@@ -14,8 +14,5 @@ releases:
   name: tekton-pipeline
   values:
   - ../../versionStream/charts/cdf/tekton-pipeline/values.yaml.gotmpl
-  forceNamespace: ""
-  skipDeps: null
 templates: {}
-missingFileHandler: ""
 renderedvalues: {}

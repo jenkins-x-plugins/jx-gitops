@@ -8,8 +8,5 @@ releases:
     name: nginx-ingress
     values:
       - ../../versionStream/charts/ingress-nginx/values.yaml.gotmpl
-    forceNamespace: ""
-    skipDeps: null
 templates: {}
-missingFileHandler: ""
 renderedvalues: {}
