@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 
+	"github.com/imdario/mergo"
 	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
@@ -137,56 +138,10 @@ func (o *Options) Run() error {
 
 // MergeChanges merges changes from the given requirements into the source
 func (o *Options) MergeChanges(reqs *jxcore.Requirements) error {
-	to := o.requirements
-	changes := &reqs.Spec
-	cluster := changes.Cluster
-
-	// lets pull in any values missing from the source
-	cluster.ChartRepository = mergeString(cluster.ChartRepository, to.Cluster.ChartRepository)
-	cluster.DockerRegistryOrg = mergeString(cluster.DockerRegistryOrg, to.Cluster.DockerRegistryOrg)
-	cluster.EnvironmentGitOwner = mergeString(cluster.EnvironmentGitOwner, to.Cluster.EnvironmentGitOwner)
-	cluster.ExternalDNSSAName = mergeString(cluster.ExternalDNSSAName, to.Cluster.ExternalDNSSAName)
-	cluster.GitKind = mergeString(cluster.GitKind, to.Cluster.GitKind)
-	cluster.GitName = mergeString(cluster.GitName, to.Cluster.GitName)
-	cluster.GitServer = mergeString(cluster.GitServer, to.Cluster.GitServer)
-	cluster.Provider = mergeString(cluster.Provider, to.Cluster.Provider)
-	cluster.Registry = mergeString(cluster.Registry, to.Cluster.Registry)
-	to.Cluster = cluster
-
-	to.Vault = changes.Vault
-	to.Storage = changes.Storage
-
-	if changes.Ingress.TLS.Enabled {
-		to.Ingress.TLS.Enabled = true
+	err := mergo.Merge(o.requirements, reqs.Spec)
+	if err != nil {
+		return errors.Wrap(err, "error merging requirements")
 	}
-	if changes.Ingress.TLS.Production {
-		to.Ingress.TLS.Production = true
-	}
-	if changes.Ingress.TLS.Email != "" {
-		to.Ingress.TLS.Email = changes.Ingress.TLS.Email
-	}
-	if changes.Ingress.Domain != "" {
-		to.Ingress.Domain = changes.Ingress.Domain
-	}
-	if changes.Ingress.ExternalDNS {
-		to.Ingress.ExternalDNS = changes.Ingress.ExternalDNS
-	}
-	if cluster.ClusterName != "" {
-		to.Cluster.ClusterName = cluster.ClusterName
-	}
-	if cluster.ProjectID != "" {
-		to.Cluster.ProjectID = cluster.ProjectID
-	}
-	if cluster.Provider != "" {
-		to.Cluster.Provider = cluster.Provider
-	}
-	if cluster.Region != "" {
-		to.Cluster.Region = cluster.Region
-	}
-	if cluster.Zone != "" {
-		to.Cluster.Zone = cluster.Zone
-	}
-
 	return nil
 }
 
@@ -225,11 +180,4 @@ func (o *Options) loadRequirementsFileFromConfigMap() (string, error) {
 	}
 	log.Logger().Infof("wrote the ConfigMap jx-requirements.yml to %s", fileName)
 	return fileName, nil
-}
-
-func mergeString(value1 string, value2 string) string {
-	if value1 != "" {
-		return value1
-	}
-	return value2
 }

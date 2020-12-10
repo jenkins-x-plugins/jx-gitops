@@ -10,6 +10,8 @@ spec:
         keyVaultName: applejack
     chartRepository: http://bucketrepo/bucketrepo/charts/
     clusterName: tf-jx-sweet-lemur
+    devEnvApprovers:
+    - todo
     environmentGitOwner: todo
     gitKind: github
     gitName: github
