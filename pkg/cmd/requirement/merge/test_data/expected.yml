@@ -5,6 +5,9 @@ spec:
     enabled: false
     schedule: ""
   cluster:
+    azure:
+      secretStorage:
+        keyVaultName: applejack
     chartRepository: http://bucketrepo/bucketrepo/charts/
     clusterName: tf-jx-sweet-lemur
     environmentGitOwner: todo
