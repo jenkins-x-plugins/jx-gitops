@@ -281,6 +281,9 @@ func (o *Options) saveNamespaceJXValuesFile(helmfileDir string, ns string) error
 			if requirements.Ingress.NamespaceSubDomain == "" {
 				requirements.Ingress.NamespaceSubDomain = subDomain
 			}
+			if requirements.Ingress.Domain == "" {
+				requirements.Ingress.Domain = o.Options.Requirements.Ingress.Domain
+			}
 		}
 	}
 

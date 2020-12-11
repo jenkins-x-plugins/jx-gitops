@@ -14,8 +14,11 @@ spec:
     repository: jx-demo-gke2-dev
   - key: staging
     ingress:
-      domain: "mystaging.com"
       namespaceSubDomain: "-foo."
+  - key: production
+    ingress:
+      domain: "myprod.com"
+      namespaceSubDomain: "."
   ingress:
     domain: "defaultdomain.com"
     externalDNS: false
