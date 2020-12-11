@@ -1,0 +1,57 @@
+utoUpdate:
+  enabled: false
+  schedule: ""
+terraform: true
+cluster:
+  clusterName: "my_cluster_name"
+  environmentGitOwner: ""
+  provider: eks
+  region: "my_region"
+  registry: "my_registry"
+  project: "my_project"
+gitops: true
+environments:
+  - key: dev
+  - key: staging
+  - key: production
+ingress:
+  domain: "my_domain"
+  ignoreLoadBalancer: true
+  externalDNS: true
+  tls:
+    email: "my_tls_email"
+    enabled: true
+    production: true
+kaniko: true
+secretStorage: vault
+vault:
+  url: my_vault_url
+  aws:
+    iamUserName: "my_vault_user"
+    dynamoDBTable: "my_vault_dynamodb_table"
+    dynamoDBRegion: "my_region"
+    kmsKeyId: "my_vault_kms_key"
+    kmsRegion: "my_region"
+    s3Bucket: "my_vault_bucket"
+    s3Region: "my_region"
+velero:
+  namespace: my_velero_namespace
+  schedule: "my_velero_schedule"
+  ttl: "my_velero_ttl"
+storage:
+  backup:
+    enabled: true
+    url: s3://my_backup_bucket_url
+  logs:
+    enabled: true
+    url: s3://my_logs_storage_bucket
+  reports:
+    enabled: true
+    url: s3://my_reports_storage_bucket
+  repository:
+    enabled: true
+    url: s3://my_repository_storage_bucket
+versionStream:
+  ref: master
+  url: https://github.com/jenkins-x/jenkins-x-versions.git
+webhook: lighthouse
