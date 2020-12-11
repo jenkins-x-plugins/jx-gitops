@@ -1,0 +1,26 @@
+webhook:
+  enabled: false
+
+auth:
+  git:
+    username: "{{ .Values.secrets.pipelineUser.username }}"
+    password: "{{ .Values.secrets.pipelineUser.token }}"
+    url: {{ .Values.jxRequirements.cluster.gitServer | default "https://github.com" }}
+{{- if hasKey .Values.secrets "docker" }}
+  docker:
+    username: "{{ .Values.secrets.docker.username }}"
+    password: "{{ .Values.secrets.docker.password }}"
+    url: "{{ .Values.secrets.docker.url }}"
+{{- end }}
+
+{{- if eq .Values.jxRequirements.cluster.provider "eks" }}
+serviceaccount:
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::{{ .Values.jxRequirements.cluster.project }}:role/{{ .Values.jxRequirements.cluster.clusterName }}-{{ .Values.jxRequirements.cluster.namespace }}-tekton-bot
+{{- else if eq .Values.jxRequirements.cluster.provider "gke" }}
+serviceaccount:
+  annotations:
+    iam.gke.io/gcp-service-account: {{ .Values.jxRequirements.cluster.clusterName }}-tk@{{ .Values.jxRequirements.cluster.project }}.iam.gserviceaccount.com
+{{- end }}
+
+tillerNamespace: ""

@@ -1,0 +1,37 @@
+filepath: ""
+environments:
+  default:
+    values:
+    - jx-values.yaml
+namespace: jx
+repositories:
+- name: stable
+  url: https://charts.helm.sh/stable
+- name: jenkins-x
+  url: https://storage.googleapis.com/chartmuseum.jenkins-x.io
+- name: doesnotexist
+  url: https://storage.googleapis.com/chartmuseum.jenkins-x.io
+- name: jx3
+  url: https://storage.googleapis.com/jenkinsxio/charts
+releases:
+- chart: stable/chartmuseum
+  version: 2.4.1
+  name: chartmuseum
+  values:
+  - ../../versionStream/charts/stable/chartmuseum/values.yaml.gotmpl
+  - jx-values.yaml
+- chart: jenkins-x/jxboot-helmfile-resources
+  version: 0.0.255
+  name: jxboot-helmfile-resources
+  values:
+  - jx-values.yaml
+- chart: doesnotexist/bucketrepo
+  name: bucketrepo
+  values:
+  - jx-values.yaml
+- chart: jx3/jx-build-controller
+  name: jx-build-controller
+  values:
+  - jx-values.yaml
+templates: {}
+renderedvalues: {}

@@ -1,0 +1,23 @@
+apiVersion: core.jenkins-x.io/v4beta1
+kind: Requirements
+spec:
+  autoUpdate:
+    enabled: false
+    schedule: ""
+  cluster:
+    clusterName: mycluster
+    project: myproject
+    provider: gke
+  environments:
+  - key: dev
+    owner: jstrachan
+    repository: jx-demo-gke2-dev
+  - key: staging
+    ingress:
+      domain: "mystaging.com"
+      namespaceSubDomain: "-foo."
+  ingress:
+    domain: "defaultdomain.com"
+    externalDNS: false
+    namespaceSubDomain: ""
+  vault: {}
