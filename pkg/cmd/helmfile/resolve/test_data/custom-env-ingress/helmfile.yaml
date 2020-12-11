@@ -8,6 +8,8 @@ releases:
   - chart: jenkins-x/jxboot-helmfile-resources
   - chart: doesnotexist/myapp
     namespace: jx-staging
+  - chart: doesnotexist/myapp
+    namespace: jx-production
   - chart: bitnami/external-dns
     namespace: foo
   # test using a local repo prefix and URL

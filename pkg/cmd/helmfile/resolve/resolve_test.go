@@ -179,7 +179,12 @@ func TestStepHelmfileResolve(t *testing.T) {
 				{
 					namespace: "jx-staging",
 					subdomain: "-foo.",
-					domain:    "mystaging.com",
+					domain:    "defaultdomain.com",
+				},
+				{
+					namespace: "jx-production",
+					subdomain: ".",
+					domain:    "myprod.com",
 				},
 				{
 					namespace: "tekton-pipelines",

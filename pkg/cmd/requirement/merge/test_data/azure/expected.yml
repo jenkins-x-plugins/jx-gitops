@@ -1,0 +1,46 @@
+apiVersion: core.jenkins-x.io/v4beta1
+kind: Requirements
+spec:
+  autoUpdate:
+    enabled: false
+    schedule: ""
+  cluster:
+    azure:
+      dns:
+        resourceGroup: my_dns_resource_group
+        subscriptionId: my_dns_subscription_id
+        tenantId: my_dns_tenant_id
+    chartRepository: http://bucketrepo/bucketrepo/charts/
+    clusterName: my_cluster_name
+    devEnvApprovers:
+    - todo
+    environmentGitOwner: todo
+    gitKind: github
+    gitName: github
+    gitServer: https://acme.com
+    provider: gke
+    registry: gcr.io
+  environments:
+  - key: dev
+  - key: staging
+  - key: production
+  ingress:
+    domain: my_domain
+    externalDNS: true
+    ignoreLoadBalancer: true
+    namespaceSubDomain: -jx.
+    tls:
+      email: my_tls_email
+      enabled: true
+      production: true
+  repository: nexus
+  secretStorage: vault
+  terraform: true
+  vault:
+    azure:
+      containerName: my_vault_storage_container_name
+      keyName: my_vault_key_name
+      storageAccountName: my_vault_storage_account_name
+      tenantId: my_vault_tenant_id
+      vaultName: my_vault_keyvault_name
+  webhook: lighthouse

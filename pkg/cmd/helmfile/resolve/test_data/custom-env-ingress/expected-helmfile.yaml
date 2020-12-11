@@ -2,6 +2,7 @@ filepath: ""
 helmfiles:
 - path: helmfiles/foo/helmfile.yaml
 - path: helmfiles/jx/helmfile.yaml
+- path: helmfiles/jx-production/helmfile.yaml
 - path: helmfiles/jx-staging/helmfile.yaml
 - path: helmfiles/nginx/helmfile.yaml
 - path: helmfiles/secret-infra/helmfile.yaml

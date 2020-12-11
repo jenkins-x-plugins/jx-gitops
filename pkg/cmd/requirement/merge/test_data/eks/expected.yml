@@ -1,0 +1,55 @@
+apiVersion: core.jenkins-x.io/v4beta1
+kind: Requirements
+spec:
+  autoUpdate:
+    enabled: false
+    schedule: ""
+  cluster:
+    chartRepository: http://bucketrepo/bucketrepo/charts/
+    clusterName: my_cluster_name
+    devEnvApprovers:
+    - todo
+    environmentGitOwner: todo
+    gitKind: github
+    gitName: github
+    gitServer: https://acme.com
+    project: my_project
+    provider: gke
+    region: my_region
+    registry: gcr.io
+  environments:
+  - key: dev
+  - key: staging
+  - key: production
+  ingress:
+    domain: my_domain
+    externalDNS: true
+    ignoreLoadBalancer: true
+    namespaceSubDomain: -jx.
+    tls:
+      email: my_tls_email
+      enabled: true
+      production: true
+  repository: nexus
+  secretStorage: vault
+  storage:
+  - name: backup
+    url: s3://my_backup_bucket_url
+  - name: logs
+    url: s3://my_logs_storage_bucket
+  - name: reports
+    url: s3://my_reports_storage_bucket
+  - name: repository
+    url: s3://my_repository_storage_bucket
+  terraform: true
+  vault:
+    aws:
+      dynamoDBRegion: my_region
+      dynamoDBTable: my_vault_dynamodb_table
+      iamUserName: my_vault_user
+      kmsKeyId: my_vault_kms_key
+      kmsRegion: my_region
+      s3Bucket: my_vault_bucket
+      s3Region: my_region
+    url: my_vault_url
+  webhook: lighthouse
