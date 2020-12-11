@@ -157,3 +157,41 @@ func CreateKubectlPlugin(version string) jenkinsv1.Plugin {
 	}
 	return plugin
 }
+
+// GetKappBinary returns the path to the locally installed kpt 3 extension
+func GetKappBinary(version string) (string, error) {
+	if version == "" {
+		version = KappVersion
+	}
+	pluginBinDir, err := homedir.PluginBinDir(os.Getenv("JX_GITOPS_HOME"), ".jx-gitops")
+	if err != nil {
+		return "", errors.Wrapf(err, "failed to find plugin home dir")
+	}
+	plugin := CreateKappPlugin(version)
+	return extensions.EnsurePluginInstalled(plugin, pluginBinDir)
+}
+
+// CreateKappPlugin creates the kpt 3 plugin
+func CreateKappPlugin(version string) jenkinsv1.Plugin {
+	binaries := extensions.CreateBinaries(func(p extensions.Platform) string {
+		ext := ""
+		if p.IsWindows() {
+			ext = ".exe"
+		}
+		return fmt.Sprintf("https://github.com/vmware-tanzu/carvel-kapp/releases/download/v%s/kapp-%s-%s", version, strings.ToLower(p.Goos), strings.ToLower(p.Goarch)) + ext
+	})
+
+	plugin := jenkinsv1.Plugin{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: KappPluginName,
+		},
+		Spec: jenkinsv1.PluginSpec{
+			SubCommand:  "kapp",
+			Binaries:    binaries,
+			Description: "kapp binary",
+			Name:        KappPluginName,
+			Version:     version,
+		},
+	}
+	return plugin
+}

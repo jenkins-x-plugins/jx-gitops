@@ -1,0 +1,18 @@
+filepath: ""
+environments:
+  default:
+    values:
+    - jx-values.yaml
+namespace: tekton-pipelines
+repositories:
+- name: cdf
+  url: https://cdfoundation.github.io/tekton-helm-chart
+releases:
+- chart: cdf/tekton-pipeline
+  version: 0.0.5
+  name: tekton-pipeline
+  values:
+  - ../../versionStream/charts/cdf/tekton-pipeline/values.yaml.gotmpl
+  - jx-values.yaml
+templates: {}
+renderedvalues: {}

@@ -14,6 +14,7 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner/fakerunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/cli"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/maps"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/testhelpers"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"
 	"github.com/roboll/helmfile/pkg/state"
@@ -27,6 +28,10 @@ func TestStepHelmfileResolve(t *testing.T) {
 		folder     string
 		namespaces []string
 	}{
+		{
+			folder:     "custom-env-ingress",
+			namespaces: []string{"foo", "jx", "jx-staging", "secret-infra", "tekton-pipelines"},
+		},
 		{
 			folder:     "no-versionstream",
 			namespaces: []string{"jx", "external-secrets", "foo", "tekton-pipelines"},
@@ -146,7 +151,8 @@ func TestStepHelmfileResolve(t *testing.T) {
 
 		require.FileExists(t, filepath.Join(o.Dir, ".jx", "git-operator", "filename.txt"), "should have generated the git operator job file name")
 
-		if name == "input" {
+		switch name {
+		case "input":
 			require.FileExists(t, filepath.Join(o.Dir, "jx-global-values.yaml"), "should have renamed imagePullSecrets.yaml")
 
 			// lets check we have updated the pipeline catalog
@@ -157,6 +163,45 @@ func TestStepHelmfileResolve(t *testing.T) {
 			pipelineCatalogGitRef := pc.Spec.Repositories[0].GitRef
 			t.Logf("modified the PipelineCatalog git ref to %s\n", pipelineCatalogGitRef)
 			assert.Equal(t, "beta", pipelineCatalogGitRef, "should have modified the pipeline catalog ref")
+
+		case "custom-env-ingress":
+			// lets verify that the generated jx-values.yaml files have the correct subdomain and domains
+			ingressTests := []struct {
+				namespace string
+				subdomain string
+				domain    string
+			}{
+				{
+					namespace: "jx",
+					subdomain: "-jx.",
+					domain:    "defaultdomain.com",
+				},
+				{
+					namespace: "jx-staging",
+					subdomain: "-foo.",
+					domain:    "mystaging.com",
+				},
+				{
+					namespace: "tekton-pipelines",
+					subdomain: "-tekton-pipelines.",
+					domain:    "defaultdomain.com",
+				},
+			}
+			for _, it := range ingressTests {
+				path := filepath.Join(o.Dir, "helmfiles", it.namespace, "jx-values.yaml")
+				require.FileExists(t, path, "should exist for test %s", name)
+
+				values := map[string]interface{}{}
+				err = yamls.LoadFile(path, &values)
+				require.NoError(t, err, "failed to load file %s for test %s", path, name)
+
+				subdomain := maps.GetMapValueAsStringViaPath(values, "jxRequirements.ingress.namespaceSubDomain")
+				domain := maps.GetMapValueAsStringViaPath(values, "jxRequirements.ingress.domain")
+				assert.Equal(t, it.subdomain, subdomain, "subdomain for namespace %s file %s test %s", it.namespace, path, name)
+				assert.Equal(t, it.domain, domain, "domain for namespace %s file %s test %s", it.namespace, path, name)
+
+				t.Logf("test %s namespace %s has full domain %s%s for file %s", name, it.namespace, subdomain, domain, path)
+			}
 		}
 	}
 }

@@ -1,0 +1,23 @@
+releases:
+  - chart: external-secrets/kubernetes-external-secrets
+  - chart: jenkins-x/chartmuseum
+    version: 1.1.7
+    values:
+    - versionStream/charts/jenknis-x/chartmuseum/values.yaml.gotmpl
+  - chart: jenkins-x/tekton
+  - chart: jenkins-x/jxboot-helmfile-resources
+  - chart: doesnotexist/myapp
+    namespace: jx-staging
+  - chart: bitnami/external-dns
+    namespace: foo
+  # test using a local repo prefix and URL
+  - chart: doesnotexist/bucketrepo
+  - chart: stable/nginx-ingress
+    version: 1.39.1
+    name: nginx-ingress
+    namespace: nginx
+    values:
+      - versionStream/charts/stable/nginx-ingress/values.yaml.gotmpl
+repositories:
+  - name: doesnotexist
+    url: https://storage.googleapis.com/chartmuseum.jenkins-x.io

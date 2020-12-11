@@ -232,18 +232,14 @@ func (o *Options) processHelmfile(helmfile Helmfile) (int, error) {
 
 	if helmfile.relativePathToRoot != "" {
 		helmfileDir := filepath.Dir(path)
-		jxReqValuesFileName := filepath.Join(helmfileDir, reqvalues.RequirementsValuesFileName)
-		o.Results.RequirementsValuesFileName = reqvalues.RequirementsValuesFileName
-		requirements := *o.Options.Requirements
-		if err != nil {
-			return 0, errors.Wrapf(err, "failed to save tempo file for jx requirements values file %s", jxReqValuesFileName)
-		}
 		ns := helmState.OverrideNamespace
 		if ns == "" {
 			_, ns = filepath.Split(helmfileDir)
 		}
-		requirements.Ingress.NamespaceSubDomain = strings.ReplaceAll(requirements.Ingress.NamespaceSubDomain, "jx", ns)
-		err = reqvalues.SaveRequirementsValuesFile(&requirements, o.Dir, jxReqValuesFileName)
+		err := o.saveNamespaceJXValuesFile(helmfileDir, ns)
+		if err != nil {
+			return 0, errors.Wrapf(err, "failed to generate jx-values.yaml for namespace %s", ns)
+		}
 	}
 
 	increment, err := o.resolveHelmfile(&helmState, helmfile)
@@ -256,6 +252,43 @@ func (o *Options) processHelmfile(helmfile Helmfile) (int, error) {
 		return 0, errors.Wrapf(err, "failed to save file %s", helmfile)
 	}
 	return increment, nil
+}
+
+func (o *Options) saveNamespaceJXValuesFile(helmfileDir string, ns string) error {
+	jxReqValuesFileName := filepath.Join(helmfileDir, reqvalues.RequirementsValuesFileName)
+	o.Results.RequirementsValuesFileName = reqvalues.RequirementsValuesFileName
+	requirements := *o.Options.Requirements
+	subDomain := strings.ReplaceAll(requirements.Ingress.NamespaceSubDomain, "jx", ns)
+	requirements.Ingress.NamespaceSubDomain = subDomain
+
+	// TODO should we add a Namespace into the requirements.ennvironments structures?
+	// lets assume either the key is the namespace or the namespace is "jx-${envKey}"
+	envKey := ""
+	for _, e := range requirements.Environments {
+		if ns == e.Key {
+			envKey = ns
+			break
+		}
+	}
+	if envKey == "" {
+		envKey = strings.TrimPrefix(ns, "jx-")
+	}
+
+	// lets see if there is a custom ingress value for this namespace
+	for _, e := range requirements.Environments {
+		if e.Ingress != nil && e.Key == envKey {
+			requirements.Ingress = *e.Ingress
+			if requirements.Ingress.NamespaceSubDomain == "" {
+				requirements.Ingress.NamespaceSubDomain = subDomain
+			}
+		}
+	}
+
+	err := reqvalues.SaveRequirementsValuesFile(&requirements, o.Dir, jxReqValuesFileName)
+	if err != nil {
+		return errors.Wrapf(err, "failed to save jx-values.yaml file")
+	}
+	return nil
 }
 
 func (o *Options) upgradeHelmfileStructure(dir string) (int, error) {

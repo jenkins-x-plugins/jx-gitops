@@ -1,0 +1,16 @@
+filepath: ""
+environments:
+  default:
+    values:
+    - jx-values.yaml
+namespace: jx-staging
+repositories:
+- name: doesnotexist
+  url: https://storage.googleapis.com/chartmuseum.jenkins-x.io
+releases:
+- chart: doesnotexist/myapp
+  name: myapp
+  values:
+  - jx-values.yaml
+templates: {}
+renderedvalues: {}

@@ -1,0 +1,18 @@
+filepath: ""
+environments:
+  default:
+    values:
+    - jx-values.yaml
+namespace: foo
+repositories:
+- name: bitnami
+  url: https://charts.bitnami.com/bitnami
+releases:
+- chart: bitnami/external-dns
+  version: 3.1.2
+  name: external-dns
+  values:
+  - ../../values/external-dns/values.yaml
+  - jx-values.yaml
+templates: {}
+renderedvalues: {}
