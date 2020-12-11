@@ -15,6 +15,9 @@ const (
 	// KubectlPluginName the default name of the kubectl plugin
 	KubectlPluginName = "kubectl"
 
+	// KappPluginName the default name of the kapp plugin
+	KappPluginName = "kapp"
+
 	// HelmVersion the default version of helm to use
 	HelmVersion = "3.4.0"
 
@@ -26,6 +29,9 @@ const (
 
 	// KubectlVersion the default version of kpt to use
 	KubectlVersion = "1.16.15"
+
+	// KappVersion the default version of kapp to use
+	KappVersion = "0.34.0"
 )
 
 var (
@@ -36,5 +42,6 @@ var (
 		// disable as no arm image yet
 		//CreateKptPlugin(KptVersion),
 		CreateKubectlPlugin(KubectlVersion),
+		CreateKappPlugin(KappVersion),
 	}
 )
