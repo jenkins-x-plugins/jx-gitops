@@ -42,6 +42,6 @@ var (
 		// disable as no arm image yet
 		//CreateKptPlugin(KptVersion),
 		CreateKubectlPlugin(KubectlVersion),
-		CreateKappPlugin(KappVersion),
+		//CreateKappPlugin(KappVersion),
 	}
 )
