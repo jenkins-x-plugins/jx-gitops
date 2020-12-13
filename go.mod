@@ -21,7 +21,7 @@ require (
 	github.com/jenkins-x/lighthouse v0.0.881
 	github.com/pborman/uuid v1.2.0
 	github.com/pkg/errors v0.9.1
-	github.com/roboll/helmfile v0.135.0
+	github.com/roboll/helmfile v0.135.1-0.20201213020320-54eb73b4239a
 	github.com/rollout/rox-go v0.0.0-20181220111955-29ddae74a8c4
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
@@ -47,8 +47,7 @@ require (
 
 replace (
 	github.com/jenkins-x/lighthouse => github.com/rawlingsj/lighthouse v0.0.0-20201005083317-4d21277f7992
-	// Until https://github.com/roboll/helmfile/pull/1604 is merged
-	github.com/roboll/helmfile => github.com/chrismellard/helmfile v0.135.1-0.20201209100149-1f95685e553f
+
 	// fix yaml comment parsing issue
 	gopkg.in/yaml.v2 => gopkg.in/yaml.v2 v2.3.0
 	gopkg.in/yaml.v3 => gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
