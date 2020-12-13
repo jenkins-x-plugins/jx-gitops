@@ -7,6 +7,7 @@ import (
 	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/cli"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/gitdiscovery"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
@@ -96,6 +97,11 @@ func (o *Options) Run() error {
 		return errors.Wrapf(err, "failed to resolve pipeline user")
 	}
 
+	err = o.resolveEnvironmentGitOwner()
+	if err != nil {
+		return errors.Wrapf(err, "failed to resolve environment git owner")
+	}
+
 	switch provider {
 	case "gke":
 		return o.ResolveGKE()
@@ -183,6 +189,29 @@ func (o *Options) resolvePipelineUsername() error {
 
 	}
 	log.Logger().Infof("modified the pipeline user in %s", termcolor.ColorInfo(o.requirementsFileName))
+	return nil
+}
+
+func (o *Options) resolveEnvironmentGitOwner() error {
+	modified := false
+	gitInfo, err := gitdiscovery.FindGitInfoFromDir(o.Dir)
+	if err != nil {
+		log.Logger().Warnf("directory %s does not appear to be a git directory so unable to resolve git owner, error was %v", termcolor.ColorInfo(o.Dir), err)
+		return nil
+	}
+	if o.requirements.Spec.Cluster.EnvironmentGitOwner == "" && gitInfo.Organisation != "" {
+		o.requirements.Spec.Cluster.EnvironmentGitOwner = gitInfo.Organisation
+		modified = true
+	}
+	if !modified {
+		return nil
+	}
+	err = o.requirements.SaveConfig(o.requirementsFileName)
+	if err != nil {
+		return errors.Wrapf(err, "failed to save modified requirements file %s", o.requirementsFileName)
+
+	}
+	log.Logger().Infof("modified the environment git owner in %s", termcolor.ColorInfo(o.requirementsFileName))
 	return nil
 }
 
