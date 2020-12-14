@@ -9,7 +9,6 @@ import (
 	"github.com/imdario/mergo"
 	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube"
@@ -69,9 +68,8 @@ func NewCmdRequirementsMerge() (*cobra.Command, *Options) {
 		Short:   "Merges values from the given file to the local jx-requirements.yml file",
 		Long:    cmdLong,
 		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName, rootcmd.BinaryName),
-		Run: func(cmd *cobra.Command, args []string) {
-			err := o.Run()
-			helper.CheckErr(err)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return o.Run()
 		},
 	}
 	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the source directory to merge changes into")
