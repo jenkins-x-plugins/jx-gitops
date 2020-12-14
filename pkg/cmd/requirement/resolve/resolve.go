@@ -18,7 +18,6 @@ import (
 
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -60,9 +59,8 @@ func NewCmdRequirementsResolve() (*cobra.Command, *Options) {
 		Short:   "Resolves any missing values in the jx-requirements.yml which can be detected",
 		Long:    cmdLong,
 		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
-		Run: func(cmd *cobra.Command, args []string) {
-			err := o.Run()
-			helper.CheckErr(err)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return o.Run()
 		},
 	}
 	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the directory to run the git push command from")
