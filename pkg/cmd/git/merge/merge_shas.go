@@ -15,6 +15,8 @@ import (
 // com/git/git/commit/68ee628932c2196742b77d2961c5e16360734a62) otherwise it uses git remote update to pull down the
 // whole repo.
 func FetchAndMergeSHAs(gitter gitclient.Interface, SHAs []string, baseBranch string, baseSha string, remote string, dir string) error {
+	log.Logger().Infof("using base branch %s and base sha %s", info(baseBranch), info(baseSha))
+
 	refspecs := make([]string, 0)
 	for _, sha := range SHAs {
 		refspecs = append(refspecs, fmt.Sprintf("%s:", sha))
@@ -86,11 +88,11 @@ func FetchAndMergeSHAs(gitter gitclient.Interface, SHAs []string, baseBranch str
 	log.Logger().Debugf("ran clean -fd . in %s", dir)
 	// Now do the merges
 	for _, sha := range SHAs {
+		log.Logger().Infof("merging sha: %s", info(sha))
 		_, err = gitter.Command(dir, "merge", sha)
 		if err != nil {
 			return errors.Wrapf(err, "merging %s into master", sha)
 		}
-		log.Logger().Debugf("ran git merge %s in %s", sha, dir)
 	}
 	return nil
 }
