@@ -97,8 +97,8 @@ func (o *Options) Run() error {
 			}
 			if len(o.SHAs) == 0 {
 				o.SHAs = make([]string, 0)
-				for _, sha := range pullRefs.ToMerge {
-					o.SHAs = append(o.SHAs, sha)
+				for _, p := range pullRefs.ToMerge {
+					o.SHAs = append(o.SHAs, p.SHA)
 				}
 			}
 			if o.BaseBranch == "" {

@@ -9,15 +9,18 @@ import (
 type PullRefs struct {
 	BaseBranch string
 	BaseSha    string
-	ToMerge    map[string]string
+	ToMerge    []MergePair
+}
+
+type MergePair struct {
+	Key string
+	SHA string
 }
 
 // ParsePullRefs parses the Prow PULL_REFS env var formatted string and converts to a map of branch:sha
 func ParsePullRefs(pullRefs string) (*PullRefs, error) {
 	kvs := strings.Split(pullRefs, ",")
-	answer := PullRefs{
-		ToMerge: make(map[string]string),
-	}
+	answer := PullRefs{}
 	for i, kv := range kvs {
 		s := strings.Split(kv, ":")
 		if len(s) != 2 {
@@ -27,7 +30,7 @@ func ParsePullRefs(pullRefs string) (*PullRefs, error) {
 			answer.BaseBranch = s[0]
 			answer.BaseSha = s[1]
 		} else {
-			answer.ToMerge[s[0]] = s[1]
+			answer.ToMerge = append(answer.ToMerge, MergePair{Key: s[0], SHA: s[1]})
 		}
 	}
 	return &answer, nil
@@ -35,8 +38,8 @@ func ParsePullRefs(pullRefs string) (*PullRefs, error) {
 
 func (pr *PullRefs) String() string {
 	s := fmt.Sprintf("%s:%s", pr.BaseBranch, pr.BaseSha)
-	for key, value := range pr.ToMerge {
-		s = fmt.Sprintf("%s,%s:%s", s, key, value)
+	for _, p := range pr.ToMerge {
+		s = fmt.Sprintf("%s,%s:%s", s, p.Key, p.SHA)
 	}
 	return s
 }
