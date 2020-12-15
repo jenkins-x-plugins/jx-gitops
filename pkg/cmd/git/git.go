@@ -3,6 +3,7 @@ package git
 import (
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/git/clone"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/git/get"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/git/merge"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/git/setup"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
@@ -23,6 +24,7 @@ func NewCmdGit() *cobra.Command {
 	}
 	command.AddCommand(cobras.SplitCommand(clone.NewCmdGitClone()))
 	command.AddCommand(cobras.SplitCommand(get.NewCmdGitGet()))
+	command.AddCommand(cobras.SplitCommand(merge.NewCmdGitMerge()))
 	command.AddCommand(cobras.SplitCommand(setup.NewCmdGitSetup()))
 	return command
 }
