@@ -31,7 +31,7 @@ const (
 	KubectlVersion = "1.16.15"
 
 	// KappVersion the default version of kapp to use
-	KappVersion = "0.34.0"
+	KappVersion = "0.35.0"
 )
 
 var (
@@ -42,6 +42,6 @@ var (
 		// disable as no arm image yet
 		//CreateKptPlugin(KptVersion),
 		CreateKubectlPlugin(KubectlVersion),
-		//CreateKappPlugin(KappVersion),
+		CreateKappPlugin(KappVersion),
 	}
 )
