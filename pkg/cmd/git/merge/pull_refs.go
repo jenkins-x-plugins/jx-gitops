@@ -23,7 +23,7 @@ func ParsePullRefs(pullRefs string) (*PullRefs, error) {
 	answer := PullRefs{}
 	for i, kv := range kvs {
 		s := strings.Split(kv, ":")
-		if len(s) != 2 {
+		if len(s) < 2 {
 			return nil, fmt.Errorf("incorrect format for branch:sha %s", kv)
 		}
 		if i == 0 {
