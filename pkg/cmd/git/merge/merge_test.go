@@ -156,3 +156,38 @@ func readRef(t *testing.T, repoDir string, name string) string {
 	require.NoError(t, err, "failed to read path %s", path)
 	return strings.Trim(string(data), "\n")
 }
+
+func TestGitMergeFindCommits(t *testing.T) {
+	t.SkipNow()
+
+	tmpDir, err := ioutil.TempDir("", "")
+	require.NoError(t, err, "could not create temp dir")
+
+	_, o := merge.NewCmdGitMerge()
+	o.Dir = tmpDir
+	o.BaseBranch = "master"
+	o.BaseSHA = "0ec6b33a1bf37b3f06ecea6687763df4a528da9c"
+	o.ExcludeCommitComment = "^chore: regenerate"
+	o.PullNumber = "5"
+	err = o.Validate()
+	require.NoError(t, err, "failed to validate")
+
+	g := o.GitClient
+	_, err = gitclient.CloneToDir(g, "https://github.com/jstrachan/jx-demo-gke2-dev", tmpDir)
+	require.NoError(t, err, "could not clone git to %s", tmpDir)
+
+	t.Logf("cloned repo to %s\n", tmpDir)
+
+	_, err = g.Command(tmpDir, "checkout", "9c1c835c8ba503f5537bdb93e14da3a857f62377")
+	require.NoError(t, err, "could not clone git to %s", tmpDir)
+
+	shas, err := o.FindCommitsToMerge()
+	require.NoError(t, err, "failed to find the commit SHAs")
+	require.NotEmpty(t, shas, "no SHAs found")
+
+	for _, sha := range shas {
+		t.Logf("found SHA %s\n", sha)
+	}
+
+	assert.Equal(t, []string{"6d34ccad0e0f54cc53cb5037330fbc1f6c1dfc19", "9c1c835c8ba503f5537bdb93e14da3a857f62377"}, shas, "found SHAs")
+}
