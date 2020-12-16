@@ -1,17 +1,14 @@
 apiVersion: gitops.jenkins-x.io/v1alpha1
 kind: SourceConfig
 spec:
-  groups:
-  - owner: myorg
-    provider: https://github.com
-    providerKind: github
-    providerName: github
-    repositories:
-      - name: myapp
-        jenkins:
-          server: myjenkins
-          xmlTemplate: jenkins/templates/default.xml.gotmpl
-      - name: another
-        jenkins:
-          server: myjenkins
-          xmlTemplate: jenkins/templates/default.xml.gotmpl
+  jenkinsXmlTemplate: jenkins/templates/default.xml.gotmpl
+  jenkinsServers:
+  - server: myjenkins
+    groups:
+    - owner: myorg
+      provider: https://github.com
+      providerKind: github
+      providerName: github
+      repositories:
+        - name: myapp
+        - name: another

@@ -40,6 +40,7 @@ type Options struct {
 	Dir          string
 	ConfigFile   string
 	Scheduler    string
+	Jenkins      string
 	Namespace    string
 	JXClient     versioned.Interface
 	ExplicitMode bool
@@ -63,6 +64,7 @@ func NewCmdAddRepository() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the directory look for the 'jx-requirements.yml` file")
 	cmd.Flags().StringVarP(&o.ConfigFile, "config", "c", "", "the configuration file to load for the repository configurations. If not specified we look in .jx/gitops/source-repositories.yaml")
 	cmd.Flags().StringVarP(&o.Scheduler, "scheduler", "s", "", "the name of the Scheduler to use for the repository")
+	cmd.Flags().StringVarP(&o.Jenkins, "jenkins", "j", "", "the name of the Jenkins server to add the repository to")
 	cmd.Flags().BoolVarP(&o.ExplicitMode, "explicit", "e", false, "Explicit mode: always populate all the fields even if they can be deduced. e.g. the git URLs for each repository are not absolutely necessary and are omitted by default are populated if this flag is enabled")
 	cmd.Flags().StringVarP(&o.Namespace, "namespace", "", "", "the namespace to discover SourceRepository resources to default the GitKind. If not specified then use the current namespace")
 
@@ -140,7 +142,13 @@ func (o *Options) ensureSourceRepositoryExists(config *v1alpha1.SourceConfig, gi
 		return errors.Wrapf(err, "failed to discover the git kind")
 	}
 
-	group := sourceconfigs.GetOrCreateGroup(config, gitKind, gitServerURL, gitInfo.Organisation)
+	var group *v1alpha1.RepositoryGroup
+	if o.Jenkins != "" {
+		jenkinsConfig := sourceconfigs.GetOrCreateJenkinsServer(config, o.Jenkins)
+		group = sourceconfigs.GetOrCreateJenkinsServerGroup(jenkinsConfig, gitKind, gitServerURL, gitInfo.Organisation)
+	} else {
+		group = sourceconfigs.GetOrCreateGroup(config, gitKind, gitServerURL, gitInfo.Organisation)
+	}
 	repo := sourceconfigs.GetOrCreateRepository(group, gitInfo.Name)
 
 	if o.Scheduler != "" && o.Scheduler != group.Scheduler {

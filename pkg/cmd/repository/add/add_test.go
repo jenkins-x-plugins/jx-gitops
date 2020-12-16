@@ -17,7 +17,14 @@ import (
 func TestRepositoryAdd(t *testing.T) {
 	testCases := []struct {
 		owner, repo, provider, kind string
+		jenkins, scheduler          string
 	}{
+		{
+			owner:    "jenkins-x",
+			repo:     "myjenkins",
+			provider: "https://github.com",
+			jenkins:  "jenkins1",
+		},
 		{
 			owner:    "something",
 			repo:     "mygitlab",
@@ -52,6 +59,7 @@ func TestRepositoryAdd(t *testing.T) {
 		o.Args = []string{stringhelpers.UrlJoin(tc.provider, tc.owner, tc.repo+".git")}
 		o.JXClient = jxfake.NewSimpleClientset(sr)
 		o.Namespace = ns
+		o.Jenkins = tc.jenkins
 
 		err = o.Run()
 		require.NoError(t, err, "failed to run")

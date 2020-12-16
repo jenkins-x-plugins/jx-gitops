@@ -1,0 +1,21 @@
+apiVersion: gitops.jenkins-x.io/v1alpha1
+kind: SourceConfig
+metadata:
+  creationTimestamp: null
+spec:
+  groups:
+  - owner: jenkins-x
+    provider: https://github.com
+    providerKind: github
+    providerName: github
+    repositories:
+    - name: jx-cli
+    - name: jx-gitops
+  jenkinsServers:
+  - groups:
+    - owner: jenkins-x
+      provider: https://github.com
+      providerKind: github
+      repositories:
+      - name: myjenkins
+    server: jenkins1

@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/Masterminds/sprig"
+	"github.com/jenkins-x/go-scm/scm"
 	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-gitops/pkg/sourceconfigs"
@@ -38,12 +39,12 @@ var (
 
 // LabelOptions the options for the command
 type Options struct {
-	Dir                string
-	ConfigFile         string
-	OutDir             string
-	DefaultXmlTemplate string
-	SourceConfig       v1alpha1.SourceConfig
-	JenkinsServers     map[string][]*JenkinsTemplateConfig
+	Dir                    string
+	ConfigFile             string
+	OutDir                 string
+	DefaultXmlTemplate     string
+	SourceConfig           v1alpha1.SourceConfig
+	JenkinsServerTemplates map[string][]*JenkinsTemplateConfig
 }
 
 // JenkinsTemplateConfig stores the data to render jenkins config files
@@ -109,8 +110,8 @@ func (o *Options) Validate() error {
 		return errors.Wrapf(err, "failed to load file %s", o.ConfigFile)
 	}
 
-	if o.JenkinsServers == nil {
-		o.JenkinsServers = map[string][]*JenkinsTemplateConfig{}
+	if o.JenkinsServerTemplates == nil {
+		o.JenkinsServerTemplates = map[string][]*JenkinsTemplateConfig{}
 	}
 	return nil
 }
@@ -122,22 +123,24 @@ func (o *Options) Run() error {
 	}
 
 	config := &o.SourceConfig
-	for i := range config.Spec.Groups {
-		group := &config.Spec.Groups[i]
-		for j := range group.Repositories {
-			repo := &group.Repositories[j]
-			sourceconfigs.DefaultValues(config, group, repo)
-			if repo.Jenkins == nil {
-				continue
-			}
-			err = o.processJenkinsConfig(group, repo, repo.Jenkins)
-			if err != nil {
-				return errors.Wrapf(err, "failed to process Jenkins Config")
+	for i := range config.Spec.JenkinsServers {
+		server := &config.Spec.JenkinsServers[i]
+		for j := range server.Groups {
+			group := &server.Groups[j]
+			for k := range group.Repositories {
+				repo := &group.Repositories[k]
+				sourceconfigs.DefaultValues(config, group, repo)
+				serverName := server.Server
+				xmlTemplate := firstNonBlankValue(repo.JenkinsXmlTemplate, group.JenkinsXmlTemplate, server.XmlTemplate, config.Spec.JenkinsXmlTemplate)
+				err = o.processJenkinsConfig(group, repo, serverName, xmlTemplate)
+				if err != nil {
+					return errors.Wrapf(err, "failed to process Jenkins Config")
+				}
 			}
 		}
 	}
 
-	for server, configs := range o.JenkinsServers {
+	for server, configs := range o.JenkinsServerTemplates {
 		dir := filepath.Join(o.OutDir, server)
 		err = os.MkdirAll(dir, files.DefaultDirWritePermissions)
 		if err != nil {
@@ -178,26 +181,31 @@ func (o *Options) Run() error {
 	return nil
 }
 
-func (o *Options) processJenkinsConfig(group *v1alpha1.RepositoryGroup, repo *v1alpha1.Repository, jc *v1alpha1.JenkinsConfig) error {
-	server := jc.Server
+func firstNonBlankValue(values ...string) string {
+	for _, v := range values {
+		if v != "" {
+			return v
+		}
+	}
+	return ""
+}
+
+func (o *Options) processJenkinsConfig(group *v1alpha1.RepositoryGroup, repo *v1alpha1.Repository, server, xmlTemplatePath string) error {
 	if server == "" {
 		log.Logger().Infof("ignoring repository %s as it has no Jenkins server defined", repo.URL)
 		return nil
 	}
-	xmlTemplate := o.DefaultXmlTemplate
-	if jc.XmlTemplate != "" {
-		xmlTemplate = filepath.Join(o.Dir, jc.XmlTemplate)
-		exists, err := files.FileExists(xmlTemplate)
-		if err != nil {
-			return errors.Wrapf(err, "failed to check if file exists %s", xmlTemplate)
-		}
-		if !exists {
-			return errors.Errorf("the xmlTemplate file %s does not exist", xmlTemplate)
-		}
-	}
-	if xmlTemplate == "" {
-		log.Logger().Infof("ignoring repository %s as it has no Jenkins server defined", repo.URL)
+	if xmlTemplatePath == "" {
+		log.Logger().Infof("ignoring repository %s as it has no Jenkins XmlTemplate defined at the repository, group or server level", repo.URL)
 		return nil
+	}
+	xmlTemplate := filepath.Join(o.Dir, xmlTemplatePath)
+	exists, err := files.FileExists(xmlTemplate)
+	if err != nil {
+		return errors.Wrapf(err, "failed to check if file exists %s", xmlTemplate)
+	}
+	if !exists {
+		return errors.Errorf("the xmlTemplate file %s does not exist", xmlTemplate)
 	}
 
 	data, err := ioutil.ReadFile(xmlTemplate)
@@ -215,9 +223,10 @@ func (o *Options) processJenkinsConfig(group *v1alpha1.RepositoryGroup, repo *v1
 		"CloneURL":     repo.HTTPCloneURL,
 	}
 
-	o.JenkinsServers[server] = append(o.JenkinsServers[server], &JenkinsTemplateConfig{
+	fullName := scm.Join(group.Owner, repo.Name)
+	o.JenkinsServerTemplates[server] = append(o.JenkinsServerTemplates[server], &JenkinsTemplateConfig{
 		Server:          server,
-		Key:             repo.Name,
+		Key:             fullName,
 		XMLTemplateFile: xmlTemplate,
 		XMLTemplateText: string(data),
 		TemplateData:    templateData,
