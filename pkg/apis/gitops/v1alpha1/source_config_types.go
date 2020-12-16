@@ -47,8 +47,8 @@ type SourceConfigSpec struct {
 	// JenkinsServers the jenkins servers configured for this repository
 	JenkinsServers []JenkinsServer `json:"jenkinsServers,omitempty"`
 
-	// JenkinsXmlTemplate the default configuration template file to use to generate the projects XML configuration file
-	JenkinsXmlTemplate string `json:"jenkinsXmlTemplate,omitempty"`
+	// JenkinsJobTemplate the default configuration template file to use to generate the projects job DSL script
+	JenkinsJobTemplate string `json:"jenkinsJobTemplate,omitempty"`
 }
 
 // SourceConfigSpec defines the desired state of SourceConfig.
@@ -71,8 +71,8 @@ type RepositoryGroup struct {
 	// Scheduler the default scheduler for this group
 	Scheduler string `json:"scheduler,omitempty"`
 
-	// JenkinsXmlTemplate the default configuration template file to use to generate the projects XML configuration file
-	JenkinsXmlTemplate string `json:"jenkinsXmlTemplate,omitempty"`
+	// JenkinsJobTemplate the default configuration template file to use to generate the projects job DSL script
+	JenkinsJobTemplate string `json:"jenkinsJobTemplate,omitempty"`
 }
 
 // Repository the name of the repository to import and the optional scheduler
@@ -83,8 +83,8 @@ type Repository struct {
 	// Scheduler the optional name of the scheduler to use if different to the group
 	Scheduler string `json:"scheduler,omitempty"`
 
-	// JenkinsXmlTemplate the configuration template file to use to generate the projects XML configuration file
-	JenkinsXmlTemplate string `json:"jenkinsXmlTemplate,omitempty"`
+	// JenkinsJobTemplate the configuration template file to use to generate the projects job DSL script
+	JenkinsJobTemplate string `json:"jenkinsJobTemplate,omitempty"`
 
 	// Description the optional description of this repository
 	Description string `json:"description,omitempty"`
@@ -104,8 +104,8 @@ type JenkinsServer struct {
 	// Server the name of the Jenkins Server to use
 	Server string `json:"server,omitempty"`
 
-	// XmlTemplate the default configuration template file to use to generate the projects/pipeline XML configuration file for a repository
-	XmlTemplate string `json:"xmlTemplate,omitempty"`
+	// JobTemplate the default configuration template file to use to generate the projects job DSL script
+	JobTemplate string `json:"jobTemplate,omitempty"`
 
 	// Groups the groups of source repositories
 	Groups []RepositoryGroup `json:"groups,omitempty"`

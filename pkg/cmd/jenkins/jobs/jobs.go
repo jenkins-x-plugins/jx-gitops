@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/Masterminds/sprig"
 	"github.com/jenkins-x/go-scm/scm"
@@ -48,18 +49,18 @@ type Options struct {
 	Dir                    string
 	ConfigFile             string
 	OutDir                 string
-	DefaultXmlTemplate     string
+	DefaultTemplate        string
 	SourceConfig           v1alpha1.SourceConfig
 	JenkinsServerTemplates map[string][]*JenkinsTemplateConfig
 }
 
 // JenkinsTemplateConfig stores the data to render jenkins config files
 type JenkinsTemplateConfig struct {
-	Server          string
-	Key             string
-	XMLTemplateFile string
-	XMLTemplateText string
-	TemplateData    map[string]interface{}
+	Server       string
+	Key          string
+	TemplateFile string
+	TemplateText string
+	TemplateData map[string]interface{}
 }
 
 // NewCmdJenkinsJobs creates a command object for the command
@@ -80,7 +81,7 @@ func NewCmdJenkinsJobs() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the current working directory")
 	cmd.Flags().StringVarP(&o.OutDir, "out", "o", "", "the output directory for the generated config files. If not specified defaults to the jenkins dir in the current directory")
 	cmd.Flags().StringVarP(&o.ConfigFile, "config", "c", "", "the configuration file to load for the repository configurations. If not specified we look in ./.jx/gitops/source-config.yaml")
-	cmd.Flags().StringVarP(&o.DefaultXmlTemplate, "default-xml-template", "", "", "the default XML template file if none is configured for a repository")
+	cmd.Flags().StringVarP(&o.DefaultTemplate, "default-template", "", "", "the default job template file if none is configured for a repository")
 	return cmd, o
 }
 
@@ -101,13 +102,13 @@ func (o *Options) Validate() error {
 		return nil
 	}
 
-	if o.DefaultXmlTemplate != "" {
-		exists, err := files.FileExists(o.DefaultXmlTemplate)
+	if o.DefaultTemplate != "" {
+		exists, err := files.FileExists(o.DefaultTemplate)
 		if err != nil {
-			return errors.Wrapf(err, "failed to check if file exists %s", o.DefaultXmlTemplate)
+			return errors.Wrapf(err, "failed to check if file exists %s", o.DefaultTemplate)
 		}
 		if !exists {
-			return errors.Errorf("the default-xml-template file %s does not exist", o.DefaultXmlTemplate)
+			return errors.Errorf("the default-xml-template file %s does not exist", o.DefaultTemplate)
 		}
 	}
 
@@ -129,15 +130,15 @@ func (o *Options) Run() error {
 	}
 
 	config := &o.SourceConfig
-	if config.Spec.JenkinsXmlTemplate == "" {
-		relPath := filepath.Join("jenkins", "templates", "default.xml.gotmpl")
+	if config.Spec.JenkinsJobTemplate == "" {
+		relPath := filepath.Join("jenkins", "templates", "default.job.gotmpl")
 		path := filepath.Join(o.Dir, relPath)
 		exists, err := files.FileExists(path)
 		if err != nil {
 			return errors.Wrapf(err, "failed to check if path exists %s", path)
 		}
 		if exists {
-			config.Spec.JenkinsXmlTemplate = relPath
+			config.Spec.JenkinsJobTemplate = relPath
 		}
 	}
 
@@ -149,8 +150,8 @@ func (o *Options) Run() error {
 				repo := &group.Repositories[k]
 				sourceconfigs.DefaultValues(config, group, repo)
 				serverName := server.Server
-				xmlTemplate := firstNonBlankValue(repo.JenkinsXmlTemplate, group.JenkinsXmlTemplate, server.XmlTemplate, config.Spec.JenkinsXmlTemplate)
-				err = o.processJenkinsConfig(group, repo, serverName, xmlTemplate)
+				jobTemplate := firstNonBlankValue(repo.JenkinsJobTemplate, group.JenkinsJobTemplate, server.JobTemplate, config.Spec.JenkinsJobTemplate)
+				err = o.processJenkinsConfig(group, repo, serverName, jobTemplate)
 				if err != nil {
 					return errors.Wrapf(err, "failed to process Jenkins Config")
 				}
@@ -169,19 +170,28 @@ func (o *Options) Run() error {
 
 		funcMap := sprig.TxtFuncMap()
 
-		jobs := map[string]interface{}{}
+		buf := strings.Builder{}
 
 		for _, jcfg := range configs {
-			output, err := templater.Evaluate(funcMap, jcfg.TemplateData, jcfg.XMLTemplateText, jcfg.XMLTemplateFile, "Jenkins Server "+server)
+			path := jcfg.TemplateFile
+			output, err := templater.Evaluate(funcMap, jcfg.TemplateData, jcfg.TemplateText, path, "Jenkins Server "+server)
 			if err != nil {
-				return errors.Wrapf(err, "failed to evaluate template %s", jcfg.XMLTemplateFile)
+				return errors.Wrapf(err, "failed to evaluate template %s", path)
 			}
-			jobs[jcfg.Key] = output
+			buf.WriteString("// from template ")
+			buf.WriteString(path)
+			buf.WriteString("\n")
+			buf.WriteString(output)
+			buf.WriteString("\n\n")
 		}
 
 		values := map[string]interface{}{
 			"controller": map[string]interface{}{
-				"jobs": jobs,
+				"JCasC": map[string]interface{}{
+					"configScripts": map[string]interface{}{
+						"jx-init": buf.String(),
+					},
+				},
 			},
 		}
 
@@ -208,30 +218,33 @@ func firstNonBlankValue(values ...string) string {
 	return ""
 }
 
-func (o *Options) processJenkinsConfig(group *v1alpha1.RepositoryGroup, repo *v1alpha1.Repository, server, xmlTemplatePath string) error {
+func (o *Options) processJenkinsConfig(group *v1alpha1.RepositoryGroup, repo *v1alpha1.Repository, server, jobTemplatePath string) error {
 	if server == "" {
 		log.Logger().Infof("ignoring repository %s as it has no Jenkins server defined", repo.URL)
 		return nil
 	}
-	if xmlTemplatePath == "" {
-		log.Logger().Infof("ignoring repository %s as it has no Jenkins XmlTemplate defined at the repository, group or server level", repo.URL)
+	if jobTemplatePath == "" {
+		log.Logger().Infof("ignoring repository %s as it has no Jenkins JobTemplate defined at the repository, group or server level", repo.URL)
 		return nil
 	}
-	xmlTemplate := filepath.Join(o.Dir, xmlTemplatePath)
-	exists, err := files.FileExists(xmlTemplate)
+	jobTemplate := filepath.Join(o.Dir, jobTemplatePath)
+	exists, err := files.FileExists(jobTemplate)
 	if err != nil {
-		return errors.Wrapf(err, "failed to check if file exists %s", xmlTemplate)
+		return errors.Wrapf(err, "failed to check if file exists %s", jobTemplate)
 	}
 	if !exists {
-		return errors.Errorf("the xmlTemplate file %s does not exist", xmlTemplate)
+		return errors.Errorf("the jobTemplate file %s does not exist", jobTemplate)
 	}
 
-	data, err := ioutil.ReadFile(xmlTemplate)
+	data, err := ioutil.ReadFile(jobTemplate)
 	if err != nil {
-		return errors.Wrapf(err, "failed to load file %s", xmlTemplate)
+		return errors.Wrapf(err, "failed to load file %s", jobTemplate)
 	}
+
+	fullName := scm.Join(group.Owner, repo.Name)
 
 	templateData := map[string]interface{}{
+		"ID":           fullName,
 		"Owner":        group.Owner,
 		"GitServerURL": group.Provider,
 		"GitKind":      group.ProviderKind,
@@ -241,13 +254,12 @@ func (o *Options) processJenkinsConfig(group *v1alpha1.RepositoryGroup, repo *v1
 		"CloneURL":     repo.HTTPCloneURL,
 	}
 
-	fullName := scm.Join(group.Owner, repo.Name)
 	o.JenkinsServerTemplates[server] = append(o.JenkinsServerTemplates[server], &JenkinsTemplateConfig{
-		Server:          server,
-		Key:             fullName,
-		XMLTemplateFile: xmlTemplate,
-		XMLTemplateText: string(data),
-		TemplateData:    templateData,
+		Server:       server,
+		Key:          fullName,
+		TemplateFile: jobTemplate,
+		TemplateText: string(data),
+		TemplateData: templateData,
 	})
 	return nil
 }
