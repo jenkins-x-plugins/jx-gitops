@@ -73,7 +73,9 @@ func TestPullRequestLabel(t *testing.T) {
 		_, o := label.NewCmdPullRequestLabel()
 
 		prNumber := 123
-		repo := "myorg/myrepo"
+		owner := "myorg"
+		repoName := "myrepo"
+		repo := scm.Join(owner, repoName)
 		prBranch := "my-pr-branch-name"
 
 		scmClient, fakeData := fake.NewDefault()
@@ -81,6 +83,8 @@ func TestPullRequestLabel(t *testing.T) {
 		runner := &fakerunner.FakeRunner{}
 		o.CommandRunner = runner.Run
 		o.SourceURL = "https://github.com/" + repo
+		o.Owner = owner
+		o.Repository = repoName
 		o.Number = prNumber
 		o.Branch = prBranch
 
