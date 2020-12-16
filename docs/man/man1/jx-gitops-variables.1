@@ -20,6 +20,10 @@ Lazily creates a .jx/variables.sh script with common pipeline environment variab
 
 .SH OPTIONS
 .PP
+\fB\-\-branch\fP=""
+    specifies the branch if not inside a git clone
+
+.PP
 \fB\-\-build\-number\fP=""
     the build number to use. If not specified defaults to $BUILD\_NUMBER
 
@@ -70,6 +74,10 @@ Lazily creates a .jx/variables.sh script with common pipeline environment variab
 .PP
 \fB\-u\fP, \fB\-\-repo\-url\fP=""
     the URL to release to
+
+.PP
+\fB\-\-source\-url\fP=""
+    the git source URL of the repository
 
 .PP
 \fB\-\-version\-file\fP=""
