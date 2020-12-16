@@ -1,7 +1,6 @@
 apiVersion: gitops.jenkins-x.io/v1alpha1
 kind: SourceConfig
 spec:
-  jenkinsXmlTemplate: jenkins/templates/default.xml.gotmpl
   jenkinsServers:
   - server: myjenkins
     groups:
