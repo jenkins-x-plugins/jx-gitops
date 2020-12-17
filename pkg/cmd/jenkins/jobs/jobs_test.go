@@ -16,7 +16,7 @@ func TestJenkinsJobs(t *testing.T) {
 
 	_, o := jobs.NewCmdJenkinsJobs()
 	o.OutDir = tmpDir
-	o.Dir = "test_data"
+	o.Dir = filepath.Join("test_data", "hasjobs")
 
 	err = o.Run()
 	require.NoError(t, err, "failed to run the command in dir %s", tmpDir)
@@ -26,4 +26,16 @@ func TestJenkinsJobs(t *testing.T) {
 	expectedFile := filepath.Join(tmpDir, "myjenkins", "values.yaml")
 	assert.FileExists(t, expectedFile, "should have generated file")
 	t.Logf("generated %s\n", expectedFile)
+}
+
+func TestNoJenkinsJobs(t *testing.T) {
+	tmpDir, err := ioutil.TempDir("", "")
+	require.NoError(t, err, "could not create temp dir")
+
+	_, o := jobs.NewCmdJenkinsJobs()
+	o.OutDir = tmpDir
+	o.Dir = filepath.Join("test_data", "nojobs")
+
+	err = o.Run()
+	require.NoError(t, err, "failed to run the command in dir %s", tmpDir)
 }
