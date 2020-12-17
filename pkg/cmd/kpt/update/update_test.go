@@ -28,6 +28,9 @@ func TestUpdateKptNoFilter(t *testing.T) {
 
 	runner.ExpectResults(t,
 		fakerunner.FakeResult{
+			CLI: "git status -s",
+		},
+		fakerunner.FakeResult{
 			CLI: "kpt pkg update config-root/namespaces/app1@master --strategy alpha-git-patch",
 			Dir: absSourceDir,
 		},
@@ -58,6 +61,9 @@ func TestUpdateKptFilterRepositoryURL(t *testing.T) {
 
 	runner.ExpectResults(t,
 		fakerunner.FakeResult{
+			CLI: "git status -s",
+		},
+		fakerunner.FakeResult{
 			CLI: "kpt pkg update config-root/namespaces/app2@master --strategy alpha-git-patch",
 			Dir: absSourceDir,
 		},
@@ -83,6 +89,9 @@ func TestUpdateKptFilterRepositoryName(t *testing.T) {
 
 	runner.ExpectResults(t,
 		fakerunner.FakeResult{
+			CLI: "git status -s",
+		},
+		fakerunner.FakeResult{
 			CLI: "kpt pkg update config-root/namespaces/app1@master --strategy alpha-git-patch",
 			Dir: absSourceDir,
 		},
@@ -107,7 +116,11 @@ func TestUpdateKptFilterNotMatching(t *testing.T) {
 	err = uk.Run()
 	require.NoError(t, err, "failed to run update kpt")
 
-	runner.ExpectResults(t)
+	runner.ExpectResults(t,
+		fakerunner.FakeResult{
+			CLI: "git status -s",
+		},
+	)
 }
 
 func TestOptions_loadOverrideStrategies(t *testing.T) {
