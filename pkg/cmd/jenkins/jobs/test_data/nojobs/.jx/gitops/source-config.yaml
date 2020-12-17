@@ -1,0 +1,11 @@
+apiVersion: gitops.jenkins-x.io/v1alpha1
+kind: SourceConfig
+spec:
+  groups:
+  - owner: myorg
+    provider: https://github.com
+    providerKind: github
+    providerName: github
+    repositories:
+      - name: myapp
+      - name: another
