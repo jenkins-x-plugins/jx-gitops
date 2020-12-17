@@ -178,7 +178,7 @@ func (o *Options) Run() error {
 			if err != nil {
 				return errors.Wrapf(err, "failed to evaluate template %s", path)
 			}
-			buf.WriteString("// from template ")
+			buf.WriteString("# from template: ")
 			buf.WriteString(path)
 			buf.WriteString("\n")
 			buf.WriteString(output)
