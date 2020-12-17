@@ -145,30 +145,55 @@ func (o *Options) Run() error {
 	}
 
 	config := &o.SourceConfig
-	if config.Spec.JenkinsJobTemplate == "" {
-		relPath := filepath.Join("jenkins", "templates", "default.job.gotmpl")
-		path := filepath.Join(o.Dir, relPath)
-		exists, err := files.FileExists(path)
-		if err != nil {
-			return errors.Wrapf(err, "failed to check if path exists %s", path)
+
+	localJenkinsfilePath := filepath.Join("jenkins", "templates")
+	for _, jenkinsTemplatePath := range []string{localJenkinsfilePath, filepath.Join("versionStream", localJenkinsfilePath)} {
+		if config.Spec.JenkinsFolderTemplate == "" {
+			relPath := filepath.Join(jenkinsTemplatePath, "folder.gotmpl")
+			path := filepath.Join(o.Dir, relPath)
+			exists, err := files.FileExists(path)
+			if err != nil {
+				return errors.Wrapf(err, "failed to check if path exists %s", path)
+			}
+			if exists {
+				config.Spec.JenkinsFolderTemplate = relPath
+			}
 		}
-		if exists {
-			config.Spec.JenkinsJobTemplate = relPath
+		if config.Spec.JenkinsJobTemplate == "" {
+			relPath := filepath.Join(jenkinsTemplatePath, "job.gotmpl")
+			path := filepath.Join(o.Dir, relPath)
+			exists, err := files.FileExists(path)
+			if err != nil {
+				return errors.Wrapf(err, "failed to check if path exists %s", path)
+			}
+			if exists {
+				config.Spec.JenkinsJobTemplate = relPath
+			}
 		}
 	}
 
 	for i := range config.Spec.JenkinsServers {
 		server := &config.Spec.JenkinsServers[i]
+		serverName := server.Server
+		for j := range server.Groups {
+			group := &server.Groups[j]
+			if len(group.Repositories) > 0 {
+				jobTemplate := firstNonBlankValue(group.JenkinsFolderTemplate, server.FolderTemplate, config.Spec.JenkinsFolderTemplate)
+				err = o.processJenkinsJobConfigForGroup(group, serverName, jobTemplate)
+				if err != nil {
+					return errors.Wrapf(err, "failed to process Jenkins Config for group %s", group.Owner)
+				}
+			}
+		}
 		for j := range server.Groups {
 			group := &server.Groups[j]
 			for k := range group.Repositories {
 				repo := &group.Repositories[k]
 				sourceconfigs.DefaultValues(config, group, repo)
-				serverName := server.Server
 				jobTemplate := firstNonBlankValue(repo.JenkinsJobTemplate, group.JenkinsJobTemplate, server.JobTemplate, config.Spec.JenkinsJobTemplate)
-				err = o.processJenkinsConfig(group, repo, serverName, jobTemplate)
+				err = o.processJenkinsJobConfigForRepository(group, repo, serverName, jobTemplate)
 				if err != nil {
-					return errors.Wrapf(err, "failed to process Jenkins Config")
+					return errors.Wrapf(err, "failed to process Jenkins Config for repository %s", repo.Name)
 				}
 			}
 		}
@@ -227,7 +252,27 @@ func firstNonBlankValue(values ...string) string {
 	return ""
 }
 
-func (o *Options) processJenkinsConfig(group *v1alpha1.RepositoryGroup, repo *v1alpha1.Repository, server, jobTemplatePath string) error {
+func (o *Options) processJenkinsJobConfigForGroup(group *v1alpha1.RepositoryGroup, server, jobTemplatePath string) error {
+	owner := group.Owner
+	if server == "" {
+		log.Logger().Infof("ignoring group %s as it has no Jenkins server defined", owner)
+		return nil
+	}
+	if jobTemplatePath == "" {
+		log.Logger().Infof("ignoring group %s as it has no Jenkins JobTemplate defined at the repository, group or server level", owner)
+		return nil
+	}
+	templateData := map[string]interface{}{
+		"ID":           owner,
+		"GitServerURL": group.Provider,
+		"GitKind":      group.ProviderKind,
+		"GitName":      group.ProviderName,
+		"Server":       server,
+	}
+	return o.processJenkinsServerJobTemplate(server, owner, jobTemplatePath, templateData)
+}
+
+func (o *Options) processJenkinsJobConfigForRepository(group *v1alpha1.RepositoryGroup, repo *v1alpha1.Repository, server, jobTemplatePath string) error {
 	if server == "" {
 		log.Logger().Infof("ignoring repository %s as it has no Jenkins server defined", repo.URL)
 		return nil
@@ -236,22 +281,7 @@ func (o *Options) processJenkinsConfig(group *v1alpha1.RepositoryGroup, repo *v1
 		log.Logger().Infof("ignoring repository %s as it has no Jenkins JobTemplate defined at the repository, group or server level", repo.URL)
 		return nil
 	}
-	jobTemplate := filepath.Join(o.Dir, jobTemplatePath)
-	exists, err := files.FileExists(jobTemplate)
-	if err != nil {
-		return errors.Wrapf(err, "failed to check if file exists %s", jobTemplate)
-	}
-	if !exists {
-		return errors.Errorf("the jobTemplate file %s does not exist", jobTemplate)
-	}
-
-	data, err := ioutil.ReadFile(jobTemplate)
-	if err != nil {
-		return errors.Wrapf(err, "failed to load file %s", jobTemplate)
-	}
-
 	fullName := scm.Join(group.Owner, repo.Name)
-
 	templateData := map[string]interface{}{
 		"ID":           group.Owner + "-" + repo.Name,
 		"FullName":     fullName,
@@ -262,11 +292,28 @@ func (o *Options) processJenkinsConfig(group *v1alpha1.RepositoryGroup, repo *v1
 		"Repository":   repo.Name,
 		"URL":          repo.URL,
 		"CloneURL":     repo.HTTPCloneURL,
+		"Server":       server,
+	}
+	return o.processJenkinsServerJobTemplate(server, fullName, jobTemplatePath, templateData)
+}
+
+func (o *Options) processJenkinsServerJobTemplate(server string, key string, jobTemplatePath string, templateData map[string]interface{}) error {
+	jobTemplate := filepath.Join(o.Dir, jobTemplatePath)
+	exists, err := files.FileExists(jobTemplate)
+	if err != nil {
+		return errors.Wrapf(err, "failed to check if file exists %s", jobTemplate)
+	}
+	if !exists {
+		return errors.Errorf("the jobTemplate file %s does not exist", jobTemplate)
+	}
+	data, err := ioutil.ReadFile(jobTemplate)
+	if err != nil {
+		return errors.Wrapf(err, "failed to load file %s", jobTemplate)
 	}
 
 	o.JenkinsServerTemplates[server] = append(o.JenkinsServerTemplates[server], &JenkinsTemplateConfig{
 		Server:       server,
-		Key:          fullName,
+		Key:          key,
 		TemplateFile: jobTemplate,
 		TemplateText: string(data),
 		TemplateData: templateData,

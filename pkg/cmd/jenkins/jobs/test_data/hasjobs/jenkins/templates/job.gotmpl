@@ -1,4 +1,4 @@
-multibranchPipelineJob('{{ .ID }}') {
+multibranchPipelineJob('{{ .FullName }}') {
     branchSources {
         git {
             id = '{{ .ID }}'

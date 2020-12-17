@@ -47,7 +47,10 @@ type SourceConfigSpec struct {
 	// JenkinsServers the jenkins servers configured for this repository
 	JenkinsServers []JenkinsServer `json:"jenkinsServers,omitempty"`
 
-	// JenkinsJobTemplate the default configuration template file to use to generate the projects job DSL script
+	// JenkinsFolderTemplate the default template file to use to generate the folder job DSL script
+	JenkinsFolderTemplate string `json:"jenkinsFolderTemplate,omitempty"`
+
+	// JenkinsJobTemplate the default template file to use to generate the projects job DSL script
 	JenkinsJobTemplate string `json:"jenkinsJobTemplate,omitempty"`
 }
 
@@ -71,7 +74,10 @@ type RepositoryGroup struct {
 	// Scheduler the default scheduler for this group
 	Scheduler string `json:"scheduler,omitempty"`
 
-	// JenkinsJobTemplate the default configuration template file to use to generate the projects job DSL script
+	// JenkinsFolderTemplate the default template file to use to generate the folder job DSL script
+	JenkinsFolderTemplate string `json:"jenkinsFolderTemplate,omitempty"`
+
+	// JenkinsJobTemplate the default job template file to use to generate the projects job DSL script
 	JenkinsJobTemplate string `json:"jenkinsJobTemplate,omitempty"`
 }
 
@@ -83,7 +89,7 @@ type Repository struct {
 	// Scheduler the optional name of the scheduler to use if different to the group
 	Scheduler string `json:"scheduler,omitempty"`
 
-	// JenkinsJobTemplate the configuration template file to use to generate the projects job DSL script
+	// JenkinsJobTemplate the template file to use to generate the projects job DSL script
 	JenkinsJobTemplate string `json:"jenkinsJobTemplate,omitempty"`
 
 	// Description the optional description of this repository
@@ -104,7 +110,10 @@ type JenkinsServer struct {
 	// Server the name of the Jenkins Server to use
 	Server string `json:"server,omitempty"`
 
-	// JobTemplate the default configuration template file to use to generate the projects job DSL script
+	// FolderTemplate the default template file to use to generate the folder job DSL script
+	FolderTemplate string `json:"folderTemplate,omitempty"`
+
+	// JobTemplate the default template file to use to generate the projects job DSL script
 	JobTemplate string `json:"jobTemplate,omitempty"`
 
 	// Groups the groups of source repositories
