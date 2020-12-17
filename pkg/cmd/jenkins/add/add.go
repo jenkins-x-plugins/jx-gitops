@@ -66,7 +66,7 @@ func (o *Options) Run() error {
 	}
 	o.Name = naming.ToValidName(o.Name)
 	o.Namespace = o.Name
-	o.ReleaseName = o.Name
+	o.ReleaseName = "jenkins"
 	o.Helmfile = filepath.Join(o.Dir, "helmfiles", o.Namespace, "helmfile.yaml")
 
 	err := o.Options.Run()
