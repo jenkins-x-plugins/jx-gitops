@@ -96,7 +96,7 @@ func (o *Options) Validate() error {
 		o.ConfigFile = filepath.Join(o.Dir, ".jx", "gitops", v1alpha1.SourceConfigFileName)
 	}
 	if o.OutDir == "" {
-		o.OutDir = filepath.Join(o.Dir, "jenkins")
+		o.OutDir = filepath.Join(o.Dir, "helmfiles")
 	}
 
 	exists, err := files.FileExists(o.ConfigFile)
@@ -166,7 +166,7 @@ func (o *Options) Run() error {
 	}
 
 	for server, configs := range o.JenkinsServerTemplates {
-		dir := filepath.Join(o.OutDir, "helmfiles", server)
+		dir := filepath.Join(o.OutDir, server)
 		err = os.MkdirAll(dir, files.DefaultDirWritePermissions)
 		if err != nil {
 			return errors.Wrapf(err, "failed to create dir %s", dir)
@@ -185,7 +185,7 @@ func (o *Options) Run() error {
 			if err != nil {
 				return errors.Wrapf(err, "failed to evaluate template %s", path)
 			}
-			buf.WriteString(indent + "# from template: " + path + "\n")
+			buf.WriteString(indent + "// from template: " + path + "\n")
 			buf.WriteString(indentText(output, indent))
 			buf.WriteString(indent + "\n")
 		}
