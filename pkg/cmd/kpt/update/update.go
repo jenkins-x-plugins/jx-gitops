@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/cli"
 	"sigs.k8s.io/yaml"
 
 	kyaml "sigs.k8s.io/kustomize/kyaml/yaml"
@@ -59,6 +61,7 @@ type Options struct {
 	KptBinary              string
 	Strategy               string
 	IgnoreYamlContentError bool
+	GitClient              gitclient.Interface
 	CommandRunner          cmdrunner.CommandRunner
 }
 
@@ -106,6 +109,9 @@ func (o *Options) Run() error {
 	if o.CommandRunner == nil {
 		o.CommandRunner = cmdrunner.DefaultCommandRunner
 	}
+	if o.GitClient == nil {
+		o.GitClient = cli.NewCLIClient("", o.CommandRunner)
+	}
 
 	strategies, err := o.LoadOverrideStrategies()
 	if err != nil {
@@ -123,6 +129,14 @@ func (o *Options) Run() error {
 	homedir, err := os.UserHomeDir()
 	if err != nil {
 		return err
+	}
+
+	changes, err := gitclient.HasChanges(o.GitClient, o.Dir)
+	if err != nil {
+		return errors.Wrapf(err, "failed to check if the directory %s has git changes", o.Dir)
+	}
+	if changes {
+		return errors.Errorf("cannot upgrade files via kpt until you have commit the pending git changes. See 'git status' for more details")
 	}
 
 	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
