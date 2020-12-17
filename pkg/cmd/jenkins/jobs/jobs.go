@@ -10,6 +10,7 @@ import (
 	"github.com/Masterminds/sprig"
 	"github.com/jenkins-x/go-scm/scm"
 	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/jenkins/add"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-gitops/pkg/sourceconfigs"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
@@ -48,6 +49,12 @@ controller:
           - script: |
 `
 	indent = "              "
+
+	sampleValuesFile = `# custom Jenkins chart configuration
+# see https://github.com/jenkinsci/helm-charts/blob/main/charts/jenkins/VALUES_SUMMARY.md
+
+sampleValue: removeMeWhenYouAddRealConfiguration
+`
 )
 
 // LabelOptions the options for the command
@@ -56,6 +63,7 @@ type Options struct {
 	ConfigFile             string
 	OutDir                 string
 	DefaultTemplate        string
+	NoCreateHelmfile       bool
 	SourceConfig           v1alpha1.SourceConfig
 	JenkinsServerTemplates map[string][]*JenkinsTemplateConfig
 }
@@ -88,6 +96,7 @@ func NewCmdJenkinsJobs() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.OutDir, "out", "o", "", "the output directory for the generated config files. If not specified defaults to the jenkins dir in the current directory")
 	cmd.Flags().StringVarP(&o.ConfigFile, "config", "c", "", "the configuration file to load for the repository configurations. If not specified we look in ./.jx/gitops/source-config.yaml")
 	cmd.Flags().StringVarP(&o.DefaultTemplate, "default-template", "", "", "the default job template file if none is configured for a repository")
+	cmd.Flags().BoolVarP(&o.NoCreateHelmfile, "no-create-helmfile", "", false, "disables the creation of the helmfiles/jenkinsName/helmfile.yaml file if a jenkins server does not yet exist")
 	return cmd, o
 }
 
@@ -96,7 +105,7 @@ func (o *Options) Validate() error {
 		o.ConfigFile = filepath.Join(o.Dir, ".jx", "gitops", v1alpha1.SourceConfigFileName)
 	}
 	if o.OutDir == "" {
-		o.OutDir = filepath.Join(o.Dir, "jenkins")
+		o.OutDir = filepath.Join(o.Dir, "helmfiles")
 	}
 
 	exists, err := files.FileExists(o.ConfigFile)
@@ -166,11 +175,17 @@ func (o *Options) Run() error {
 	}
 
 	for server, configs := range o.JenkinsServerTemplates {
-		dir := filepath.Join(o.OutDir, "helmfiles", server)
+		dir := filepath.Join(o.OutDir, server)
 		err = os.MkdirAll(dir, files.DefaultDirWritePermissions)
 		if err != nil {
 			return errors.Wrapf(err, "failed to create dir %s", dir)
 		}
+
+		err = o.verifyServerHelmfileExists(dir, server)
+		if err != nil {
+			return errors.Wrapf(err, "failed to verify the jenkins helmfile exists for %s", server)
+		}
+
 		path := filepath.Join(dir, "job-values.yaml")
 		log.Logger().Infof("creating Jenkins values.yaml file %s", path)
 
@@ -185,7 +200,7 @@ func (o *Options) Run() error {
 			if err != nil {
 				return errors.Wrapf(err, "failed to evaluate template %s", path)
 			}
-			buf.WriteString(indent + "# from template: " + path + "\n")
+			buf.WriteString(indent + "// from template: " + path + "\n")
 			buf.WriteString(indentText(output, indent))
 			buf.WriteString(indent + "\n")
 		}
@@ -238,7 +253,8 @@ func (o *Options) processJenkinsConfig(group *v1alpha1.RepositoryGroup, repo *v1
 	fullName := scm.Join(group.Owner, repo.Name)
 
 	templateData := map[string]interface{}{
-		"ID":           fullName,
+		"ID":           group.Owner + "-" + repo.Name,
+		"FullName":     fullName,
 		"Owner":        group.Owner,
 		"GitServerURL": group.Provider,
 		"GitKind":      group.ProviderKind,
@@ -255,5 +271,41 @@ func (o *Options) processJenkinsConfig(group *v1alpha1.RepositoryGroup, repo *v1
 		TemplateText: string(data),
 		TemplateData: templateData,
 	})
+	return nil
+}
+
+func (o *Options) verifyServerHelmfileExists(dir string, server string) error {
+	path := filepath.Join(dir, "helmfile.yaml")
+	exists, err := files.FileExists(path)
+	if err != nil {
+		return errors.Wrapf(err, "failed to check if file exists %s", path)
+	}
+	if exists {
+		return nil
+	}
+
+	_, ao := add.NewCmdJenkinsAdd()
+	ao.Name = server
+	ao.Dir = o.Dir
+	ao.Values = []string{"job-values.yaml", "values.yaml"}
+	err = ao.Run()
+	if err != nil {
+		return errors.Wrapf(err, "failed to add jenkins server")
+	}
+
+	// lets check if there's a values.yaml file and if not create one
+	path = filepath.Join(dir, "values.yaml")
+	exists, err = files.FileExists(path)
+	if err != nil {
+		return errors.Wrapf(err, "failed to check if file exists %s", path)
+	}
+	if exists {
+		return nil
+	}
+
+	err = ioutil.WriteFile(path, []byte(sampleValuesFile), files.DefaultFileWritePermissions)
+	if err != nil {
+		return errors.Wrapf(err, "failed to save %s", path)
+	}
 	return nil
 }

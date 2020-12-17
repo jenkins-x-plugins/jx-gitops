@@ -24,8 +24,8 @@ Generates the Jenkins Jobs helm files
     the configuration file to load for the repository configurations. If not specified we look in ./.jx/gitops/source\-config.yaml
 
 .PP
-\fB\-\-default\-xml\-template\fP=""
-    the default XML template file if none is configured for a repository
+\fB\-\-default\-template\fP=""
+    the default job template file if none is configured for a repository
 
 .PP
 \fB\-d\fP, \fB\-\-dir\fP="."
@@ -34,6 +34,10 @@ Generates the Jenkins Jobs helm files
 .PP
 \fB\-h\fP, \fB\-\-help\fP[=false]
     help for jobs
+
+.PP
+\fB\-\-no\-create\-helmfile\fP[=false]
+    disables the creation of the helmfiles/jenkinsName/helmfile.yaml file if a jenkins server does not yet exist
 
 .PP
 \fB\-o\fP, \fB\-\-out\fP=""

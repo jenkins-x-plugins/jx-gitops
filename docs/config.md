@@ -321,6 +321,30 @@ string
 <p>Scheduler the default scheduler for any group/repository which does not specify one</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>jenkinsServers</code></br>
+<em>
+<a href="#gitops.jenkins-x.io/v1alpha1.JenkinsServer">
+[]JenkinsServer
+</a>
+</em>
+</td>
+<td>
+<p>JenkinsServers the jenkins servers configured for this repository</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>jenkinsJobTemplate</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>JenkinsJobTemplate the default configuration template file to use to generate the projects job DSL script</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -434,15 +458,14 @@ string
 </tr>
 </tbody>
 </table>
-<h3 id="gitops.jenkins-x.io/v1alpha1.JenkinsConfig">JenkinsConfig
+<h3 id="gitops.jenkins-x.io/v1alpha1.JenkinsServer">JenkinsServer
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#gitops.jenkins-x.io/v1alpha1.Repository">Repository</a>, 
-<a href="#gitops.jenkins-x.io/v1alpha1.RepositoryGroup">RepositoryGroup</a>)
+<a href="#gitops.jenkins-x.io/v1alpha1.SourceConfigSpec">SourceConfigSpec</a>)
 </p>
 <p>
-<p>JenkinsConfig the Jenkins configuration for a group or repository if applicable</p>
+<p>JenkinsServer the Jenkins server configuration</p>
 </p>
 <table>
 <thead>
@@ -454,17 +477,6 @@ string
 <tbody>
 <tr>
 <td>
-<code>xmlTemplate</code></br>
-<em>
-string
-</em>
-</td>
-<td>
-<p>XmlTemplate the configuration template file to use to generate the projects XML configuration file</p>
-</td>
-</tr>
-<tr>
-<td>
 <code>server</code></br>
 <em>
 string
@@ -472,6 +484,30 @@ string
 </td>
 <td>
 <p>Server the name of the Jenkins Server to use</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>jobTemplate</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>JobTemplate the default configuration template file to use to generate the projects job DSL script</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>groups</code></br>
+<em>
+<a href="#gitops.jenkins-x.io/v1alpha1.RepositoryGroup">
+[]RepositoryGroup
+</a>
+</em>
+</td>
+<td>
+<p>Groups the groups of source repositories</p>
 </td>
 </tr>
 </tbody>
@@ -703,15 +739,13 @@ string
 </tr>
 <tr>
 <td>
-<code>jenkins</code></br>
+<code>jenkinsJobTemplate</code></br>
 <em>
-<a href="#gitops.jenkins-x.io/v1alpha1.JenkinsConfig">
-JenkinsConfig
-</a>
+string
 </em>
 </td>
 <td>
-<p>Jenkins the jenkins configuration if using Jenkins</p>
+<p>JenkinsJobTemplate the configuration template file to use to generate the projects job DSL script</p>
 </td>
 </tr>
 <tr>
@@ -764,6 +798,7 @@ string
 </h3>
 <p>
 (<em>Appears on:</em>
+<a href="#gitops.jenkins-x.io/v1alpha1.JenkinsServer">JenkinsServer</a>, 
 <a href="#gitops.jenkins-x.io/v1alpha1.SourceConfigSpec">SourceConfigSpec</a>)
 </p>
 <p>
@@ -847,15 +882,13 @@ string
 </tr>
 <tr>
 <td>
-<code>jenkins</code></br>
+<code>jenkinsJobTemplate</code></br>
 <em>
-<a href="#gitops.jenkins-x.io/v1alpha1.JenkinsConfig">
-JenkinsConfig
-</a>
+string
 </em>
 </td>
 <td>
-<p>Jenkins the jenkins configuration if using Jenkins</p>
+<p>JenkinsJobTemplate the default configuration template file to use to generate the projects job DSL script</p>
 </td>
 </tr>
 </tbody>
@@ -1036,10 +1069,34 @@ string
 <p>Scheduler the default scheduler for any group/repository which does not specify one</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>jenkinsServers</code></br>
+<em>
+<a href="#gitops.jenkins-x.io/v1alpha1.JenkinsServer">
+[]JenkinsServer
+</a>
+</em>
+</td>
+<td>
+<p>JenkinsServers the jenkins servers configured for this repository</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>jenkinsJobTemplate</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>JenkinsJobTemplate the default configuration template file to use to generate the projects job DSL script</p>
+</td>
+</tr>
 </tbody>
 </table>
 <hr/>
 <p><em>
 Generated with <code>gen-crd-api-reference-docs</code>
-on git commit <code>8af7ea1</code>.
+on git commit <code>30bccec</code>.
 </em></p>

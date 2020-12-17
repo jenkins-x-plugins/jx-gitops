@@ -51,6 +51,7 @@ type Options struct {
 	Repository       string
 	Version          string
 	ReleaseName      string
+	Values           []string
 	BatchMode        bool
 	DoGitCommit      bool
 	Gitter           gitclient.Interface
@@ -88,6 +89,7 @@ func NewCmdHelmfileAdd() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.ReleaseName, "name", "", "", "the name of the helm release")
 	cmd.Flags().StringVarP(&o.Repository, "repository", "r", "", "the helm chart repository URL of the chart")
 	cmd.Flags().StringVarP(&o.Version, "version", "v", "", "the version of the helm chart. If not specified the versionStream will be checked otherwise the latest version is used")
+	cmd.Flags().StringArrayVarP(&o.Values, "values", "", nil, "the values files to add to the chart")
 
 	// git commit stuff....
 	cmd.Flags().BoolVarP(&o.DoGitCommit, "git-commit", "", false, "if set then the template command will git commit the modified helmfile.yaml files")
@@ -198,17 +200,24 @@ func (o *Options) Run() error {
 			found = true
 			if release.Namespace != "" && release.Namespace != o.Namespace {
 				release.Namespace = o.Namespace
+				for _, v := range o.Values {
+					release.Values = append(release.Values, v)
+				}
 				modified = true
 			}
 		}
 	}
 	if !found {
-		helmState.Releases = append(helmState.Releases, state.ReleaseSpec{
+		release := state.ReleaseSpec{
 			Chart:     o.Chart,
 			Version:   o.Version,
 			Name:      o.ReleaseName,
 			Namespace: o.Namespace,
-		})
+		}
+		for _, v := range o.Values {
+			release.Values = append(release.Values, v)
+		}
+		helmState.Releases = append(helmState.Releases, release)
 		modified = true
 	}
 	if !modified {
