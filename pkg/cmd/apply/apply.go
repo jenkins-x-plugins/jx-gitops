@@ -119,6 +119,16 @@ func (o *Options) Run() error {
 		if err != nil {
 			return errors.Wrapf(err, "failed to regenerate phase 3")
 		}
+	} else {
+		c := &cmdrunner.Command{
+			Dir:  o.Dir,
+			Name: "make",
+			Args: []string{"regen-none"},
+		}
+		err = o.RunCommand(c)
+		if err != nil {
+			return errors.Wrapf(err, "failed to run regen-none hook")
+		}
 	}
 	return nil
 }
