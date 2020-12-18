@@ -9,6 +9,7 @@ import (
 
 	"github.com/jenkins-x/jx-gitops/pkg/jxtmpl/reqvalues"
 	"github.com/jenkins-x/jx-gitops/pkg/pipelinecatalogs"
+	"github.com/jenkins-x/jx-gitops/pkg/quickstarthelpers"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"
 
@@ -625,6 +626,10 @@ func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to rename old image pull secrets file")
 	}
+	err = o.migrateQuickstartsFile()
+	if err != nil {
+		return errors.Wrapf(err, "failed to migrate quickstarts file")
+	}
 
 	var versionStreamPath string
 	if helmstate.OverrideNamespace == "" {
@@ -1009,4 +1014,31 @@ func (o *Options) upgradePipelineCatalog() error {
 	}
 	log.Logger().Infof("modified %s", info(path))
 	return nil
+}
+
+func (o *Options) migrateQuickstartsFile() error {
+	qs, path, err := quickstarthelpers.LoadQuickstarts(o.Dir)
+	if err != nil {
+		return errors.Wrapf(err, "failed to load quickstarts")
+	}
+
+	modified := false
+	for i := range qs.Spec.Imports {
+		ip := &qs.Spec.Imports[i]
+		if strings.HasSuffix(ip.File, ".yml") {
+			ip.File = strings.TrimSuffix(ip.File, ".yml") + ".yaml"
+			modified = true
+		}
+	}
+	if !modified {
+		return nil
+	}
+
+	err = yamls.SaveFile(qs, path)
+	if err != nil {
+		return errors.Wrapf(err, "failed to save file %s", path)
+	}
+	log.Logger().Infof("patched %s to use correct .yaml extension", info(path))
+	return nil
+
 }

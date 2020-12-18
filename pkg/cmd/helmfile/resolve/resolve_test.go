@@ -10,6 +10,7 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/fakekpt"
 	"github.com/jenkins-x/jx-gitops/pkg/pipelinecatalogs"
 	"github.com/jenkins-x/jx-gitops/pkg/plugins"
+	"github.com/jenkins-x/jx-gitops/pkg/quickstarthelpers"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner/fakerunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
@@ -207,6 +208,11 @@ func TestStepHelmfileResolve(t *testing.T) {
 
 				t.Logf("test %s namespace %s has full domain %s%s for file %s", name, it.namespace, subdomain, domain, path)
 			}
+
+			qc, qsFile, err := quickstarthelpers.LoadQuickstarts(o.Dir)
+			require.NoError(t, err, "failed to load quickstarts in dir %s", o.Dir)
+			require.Len(t, qc.Spec.Imports, 1, "should have one import in file %s", qsFile)
+			assert.Equal(t, "versionStream/quickstarts.yaml", qc.Spec.Imports[0].File, "should have one import in file %s", qsFile)
 		}
 	}
 }
