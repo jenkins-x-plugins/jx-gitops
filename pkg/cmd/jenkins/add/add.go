@@ -74,5 +74,14 @@ func (o *Options) Run() error {
 		return errors.Wrapf(err, "failed to add jenkins helm chart for %s", o.Name)
 	}
 	log.Logger().Infof("added helmfile %s for jenkins server %s", info(o.Helmfile), info(o.Name))
+
+	// lets add the jenkins-resources chart too
+	o.Chart = "jx3/jenkins-resources"
+	o.ReleaseName = "jenkins-resources"
+	o.Values = nil
+	err = o.Options.Run()
+	if err != nil {
+		return errors.Wrapf(err, "failed to add jenkins resources helm chart for %s", o.Name)
+	}
 	return nil
 }
