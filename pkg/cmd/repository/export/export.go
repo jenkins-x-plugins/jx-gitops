@@ -129,11 +129,17 @@ func (o *Options) PopulateSourceConfig(srList []jenkinsv1.SourceRepository) erro
 	sourceconfigs.EnrichConfig(config)
 
 	err = yamls.SaveFile(config, o.ConfigFile)
+
 	if err != nil {
 		return errors.Wrapf(err, "failed to save config file %s", o.ConfigFile)
 	}
 
-	log.Logger().Infof("modified file %s", termcolor.ColorInfo(o.ConfigFile))
+	relName := o.ConfigFile
+	rel, err := filepath.Rel(o.Dir, relName)
+	if err == nil {
+		relName = rel
+	}
+	log.Logger().Infof("modified source configuration: %s", termcolor.ColorInfo(relName))
 	return nil
 }
 
