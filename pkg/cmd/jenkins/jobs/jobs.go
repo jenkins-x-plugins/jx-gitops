@@ -334,21 +334,7 @@ func (o *Options) verifyServerHelmfileExists(dir string, server string) error {
 	_, ao := add.NewCmdJenkinsAdd()
 	ao.Name = server
 	ao.Dir = o.Dir
-
-	// lets check if we have a configuration from the version stream
-	path = filepath.Join(o.Dir, "versionStream", "charts", "jenkinsci", "jenkins", "values.yaml.gotmpl")
-	exists, err = files.FileExists(path)
-	if err != nil {
-		return errors.Wrapf(err, "failed to check if file exists %s", path)
-	}
-	if exists {
-		relPath, err := filepath.Rel(dir, path)
-		if err != nil {
-			return errors.Wrapf(err, "failed to get relative path of %s from %s", path, dir)
-		}
-		ao.Values = []string{relPath}
-	}
-	ao.Values = append(ao.Values, "job-values.yaml", "values.yaml")
+	ao.Values = []string{"job-values.yaml", "values.yaml"}
 
 	err = ao.Run()
 	if err != nil {
