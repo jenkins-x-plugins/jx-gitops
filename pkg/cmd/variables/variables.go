@@ -166,6 +166,13 @@ func (o *Options) Validate() error {
 		}
 	}
 
+	if o.Options.Branch == "" || o.Options.Branch == "HEAD" {
+		o.Options.Branch, err = o.Options.GetBranch()
+		if err != nil {
+		  return errors.Wrapf(err, "failed to find branch name")
+		}
+	}
+
 	o.BuildNumber, err = o.GetBuildNumber()
 	if err != nil {
 		return errors.Wrapf(err, "failed to find build number")
@@ -181,7 +188,7 @@ func (o *Options) Validate() error {
 		{
 			Name: "BRANCH_NAME",
 			Function: func() (string, error) {
-				return o.Options.Branch, nil
+				return o.Options.Branch, err
 			},
 		},
 		{
