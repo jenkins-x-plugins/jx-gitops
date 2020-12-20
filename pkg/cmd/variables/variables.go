@@ -181,7 +181,11 @@ func (o *Options) Validate() error {
 		{
 			Name: "BRANCH_NAME",
 			Function: func() (string, error) {
-				return o.Options.Branch, nil
+				var err error
+				if o.Options.Branch == "" || o.Options.Branch == "HEAD" {
+					o.Options.Branch, err = o.Options.GetBranch()
+				}
+				return o.Options.Branch, err
 			},
 		},
 		{
