@@ -5,8 +5,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
 	helmfileadd "github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/add"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x/jx-gitops/pkg/sourceconfigs"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/naming"
@@ -82,6 +84,28 @@ func (o *Options) Run() error {
 	err = o.Options.Run()
 	if err != nil {
 		return errors.Wrapf(err, "failed to add jenkins resources helm chart for %s", o.Name)
+	}
+
+	// lets make sure that there's a jenkins server of this name in the source config
+	srcConfig, err := sourceconfigs.LoadSourceConfig(o.Dir, false)
+	if err != nil {
+		return errors.Wrapf(err, "failed to load source config")
+	}
+	for _, s := range srcConfig.Spec.JenkinsServers {
+		if s.Server == o.Name {
+			return nil
+		}
+	}
+	srcConfig.Spec.JenkinsServers = append(srcConfig.Spec.JenkinsServers, v1alpha1.JenkinsServer{
+		Server: o.Name,
+	})
+	err = sourceconfigs.SaveSourceConfig(srcConfig, o.Dir)
+	if err != nil {
+		return errors.Wrapf(err, "failed to save source config")
+	}
+	_, err = o.Git().Command(o.Dir, "add", ".jx")
+	if err != nil {
+		return errors.Wrapf(err, "failed to add source config changes to git in dir %s", o.Dir)
 	}
 	return nil
 }

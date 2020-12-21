@@ -1,6 +1,7 @@
 package sourceconfigs
 
 import (
+	"os"
 	"path/filepath"
 	"sort"
 
@@ -38,6 +39,28 @@ func LoadSourceConfig(dir string, applyDefaults bool) (*v1alpha1.SourceConfig, e
 		DefaultConfigValues(config)
 	}
 	return config, nil
+}
+
+// SaveSourceConfig saves the source config to the given directory
+func SaveSourceConfig(config *v1alpha1.SourceConfig, dir string) error {
+	if config.APIVersion == "" {
+		config.APIVersion = v1alpha1.APIVersion
+	}
+	if config.Kind == "" {
+		config.Kind = v1alpha1.KindSourceConfig
+	}
+	outDir := filepath.Join(dir, ".jx", "gitops")
+	err := os.MkdirAll(outDir, files.DefaultDirWritePermissions)
+	if err != nil {
+		return errors.Wrapf(err, "failed to make directory %s", outDir)
+	}
+
+	path := filepath.Join(outDir, v1alpha1.SourceConfigFileName)
+	err = yamls.SaveFile(config, path)
+	if err != nil {
+		return errors.Wrapf(err, "failed to save %s", path)
+	}
+	return nil
 }
 
 // DefaultConfigValues defaults values from the given config, group and repository if they are missing
