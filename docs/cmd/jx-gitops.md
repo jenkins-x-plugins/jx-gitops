@@ -34,6 +34,7 @@ GitOps utility commands
 * [jx-gitops kpt](jx-gitops_kpt.md)	 - Commands for working with kpt packages
 * [jx-gitops kustomize](jx-gitops_kustomize.md)	 - Generates a kustomize layout by comparing a source and target directories
 * [jx-gitops label](jx-gitops_label.md)	 - Updates all kubernetes resources in the given directory tree to add/override the given label
+* [jx-gitops lint](jx-gitops_lint.md)	 - Lints the gitops files in the file system
 * [jx-gitops namespace](jx-gitops_namespace.md)	 - Updates all kubernetes resources in the given directory to the given namespace
 * [jx-gitops plugin](jx-gitops_plugin.md)	 - Commands for working with plugins
 * [jx-gitops postprocess](jx-gitops_postprocess.md)	 - Post processes kubernetes resources to enrich resources like ServiceAccounts with cloud specific sensitive data to enable IAM rles
