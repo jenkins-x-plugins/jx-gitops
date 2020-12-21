@@ -42,6 +42,8 @@ func TestJenkinsAdd(t *testing.T) {
 	assert.FileExists(t, expectedFile, "should have generated file")
 	t.Logf("generated %s\n", expectedFile)
 
+	assert.FileExists(t, filepath.Join(jenkinsDir, "values.yaml"), "should have generated file")
+
 	sourceConfig, err := sourceconfigs.LoadSourceConfig(tmpDir, false)
 	require.NoError(t, err, "failed to load source configs in dir %s", tmpDir)
 	require.Len(t, sourceConfig.Spec.JenkinsServers, 1, "should have created 1 jenkins server")
