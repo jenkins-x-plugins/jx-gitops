@@ -1,0 +1,5 @@
+filepath: ""
+helmfiles:
+- path: helmfiles/myjenkins/helmfile.yaml
+templates: {}
+renderedvalues: {}

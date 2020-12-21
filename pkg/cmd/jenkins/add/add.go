@@ -2,15 +2,21 @@ package add
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
 	helmfileadd "github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/add"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x/jx-gitops/pkg/sourceconfigs"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/naming"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/options"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/stringhelpers"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/pkg/errors"
@@ -29,6 +35,12 @@ var (
 		%s jenkins add --name myjenkins
 
 	`)
+
+	sampleValuesFile = `# custom Jenkins chart configuration
+# see https://github.com/jenkinsci/helm-charts/blob/main/charts/jenkins/VALUES_SUMMARY.md
+
+sampleValue: removeMeWhenYouAddRealConfiguration
+`
 )
 
 // Options the options for the command
@@ -69,7 +81,12 @@ func (o *Options) Run() error {
 	o.ReleaseName = "jenkins"
 	o.Helmfile = filepath.Join(o.Dir, "helmfiles", o.Namespace, "helmfile.yaml")
 
-	err := o.Options.Run()
+	err := o.verifyValuesExists()
+	if err != nil {
+		return errors.Wrapf(err, "failed to verify values file exists")
+	}
+
+	err = o.Options.Run()
 	if err != nil {
 		return errors.Wrapf(err, "failed to add jenkins helm chart for %s", o.Name)
 	}
@@ -82,6 +99,60 @@ func (o *Options) Run() error {
 	err = o.Options.Run()
 	if err != nil {
 		return errors.Wrapf(err, "failed to add jenkins resources helm chart for %s", o.Name)
+	}
+
+	// lets make sure that there's a jenkins server of this name in the source config
+	srcConfig, err := sourceconfigs.LoadSourceConfig(o.Dir, false)
+	if err != nil {
+		return errors.Wrapf(err, "failed to load source config")
+	}
+	for _, s := range srcConfig.Spec.JenkinsServers {
+		if s.Server == o.Name {
+			return nil
+		}
+	}
+	srcConfig.Spec.JenkinsServers = append(srcConfig.Spec.JenkinsServers, v1alpha1.JenkinsServer{
+		Server: o.Name,
+	})
+	err = sourceconfigs.SaveSourceConfig(srcConfig, o.Dir)
+	if err != nil {
+		return errors.Wrapf(err, "failed to save source config")
+	}
+	_, err = o.Git().Command(o.Dir, "add", ".jx")
+	if err != nil {
+		return errors.Wrapf(err, "failed to add source config changes to git in dir %s", o.Dir)
+	}
+	return nil
+}
+
+func (o *Options) verifyValuesExists() error {
+	if len(o.Values) == 0 {
+		o.Values = []string{"values.yaml"}
+	}
+	if stringhelpers.StringArrayIndex(o.Values, "values.yaml") < 0 {
+		return nil
+	}
+
+	// lets check if there's a values.yaml file and if not create one
+	outDir := filepath.Join(o.Dir, "helmfiles", o.Namespace)
+
+	err := os.MkdirAll(outDir, files.DefaultDirWritePermissions)
+	if err != nil {
+		return errors.Wrapf(err, "failed to make dir %s", outDir)
+	}
+
+	path := filepath.Join(outDir, "values.yaml")
+	exists, err := files.FileExists(path)
+	if err != nil {
+		return errors.Wrapf(err, "failed to check if file exists %s", path)
+	}
+	if exists {
+		return nil
+	}
+
+	err = ioutil.WriteFile(path, []byte(sampleValuesFile), files.DefaultFileWritePermissions)
+	if err != nil {
+		return errors.Wrapf(err, "failed to save %s", path)
 	}
 	return nil
 }

@@ -49,12 +49,6 @@ controller:
           - script: |
 `
 	indent = "              "
-
-	sampleValuesFile = `# custom Jenkins chart configuration
-# see https://github.com/jenkinsci/helm-charts/blob/main/charts/jenkins/VALUES_SUMMARY.md
-
-sampleValue: removeMeWhenYouAddRealConfiguration
-`
 )
 
 // LabelOptions the options for the command
@@ -339,21 +333,6 @@ func (o *Options) verifyServerHelmfileExists(dir string, server string) error {
 	err = ao.Run()
 	if err != nil {
 		return errors.Wrapf(err, "failed to add jenkins server")
-	}
-
-	// lets check if there's a values.yaml file and if not create one
-	path = filepath.Join(dir, "values.yaml")
-	exists, err = files.FileExists(path)
-	if err != nil {
-		return errors.Wrapf(err, "failed to check if file exists %s", path)
-	}
-	if exists {
-		return nil
-	}
-
-	err = ioutil.WriteFile(path, []byte(sampleValuesFile), files.DefaultFileWritePermissions)
-	if err != nil {
-		return errors.Wrapf(err, "failed to save %s", path)
 	}
 	return nil
 }
