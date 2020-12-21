@@ -1,0 +1,7 @@
+apiVersion: project.jenkins-x.io/v1alpha1
+kind: PipelineCatalog
+spec:
+  repositories:
+  - label: JX3 Pipeline Catalog
+    gitUrl: https://github.com/jstrachan/jx3-pipeline-catalog
+    gitRef: myref
