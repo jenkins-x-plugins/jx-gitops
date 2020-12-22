@@ -169,7 +169,7 @@ func (o *Options) Validate() error {
 	if o.Options.Branch == "" || o.Options.Branch == "HEAD" {
 		o.Options.Branch, err = o.Options.GetBranch()
 		if err != nil {
-		  return errors.Wrapf(err, "failed to find branch name")
+			return errors.Wrapf(err, "failed to find branch name")
 		}
 	}
 

@@ -142,15 +142,16 @@ func TestKappPlugin(t *testing.T) {
 		switch b.Goos {
 		case "Darwin":
 			foundMac = true
-			assert.Equal(t, "https://github.com/vmware-tanzu/carvel-kapp/releases/download/v"+v+"/kapp-darwin-amd64", b.URL, "URL for linux binary")
+
+			assert.Equal(t, "https://github.com/chrismellard/carvel-kapp/releases/download/v"+v+"/carvel-kapp_"+v+"_Darwin_amd64.tar.gz", b.URL, "URL for linux binary")
 			t.Logf("found mac binary URL %s", b.URL)
 		case "Linux":
 			foundLinux = true
-			assert.Equal(t, "https://github.com/vmware-tanzu/carvel-kapp/releases/download/v"+v+"/kapp-linux-amd64", b.URL, "URL for linux binary")
+			assert.Equal(t, "https://github.com/chrismellard/carvel-kapp/releases/download/v"+v+"/carvel-kapp_"+v+"_Linux_amd64.tar.gz", b.URL, "URL for linux binary")
 			t.Logf("found linux binary URL %s", b.URL)
 		case "Windows":
 			foundWindows = true
-			assert.Equal(t, "https://github.com/vmware-tanzu/carvel-kapp/releases/download/v"+v+"/kapp-windows-amd64.exe", b.URL, "URL for windows binary")
+			assert.Equal(t, "https://github.com/chrismellard/carvel-kapp/releases/download/v"+v+"/carvel-kapp_"+v+"_Windows_amd64.tar.gz", b.URL, "URL for windows binary")
 			t.Logf("found windows binary URL %s", b.URL)
 		}
 	}

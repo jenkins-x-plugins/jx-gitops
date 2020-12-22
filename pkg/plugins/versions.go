@@ -31,7 +31,7 @@ const (
 	KubectlVersion = "1.16.15"
 
 	// KappVersion the default version of kapp to use
-	KappVersion = "0.35.0"
+	KappVersion = "0.35.1-cmfork"
 )
 
 var (

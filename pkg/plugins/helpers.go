@@ -173,12 +173,9 @@ func GetKappBinary(version string) (string, error) {
 
 // CreateKappPlugin creates the kpt 3 plugin
 func CreateKappPlugin(version string) jenkinsv1.Plugin {
+	// TODO - Repoint this back to kapp repo once this has merged https://github.com/vmware-tanzu/carvel-kapp/pull/177
 	binaries := extensions.CreateBinaries(func(p extensions.Platform) string {
-		ext := ""
-		if p.IsWindows() {
-			ext = ".exe"
-		}
-		return fmt.Sprintf("https://github.com/vmware-tanzu/carvel-kapp/releases/download/v%s/kapp-%s-%s", version, strings.ToLower(p.Goos), strings.ToLower(p.Goarch)) + ext
+		return fmt.Sprintf("https://github.com/chrismellard/carvel-kapp/releases/download/v%s/carvel-kapp_%s_%s_%s.tar.gz", version, version, p.Goos, p.Goarch)
 	})
 
 	plugin := jenkinsv1.Plugin{
