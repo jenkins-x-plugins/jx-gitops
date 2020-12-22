@@ -311,7 +311,7 @@ func (o *Options) matchesWebhookURL(webHookArgs *scm.Hook, webhookURL string) bo
 	if "" != o.PreviousHookUrl {
 		return o.PreviousHookUrl == webHookArgs.Target
 	}
-	if o.ScmClientFactory.GitKind == "gitlab" {
+	if o.ScmClientFactory.GitKind == "gitlab" || o.ScmClientFactory.GitKind == "gitea" {
 		return strings.HasPrefix(webHookArgs.Target, webhookURL)
 	}
 	if o.ExactHookMatch {
