@@ -205,21 +205,21 @@ func (o *Options) Run() error {
 		c = &cmdrunner.Command{
 			Dir:  chartDir,
 			Name: o.HelmBinary,
-			Args: []string{"lint"},
-		}
-		_, err = o.CommandRunner(c)
-		if err != nil {
-			return errors.Wrapf(err, "failed to lint")
-		}
-
-		c = &cmdrunner.Command{
-			Dir:  chartDir,
-			Name: o.HelmBinary,
 			Args: []string{"dependency", "build", "."},
 		}
 		_, err = o.CommandRunner(c)
 		if err != nil {
 			return errors.Wrapf(err, "failed to build dependencies")
+		}
+
+		c = &cmdrunner.Command{
+			Dir:  chartDir,
+			Name: o.HelmBinary,
+			Args: []string{"lint"},
+		}
+		_, err = o.CommandRunner(c)
+		if err != nil {
+			return errors.Wrapf(err, "failed to lint")
 		}
 
 		c = &cmdrunner.Command{
@@ -237,14 +237,9 @@ func (o *Options) Run() error {
 			return nil
 		}
 
-		c, err = o.createPublishCommand(name, chartDir)
+		err = o.publishChart(name, chartDir, o.HelmBinary)
 		if err != nil {
 			return errors.Wrapf(err, "failed to create release command in dir %s", chartDir)
-		}
-
-		_, err = o.CommandRunner(c)
-		if err != nil {
-			return errors.Wrapf(err, "failed to publish")
 		}
 		count++
 	}
@@ -253,31 +248,76 @@ func (o *Options) Run() error {
 	return nil
 }
 
-func (o *Options) createPublishCommand(name, chartDir string) (*cmdrunner.Command, error) {
+func (o *Options) publishChart(name, chartDir string, helmBinary string) error {
 	tarFile := name + "-" + o.Version + ".tgz"
 
 	if strings.HasPrefix(o.RepositoryURL, "gs:") {
 		// use gcs to push the chart
-		return &cmdrunner.Command{
+		_, err := o.CommandRunner(&cmdrunner.Command{
 			Dir:  chartDir,
 			Name: o.HelmBinary,
 			Args: []string{"gcs", "push", tarFile, o.RepositoryName},
-		}, nil
+		})
+		return errors.Wrapf(err, "failed to publish")
 	}
 
 	userSecret, err := o.findChartRepositoryUserPassword()
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to find chart repository user:password")
+		return errors.Wrapf(err, "failed to find chart repository user:password")
+	}
+
+	// this should probably be improved to support env vars (to force detection of what provider is used)
+	// This should be default behavior since it should work with all servers (but would be a breaking change and we would need to detect chartmuseum)
+	if strings.Contains(o.RepositoryURL, "bucketrepo") {
+		url := stringhelpers.UrlJoin(o.RepositoryURL, tarFile)
+		_, err = o.CommandRunner(&cmdrunner.Command{
+			Dir:  chartDir,
+			Name: "curl",
+			// lets hide progress bars (-s) and enable show errors (-S)
+			Args: []string{"-X", "PUT", "--fail", "-sS", "-u", userSecret, "--data-binary", "@" + tarFile, url},
+		})
+		if err != nil {
+			return errors.Wrapf(err, "failed to publish")
+		}
+		// fetch index.yaml
+		indexUrl := stringhelpers.UrlJoin(o.RepositoryURL, "index.yaml")
+		_, err = o.CommandRunner(&cmdrunner.Command{
+			Dir:  chartDir,
+			Name: "curl",
+			// lets hide progress bars (-s) and enable show errors (-S)
+			Args: []string{"--fail", "-sS", "-O", indexUrl},
+		})
+		if err != nil {
+			return errors.Wrapf(err, "failed to fetch index.yaml")
+		}
+		// update index.yaml
+		_, err = o.CommandRunner(&cmdrunner.Command{
+			Dir:  chartDir,
+			Name: helmBinary,
+			// lets hide progress bars (-s) and enable show errors (-S)
+			Args: []string{"repo", "index", ".", "--merge", "./index.yaml"},
+		})
+		if err != nil {
+			return errors.Wrapf(err, "failed to compute index.yaml")
+		}
+		// PUT index.yaml
+		_, err = o.CommandRunner(&cmdrunner.Command{
+			Dir:  chartDir,
+			Name: "curl",
+			// lets hide progress bars (-s) and enable show errors (-S)
+			Args: []string{"-X", "PUT", "--fail", "-sS", "-u", userSecret, "--data-binary", "@index.yaml", indexUrl},
+		})
+		return errors.Wrapf(err, "failed to update index.yaml")
 	}
 
 	url := stringhelpers.UrlJoin(o.RepositoryURL, "/api/charts")
-
-	return &cmdrunner.Command{
+	_, err = o.CommandRunner(&cmdrunner.Command{
 		Dir:  chartDir,
 		Name: "curl",
 		// lets hide progress bars (-s) and enable show errors (-S)
 		Args: []string{"--fail", "-sS", "-u", userSecret, "--data-binary", "@" + tarFile, url},
-	}, nil
+	})
+	return errors.Wrapf(err, "failed to publish")
 }
 
 func (o *Options) findChartRepositoryUserPassword() (string, error) {
