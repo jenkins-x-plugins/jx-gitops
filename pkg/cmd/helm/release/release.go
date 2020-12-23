@@ -205,21 +205,21 @@ func (o *Options) Run() error {
 		c = &cmdrunner.Command{
 			Dir:  chartDir,
 			Name: o.HelmBinary,
-			Args: []string{"lint"},
-		}
-		_, err = o.CommandRunner(c)
-		if err != nil {
-			return errors.Wrapf(err, "failed to lint")
-		}
-
-		c = &cmdrunner.Command{
-			Dir:  chartDir,
-			Name: o.HelmBinary,
 			Args: []string{"dependency", "build", "."},
 		}
 		_, err = o.CommandRunner(c)
 		if err != nil {
 			return errors.Wrapf(err, "failed to build dependencies")
+		}
+
+		c = &cmdrunner.Command{
+			Dir:  chartDir,
+			Name: o.HelmBinary,
+			Args: []string{"lint"},
+		}
+		_, err = o.CommandRunner(c)
+		if err != nil {
+			return errors.Wrapf(err, "failed to lint")
 		}
 
 		c = &cmdrunner.Command{
