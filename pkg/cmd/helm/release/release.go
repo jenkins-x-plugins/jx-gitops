@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	jxc "github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned"
@@ -40,6 +41,8 @@ var (
 		# generates the resources from a helm chart
 		%s step helm template
 	`)
+
+	ociRegex = regexp.MustCompile("[-a-zA-Z0-9]{5,50}.azurecr.io")
 )
 
 // Options the options for the command
@@ -192,64 +195,129 @@ func (o *Options) Run() error {
 
 		log.Logger().Infof("releasing chart %s", info(name))
 
-		c := &cmdrunner.Command{
-			Dir:  chartDir,
-			Name: o.HelmBinary,
-			Args: []string{"repo", "add", o.RepositoryName, o.RepositoryURL},
-		}
-		_, err = o.CommandRunner(c)
-		if err != nil {
-			return errors.Wrapf(err, "failed to add remote repo")
+		if ociRegex.MatchString(o.RepositoryURL) {
+			err = o.OCIRegistry(chartDir, name)
+		} else {
+			err = o.BasicRegistry(chartDir, name)
 		}
 
-		c = &cmdrunner.Command{
-			Dir:  chartDir,
-			Name: o.HelmBinary,
-			Args: []string{"dependency", "build", "."},
-		}
-		_, err = o.CommandRunner(c)
 		if err != nil {
-			return errors.Wrapf(err, "failed to build dependencies")
+			return errors.Wrapf(err, "failed to create release in dir %s", chartDir)
 		}
 
-		c = &cmdrunner.Command{
-			Dir:  chartDir,
-			Name: o.HelmBinary,
-			Args: []string{"lint"},
-		}
-		_, err = o.CommandRunner(c)
-		if err != nil {
-			return errors.Wrapf(err, "failed to lint")
-		}
-
-		c = &cmdrunner.Command{
-			Dir:  chartDir,
-			Name: o.HelmBinary,
-			Args: []string{"package", "."},
-		}
-		_, err = o.CommandRunner(c)
-		if err != nil {
-			return errors.Wrapf(err, "failed to package")
-		}
-
-		if o.NoRelease {
-			log.Logger().Infof("disabling the chart publish")
-			return nil
-		}
-
-		c, err = o.createPublishCommand(name, chartDir)
-		if err != nil {
-			return errors.Wrapf(err, "failed to create release command in dir %s", chartDir)
-		}
-
-		_, err = o.CommandRunner(c)
-		if err != nil {
-			return errors.Wrapf(err, "failed to publish")
-		}
 		count++
 	}
 
 	log.Logger().Infof("released %d charts from the charts dir: %s", count, dir)
+	return nil
+}
+
+func (o *Options) OCIRegistry(chartDir string, name string) error {
+
+	qualifiedChartName := fmt.Sprintf("%s/%s:%s", o.RepositoryURL, name, o.Version)
+
+	c := &cmdrunner.Command{
+		Dir:  chartDir,
+		Name: o.HelmBinary,
+		Env: map[string]string{
+			"HELM_EXPERIMENTAL_OCI": "1",
+		},
+		Args: []string{"registry", "login", o.RepositoryURL, "--username", o.RepositoryUsername, "--password", o.RepositoryPassword},
+	}
+	_, err := o.CommandRunner(c)
+	if err != nil {
+		return errors.Wrapf(err, "failed to login to registry %s for user %s", o.RepositoryURL, o.RepositoryUsername)
+	}
+
+	c = &cmdrunner.Command{
+		Dir:  chartDir,
+		Name: o.HelmBinary,
+		Env: map[string]string{
+			"HELM_EXPERIMENTAL_OCI": "1",
+		},
+		Args: []string{"chart", "save", ".", qualifiedChartName},
+	}
+	_, err = o.CommandRunner(c)
+	if err != nil {
+		return errors.Wrapf(err, "failed to save chart %s in %s", qualifiedChartName, chartDir)
+	}
+
+	if o.NoRelease {
+		log.Logger().Infof("disabling the chart publish")
+		return nil
+	}
+
+	c = &cmdrunner.Command{
+		Dir:  chartDir,
+		Name: o.HelmBinary,
+		Env: map[string]string{
+			"HELM_EXPERIMENTAL_OCI": "1",
+		},
+		Args: []string{"chart", "push", qualifiedChartName},
+	}
+	_, err = o.CommandRunner(c)
+	if err != nil {
+		return errors.Wrapf(err, "failed to push chart %s", qualifiedChartName)
+	}
+	return nil
+}
+
+func (o *Options) BasicRegistry(chartDir string, name string) error {
+
+	c := &cmdrunner.Command{
+		Dir:  chartDir,
+		Name: o.HelmBinary,
+		Args: []string{"repo", "add", o.RepositoryName, o.RepositoryURL},
+	}
+	_, err := o.CommandRunner(c)
+	if err != nil {
+		return errors.Wrapf(err, "failed to add remote repo")
+	}
+
+	c = &cmdrunner.Command{
+		Dir:  chartDir,
+		Name: o.HelmBinary,
+		Args: []string{"dependency", "build", "."},
+	}
+	_, err = o.CommandRunner(c)
+	if err != nil {
+		return errors.Wrapf(err, "failed to build dependencies")
+	}
+
+	c = &cmdrunner.Command{
+		Dir:  chartDir,
+		Name: o.HelmBinary,
+		Args: []string{"lint"},
+	}
+	_, err = o.CommandRunner(c)
+	if err != nil {
+		return errors.Wrapf(err, "failed to lint")
+	}
+
+	c = &cmdrunner.Command{
+		Dir:  chartDir,
+		Name: o.HelmBinary,
+		Args: []string{"package", "."},
+	}
+	_, err = o.CommandRunner(c)
+	if err != nil {
+		return errors.Wrapf(err, "failed to package")
+	}
+
+	if o.NoRelease {
+		log.Logger().Infof("disabling the chart publish")
+		return nil
+	}
+
+	c, err = o.createPublishCommand(name, chartDir)
+	if err != nil {
+		return errors.Wrapf(err, "failed to create release command in dir %s", chartDir)
+	}
+
+	_, err = o.CommandRunner(c)
+	if err != nil {
+		return errors.Wrapf(err, "failed to publish")
+	}
 	return nil
 }
 
