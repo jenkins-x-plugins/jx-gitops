@@ -22,7 +22,7 @@ const (
 	HelmVersion = "3.4.0"
 
 	// HelmfileVersion the default version of helmfile to use
-	HelmfileVersion = "0.135.0"
+	HelmfileVersion = "0.135.1-cmfork"
 
 	// KptVersion the default version of kpt to use
 	KptVersion = "0.37.0"
