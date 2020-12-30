@@ -13,12 +13,12 @@ require (
 	github.com/h2non/gock v1.0.9
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.11
-	github.com/jenkins-x/go-scm v1.5.200
+	github.com/jenkins-x/go-scm v1.5.201
 	github.com/jenkins-x/jx-api/v4 v4.0.14
-	github.com/jenkins-x/jx-helpers/v3 v3.0.43
+	github.com/jenkins-x/jx-helpers/v3 v3.0.45
 	github.com/jenkins-x/jx-kube-client/v3 v3.0.1
 	github.com/jenkins-x/jx-logging/v3 v3.0.2
-	github.com/jenkins-x/lighthouse v0.0.887
+	github.com/jenkins-x/lighthouse v0.0.897
 	github.com/pborman/uuid v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/roboll/helmfile v0.135.1-0.20201213020320-54eb73b4239a
@@ -39,7 +39,7 @@ require (
 	k8s.io/helm v2.16.10+incompatible
 	k8s.io/klog/v2 v2.4.0 // indirect
 	sigs.k8s.io/kustomize/api v0.4.1
-	sigs.k8s.io/kustomize/kyaml v0.6.1
+	sigs.k8s.io/kustomize/kyaml v0.10.5
 	sigs.k8s.io/structured-merge-diff/v4 v4.0.2 // indirect
 	sigs.k8s.io/yaml v1.2.0
 
