@@ -33,8 +33,8 @@ require (
 	golang.org/x/text v0.3.4 // indirect
 	gopkg.in/validator.v2 v2.0.0-20200605151824-2b28d334fa05
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	k8s.io/api v0.19.4
-	k8s.io/apimachinery v0.19.4
+	k8s.io/api v0.20.1
+	k8s.io/apimachinery v0.20.1
 	k8s.io/client-go v11.0.1-0.20190805182717-6502b5e7b1b5+incompatible
 	k8s.io/helm v2.16.10+incompatible
 	k8s.io/klog/v2 v2.4.0 // indirect
