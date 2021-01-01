@@ -23,7 +23,9 @@ func AddHelmRepositories(helmBin string, helmState state.HelmState, runner cmdru
 		"jx": "http://chartmuseum.jenkins-x.io",
 	}
 	for _, repo := range helmState.Repositories {
-		repoMap[repo.Name] = repo.URL
+		if !repo.OCI {
+			repoMap[repo.Name] = repo.URL
+		}
 	}
 
 	helmClient := helmer.NewHelmCLIWithRunner(runner, helmBin, "", false)

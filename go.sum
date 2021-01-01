@@ -305,6 +305,8 @@ github.com/cespare/xxhash/v2 v2.1.0/go.mod h1:dgIUBU3pDso/gPgZ1osOZ0iQf77oPR28Tj
 github.com/cespare/xxhash/v2 v2.1.1/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
 github.com/chai2010/gettext-go v0.0.0-20160711120539-c6fed771bfd5/go.mod h1:/iP1qXHoty45bqomnu2LM+VVyAEdWN+vtSHGlQgyxbw=
 github.com/cheggaaa/pb v1.0.27/go.mod h1:pQciLPpbU0oxA0h+VJYYLxO+XeDQb5pZijXscXHm81s=
+github.com/chrismellard/helmfile v0.135.1-0.20201225093459-d90f7f4de7bb h1:IgY4n+9nitAmwVGtqGwj6JOhtC8tnvb0UeTcr5/sy4o=
+github.com/chrismellard/helmfile v0.135.1-0.20201225093459-d90f7f4de7bb/go.mod h1:eD9cu2hZTR9K+03HB4RBkd8whuBkdRyFeKT4moiL3RY=
 github.com/chzyer/logex v1.1.10/go.mod h1:+Ywpsq7O8HXn0nuIou7OrIPyXbp3wmkHB+jjWRnGsAI=
 github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e/go.mod h1:nSuG5e5PlCu98SY8svDHJxuZscDgtXS6KTTbou5AhLI=
 github.com/chzyer/test v0.0.0-20180213035817-a1ea475d72b1/go.mod h1:Q3SI9o4m/ZMnBNeIyt5eFwwo7qiLfzFZmjNmxjkiQlU=
@@ -1225,8 +1227,6 @@ github.com/rcrowley/go-metrics v0.0.0-20190706150252-9beb055b7962/go.mod h1:bCqn
 github.com/remyoudompheng/bigfft v0.0.0-20170806203942-52369c62f446/go.mod h1:uYEyJGbgTkfkS4+E/PavXkNJcbFIpEtjt2B0KDQ5+9M=
 github.com/rickar/props v0.0.0-20170718221555-0b06aeb2f037 h1:HFsTO5S+nnw/Xs9lRYF+UUJvH8wMSRMRal321W0hfdY=
 github.com/rickar/props v0.0.0-20170718221555-0b06aeb2f037/go.mod h1:F1p8BNM4IXv2UcptwSp8HJOapKurodd/PYu1D6Gtn9Y=
-github.com/roboll/helmfile v0.135.1-0.20201213020320-54eb73b4239a h1:9btMpOXX9u6wREqMmFcXz9t/KJuoCN7S1az/MLsNnAA=
-github.com/roboll/helmfile v0.135.1-0.20201213020320-54eb73b4239a/go.mod h1:FN/KWtPfyp2tVBylTrBcEu1255rZzBcUVb2lci2I6S8=
 github.com/rogpeppe/fastuuid v0.0.0-20150106093220-6724a57986af/go.mod h1:XWv6SoW27p1b0cqNHllgS5HIMJraePCO15w5zCzIWYg=
 github.com/rogpeppe/fastuuid v1.1.0/go.mod h1:jVj6XXZzXRy/MSR5jhDC/2q6DgLz+nrA6LYCDYWNEvQ=
 github.com/rogpeppe/fastuuid v1.2.0/go.mod h1:jVj6XXZzXRy/MSR5jhDC/2q6DgLz+nrA6LYCDYWNEvQ=
@@ -1394,8 +1394,8 @@ github.com/valyala/bytebufferpool v1.0.0/go.mod h1:6bBcMArwyJ5K/AmCkWv1jt77kVWyC
 github.com/valyala/fasthttp v1.2.0/go.mod h1:4vX61m6KN+xDduDNwXrhIAVZaZaZiQ1luJk8LWSxF3s=
 github.com/valyala/quicktemplate v1.2.0/go.mod h1:EH+4AkTd43SvgIbQHYu59/cJyxDoOVRUAfrukLPuGJ4=
 github.com/valyala/tcplisten v0.0.0-20161114210144-ceec8f93295a/go.mod h1:v3UYOV9WzVtRmSR+PDvWpU/qWl4Wa5LApYYX4ZtKbio=
-github.com/variantdev/chartify v0.5.0 h1:I6T6oobjLfYmwZ4dUjRsO9AdGKPCMtfzt0CXR0ovl9k=
-github.com/variantdev/chartify v0.5.0/go.mod h1:jqlUJIzcrIVSfg8FC4g+IoC5WB83TBl8rnVVEv6g8MQ=
+github.com/variantdev/chartify v0.6.0 h1:QQ00a8Vtuhk6F9jeTZJEXV2g0zRXhYG43xovWZrc3ac=
+github.com/variantdev/chartify v0.6.0/go.mod h1:qF4XzQlkfH/6k2jAi1hLas+lK4zSCa8kY+r5JdmLA68=
 github.com/variantdev/dag v0.0.0-20191028002400-bb0b3c785363 h1:KrfQBEUn+wEOQ/6UIfoqRDvn+Q/wZridQ7t0G1vQqKE=
 github.com/variantdev/dag v0.0.0-20191028002400-bb0b3c785363/go.mod h1:pH1TQsNSLj2uxMo9NNl9zdGy01Wtn+/2MT96BrKmVyE=
 github.com/variantdev/vals v0.11.0 h1:818ztGk5yPTiixbUeE3LkkBGGATEAKtWq09n8q8PFqc=

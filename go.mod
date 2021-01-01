@@ -48,6 +48,8 @@ require (
 replace (
 	github.com/jenkins-x/lighthouse => github.com/rawlingsj/lighthouse v0.0.0-20201005083317-4d21277f7992
 
+	// TODO - Remove this once https://github.com/roboll/helmfile/pull/1629  merges
+	github.com/roboll/helmfile => github.com/chrismellard/helmfile v0.135.1-0.20201225093459-d90f7f4de7bb
 	// fix yaml comment parsing issue
 	gopkg.in/yaml.v2 => gopkg.in/yaml.v2 v2.3.0
 	gopkg.in/yaml.v3 => gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
