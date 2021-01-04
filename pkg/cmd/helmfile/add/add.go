@@ -195,15 +195,27 @@ func (o *Options) Run() error {
 	}
 
 	for i := range helmState.Releases {
-		release := helmState.Releases[i]
+		release := &helmState.Releases[i]
 		if release.Chart == o.Chart && release.Name == o.ReleaseName {
 			found = true
 			if release.Namespace != "" && release.Namespace != o.Namespace {
 				release.Namespace = o.Namespace
-				for _, v := range o.Values {
-					release.Values = append(release.Values, v)
-				}
 				modified = true
+			}
+
+			// lets add any missing values
+			for _, v := range o.Values {
+				foundValue := false
+				for j := range release.Values {
+					if release.Values[j] == v {
+						foundValue = true
+						break
+					}
+				}
+				if !foundValue {
+					release.Values = append(release.Values, v)
+					modified = true
+				}
 			}
 		}
 	}
