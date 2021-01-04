@@ -200,7 +200,7 @@ func (o *Options) Run() error {
 			return errors.Wrapf(err, "failed to create dir %s", dir)
 		}
 
-		err = o.verifyServerHelmfileExists(dir, server)
+		err = o.verifyServerHelmfileExists(server)
 		if err != nil {
 			return errors.Wrapf(err, "failed to verify the jenkins helmfile exists for %s", server)
 		}
@@ -315,22 +315,13 @@ func (o *Options) processJenkinsServerJobTemplate(server string, key string, job
 	return nil
 }
 
-func (o *Options) verifyServerHelmfileExists(dir string, server string) error {
-	path := filepath.Join(dir, "helmfile.yaml")
-	exists, err := files.FileExists(path)
-	if err != nil {
-		return errors.Wrapf(err, "failed to check if file exists %s", path)
-	}
-	if exists {
-		return nil
-	}
-
+func (o *Options) verifyServerHelmfileExists(server string) error {
 	_, ao := add.NewCmdJenkinsAdd()
 	ao.Name = server
 	ao.Dir = o.Dir
 	ao.Values = []string{"job-values.yaml", "values.yaml"}
 
-	err = ao.Run()
+	err := ao.Run()
 	if err != nil {
 		return errors.Wrapf(err, "failed to add jenkins server")
 	}
