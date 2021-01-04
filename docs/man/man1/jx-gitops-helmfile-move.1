@@ -34,6 +34,10 @@ So this command applies the namespace to all the generated resources and then mo
     help for move
 
 .PP
+\fB\-\-invert\-selector\fP[=false]
+    inverts the effect of selector to exclude resources matched by selector
+
+.PP
 \fB\-k\fP, \fB\-\-kind\fP=[]
     adds Kubernetes resource kinds to filter on. For kind expressions see: 
 \[la]https://github.com/jenkins-x/jx-helpers/v3/tree/master/docs/kind_filters.md\[ra]
@@ -46,6 +50,10 @@ So this command applies the namespace to all the generated resources and then mo
 .PP
 \fB\-o\fP, \fB\-\-output\-dir\fP="config\-root"
     the output directory
+
+.PP
+\fB\-\-selector\fP=[]
+    adds Kubernetes label selector to filter on, e.g. \-s app=pusher\-wave,heritage=Helm
 
 
 .SH EXAMPLE

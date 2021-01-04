@@ -36,6 +36,10 @@ Add one or more repositories to the SourceConfig
     help for add
 
 .PP
+\fB\-\-invert\-selector\fP[=false]
+    inverts the effect of selector to exclude resources matched by selector
+
+.PP
 \fB\-j\fP, \fB\-\-jenkins\fP=""
     the name of the Jenkins server to add the repository to
 
@@ -56,6 +60,10 @@ Add one or more repositories to the SourceConfig
 .PP
 \fB\-s\fP, \fB\-\-scheduler\fP=""
     the name of the Scheduler to use for the repository
+
+.PP
+\fB\-\-selector\fP=[]
+    adds Kubernetes label selector to filter on, e.g. \-s app=pusher\-wave,heritage=Helm
 
 
 .SH EXAMPLE

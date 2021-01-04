@@ -36,6 +36,10 @@ Updates all kubernetes resources in the given directory to the given namespace
     help for namespace
 
 .PP
+\fB\-\-invert\-selector\fP[=false]
+    inverts the effect of selector to exclude resources matched by selector
+
+.PP
 \fB\-k\fP, \fB\-\-kind\fP=[]
     adds Kubernetes resource kinds to filter on. For kind expressions see: 
 \[la]https://github.com/jenkins-x/jx-helpers/v3/tree/master/docs/kind_filters.md\[ra]
@@ -48,6 +52,10 @@ Updates all kubernetes resources in the given directory to the given namespace
 .PP
 \fB\-n\fP, \fB\-\-namespace\fP=""
     the namespace to modify the resources to
+
+.PP
+\fB\-\-selector\fP=[]
+    adds Kubernetes label selector to filter on, e.g. \-s app=pusher\-wave,heritage=Helm
 
 
 .SH EXAMPLE
