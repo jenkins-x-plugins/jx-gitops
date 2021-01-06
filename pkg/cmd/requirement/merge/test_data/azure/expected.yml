@@ -10,7 +10,8 @@ spec:
         resourceGroup: my_dns_resource_group
         subscriptionId: my_dns_subscription_id
         tenantId: my_dns_tenant_id
-    chartRepository: http://bucketrepo/bucketrepo/charts/
+    chartOCI: true
+    chartRepository: mythingy.azurecr.io
     clusterName: my_cluster_name
     devEnvApprovers:
     - todo
@@ -28,6 +29,7 @@ spec:
     domain: my_domain
     externalDNS: true
     ignoreLoadBalancer: true
+    kind: ingress
     namespaceSubDomain: -jx.
     tls:
       email: my_tls_email

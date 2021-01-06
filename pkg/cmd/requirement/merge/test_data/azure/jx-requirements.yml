@@ -5,7 +5,8 @@ spec:
     enabled: false
     schedule: ""
   cluster:
-    chartRepository: http://bucketrepo/bucketrepo/charts/
+    chartRepository: mythingy.azurecr.io
+    chartOCI: true
     devEnvApprovers:
     - todo
     environmentGitOwner: todo

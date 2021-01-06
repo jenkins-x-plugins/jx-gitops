@@ -25,6 +25,7 @@ spec:
     domain: my_domain
     externalDNS: true
     ignoreLoadBalancer: true
+    kind: ingress
     namespaceSubDomain: -jx.
     tls:
       email: my_tls_email

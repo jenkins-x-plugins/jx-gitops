@@ -24,6 +24,7 @@ spec:
   ingress:
     domain: my_subdomain.my_apex_domain
     externalDNS: true
+    kind: ingress
     namespaceSubDomain: -jx.
     tls:
       email: my_tls_email

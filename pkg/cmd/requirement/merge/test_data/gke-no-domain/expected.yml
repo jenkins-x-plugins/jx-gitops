@@ -24,6 +24,7 @@ spec:
   ingress:
     domain: my-custom-domain.com
     externalDNS: true
+    kind: ingress
     namespaceSubDomain: -my-jx.
     tls:
       email: my_tls_email
