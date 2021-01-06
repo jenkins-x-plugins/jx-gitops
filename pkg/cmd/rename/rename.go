@@ -130,6 +130,8 @@ func (o *Options) canonicalName(apiVersion, kind, name string) string {
 	if suffix == "" {
 		suffix = lk
 	}
+	// lets replace any odd characters
+	name = strings.ReplaceAll(name, ":", "-")
 	if kind == "" {
 		return name
 	}
