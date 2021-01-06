@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	jxc "github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned"
@@ -41,14 +40,13 @@ var (
 		# generates the resources from a helm chart
 		%s step helm template
 	`)
-
-	ociRegex = regexp.MustCompile("[-a-zA-Z0-9]{5,50}.azurecr.io")
 )
 
 // Options the options for the command
 type Options struct {
 	UseHelmPlugin      bool
 	NoRelease          bool
+	ChartOCI           bool
 	HelmBinary         string
 	ChartsDir          string
 	RepositoryName     string
@@ -86,6 +84,7 @@ func NewCmdHelmRelease() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.Version, "version", "", "", "specify the version to release")
 	cmd.Flags().StringVarP(&o.VersionFile, "version-file", "", "VERSION", "the file to load the version from if not specified directly or via a $VERSION environment variable")
 	cmd.Flags().StringVarP(&o.Namespace, "namespace", "", "", "the namespace to look for the dev Environment. Defaults to the current namespace")
+	cmd.Flags().BoolVarP(&o.ChartOCI, "oci", "", false, "treat the repository as an OCI container registry. If not specified its defaulted from the cluster.chartOCI flag on the 'jx-requirements.yml' file")
 	cmd.Flags().BoolVarP(&o.NoRelease, "no-release", "", false, "disables publishing the release. Useful for a Pull Request pipeline")
 	cmd.Flags().BoolVarP(&o.UseHelmPlugin, "use-helm-plugin", "", false, "uses the jx binary plugin for helm rather than whatever helm is on the $PATH")
 	return cmd, o
@@ -148,6 +147,10 @@ func (o *Options) Validate() error {
 		return errors.Wrapf(err, "failed to load requirements")
 	}
 
+	if requirements != nil && requirements.Cluster.ChartOCI {
+		o.ChartOCI = true
+	}
+
 	// find the repository URL
 	if o.RepositoryURL == "" {
 		o.RepositoryURL, err = variablefinders.FindRepositoryURL(o.JXClient, o.Namespace, requirements)
@@ -195,7 +198,7 @@ func (o *Options) Run() error {
 
 		log.Logger().Infof("releasing chart %s", info(name))
 
-		if ociRegex.MatchString(o.RepositoryURL) {
+		if o.ChartOCI {
 			err = o.OCIRegistry(chartDir, name)
 		} else {
 			err = o.BasicRegistry(chartDir, name)
@@ -213,7 +216,6 @@ func (o *Options) Run() error {
 }
 
 func (o *Options) OCIRegistry(chartDir string, name string) error {
-
 	qualifiedChartName := fmt.Sprintf("%s/%s:%s", o.RepositoryURL, name, o.Version)
 
 	c := &cmdrunner.Command{
@@ -263,7 +265,6 @@ func (o *Options) OCIRegistry(chartDir string, name string) error {
 }
 
 func (o *Options) BasicRegistry(chartDir string, name string) error {
-
 	c := &cmdrunner.Command{
 		Dir:  chartDir,
 		Name: o.HelmBinary,
