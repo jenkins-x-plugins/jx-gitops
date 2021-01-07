@@ -38,6 +38,7 @@ type RequirementsValues struct {
 	RequirementsConfig          *jxcore.RequirementsConfig `json:"jxRequirements,omitempty"`
 	IngressExternalDNSCondition *HelmfileConditional       `json:"jxRequirementsIngressExternalDNS,omitempty"`
 	IngressTLSCondition         *HelmfileConditional       `json:"jxRequirementsIngressTLS,omitempty"`
+	KuberhealthyCondition       *HelmfileConditional       `json:"jxRequirementsKuberhealthy,omitempty"`
 	VaultCondition              *HelmfileConditional       `json:"jxRequirementsVault,omitempty"`
 	JX                          map[string]interface{}     `json:"jx,omitempty"`
 }
@@ -57,6 +58,7 @@ func SaveRequirementsValuesFile(c *jxcore.RequirementsConfig, dir, fileName stri
 		RequirementsConfig:          c,
 		IngressExternalDNSCondition: &HelmfileConditional{Enabled: c.Ingress.ExternalDNS},
 		IngressTLSCondition:         &HelmfileConditional{Enabled: c.Ingress.TLS.Enabled},
+		KuberhealthyCondition:       &HelmfileConditional{Enabled: c.Kuberhealthy},
 		VaultCondition:              &HelmfileConditional{Enabled: c.SecretStorage == jxcore.SecretStorageTypeVault},
 		JX:                          jxGlobals,
 	}
