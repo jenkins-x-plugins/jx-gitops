@@ -52,21 +52,23 @@ var (
 // Options the options for the command
 type Options struct {
 	scmhelpers.Options
-	File           string
-	RepositoryName string
-	RepositoryURL  string
-	ConfigMapName  string
-	Namespace      string
-	VersionFile    string
-	Commit         bool
-	BuildNumber    string
-	BuildID        string
-	KubeClient     kubernetes.Interface
-	JXClient       jxc.Interface
-	Requirements   *jxcore.RequirementsConfig
-	ConfigMapData  map[string]string
-	entries        map[string]*Entry
-	factories      []Factory
+	File               string
+	RepositoryName     string
+	RepositoryURL      string
+	ConfigMapName      string
+	Namespace          string
+	VersionFile        string
+	BuildNumber        string
+	BuildID            string
+	GitCommitUsername  string
+	GitCommitUserEmail string
+	Commit             bool
+	KubeClient         kubernetes.Interface
+	JXClient           jxc.Interface
+	Requirements       *jxcore.RequirementsConfig
+	ConfigMapData      map[string]string
+	entries            map[string]*Entry
+	factories          []Factory
 }
 
 // Entry a variable entry in the file on load
@@ -101,6 +103,8 @@ func NewCmdVariables() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.File, "file", "f", filepath.Join(".jx", "variables.sh"), "the default variables file to lazily create or enrich")
 	cmd.Flags().StringVarP(&o.RepositoryName, "repo-name", "n", "release-repo", "the name of the helm chart to release to. If not specified uses JX_CHART_REPOSITORY environment variable")
 	cmd.Flags().StringVarP(&o.RepositoryURL, "repo-url", "u", "", "the URL to release to")
+	cmd.Flags().StringVarP(&o.GitCommitUsername, "git-user-name", "", "", "the user name to git commit")
+	cmd.Flags().StringVarP(&o.GitCommitUserEmail, "git-user-email", "", "", "the user email to git commit")
 	cmd.Flags().StringVarP(&o.Namespace, "namespace", "", "", "the namespace to look for the dev Environment. Defaults to the current namespace")
 	cmd.Flags().StringVarP(&o.BuildNumber, "build-number", "", "", "the build number to use. If not specified defaults to $BUILD_NUMBER")
 	cmd.Flags().StringVarP(&o.ConfigMapName, "configmap", "", "jenkins-x-docker-registry", "the ConfigMap used to load environment variables")
@@ -370,6 +374,11 @@ func (o *Options) Run() error {
 	log.Logger().Infof("added variables to file: %s", info(file))
 
 	if o.Commit {
+		_, _, err = gitclient.EnsureUserAndEmailSetup(o.GitClient, o.Dir, o.GitCommitUsername, o.GitCommitUserEmail)
+		if err != nil {
+			return errors.Wrapf(err, "failed to setup git user and email")
+		}
+
 		_, err = gitclient.AddAndCommitFiles(o.GitClient, o.Dir, "chore: add variables")
 		if err != nil {
 			return errors.Wrapf(err, "failed to commit changes")
