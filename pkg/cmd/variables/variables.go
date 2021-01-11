@@ -165,7 +165,12 @@ func (o *Options) Validate() error {
 	}
 
 	if o.RepositoryURL == "" {
-		o.RepositoryURL, err = variablefinders.FindRepositoryURL(o.JXClient, o.Namespace, o.Requirements)
+		registryOrg, err := o.dockerRegistryOrg()
+		if err != nil {
+			return errors.Wrapf(err, "failed to find container registry org")
+		}
+
+		o.RepositoryURL, err = variablefinders.FindRepositoryURL(o.JXClient, o.Namespace, o.Requirements, registryOrg, o.Repository)
 		if err != nil {
 			return errors.Wrapf(err, "failed to find chart repository URL")
 		}
@@ -223,7 +228,11 @@ func (o *Options) Validate() error {
 		{
 			Name: "JX_CHART_REPOSITORY",
 			Function: func() (string, error) {
-				return variablefinders.FindRepositoryURL(o.JXClient, o.Namespace, o.Requirements)
+				registryOrg, err := o.dockerRegistryOrg()
+				if err != nil {
+					return "", errors.Wrapf(err, "failed to find container registry org")
+				}
+				return variablefinders.FindRepositoryURL(o.JXClient, o.Namespace, o.Requirements, registryOrg, o.Options.Repository)
 			},
 		},
 		{
