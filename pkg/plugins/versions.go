@@ -3,12 +3,6 @@ package plugins
 import jenkinsv1 "github.com/jenkins-x/jx-api/v4/pkg/apis/jenkins.io/v1"
 
 const (
-	// ChartReleaserVersion the default version of chart releaser to use
-	ChartReleaserVersion = "1.1.1"
-
-	// ChartReleaserPluginName the default name of the chart-releaser plugin
-	ChartReleaserPluginName = "cr"
-
 	// HelmPluginName the default name of the helm plugin
 	HelmPluginName = "helm"
 
