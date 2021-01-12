@@ -21,6 +21,8 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/cli"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/jxclient"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/options"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/scmhelpers"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/stringhelpers"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
@@ -45,25 +47,29 @@ var (
 
 // Options the options for the command
 type Options struct {
-	UseHelmPlugin        bool
-	NoRelease            bool
-	ChartOCI             bool
-	NoOCILogin           bool
-	HelmBinary           string
-	ChartsDir            string
-	RepositoryName       string
-	RepositoryURL        string
-	RepositoryUsername   string
-	RepositoryPassword   string
-	Version              string
-	VersionFile          string
-	Namespace            string
-	ContainerRegistryOrg string
-	KubeClient           kubernetes.Interface
-	JXClient             jxc.Interface
-	GitClient            gitclient.Interface
-	CommandRunner        cmdrunner.CommandRunner
-	Requirements         *jxcore.RequirementsConfig
+	UseHelmPlugin         bool
+	NoRelease             bool
+	ChartOCI              bool
+	ChartPages            bool
+	NoOCILogin            bool
+	HelmBinary            string
+	ChartsDir             string
+	RepositoryName        string
+	RepositoryURL         string
+	RepositoryUsername    string
+	RepositoryPassword    string
+	GitHubPagesOwner      string
+	GitHubPagesRepository string
+	GitHubPagesToken      string
+	Version               string
+	VersionFile           string
+	Namespace             string
+	ContainerRegistryOrg  string
+	KubeClient            kubernetes.Interface
+	JXClient              jxc.Interface
+	GitClient             gitclient.Interface
+	CommandRunner         cmdrunner.CommandRunner
+	Requirements          *jxcore.RequirementsConfig
 }
 
 // NewCmdHelmRelease creates a command object for the command
@@ -85,9 +91,13 @@ func NewCmdHelmRelease() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.RepositoryURL, "repo-url", "u", "", "the URL to release to")
 	cmd.Flags().StringVarP(&o.RepositoryUsername, "repo-username", "", "", "the username to access the chart repository. If not specified defaults to the environment variable $JX_REPOSITORY_USERNAME")
 	cmd.Flags().StringVarP(&o.RepositoryPassword, "repo-password", "", "", "the password to access the chart repository. If not specified defaults to the environment variable $JX_REPOSITORY_PASSWORD")
+	cmd.Flags().StringVarP(&o.GitHubPagesOwner, "ghpages-owner", "", "", "the owner for the repository used for the GitHub Pages chart repository")
+	cmd.Flags().StringVarP(&o.GitHubPagesRepository, "ghpages-repo", "", "", "the repository for the GitHub Pages chart repository")
+	cmd.Flags().StringVarP(&o.GitHubPagesToken, "ghpages-token", "", "", "the toke for the GitHub Pages chart repository")
 	cmd.Flags().StringVarP(&o.Version, "version", "", "", "specify the version to release")
 	cmd.Flags().StringVarP(&o.VersionFile, "version-file", "", "VERSION", "the file to load the version from if not specified directly or via a $VERSION environment variable")
 	cmd.Flags().StringVarP(&o.Namespace, "namespace", "", "", "the namespace to look for the dev Environment. Defaults to the current namespace")
+	cmd.Flags().BoolVarP(&o.ChartPages, "pages", "", false, "use github pages to release charts")
 	cmd.Flags().BoolVarP(&o.ChartOCI, "oci", "", false, "treat the repository as an OCI container registry. If not specified its defaulted from the cluster.chartOCI flag on the 'jx-requirements.yml' file")
 	cmd.Flags().BoolVarP(&o.NoOCILogin, "no-oci-login", "", false, "disables using the 'helm registry login' command when using OCI")
 	cmd.Flags().BoolVarP(&o.NoRelease, "no-release", "", false, "disables publishing the release. Useful for a Pull Request pipeline")
@@ -222,16 +232,22 @@ func (o *Options) Run() error {
 			}
 		}
 
-		if o.ChartOCI {
+		if o.ChartPages {
+			err = o.ChartPageRegistry(repoURL, chartDir, name)
+			if err != nil {
+				return errors.Wrapf(err, "failed to create chart pages release in dir %s", chartDir)
+			}
+		} else if o.ChartOCI {
 			err = o.OCIRegistry(repoURL, chartDir, name)
+			if err != nil {
+				return errors.Wrapf(err, "failed to create OCI chart release in dir %s", chartDir)
+			}
 		} else {
 			err = o.BasicRegistry(repoURL, chartDir, name)
+			if err != nil {
+				return errors.Wrapf(err, "failed to create chart release in dir %s", chartDir)
+			}
 		}
-
-		if err != nil {
-			return errors.Wrapf(err, "failed to create release in dir %s", chartDir)
-		}
-
 		count++
 	}
 
@@ -291,6 +307,84 @@ func (o *Options) OCIRegistry(repoURL, chartDir, name string) error {
 	return nil
 }
 
+func (o *Options) ChartPageRegistry(repoURL, chartDir, name string) error {
+	bin, err := plugins.GetChartReleaserBinary(plugins.ChartReleaserVersion)
+	if err != nil {
+		return errors.Wrapf(err, "failed to get chart-releaser plugin")
+	}
+
+	err = o.BuildAndPackage(chartDir)
+	if err != nil {
+		return errors.Wrapf(err, "failed to package chart")
+	}
+
+	if o.NoRelease {
+		log.Logger().Infof("disabling the chart publish")
+		return nil
+	}
+
+	owner := o.GitHubPagesOwner
+	repo := o.GitHubPagesRepository
+	token := o.GitHubPagesToken
+	if owner == "" || repo == "" || token == "" {
+		discover := &scmhelpers.Options{
+			Dir:             ".",
+			JXClient:        o.JXClient,
+			GitClient:       o.GitClient,
+			CommandRunner:   o.CommandRunner,
+			DiscoverFromGit: true,
+		}
+		err = discover.Validate()
+		if err != nil {
+			return errors.Wrapf(err, "failed to discover git repository")
+		}
+
+		if owner == "" {
+			owner = discover.Owner
+		}
+		if repo == "" {
+			repo = discover.Repository
+		}
+		if token == "" {
+			token = discover.GitToken
+		}
+		if token == "" {
+			token = os.Getenv("GITHUB_TOKEN")
+		}
+	}
+
+	if owner == "" {
+		return options.MissingOption("ghpages-owner")
+	}
+	if repo == "" {
+		return options.MissingOption("ghpages-repo")
+	}
+	if token == "" {
+		return options.MissingOption("ghpages-token")
+	}
+
+	args := []string{"upload", "--owner", owner, "--git-repo", repo, "--package-path", chartDir, "--token", token}
+	c := &cmdrunner.Command{
+		Name: bin,
+		Args: args,
+	}
+	_, err = o.CommandRunner(c)
+	if err != nil {
+		return errors.Wrapf(err, "failed to upload the chart release")
+	}
+
+	args = []string{"index", "--owner", owner, "--git-repo", repo, "--package-path", chartDir, "--token", token}
+	c = &cmdrunner.Command{
+		Name: bin,
+		Args: args,
+	}
+	_, err = o.CommandRunner(c)
+	if err != nil {
+		return errors.Wrapf(err, "failed to index the chart release")
+	}
+	return nil
+}
+
 func (o *Options) BasicRegistry(repoURL, chartDir, name string) error {
 	c := &cmdrunner.Command{
 		Dir:  chartDir,
@@ -302,12 +396,35 @@ func (o *Options) BasicRegistry(repoURL, chartDir, name string) error {
 		return errors.Wrapf(err, "failed to add remote repo")
 	}
 
-	c = &cmdrunner.Command{
+	err = o.BuildAndPackage(chartDir)
+	if err != nil {
+		return errors.Wrapf(err, "failed to package chart")
+	}
+
+	if o.NoRelease {
+		log.Logger().Infof("disabling the chart publish")
+		return nil
+	}
+
+	c, err = o.createPublishCommand(repoURL, name, chartDir)
+	if err != nil {
+		return errors.Wrapf(err, "failed to create release command in dir %s", chartDir)
+	}
+
+	_, err = o.CommandRunner(c)
+	if err != nil {
+		return errors.Wrapf(err, "failed to publish")
+	}
+	return nil
+}
+
+func (o *Options) BuildAndPackage(chartDir string) error {
+	c := &cmdrunner.Command{
 		Dir:  chartDir,
 		Name: o.HelmBinary,
 		Args: []string{"dependency", "build", "."},
 	}
-	_, err = o.CommandRunner(c)
+	_, err := o.CommandRunner(c)
 	if err != nil {
 		return errors.Wrapf(err, "failed to build dependencies")
 	}
@@ -330,21 +447,6 @@ func (o *Options) BasicRegistry(repoURL, chartDir, name string) error {
 	_, err = o.CommandRunner(c)
 	if err != nil {
 		return errors.Wrapf(err, "failed to package")
-	}
-
-	if o.NoRelease {
-		log.Logger().Infof("disabling the chart publish")
-		return nil
-	}
-
-	c, err = o.createPublishCommand(repoURL, name, chartDir)
-	if err != nil {
-		return errors.Wrapf(err, "failed to create release command in dir %s", chartDir)
-	}
-
-	_, err = o.CommandRunner(c)
-	if err != nil {
-		return errors.Wrapf(err, "failed to publish")
 	}
 	return nil
 }
