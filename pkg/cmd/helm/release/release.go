@@ -378,7 +378,7 @@ func (o *Options) ChartPageRegistry(repoURL, chartDir, name string) error {
 			return options.MissingOption("repo-username")
 		}
 		if o.RepositoryPassword == "" {
-			return options.MissingOption("repo-username")
+			return options.MissingOption("repo-password")
 		}
 		if o.GithubPagesBranch == "" {
 			o.GithubPagesBranch = "gh-pages"
