@@ -170,7 +170,7 @@ func (o *Options) Validate() error {
 			return errors.Wrapf(err, "failed to find container registry org")
 		}
 
-		o.RepositoryURL, err = variablefinders.FindRepositoryURL(o.JXClient, o.Namespace, o.Requirements, registryOrg, o.Repository)
+		o.RepositoryURL, err = variablefinders.FindRepositoryURL(o.Requirements, registryOrg, o.Repository)
 		if err != nil {
 			return errors.Wrapf(err, "failed to find chart repository URL")
 		}
@@ -232,7 +232,7 @@ func (o *Options) Validate() error {
 				if err != nil {
 					return "", errors.Wrapf(err, "failed to find container registry org")
 				}
-				return variablefinders.FindRepositoryURL(o.JXClient, o.Namespace, o.Requirements, registryOrg, o.Options.Repository)
+				return variablefinders.FindRepositoryURL(o.Requirements, registryOrg, o.Options.Repository)
 			},
 		},
 		{

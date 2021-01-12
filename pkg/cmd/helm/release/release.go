@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -43,33 +44,54 @@ var (
 		# generates the resources from a helm chart
 		%s step helm template
 	`)
+
+	defaultReadMe = `
+## Chart Repository
+
+[Helm](https://helm.sh) must be installed to use the charts.
+Please refer to Helm's [documentation](https://helm.sh/docs/) to get started.
+
+### Searching for charts
+
+Once Helm is set up properly, add the repo as follows:
+
+    helm repo add myrepo %s
+
+you can search the charts via:
+
+    helm search repo myfilter
+
+## View the YAML
+
+You can have a look at the underlying charts YAML at: [index.yaml](index.yaml)
+`
 )
 
 // Options the options for the command
 type Options struct {
-	UseHelmPlugin         bool
-	NoRelease             bool
-	ChartOCI              bool
-	ChartPages            bool
-	NoOCILogin            bool
-	HelmBinary            string
-	ChartsDir             string
-	RepositoryName        string
-	RepositoryURL         string
-	RepositoryUsername    string
-	RepositoryPassword    string
-	GitHubPagesOwner      string
-	GitHubPagesRepository string
-	GitHubPagesToken      string
-	Version               string
-	VersionFile           string
-	Namespace             string
-	ContainerRegistryOrg  string
-	KubeClient            kubernetes.Interface
-	JXClient              jxc.Interface
-	GitClient             gitclient.Interface
-	CommandRunner         cmdrunner.CommandRunner
-	Requirements          *jxcore.RequirementsConfig
+	UseHelmPlugin        bool
+	NoRelease            bool
+	ChartOCI             bool
+	ChartPages           bool
+	NoOCILogin           bool
+	HelmBinary           string
+	ChartsDir            string
+	RepositoryName       string
+	RepositoryURL        string
+	RepositoryUsername   string
+	RepositoryPassword   string
+	GithubPagesBranch    string
+	GithubPagesURL       string
+	Version              string
+	VersionFile          string
+	Namespace            string
+	ContainerRegistryOrg string
+	KubeClient           kubernetes.Interface
+	JXClient             jxc.Interface
+	GitClient            gitclient.Interface
+	CommandRunner        cmdrunner.CommandRunner
+	Requirements         *jxcore.RequirementsConfig
+	GitHubPagesDir       string
 }
 
 // NewCmdHelmRelease creates a command object for the command
@@ -91,12 +113,11 @@ func NewCmdHelmRelease() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.RepositoryURL, "repo-url", "u", "", "the URL to release to")
 	cmd.Flags().StringVarP(&o.RepositoryUsername, "repo-username", "", "", "the username to access the chart repository. If not specified defaults to the environment variable $JX_REPOSITORY_USERNAME")
 	cmd.Flags().StringVarP(&o.RepositoryPassword, "repo-password", "", "", "the password to access the chart repository. If not specified defaults to the environment variable $JX_REPOSITORY_PASSWORD")
-	cmd.Flags().StringVarP(&o.GitHubPagesOwner, "ghpages-owner", "", "", "the owner for the repository used for the GitHub Pages chart repository")
-	cmd.Flags().StringVarP(&o.GitHubPagesRepository, "ghpages-repo", "", "", "the repository for the GitHub Pages chart repository")
-	cmd.Flags().StringVarP(&o.GitHubPagesToken, "ghpages-token", "", "", "the toke for the GitHub Pages chart repository")
 	cmd.Flags().StringVarP(&o.Version, "version", "", "", "specify the version to release")
 	cmd.Flags().StringVarP(&o.VersionFile, "version-file", "", "VERSION", "the file to load the version from if not specified directly or via a $VERSION environment variable")
 	cmd.Flags().StringVarP(&o.Namespace, "namespace", "", "", "the namespace to look for the dev Environment. Defaults to the current namespace")
+	cmd.Flags().StringVarP(&o.GithubPagesBranch, "repository-branch", "", "gh-pages", "the branch used if using GitHub Pages for the helm chart")
+	cmd.Flags().StringVarP(&o.GithubPagesURL, "ghpage-url", "", "", "the github pages URL used if creating the first README.md in the github pages branch so we can link to how to add a chart repository")
 	cmd.Flags().BoolVarP(&o.ChartPages, "pages", "", false, "use github pages to release charts")
 	cmd.Flags().BoolVarP(&o.ChartOCI, "oci", "", false, "treat the repository as an OCI container registry. If not specified its defaulted from the cluster.chartOCI flag on the 'jx-requirements.yml' file")
 	cmd.Flags().BoolVarP(&o.NoOCILogin, "no-oci-login", "", false, "disables using the 'helm registry login' command when using OCI")
@@ -176,8 +197,13 @@ func (o *Options) Validate() error {
 	}
 	if requirements != nil {
 		o.Requirements = requirements
-		if requirements.Cluster.ChartOCI {
+		switch requirements.Cluster.ChartKind {
+		case jxcore.ChartRepositoryTypeOCI:
 			o.ChartOCI = true
+			o.ChartPages = false
+		case jxcore.ChartRepositoryTypePages:
+			o.ChartOCI = false
+			o.ChartPages = true
 		}
 		if o.ContainerRegistryOrg == "" {
 			o.ContainerRegistryOrg = requirements.Cluster.DockerRegistryOrg
@@ -226,7 +252,7 @@ func (o *Options) Run() error {
 
 		// find the repository URL
 		if repoURL == "" {
-			repoURL, err = variablefinders.FindRepositoryURL(o.JXClient, o.Namespace, o.Requirements, o.ContainerRegistryOrg, name)
+			repoURL, err = variablefinders.FindRepositoryURL(o.Requirements, o.ContainerRegistryOrg, name)
 			if err != nil {
 				return errors.Wrapf(err, "failed to find chart repository URL")
 			}
@@ -308,12 +334,7 @@ func (o *Options) OCIRegistry(repoURL, chartDir, name string) error {
 }
 
 func (o *Options) ChartPageRegistry(repoURL, chartDir, name string) error {
-	bin, err := plugins.GetChartReleaserBinary(plugins.ChartReleaserVersion)
-	if err != nil {
-		return errors.Wrapf(err, "failed to get chart-releaser plugin")
-	}
-
-	err = o.BuildAndPackage(chartDir)
+	err := o.BuildAndPackage(chartDir)
 	if err != nil {
 		return errors.Wrapf(err, "failed to package chart")
 	}
@@ -323,66 +344,174 @@ func (o *Options) ChartPageRegistry(repoURL, chartDir, name string) error {
 		return nil
 	}
 
-	owner := o.GitHubPagesOwner
-	repo := o.GitHubPagesRepository
-	token := o.GitHubPagesToken
-	if owner == "" || repo == "" || token == "" {
-		discover := &scmhelpers.Options{
-			Dir:             ".",
-			JXClient:        o.JXClient,
-			GitClient:       o.GitClient,
-			CommandRunner:   o.CommandRunner,
-			DiscoverFromGit: true,
+	if o.GitHubPagesDir == "" || o.GithubPagesURL == "" {
+		if repoURL == "" || o.RepositoryPassword == "" || o.GithubPagesURL == "" {
+			discover := &scmhelpers.Options{
+				Dir:             ".",
+				JXClient:        o.JXClient,
+				GitClient:       o.GitClient,
+				CommandRunner:   o.CommandRunner,
+				DiscoverFromGit: true,
+			}
+			err = discover.Validate()
+			if err != nil {
+				return errors.Wrapf(err, "failed to discover git repository")
+			}
+
+			if repoURL == "" {
+				repoURL = discover.SourceURL
+			}
+			if o.RepositoryPassword == "" {
+				o.RepositoryPassword = discover.GitToken
+			}
+			if o.RepositoryUsername == "" {
+				o.RepositoryUsername = discover.Owner
+			}
+			if o.GithubPagesURL == "" {
+				o.GithubPagesURL = fmt.Sprintf("https://%s.github.io/%s/", discover.Owner, discover.Repository)
+			}
 		}
-		err = discover.Validate()
+		if repoURL == "" {
+			return options.MissingOption("repo-url")
+		}
+		if o.RepositoryUsername == "" {
+			return options.MissingOption("repo-username")
+		}
+		if o.RepositoryPassword == "" {
+			return options.MissingOption("repo-username")
+		}
+		if o.GithubPagesBranch == "" {
+			o.GithubPagesBranch = "gh-pages"
+		}
+
+		o.GitHubPagesDir, err = o.GitCloneGitHubPages(repoURL, o.GithubPagesBranch)
 		if err != nil {
-			return errors.Wrapf(err, "failed to discover git repository")
+			return errors.Wrapf(err, "failed to clone the github pages repo %s branch %s", repoURL, o.GithubPagesBranch)
 		}
 
-		if owner == "" {
-			owner = discover.Owner
-		}
-		if repo == "" {
-			repo = discover.Repository
-		}
-		if token == "" {
-			token = discover.GitToken
-		}
-		if token == "" {
-			token = os.Getenv("GITHUB_TOKEN")
+		if o.GitHubPagesDir == "" {
+			return errors.Errorf("no github pages clone dir")
 		}
 	}
 
-	if owner == "" {
-		return options.MissingOption("ghpages-owner")
+	// lets copy files
+	fs, err := ioutil.ReadDir(chartDir)
+	if err != nil {
+		return errors.Wrapf(err, "failed to read chart dir %s", chartDir)
 	}
-	if repo == "" {
-		return options.MissingOption("ghpages-repo")
-	}
-	if token == "" {
-		return options.MissingOption("ghpages-token")
+	for _, f := range fs {
+		name := f.Name()
+		if f.IsDir() || !strings.HasSuffix(name, ".tgz") {
+			continue
+		}
+		path := filepath.Join(chartDir, name)
+		tofile := filepath.Join(o.GitHubPagesDir, name)
+
+		err = files.CopyFile(path, tofile)
+		if err != nil {
+			return errors.Wrapf(err, "failed to copy %s to %s", path, tofile)
+		}
 	}
 
-	args := []string{"upload", "--owner", owner, "--git-repo", repo, "--package-path", chartDir, "--token", token}
+	// lets re-index
 	c := &cmdrunner.Command{
-		Name: bin,
-		Args: args,
+		Dir:  o.GitHubPagesDir,
+		Name: o.HelmBinary,
+		Args: []string{"repo", "index", "."},
 	}
 	_, err = o.CommandRunner(c)
 	if err != nil {
-		return errors.Wrapf(err, "failed to upload the chart release")
+		return errors.Wrapf(err, "failed to index helm repository")
 	}
 
-	args = []string{"index", "--owner", owner, "--git-repo", repo, "--package-path", chartDir, "--token", token}
-	c = &cmdrunner.Command{
-		Name: bin,
-		Args: args,
-	}
-	_, err = o.CommandRunner(c)
+	// lets add a README if its missing
+	readmePath := filepath.Join(o.GitHubPagesDir, "README.md")
+	exists, err := files.FileExists(readmePath)
 	if err != nil {
-		return errors.Wrapf(err, "failed to index the chart release")
+		return errors.Wrapf(err, "failed to check for file %s", readmePath)
 	}
+	if !exists {
+		readmeText := fmt.Sprintf(defaultReadMe, o.GithubPagesURL)
+		err = ioutil.WriteFile(readmePath, []byte(readmeText), files.DefaultFileWritePermissions)
+		if err != nil {
+			return errors.Wrapf(err, "failed to save %s", readmePath)
+		}
+	}
+	_, err = gitclient.AddAndCommitFiles(o.GitClient, o.GitHubPagesDir, "chore: add helm chart")
+	if err != nil {
+		return errors.Wrapf(err, "failed to add helm chart to git")
+	}
+	log.Logger().Infof("added helm charts to github pages repository %s", repoURL)
+	err = gitclient.Push(o.GitClient, o.GitHubPagesDir, "origin", false)
+	if err != nil {
+		return errors.Wrapf(err, "failed to push changes")
+	}
+	log.Logger().Infof("pushd github pages to %s", repoURL)
 	return nil
+}
+
+// Setup sets up the storage in the given directory
+func (o *Options) GitCloneGitHubPages(repoURL, branch string) (string, error) {
+	dir, err := ioutil.TempDir("", "gh-pages-tmp-")
+	if err != nil {
+		return dir, errors.Wrapf(err, "failed to create temp dir")
+	}
+
+	g := o.GitClient
+
+	gitCloneURL, err := o.GitHubPagesCloneURL(repoURL)
+	if err != nil {
+		return dir, errors.Wrapf(err, "failed to get github pages clone URL")
+	}
+
+	_, err = g.Command(dir, "clone", gitCloneURL, "--branch", branch, "--single-branch", dir)
+	if err != nil {
+		log.Logger().Infof("assuming the remote branch does not exist so lets create it")
+
+		_, err = gitclient.CloneToDir(g, gitCloneURL, dir)
+		if err != nil {
+			return dir, errors.Wrapf(err, "failed to clone repository %s to directory: %s", gitCloneURL, dir)
+		}
+
+		// now lets create an empty orphan branch: see https://stackoverflow.com/a/13969482/2068211
+		_, err = g.Command(dir, "checkout", "--orphan", branch)
+		if err != nil {
+			return dir, errors.Wrapf(err, "failed to checkout an orphan branch %s in dir %s", branch, dir)
+		}
+
+		_, err = g.Command(dir, "rm", "--cached", "-r", ".")
+		if err != nil {
+			return dir, errors.Wrapf(err, "failed to remove the cached git files in dir %s", dir)
+		}
+
+		// lets remove all the files other than .git
+		files, err := ioutil.ReadDir(dir)
+		if err != nil {
+			return dir, errors.Wrapf(err, "failed to read files in dir %s", dir)
+		}
+		for _, f := range files {
+			name := f.Name()
+			if name == ".git" {
+				continue
+			}
+			path := filepath.Join(dir, name)
+			err = os.RemoveAll(path)
+			if err != nil {
+				return dir, errors.Wrapf(err, "failed to remove path %s", path)
+			}
+		}
+	}
+	return dir, nil
+}
+
+// GitHubPagesCloneURL returns the git clone URL
+func (o *Options) GitHubPagesCloneURL(repoURL string) (string, error) {
+	u, err := url.Parse(repoURL)
+	if err != nil {
+		return "", errors.Wrapf(err, "failed to parse git URL %s", repoURL)
+	}
+	u.User = url.UserPassword(o.RepositoryUsername, o.RepositoryPassword)
+	return u.String(), nil
 }
 
 func (o *Options) BasicRegistry(repoURL, chartDir, name string) error {

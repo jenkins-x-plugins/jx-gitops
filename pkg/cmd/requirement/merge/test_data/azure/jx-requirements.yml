@@ -6,7 +6,7 @@ spec:
     schedule: ""
   cluster:
     chartRepository: mythingy.azurecr.io
-    chartOCI: true
+    chartKind: oci
     devEnvApprovers:
     - todo
     environmentGitOwner: todo
