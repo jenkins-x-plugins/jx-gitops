@@ -110,6 +110,19 @@ func (o *Options) Validate() error {
 			o.HelmBinary = "helm"
 		}
 	}
+	if o.RepositoryUsername == "" {
+		o.RepositoryUsername = os.Getenv("JX_REPOSITORY_USERNAME")
+		if o.RepositoryUsername == "" {
+			o.RepositoryUsername = os.Getenv("GITHUB_REPOSITORY_OWNER")
+		}
+	}
+	if o.RepositoryPassword == "" {
+		o.RepositoryPassword = os.Getenv("JX_REPOSITORY_PASSWORD")
+		if o.RepositoryPassword == "" {
+			o.RepositoryPassword = os.Getenv("GITHUB_TOKEN")
+		}
+	}
+
 	o.JXClient, o.Namespace, err = jxclient.LazyCreateJXClientAndNamespace(o.JXClient, o.Namespace)
 	if err != nil {
 		return errors.Wrapf(err, "failed to create jx client")
@@ -361,12 +374,6 @@ func (o *Options) createPublishCommand(repoURL, name, chartDir string) (*cmdrunn
 func (o *Options) findChartRepositoryUserPassword() (string, error) {
 	userName := o.RepositoryUsername
 	password := o.RepositoryPassword
-	if userName == "" {
-		userName = os.Getenv("JX_REPOSITORY_USERNAME")
-	}
-	if password == "" {
-		password = os.Getenv("JX_REPOSITORY_PASSWORD")
-	}
 	if userName == "" || password == "" {
 		// lets try load them from the secret directly
 		client := o.KubeClient
