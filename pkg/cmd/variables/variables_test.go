@@ -55,12 +55,15 @@ func TestCmdVariables(t *testing.T) {
 		devEnv := jxenv.CreateDefaultDevEnvironment(ns)
 		devEnv.Namespace = ns
 		devEnv.Spec.Source.URL = "https://github.com/jx3-gitops-repositories/jx3-kubernetes.git"
-
-		requirements := jxcore.NewRequirementsConfig()
-		requirements.Spec.Cluster.ChartRepository = "http://bucketrepo/bucketrepo/charts/"
-		data, err := yaml.Marshal(requirements)
-		require.NoError(t, err, "failed to marshal requirements")
-		devEnv.Spec.TeamSettings.BootRequirements = string(data)
+		if name == "nokube" {
+			devEnv.Spec.Source.URL = "https://github.com/jx3-gitops-repositories/jx3-github.git"
+		} else {
+			requirements := jxcore.NewRequirementsConfig()
+			requirements.Spec.Cluster.ChartRepository = "http://bucketrepo/bucketrepo/charts/"
+			data, err := yaml.Marshal(requirements)
+			require.NoError(t, err, "failed to marshal requirements")
+			devEnv.Spec.TeamSettings.BootRequirements = string(data)
+		}
 
 		runner := fakerunners.NewFakeRunnerWithGitClone()
 

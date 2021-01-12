@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	jxc "github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned"
 	"github.com/jenkins-x/jx-gitops/pkg/plugins"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
@@ -44,22 +45,24 @@ var (
 
 // Options the options for the command
 type Options struct {
-	UseHelmPlugin      bool
-	NoRelease          bool
-	ChartOCI           bool
-	HelmBinary         string
-	ChartsDir          string
-	RepositoryName     string
-	RepositoryURL      string
-	RepositoryUsername string
-	RepositoryPassword string
-	Version            string
-	VersionFile        string
-	Namespace          string
-	KubeClient         kubernetes.Interface
-	JXClient           jxc.Interface
-	GitClient          gitclient.Interface
-	CommandRunner      cmdrunner.CommandRunner
+	UseHelmPlugin        bool
+	NoRelease            bool
+	ChartOCI             bool
+	HelmBinary           string
+	ChartsDir            string
+	RepositoryName       string
+	RepositoryURL        string
+	RepositoryUsername   string
+	RepositoryPassword   string
+	Version              string
+	VersionFile          string
+	Namespace            string
+	ContainerRegistryOrg string
+	KubeClient           kubernetes.Interface
+	JXClient             jxc.Interface
+	GitClient            gitclient.Interface
+	CommandRunner        cmdrunner.CommandRunner
+	Requirements         *jxcore.RequirementsConfig
 }
 
 // NewCmdHelmRelease creates a command object for the command
@@ -146,16 +149,13 @@ func (o *Options) Validate() error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to load requirements")
 	}
-
-	if requirements != nil && requirements.Cluster.ChartOCI {
-		o.ChartOCI = true
-	}
-
-	// find the repository URL
-	if o.RepositoryURL == "" {
-		o.RepositoryURL, err = variablefinders.FindRepositoryURL(o.JXClient, o.Namespace, requirements)
-		if err != nil {
-			return errors.Wrapf(err, "failed to find chart repository URL")
+	if requirements != nil {
+		o.Requirements = requirements
+		if requirements.Cluster.ChartOCI {
+			o.ChartOCI = true
+		}
+		if o.ContainerRegistryOrg == "" {
+			o.ContainerRegistryOrg = requirements.Cluster.DockerRegistryOrg
 		}
 	}
 	return nil
@@ -185,6 +185,7 @@ func (o *Options) Run() error {
 		if !f.IsDir() {
 			continue
 		}
+		repoURL := o.RepositoryURL
 		name := f.Name()
 		chartDir := filepath.Join(dir, name)
 		chartFile := filepath.Join(chartDir, "Chart.yaml")
@@ -198,10 +199,18 @@ func (o *Options) Run() error {
 
 		log.Logger().Infof("releasing chart %s", info(name))
 
+		// find the repository URL
+		if repoURL == "" {
+			repoURL, err = variablefinders.FindRepositoryURL(o.JXClient, o.Namespace, o.Requirements, o.ContainerRegistryOrg, name)
+			if err != nil {
+				return errors.Wrapf(err, "failed to find chart repository URL")
+			}
+		}
+
 		if o.ChartOCI {
-			err = o.OCIRegistry(chartDir, name)
+			err = o.OCIRegistry(repoURL, chartDir, name)
 		} else {
-			err = o.BasicRegistry(chartDir, name)
+			err = o.BasicRegistry(repoURL, chartDir, name)
 		}
 
 		if err != nil {
@@ -215,8 +224,8 @@ func (o *Options) Run() error {
 	return nil
 }
 
-func (o *Options) OCIRegistry(chartDir string, name string) error {
-	qualifiedChartName := fmt.Sprintf("%s/%s:%s", o.RepositoryURL, name, o.Version)
+func (o *Options) OCIRegistry(repoURL, chartDir, name string) error {
+	qualifiedChartName := fmt.Sprintf("%s/%s:%s", repoURL, name, o.Version)
 
 	c := &cmdrunner.Command{
 		Dir:  chartDir,
@@ -224,11 +233,11 @@ func (o *Options) OCIRegistry(chartDir string, name string) error {
 		Env: map[string]string{
 			"HELM_EXPERIMENTAL_OCI": "1",
 		},
-		Args: []string{"registry", "login", o.RepositoryURL, "--username", o.RepositoryUsername, "--password", o.RepositoryPassword},
+		Args: []string{"registry", "login", repoURL, "--username", o.RepositoryUsername, "--password", o.RepositoryPassword},
 	}
 	_, err := o.CommandRunner(c)
 	if err != nil {
-		return errors.Wrapf(err, "failed to login to registry %s for user %s", o.RepositoryURL, o.RepositoryUsername)
+		return errors.Wrapf(err, "failed to login to registry %s for user %s", repoURL, o.RepositoryUsername)
 	}
 
 	c = &cmdrunner.Command{
@@ -264,11 +273,11 @@ func (o *Options) OCIRegistry(chartDir string, name string) error {
 	return nil
 }
 
-func (o *Options) BasicRegistry(chartDir string, name string) error {
+func (o *Options) BasicRegistry(repoURL, chartDir, name string) error {
 	c := &cmdrunner.Command{
 		Dir:  chartDir,
 		Name: o.HelmBinary,
-		Args: []string{"repo", "add", o.RepositoryName, o.RepositoryURL},
+		Args: []string{"repo", "add", o.RepositoryName, repoURL},
 	}
 	_, err := o.CommandRunner(c)
 	if err != nil {
@@ -310,7 +319,7 @@ func (o *Options) BasicRegistry(chartDir string, name string) error {
 		return nil
 	}
 
-	c, err = o.createPublishCommand(name, chartDir)
+	c, err = o.createPublishCommand(repoURL, name, chartDir)
 	if err != nil {
 		return errors.Wrapf(err, "failed to create release command in dir %s", chartDir)
 	}
@@ -322,10 +331,10 @@ func (o *Options) BasicRegistry(chartDir string, name string) error {
 	return nil
 }
 
-func (o *Options) createPublishCommand(name, chartDir string) (*cmdrunner.Command, error) {
+func (o *Options) createPublishCommand(repoURL, name, chartDir string) (*cmdrunner.Command, error) {
 	tarFile := name + "-" + o.Version + ".tgz"
 
-	if strings.HasPrefix(o.RepositoryURL, "gs:") {
+	if strings.HasPrefix(repoURL, "gs:") {
 		// use gcs to push the chart
 		return &cmdrunner.Command{
 			Dir:  chartDir,
@@ -339,7 +348,7 @@ func (o *Options) createPublishCommand(name, chartDir string) (*cmdrunner.Comman
 		return nil, errors.Wrapf(err, "failed to find chart repository user:password")
 	}
 
-	url := stringhelpers.UrlJoin(o.RepositoryURL, "/api/charts")
+	url := stringhelpers.UrlJoin(repoURL, "/api/charts")
 
 	return &cmdrunner.Command{
 		Dir:  chartDir,
