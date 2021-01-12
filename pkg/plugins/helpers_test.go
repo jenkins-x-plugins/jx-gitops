@@ -7,6 +7,43 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestChartReleaserPlugin(t *testing.T) {
+	t.Parallel()
+
+	v := plugins.ChartReleaserVersion
+	plugin := plugins.CreateChartReleaserPlugin(v)
+
+	assert.Equal(t, plugins.ChartReleaserPluginName, plugin.Name, "plugin.Name")
+	assert.Equal(t, plugins.ChartReleaserPluginName, plugin.Spec.Name, "plugin.Spec.Name")
+
+	foundLinux := false
+	foundMac := false
+	foundWindows := false
+	for _, b := range plugin.Spec.Binaries {
+		if b.Goarch != "amd64" {
+			continue
+		}
+		switch b.Goos {
+		case "Darwin":
+			foundMac = true
+
+			assert.Equal(t, "https://github.com/helm/chart-releaser/releases/download/v"+v+"/chart-releaser_"+v+"_darwin_amd64.tar.gz", b.URL, "URL for linux binary")
+			t.Logf("found mac binary URL %s", b.URL)
+		case "Linux":
+			foundLinux = true
+			assert.Equal(t, "https://github.com/helm/chart-releaser/releases/download/v"+v+"/chart-releaser_"+v+"_linux_amd64.tar.gz", b.URL, "URL for linux binary")
+			t.Logf("found linux binary URL %s", b.URL)
+		case "Windows":
+			foundWindows = true
+			assert.Equal(t, "https://github.com/helm/chart-releaser/releases/download/v"+v+"/chart-releaser_"+v+"_windows_amd64.zip", b.URL, "URL for windows binary")
+			t.Logf("found windows binary URL %s", b.URL)
+		}
+	}
+	assert.True(t, foundLinux, "did not find a linux binary in the plugin %#v", plugin)
+	assert.True(t, foundMac, "did not find a mac binary in the plugin %#v", plugin)
+	assert.True(t, foundWindows, "did not find a windows binary in the plugin %#v", plugin)
+}
+
 func TestHelmPlugin(t *testing.T) {
 	t.Parallel()
 

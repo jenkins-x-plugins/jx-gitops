@@ -80,6 +80,40 @@ func CreateHelmfilePlugin(version string) jenkinsv1.Plugin {
 	return plugin
 }
 
+// GetChartReleaserBinary returns the path to the locally installed chartReleaser 3 extension
+func GetChartReleaserBinary(version string) (string, error) {
+	if version == "" {
+		version = ChartReleaserVersion
+	}
+	pluginBinDir, err := homedir.PluginBinDir(os.Getenv("JX_GITOPS_HOME"), ".jx-gitops")
+	if err != nil {
+		return "", errors.Wrapf(err, "failed to find plugin home dir")
+	}
+	plugin := CreateChartReleaserPlugin(version)
+	return extensions.EnsurePluginInstalled(plugin, pluginBinDir)
+}
+
+// CreateChartReleaserPlugin creates the chartReleaser 3 plugin
+func CreateChartReleaserPlugin(version string) jenkinsv1.Plugin {
+	binaries := extensions.CreateBinaries(func(p extensions.Platform) string {
+		return fmt.Sprintf("https://github.com/helm/chart-releaser/releases/download/v%s/chart-releaser_%s_%s_%s.%s", version, version, strings.ToLower(p.Goos), strings.ToLower(p.Goarch), p.Extension())
+	})
+
+	plugin := jenkinsv1.Plugin{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: ChartReleaserPluginName,
+		},
+		Spec: jenkinsv1.PluginSpec{
+			SubCommand:  ChartReleaserPluginName,
+			Binaries:    binaries,
+			Description: "chart-releaser binary",
+			Name:        ChartReleaserPluginName,
+			Version:     version,
+		},
+	}
+	return plugin
+}
+
 // GetKptBinary returns the path to the locally installed kpt 3 extension
 func GetKptBinary(version string) (string, error) {
 	if version == "" {
