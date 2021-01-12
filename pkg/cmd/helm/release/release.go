@@ -48,6 +48,7 @@ type Options struct {
 	UseHelmPlugin        bool
 	NoRelease            bool
 	ChartOCI             bool
+	NoOCILogin           bool
 	HelmBinary           string
 	ChartsDir            string
 	RepositoryName       string
@@ -88,6 +89,7 @@ func NewCmdHelmRelease() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.VersionFile, "version-file", "", "VERSION", "the file to load the version from if not specified directly or via a $VERSION environment variable")
 	cmd.Flags().StringVarP(&o.Namespace, "namespace", "", "", "the namespace to look for the dev Environment. Defaults to the current namespace")
 	cmd.Flags().BoolVarP(&o.ChartOCI, "oci", "", false, "treat the repository as an OCI container registry. If not specified its defaulted from the cluster.chartOCI flag on the 'jx-requirements.yml' file")
+	cmd.Flags().BoolVarP(&o.NoOCILogin, "no-oci-login", "", false, "disables using the 'helm registry login' command when using OCI")
 	cmd.Flags().BoolVarP(&o.NoRelease, "no-release", "", false, "disables publishing the release. Useful for a Pull Request pipeline")
 	cmd.Flags().BoolVarP(&o.UseHelmPlugin, "use-helm-plugin", "", false, "uses the jx binary plugin for helm rather than whatever helm is on the $PATH")
 	return cmd, o
@@ -239,20 +241,23 @@ func (o *Options) Run() error {
 
 func (o *Options) OCIRegistry(repoURL, chartDir, name string) error {
 	qualifiedChartName := fmt.Sprintf("%s/%s:%s", repoURL, name, o.Version)
+	var c *cmdrunner.Command
+	var err error
 
-	c := &cmdrunner.Command{
-		Dir:  chartDir,
-		Name: o.HelmBinary,
-		Env: map[string]string{
-			"HELM_EXPERIMENTAL_OCI": "1",
-		},
-		Args: []string{"registry", "login", repoURL, "--username", o.RepositoryUsername, "--password", o.RepositoryPassword},
+	if !o.NoOCILogin {
+		c = &cmdrunner.Command{
+			Dir:  chartDir,
+			Name: o.HelmBinary,
+			Env: map[string]string{
+				"HELM_EXPERIMENTAL_OCI": "1",
+			},
+			Args: []string{"registry", "login", repoURL, "--username", o.RepositoryUsername, "--password", o.RepositoryPassword},
+		}
+		_, err := o.CommandRunner(c)
+		if err != nil {
+			return errors.Wrapf(err, "failed to login to registry %s for user %s", repoURL, o.RepositoryUsername)
+		}
 	}
-	_, err := o.CommandRunner(c)
-	if err != nil {
-		return errors.Wrapf(err, "failed to login to registry %s for user %s", repoURL, o.RepositoryUsername)
-	}
-
 	c = &cmdrunner.Command{
 		Dir:  chartDir,
 		Name: o.HelmBinary,
