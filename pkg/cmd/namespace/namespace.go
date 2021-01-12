@@ -43,10 +43,11 @@ var (
 // NamespaceOptions the options for the command
 type Options struct {
 	kyamls.Filter
-	Dir        string
-	ClusterDir string
-	Namespace  string
-	DirMode    bool
+	Dir             string
+	ClusterDir      string
+	Namespace       string
+	DirMode         bool
+	DisableOverride bool
 }
 
 // NewCmdUpdate creates a command object for the command
@@ -68,6 +69,7 @@ func NewCmdUpdateNamespace() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.ClusterDir, "cluster-dir", "", "", "the directory to recursively look for the *.yaml or *.yml files")
 	cmd.Flags().StringVarP(&o.Namespace, "namespace", "n", "", "the namespace to modify the resources to")
 	cmd.Flags().BoolVarP(&o.DirMode, "dir-mode", "", false, "assumes the first child directory is the name of the namespace to use")
+	cmd.Flags().BoolVarP(&o.DisableOverride, "disable-override", "", false, "disable overriding the namespace if one already exists")
 	o.Filter.AddFlags(cmd)
 	return cmd, o
 }
@@ -87,7 +89,7 @@ func (o *Options) Run() error {
 		if ns == "" {
 			return options.MissingOption("namespace")
 		}
-		return UpdateNamespaceInYamlFiles(o.Dir, ns, o.Filter)
+		return UpdateNamespaceInYamlFiles(o.Dir, ns, o.Filter, o.DisableOverride)
 	}
 
 	return o.RunDirMode()
@@ -110,7 +112,7 @@ func (o *Options) RunDirMode() error {
 		name := f.Name()
 
 		dir := filepath.Join(o.Dir, name)
-		err = UpdateNamespaceInYamlFiles(dir, name, o.Filter)
+		err = UpdateNamespaceInYamlFiles(dir, name, o.Filter, o.DisableOverride)
 		if err != nil {
 			return err
 		}
@@ -181,7 +183,7 @@ func (o *Options) lazyCreateNamespaceResource(ns string) error {
 }
 
 // UpdateNamespaceInYamlFiles updates the namespace in yaml files
-func UpdateNamespaceInYamlFiles(dir string, ns string, filter kyamls.Filter) error {
+func UpdateNamespaceInYamlFiles(dir string, ns string, filter kyamls.Filter, disableOverride bool) error {
 	modifyFn := func(node *yaml.RNode, path string) (bool, error) {
 		kind := kyamls.GetKind(node, path)
 
@@ -190,7 +192,7 @@ func UpdateNamespaceInYamlFiles(dir string, ns string, filter kyamls.Filter) err
 			return false, nil
 		}
 
-		err := node.PipeE(yaml.LookupCreate(yaml.ScalarNode, "metadata", "namespace"), yaml.FieldSetter{StringValue: ns})
+		err := node.PipeE(yaml.LookupCreate(yaml.ScalarNode, "metadata", "namespace"), yaml.FieldSetter{StringValue: ns, DisableOverride: disableOverride})
 		if err != nil {
 			return false, errors.Wrapf(err, "failed to set metadata.namespace to %s", ns)
 		}

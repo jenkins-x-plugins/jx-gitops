@@ -55,7 +55,7 @@ replace (
 	k8s.io/client-go => k8s.io/client-go v0.19.2
 
 	// fix yaml comment parsing issue
-	sigs.k8s.io/kustomize/kyaml => sigs.k8s.io/kustomize/kyaml v0.6.1
+	sigs.k8s.io/kustomize/kyaml => github.com/cameronbraid/kustomize/kyaml v0.10.6-0.20210112071251-f6c6d9d94246
 	sigs.k8s.io/yaml => sigs.k8s.io/yaml v1.2.0
 )
 
