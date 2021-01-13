@@ -442,7 +442,7 @@ func (o *Options) ChartPageRegistry(repoURL, chartDir, name string) error {
 		return errors.Wrapf(err, "failed to add helm chart to git")
 	}
 	log.Logger().Infof("added helm charts to github pages repository %s", repoURL)
-	err = gitclient.Push(o.GitClient, o.GitHubPagesDir, "origin", false)
+	_, err = o.GitClient.Command(o.GitHubPagesDir, "push", "--set-upstream", "origin", o.GithubPagesBranch)
 	if err != nil {
 		return errors.Wrapf(err, "failed to push changes")
 	}
