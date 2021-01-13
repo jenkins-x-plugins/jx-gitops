@@ -442,7 +442,7 @@ func (o *Options) ChartPageRegistry(repoURL, chartDir, name string) error {
 		return errors.Wrapf(err, "failed to add helm chart to git")
 	}
 	log.Logger().Infof("added helm charts to github pages repository %s", repoURL)
-	err = gitclient.Push(o.GitClient, o.GitHubPagesDir, "origin", false)
+	_, err = o.GitClient.Command(o.GitHubPagesDir, "push", "--set-upstream", "origin", o.GithubPagesBranch)
 	if err != nil {
 		return errors.Wrapf(err, "failed to push changes")
 	}
@@ -500,12 +500,6 @@ func (o *Options) GitCloneGitHubPages(repoURL, branch string) (string, error) {
 				return dir, errors.Wrapf(err, "failed to remove path %s", path)
 			}
 		}
-	}
-
-	// set the remote branch
-	err = gitclient.SetUpstreamTo(o.GitClient, dir, branch)
-	if err != nil {
-		return dir, errors.Wrapf(err, "failed to set remote branch")
 	}
 	return dir, nil
 }
