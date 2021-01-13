@@ -501,6 +501,12 @@ func (o *Options) GitCloneGitHubPages(repoURL, branch string) (string, error) {
 			}
 		}
 	}
+
+	// set the remote url
+	_, err = g.Command(dir, "remote", "set-url", "origin", gitCloneURL)
+	if err != nil {
+		return dir, errors.Wrapf(err, "failed to set remote orgigin")
+	}
 	return dir, nil
 }
 
