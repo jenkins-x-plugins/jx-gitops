@@ -75,6 +75,7 @@ type Options struct {
 	ChartPages           bool
 	NoOCILogin           bool
 	HelmBinary           string
+	Dir                  string
 	ChartsDir            string
 	RepositoryName       string
 	RepositoryURL        string
@@ -108,6 +109,7 @@ func NewCmdHelmRelease() (*cobra.Command, *Options) {
 			helper.CheckErr(err)
 		},
 	}
+	cmd.Flags().StringVarP(&o.Dir, "dir", "", ".", "the root directory to look for .jx/requirements.yaml")
 	cmd.Flags().StringVarP(&o.ChartsDir, "charts-dir", "c", "charts", "the directory to look for helm charts to release")
 	cmd.Flags().StringVarP(&o.RepositoryName, "repo-name", "n", "release-repo", "the name of the helm chart to release to. If not specified uses JX_CHART_REPOSITORY environment variable")
 	cmd.Flags().StringVarP(&o.RepositoryURL, "repo-url", "u", "", "the URL to release to")
@@ -191,7 +193,7 @@ func (o *Options) Validate() error {
 	if o.GitClient == nil {
 		o.GitClient = cli.NewCLIClient("", o.CommandRunner)
 	}
-	requirements, err := variablefinders.FindRequirements(o.JXClient, o.Namespace, o.GitClient)
+	requirements, err := variablefinders.FindRequirements(o.GitClient, o.JXClient, o.Namespace, o.Dir)
 	if err != nil {
 		return errors.Wrapf(err, "failed to load requirements")
 	}
