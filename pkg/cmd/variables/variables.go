@@ -138,7 +138,7 @@ func (o *Options) Validate() error {
 	if o.GitClient == nil {
 		o.GitClient = cli.NewCLIClient("", o.CommandRunner)
 	}
-	o.Requirements, err = variablefinders.FindRequirements(o.JXClient, o.Namespace, o.GitClient)
+	o.Requirements, err = variablefinders.FindRequirements(o.GitClient, o.JXClient, o.Namespace, o.Dir)
 	if err != nil {
 		return errors.Wrapf(err, "failed to load requirements")
 	}
