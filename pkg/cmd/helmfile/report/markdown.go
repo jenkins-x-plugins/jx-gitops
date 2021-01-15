@@ -9,25 +9,67 @@ import (
 
 // ToMarkdown converts the charts to markdown
 func ToMarkdown(charts []*NamespaceCharts) (string, error) {
-	buf := &strings.Builder{}
+	w := &strings.Builder{}
 
-	buf.WriteString("# Deployments\n\n")
+	w.WriteString("# Deployments\n\n")
+
+	w.WriteString(`
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Chart</th>
+      <th scope="col">Version</th>
+      <th scope="col">Open</th>
+      <th scope="col">Source</th>
+    </tr>
+  </thead>
+  <tbody>
+`)
 
 	for _, ns := range charts {
-		WriteNamespaceCharts(buf, ns)
+		WriteNamespaceCharts(w, ns)
 	}
-	return buf.String(), nil
+	w.WriteString(`
+  </tbody>
+</table>
+`)
+
+	return w.String(), nil
 }
 
 func WriteNamespaceCharts(w io.StringWriter, ns *NamespaceCharts) {
-	w.WriteString("\n## " + ns.Namespace + "\n\n")
+	if len(ns.Charts) == 0 {
+		return
+	}
+
+	w.WriteString(fmt.Sprintf(`    <tr>
+		      <td colspan='4'><h3>%s</h3></td>
+		    </tr>
+	`, ns.Namespace))
 
 	for _, ch := range ns.Charts {
 		WriteChart(w, ch)
 	}
+
 }
 
 func WriteChart(w io.StringWriter, ch *ChartInfo) {
 	description := html.EscapeString(ch.Description)
-	w.WriteString(fmt.Sprintf("* <a href='%s' title='%s'> <img src='%s' width='24px' height='24px'> %s </a> %s\n", ch.Home, description, ch.Icon, ch.Name, ch.Version))
+
+	viewLink := ""
+	if ch.ApplicationURL != "" {
+		viewLink = fmt.Sprintf("<a href='%s'>view</a>", ch.ApplicationURL)
+	}
+	sourceLink := ""
+	if ch.Home != "" {
+		sourceLink = fmt.Sprintf("<a href='%s'>source</a>", ch.Home)
+	}
+
+	w.WriteString(fmt.Sprintf(`    <tr>
+	      <td><a href='%s' title='%s'> <img src='%s' width='24px' height='24px'> %s </a></td>
+	      <td>%s</td>
+	      <td>%s</td>
+	      <td>%s</td>
+	    </tr>
+`, ch.Home, description, ch.Icon, ch.Name, ch.Version, viewLink, sourceLink))
 }

@@ -43,6 +43,8 @@ func TestHemlfileMarkdownReport(t *testing.T) {
 
 		err = ioutil.WriteFile(expectedPath, data, 0666)
 		require.NoError(t, err, "failed to save file %s", expectedPath)
+
+		t.Logf("saved file %s\n", expectedPath)
 		return
 	}
 

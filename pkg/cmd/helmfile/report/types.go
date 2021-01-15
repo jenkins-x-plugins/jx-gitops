@@ -16,6 +16,7 @@ type ChartInfo struct {
 	chart.Metadata
 	RepositoryName string `json:"repositoryName,omitempty"`
 	RepositoryURL  string `json:"repositoryUrl,omitempty"`
+	ApplicationURL string `json:"applicationUrl,omitempty"`
 }
 
 func (i *ChartInfo) String() string {
