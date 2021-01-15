@@ -118,7 +118,7 @@ func (o *Options) Run() error {
 		return errors.Wrapf(err, "failed to setup credential store")
 	}
 
-	if o.DisableInClusterTest || IsInCluster() {
+	if o.DisableInClusterTest || os.Getenv("GITHUB_ACTIONS") == "true" || IsInCluster() {
 		outFile, err := o.determineOutputFile()
 		if err != nil {
 			return errors.Wrap(err, "unable to determine for git credentials")
@@ -140,7 +140,20 @@ func (o *Options) GitClient() gitclient.Interface {
 func (o *Options) findCredentials() ([]credentialhelper.GitCredential, error) {
 	var credentialList []credentialhelper.GitCredential
 
-	if o.Password == "" || o.UserName == "" || o.GitProviderURL == "" {
+	if o.UserName == "" {
+		o.UserName = os.Getenv("GIT_USERNAME")
+	}
+	if o.UserName == "" {
+		o.UserName = os.Getenv("GITHUB_ACTOR")
+	}
+	if o.Password == "" {
+		o.Password = os.Getenv("GIT_TOKEN")
+	}
+	if o.Password == "" {
+		o.Password = os.Getenv("GITHUB_TOKEN")
+	}
+
+	if o.Password == "" || o.UserName == "" {
 		var err error
 		o.KubeClient, o.Namespace, err = kube.LazyCreateKubeClientAndNamespace(o.KubeClient, o.Namespace)
 		if err != nil {
