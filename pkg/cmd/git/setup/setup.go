@@ -45,11 +45,13 @@ type Options struct {
 	Dir                  string
 	UserName             string
 	UserEmail            string
+	Password             string
 	OutputFile           string
 	Namespace            string
 	OperatorNamespace    string
 	SecretName           string
 	GitURL               string
+	GitProviderURL       string
 	GitInitCommands      string
 	DisableInClusterTest bool
 	KubeClient           kubernetes.Interface
@@ -79,7 +81,9 @@ func NewCmdGitSetup() (*cobra.Command, *Options) {
 func (o *Options) AddFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&o.Dir, "dir", "d", "", "the directory to run the git setup command from")
 	cmd.Flags().StringVarP(&o.UserName, "name", "n", "", "the git user name to use if one is not setup")
+	cmd.Flags().StringVarP(&o.Password, "password", "", "", "the git password/token to use. if not specified it is detected from the git operator Secret")
 	cmd.Flags().StringVarP(&o.UserEmail, "email", "e", "", "the git user email to use if one is not setup")
+	cmd.Flags().StringVarP(&o.GitProviderURL, "git-provider", "", "", "the git provider URL. If not specified its detected from the git operator Secret or defaults to https://github.com")
 	cmd.Flags().StringVarP(&o.OutputFile, "credentials-file", "", "", "The destination of the git credentials file to generate. If not specified uses $XDG_CONFIG_HOME/git/credentials or $HOME/git/credentials")
 	cmd.Flags().StringVarP(&o.OperatorNamespace, "operator-namespace", "", "jx-git-operator", "the namespace used by the git operator to find the secret for the git repository if running in cluster")
 	cmd.Flags().StringVarP(&o.Namespace, "namespace", "", "", "the namespace used to find the git operator secret for the git repository if running in cluster. Defaults to the current namespace")
@@ -136,37 +140,46 @@ func (o *Options) GitClient() gitclient.Interface {
 func (o *Options) findCredentials() ([]credentialhelper.GitCredential, error) {
 	var credentialList []credentialhelper.GitCredential
 
-	var err error
-	o.KubeClient, o.Namespace, err = kube.LazyCreateKubeClientAndNamespace(o.KubeClient, o.Namespace)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to create kube client")
-	}
-	bootSecret, err := boot.LoadBootSecret(o.KubeClient, o.Namespace, o.OperatorNamespace, o.SecretName, o.UserName)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to load the boot secret")
-	}
-	if bootSecret == nil {
-		return nil, errors.Errorf("failed to find the boot secret")
-	}
-
-	gitURL := bootSecret.URL
-	gitProviderURL := bootSecret.GitProviderURL
-	if gitURL != "" && gitProviderURL == "" {
-		// lets convert the git URL into a provider URL
-		gitInfo, err := giturl.ParseGitURL(gitURL)
+	if o.Password == "" || o.UserName == "" || o.GitProviderURL == "" {
+		var err error
+		o.KubeClient, o.Namespace, err = kube.LazyCreateKubeClientAndNamespace(o.KubeClient, o.Namespace)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to parse git URL %s", gitURL)
+			return nil, errors.Wrapf(err, "failed to create kube client")
 		}
-		gitProviderURL = gitInfo.HostURL()
-	}
-	o.GitURL = gitURL
-	o.GitInitCommands = bootSecret.GitInitCommands
+		bootSecret, err := boot.LoadBootSecret(o.KubeClient, o.Namespace, o.OperatorNamespace, o.SecretName, o.UserName)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to load the boot secret")
+		}
+		if bootSecret == nil {
+			return nil, errors.Errorf("failed to find the boot secret")
+		}
 
-	if o.UserName == "" {
-		o.UserName = bootSecret.Username
+		gitURL := bootSecret.URL
+		if o.GitProviderURL == "" {
+			o.GitProviderURL = bootSecret.GitProviderURL
+		}
+		if gitURL != "" && o.GitProviderURL == "" {
+			// lets convert the git URL into a provider URL
+			gitInfo, err := giturl.ParseGitURL(gitURL)
+			if err != nil {
+				return nil, errors.Wrapf(err, "failed to parse git URL %s", gitURL)
+			}
+			o.GitProviderURL = gitInfo.HostURL()
+		}
+		o.GitURL = gitURL
+		o.GitInitCommands = bootSecret.GitInitCommands
+
+		if o.UserName == "" {
+			o.UserName = bootSecret.Username
+		}
+		if o.Password == "" {
+			o.Password = bootSecret.Password
+		}
 	}
-	password := bootSecret.Password
-	credential, err := credentialhelper.CreateGitCredentialFromURL(gitProviderURL, o.UserName, password)
+	if o.GitProviderURL == "" {
+		o.GitProviderURL = "https://github.com"
+	}
+	credential, err := credentialhelper.CreateGitCredentialFromURL(o.GitProviderURL, o.UserName, o.Password)
 	if err != nil {
 		return nil, errors.Wrapf(err, "invalid git auth information")
 	}
