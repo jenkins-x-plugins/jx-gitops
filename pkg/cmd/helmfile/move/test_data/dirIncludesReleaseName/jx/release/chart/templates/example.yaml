@@ -1,0 +1,10 @@
+# Source: jx/templates/foo-bar.yaml
+apiVersion: example.io/v1
+kind: Example
+metadata:
+  labels:
+    app: example
+    chart: chart-1.39.1
+    heritage: Helm
+    release: release
+  name: example

@@ -49,6 +49,7 @@ type Options struct {
 	kyamls.Filter
 	Dir                          string
 	OutputDir                    string
+	DirIncludesReleaseName       bool
 	ClusterDir                   string
 	ClusterNamespacesDir         string
 	CustomResourceDefinitionsDir string
@@ -74,6 +75,8 @@ func NewCmdHelmfileMove() (*cobra.Command, *Options) {
 	}
 	cmd.Flags().StringVarP(&o.Dir, "dir", "", "", "the directory containing the generated resources")
 	cmd.Flags().StringVarP(&o.OutputDir, "output-dir", "o", "config-root", "the output directory")
+	cmd.Flags().BoolVarP(&o.DirIncludesReleaseName, "dir-includes-release-name", "", false, "the directory containing the generated resources has a path segment that is the release name")
+
 	o.Filter.AddFlags(cmd)
 	return cmd, o
 }
@@ -97,7 +100,11 @@ func (o *Options) Run() error {
 		o.CustomResourceDefinitionsDir = filepath.Join(o.OutputDir, "customresourcedefinitions")
 	}
 
-	g := filepath.Join(o.Dir, "*/*")
+	globPattern := "*/*"
+	if o.DirIncludesReleaseName {
+		globPattern = "*/*/*"
+	}
+	g := filepath.Join(o.Dir, globPattern)
 	fileNames, err := filepath.Glob(g)
 	if err != nil {
 		return errors.Wrapf(err, "failed to glob files %s", g)
@@ -115,11 +122,22 @@ func (o *Options) Run() error {
 			continue
 		}
 
-		_, releaseName := filepath.Split(dir)
-		_, ns := filepath.Split(filepath.Dir(dir))
+		var ns, releaseName, chartName string
+
+		relDir, _ := filepath.Rel(o.Dir, dir)
+
+		parts := strings.Split(relDir, string(os.PathSeparator))
+
+		if o.DirIncludesReleaseName {
+			// {{.Release.Namespace}}/{{.Release.Name}}/chartName
+			ns, releaseName, chartName = parts[0], parts[1], parts[2]
+		} else {
+			// {{.Release.Namespace}}/chartName
+			ns, releaseName, chartName = parts[0], parts[1], parts[1]
+		}
 		namespaces = append(namespaces, ns)
 
-		err = o.moveFilesToClusterOrNamespacesFolder(dir, ns, releaseName)
+		err = o.moveFilesToClusterOrNamespacesFolder(dir, ns, releaseName, chartName)
 		if err != nil {
 			return errors.Wrapf(err, "failed to ")
 		}
@@ -185,7 +203,7 @@ func (o *Options) lazyCreateNamespaceResource(ns string) error {
 	return nil
 }
 
-func (o *Options) moveFilesToClusterOrNamespacesFolder(dir string, ns string, releaseName string) error {
+func (o *Options) moveFilesToClusterOrNamespacesFolder(dir string, ns string, releaseName string, chartName string) error {
 	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if info == nil || info.IsDir() {
 			return nil
@@ -223,17 +241,27 @@ func (o *Options) moveFilesToClusterOrNamespacesFolder(dir string, ns string, re
 			return errors.Wrapf(err, "failed to load YAML file %s", path)
 		}
 
+		// pathName is always prefixed with chartName but lets also remove any duplication
+		var pathName string
+		if chartName == releaseName {
+			pathName = chartName
+		} else if strings.HasPrefix(releaseName, chartName) {
+			pathName = releaseName
+		} else {
+			pathName = fmt.Sprintf("%s-%s", chartName, releaseName)
+		}
+
 		kind := kyamls.GetKind(node, path)
-		outDir := filepath.Join(o.ClusterDir, ns, releaseName)
+		outDir := filepath.Join(o.ClusterDir, ns, pathName)
 
 		if kyamls.IsCustomResourceDefinition(kind) {
-			outDir = filepath.Join(o.CustomResourceDefinitionsDir, ns, releaseName)
+			outDir = filepath.Join(o.CustomResourceDefinitionsDir, ns, pathName)
 		} else if !kyamls.IsClusterKind(kind) {
 			err := node.PipeE(yaml.LookupCreate(yaml.ScalarNode, "metadata", "namespace"), yaml.FieldSetter{StringValue: ns})
 			if err != nil {
 				return errors.Wrapf(err, "failed to set metadata.namespace to %s for path %s", ns, path)
 			}
-			outDir = filepath.Join(o.NamespacesDir, ns, releaseName)
+			outDir = filepath.Join(o.NamespacesDir, ns, pathName)
 		}
 
 		outFile := filepath.Join(outDir, rel)
