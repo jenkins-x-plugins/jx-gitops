@@ -40,6 +40,11 @@ Clones the cluster git repository using the URL, git user and token from the Sec
     for testing: lets you fake running this command inside a kubernetes cluster so that it can create the file: $XDG\_CONFIG\_HOME/git/credentials or $HOME/git/credentials
 
 .PP
+\fB\-\-git\-provider\fP=""
+    the git provider URL. If not specified its detected from the git operator Secret or defaults to 
+\[la]https://github.com\[ra]
+
+.PP
 \fB\-h\fP, \fB\-\-help\fP[=false]
     help for clone
 
@@ -54,6 +59,10 @@ Clones the cluster git repository using the URL, git user and token from the Sec
 .PP
 \fB\-\-operator\-namespace\fP="jx\-git\-operator"
     the namespace used by the git operator to find the secret for the git repository if running in cluster
+
+.PP
+\fB\-\-password\fP=""
+    the git password/token to use. if not specified it is detected from the git operator Secret
 
 .PP
 \fB\-\-secret\fP="jx\-boot"
