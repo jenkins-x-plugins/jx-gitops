@@ -140,6 +140,12 @@ func (o *Options) MergeChanges(reqs *jxcore.Requirements) error {
 	if err != nil {
 		return errors.Wrap(err, "error merging requirements")
 	}
+
+	// if domain is set in terraform always use that to override cluster requirements as domains are managed by Terraform
+	if reqs.Spec.Ingress.Domain != "" {
+		o.requirements.Ingress.Domain = reqs.Spec.Ingress.Domain
+	}
+
 	return nil
 }
 
