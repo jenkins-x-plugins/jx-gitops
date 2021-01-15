@@ -33,10 +33,10 @@ require (
 	golang.org/x/text v0.3.4 // indirect
 	gopkg.in/validator.v2 v2.0.0-20200605151824-2b28d334fa05
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	k8s.io/api v0.19.4
-	k8s.io/apimachinery v0.19.4
+	helm.sh/helm/v3 v3.5.0
+	k8s.io/api v0.20.1
+	k8s.io/apimachinery v0.20.1
 	k8s.io/client-go v11.0.1-0.20190805182717-6502b5e7b1b5+incompatible
-	k8s.io/helm v2.16.10+incompatible
 	k8s.io/klog/v2 v2.4.0 // indirect
 	sigs.k8s.io/kustomize/api v0.4.1
 	sigs.k8s.io/kustomize/kyaml v0.10.5
@@ -52,6 +52,10 @@ replace (
 	// fix yaml comment parsing issue
 	gopkg.in/yaml.v2 => gopkg.in/yaml.v2 v2.3.0
 	gopkg.in/yaml.v3 => gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
+
+	// override from helm
+	k8s.io/api => k8s.io/api v0.19.4
+	k8s.io/apimachinery => k8s.io/apimachinery v0.19.4
 
 	k8s.io/client-go => k8s.io/client-go v0.19.2
 
