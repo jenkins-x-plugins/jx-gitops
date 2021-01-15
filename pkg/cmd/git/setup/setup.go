@@ -15,6 +15,7 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/giturl"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/homedir"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/options"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"k8s.io/client-go/kubernetes"
@@ -118,7 +119,7 @@ func (o *Options) Run() error {
 		return errors.Wrapf(err, "failed to setup credential store")
 	}
 
-	if o.DisableInClusterTest || os.Getenv("GITHUB_ACTIONS") == "true" || IsInCluster() {
+	if o.DisableInClusterTest || InGitHubActions() || IsInCluster() {
 		outFile, err := o.determineOutputFile()
 		if err != nil {
 			return errors.Wrap(err, "unable to determine for git credentials")
@@ -127,6 +128,11 @@ func (o *Options) Run() error {
 		return o.createGitCredentialsFile(outFile, credentials)
 	}
 	return nil
+}
+
+// InGitHubActions returns true if we are running inside a github action
+func InGitHubActions() bool {
+	return os.Getenv("GITHUB_ACTIONS") == "true"
 }
 
 func (o *Options) GitClient() gitclient.Interface {
@@ -153,7 +159,7 @@ func (o *Options) findCredentials() ([]credentialhelper.GitCredential, error) {
 		o.Password = os.Getenv("GITHUB_TOKEN")
 	}
 
-	if o.Password == "" || o.UserName == "" {
+	if (o.Password == "" || o.UserName == "") && !InGitHubActions() {
 		var err error
 		o.KubeClient, o.Namespace, err = kube.LazyCreateKubeClientAndNamespace(o.KubeClient, o.Namespace)
 		if err != nil {
@@ -191,6 +197,12 @@ func (o *Options) findCredentials() ([]credentialhelper.GitCredential, error) {
 	}
 	if o.GitProviderURL == "" {
 		o.GitProviderURL = "https://github.com"
+	}
+	if o.UserName == "" {
+		return nil, options.MissingOption("name")
+	}
+	if o.Password == "" {
+		return nil, options.MissingOption("password")
 	}
 	credential, err := credentialhelper.CreateGitCredentialFromURL(o.GitProviderURL, o.UserName, o.Password)
 	if err != nil {
