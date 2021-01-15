@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/jenkins-x/jx-gitops/pkg/helmfiles"
 	"github.com/jenkins-x/jx-gitops/pkg/jxtmpl/reqvalues"
 	"github.com/jenkins-x/jx-gitops/pkg/pipelinecatalogs"
 	"github.com/jenkins-x/jx-gitops/pkg/quickstarthelpers"
@@ -52,13 +53,7 @@ var (
 	`)
 
 	valueFileNames = []string{"values.yaml.gotmpl", "values.yaml"}
-	pathSeparator  = string(os.PathSeparator)
 )
-
-type Helmfile struct {
-	filepath           string
-	relativePathToRoot string
-}
 
 // Options the options for the command
 type Options struct {
@@ -66,7 +61,7 @@ type Options struct {
 	Namespace        string
 	GitCommitMessage string
 	Helmfile         string
-	Helmfiles        []Helmfile
+	Helmfiles        []helmfiles.Helmfile
 	KptBinary        string
 	HelmBinary       string
 	BatchMode        bool
@@ -111,26 +106,6 @@ func (o *Options) AddFlags(cmd *cobra.Command, prefix string) {
 	cmd.Flags().BoolVarP(&o.DoGitCommit, prefix+"git-commit", "", false, "if set then the template command will git commit the modified helmfile.yaml files")
 }
 
-func gatherHelmfiles(helmfile string) ([]Helmfile, error) {
-	helmState := state.HelmState{}
-	err := yaml2s.LoadFile(helmfile, &helmState)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to load helmfile %s", helmfile)
-	}
-
-	helmfiles := []Helmfile{
-		{helmfile, ""},
-	}
-	parentHelmfileDir := filepath.Dir(helmfile)
-	for _, nested := range helmState.Helmfiles {
-		nestedHelmfileDepth := len(strings.Split(filepath.Dir(nested.Path), pathSeparator))
-		relativePath := strings.Repeat("../", nestedHelmfileDepth)
-
-		helmfiles = append(helmfiles, Helmfile{filepath.Join(parentHelmfileDir, nested.Path), relativePath})
-	}
-	return helmfiles, nil
-}
-
 // Validate validates the options and populates any missing values
 func (o *Options) Validate() error {
 	err := o.Options.Validate()
@@ -142,7 +117,7 @@ func (o *Options) Validate() error {
 		o.Helmfile = filepath.Join(o.Dir, "helmfile.yaml")
 	}
 
-	helmfiles, err := gatherHelmfiles(o.Helmfile)
+	helmfiles, err := helmfiles.GatherHelmfiles(o.Helmfile)
 	if err != nil {
 		return errors.Wrapf(err, "failed to gather nested helmfiles")
 	}
@@ -190,7 +165,7 @@ func (o *Options) Run() error {
 		}
 	}
 
-	helmfiles, err := gatherHelmfiles(o.Helmfile)
+	helmfiles, err := helmfiles.GatherHelmfiles(o.Helmfile)
 	if err != nil {
 		return errors.Wrapf(err, "error gathering helmfiles")
 	}
@@ -198,7 +173,7 @@ func (o *Options) Run() error {
 	for _, helmfile := range helmfiles {
 		increment, err := o.processHelmfile(helmfile)
 		if err != nil {
-			return errors.Wrapf(err, "failed to process helmfile %s", helmfile.filepath)
+			return errors.Wrapf(err, "failed to process helmfile %s", helmfile.Filepath)
 		}
 		count += increment
 	}
@@ -216,9 +191,9 @@ func (o *Options) Run() error {
 	return nil
 }
 
-func (o *Options) processHelmfile(helmfile Helmfile) (int, error) {
+func (o *Options) processHelmfile(helmfile helmfiles.Helmfile) (int, error) {
 	helmState := state.HelmState{}
-	path := helmfile.filepath
+	path := helmfile.Filepath
 	err := yaml2s.LoadFile(path, &helmState)
 	if err != nil {
 		return 0, errors.Wrapf(err, "failed to load helmfile %s", helmfile)
@@ -231,7 +206,7 @@ func (o *Options) processHelmfile(helmfile Helmfile) (int, error) {
 		}
 	}
 
-	if helmfile.relativePathToRoot != "" {
+	if helmfile.RelativePathToRoot != "" {
 		helmfileDir := filepath.Dir(path)
 		ns := helmState.OverrideNamespace
 		if ns == "" {
@@ -316,7 +291,7 @@ func (o *Options) upgradeHelmfileStructure(dir string) (int, error) {
 	}
 	count++
 
-	helmfiles, err := gatherHelmfiles(o.Helmfile)
+	helmfiles, err := helmfiles.GatherHelmfiles(o.Helmfile)
 	if err != nil {
 		return 0, errors.Wrapf(err, "error gathering helmfiles")
 	}
@@ -329,7 +304,7 @@ func (o *Options) upgradeHelmfileStructure(dir string) (int, error) {
 	return count, nil
 }
 
-func (o *Options) resolveHelmfile(helmState *state.HelmState, helmfile Helmfile) (int, error) {
+func (o *Options) resolveHelmfile(helmState *state.HelmState, helmfile helmfiles.Helmfile) (int, error) {
 	var err error
 	var ignoreRepositories []string
 	if !helmhelpers.IsInCluster() || o.TestOutOfCluster {
@@ -344,7 +319,7 @@ func (o *Options) resolveHelmfile(helmState *state.HelmState, helmfile Helmfile)
 		return 0, errors.Wrapf(err, "failed to add helm repositories")
 	}
 
-	if helmfile.relativePathToRoot != "" {
+	if helmfile.RelativePathToRoot != "" {
 		// ensure we have added the jx-values.yaml file in the envirionment
 		if helmState.Environments == nil {
 			helmState.Environments = map[string]state.EnvironmentSpec{}
@@ -511,7 +486,7 @@ func (o *Options) resolveHelmfile(helmState *state.HelmState, helmfile Helmfile)
 		found = false
 		for _, releaseName := range releaseNames {
 			for _, valueFileName := range valueFileNames {
-				path := filepath.Join(helmfile.relativePathToRoot, "values", releaseName, valueFileName)
+				path := filepath.Join(helmfile.RelativePathToRoot, "values", releaseName, valueFileName)
 				appValuesFile := filepath.Join(o.Dir, path)
 				exists, err := files.FileExists(appValuesFile)
 				if err != nil {
@@ -530,7 +505,7 @@ func (o *Options) resolveHelmfile(helmState *state.HelmState, helmfile Helmfile)
 			}
 		}
 
-		if helmfile.relativePathToRoot != "" {
+		if helmfile.RelativePathToRoot != "" {
 			foundValuesFile := false
 			for _, v := range release.Values {
 				s, ok := v.(string)
@@ -550,7 +525,7 @@ func (o *Options) resolveHelmfile(helmState *state.HelmState, helmfile Helmfile)
 
 }
 
-func (o *Options) addValues(helmfile Helmfile, name string, release *state.ReleaseSpec) (bool, error) {
+func (o *Options) addValues(helmfile helmfiles.Helmfile, name string, release *state.ReleaseSpec) (bool, error) {
 	found := false
 	for _, valueFileName := range valueFileNames {
 		versionStreamValuesFile := filepath.Join(o.Resolver.VersionsDir, "charts", name, valueFileName)
@@ -559,7 +534,7 @@ func (o *Options) addValues(helmfile Helmfile, name string, release *state.Relea
 			return false, errors.Wrapf(err, "failed to check if version stream values file exists %s", versionStreamValuesFile)
 		}
 		if exists {
-			path := filepath.Join(helmfile.relativePathToRoot, versionStreamDir, "charts", name, valueFileName)
+			path := filepath.Join(helmfile.RelativePathToRoot, versionStreamDir, "charts", name, valueFileName)
 			if !valuesContains(release.Values, path) {
 				release.Values = append(release.Values, path)
 			}
