@@ -24,6 +24,14 @@ Generate the kubernetes resources from a helm chart
     the directory to look for helm charts to release
 
 .PP
+\fB\-\-dir\fP="."
+    the root directory to look for .jx/requirements.yaml
+
+.PP
+\fB\-\-ghpage\-url\fP=""
+    the github pages URL used if creating the first README.md in the github pages branch so we can link to how to add a chart repository
+
+.PP
 \fB\-h\fP, \fB\-\-help\fP[=false]
     help for release
 
@@ -32,8 +40,20 @@ Generate the kubernetes resources from a helm chart
     the namespace to look for the dev Environment. Defaults to the current namespace
 
 .PP
+\fB\-\-no\-oci\-login\fP[=false]
+    disables using the 'helm registry login' command when using OCI
+
+.PP
 \fB\-\-no\-release\fP[=false]
     disables publishing the release. Useful for a Pull Request pipeline
+
+.PP
+\fB\-\-oci\fP[=false]
+    treat the repository as an OCI container registry. If not specified its defaulted from the cluster.chartOCI flag on the 'jx\-requirements.yml' file
+
+.PP
+\fB\-\-pages\fP[=false]
+    use github pages to release charts
 
 .PP
 \fB\-n\fP, \fB\-\-repo\-name\fP="release\-repo"
@@ -50,6 +70,10 @@ Generate the kubernetes resources from a helm chart
 .PP
 \fB\-\-repo\-username\fP=""
     the username to access the chart repository. If not specified defaults to the environment variable $JX\_REPOSITORY\_USERNAME
+
+.PP
+\fB\-\-repository\-branch\fP="gh\-pages"
+    the branch used if using GitHub Pages for the helm chart
 
 .PP
 \fB\-\-use\-helm\-plugin\fP[=false]
