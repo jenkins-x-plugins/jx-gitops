@@ -14,8 +14,8 @@ require (
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.11
 	github.com/jenkins-x/go-scm v1.5.209
-	github.com/jenkins-x/jx-api/v4 v4.0.20
-	github.com/jenkins-x/jx-helpers/v3 v3.0.61
+	github.com/jenkins-x/jx-api/v4 v4.0.21
+	github.com/jenkins-x/jx-helpers/v3 v3.0.62
 	github.com/jenkins-x/jx-kube-client/v3 v3.0.1
 	github.com/jenkins-x/jx-logging/v3 v3.0.3
 	github.com/jenkins-x/lighthouse v0.0.907
