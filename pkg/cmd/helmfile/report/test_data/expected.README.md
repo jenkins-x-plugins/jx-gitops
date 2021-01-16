@@ -25,8 +25,14 @@
 		    </tr>
 	    <tr>
 	      <td><a href='' title='A Helm chart for Kubernetes'> <img src='https://raw.githubusercontent.com/cdfoundation/artwork/master/jenkinsx/icon/color/jenkinsx-icon-color.png' width='24px' height='24px'> nodey554 </a></td>
-	      <td>1.0.19</td>
+	      <td>1.0.20</td>
 	      <td></td>
+	      <td></td>
+	    </tr>
+    <tr>
+	      <td><a href='' title='A Helm chart for Kubernetes'> <img src='https://raw.githubusercontent.com/cdfoundation/artwork/master/jenkinsx/icon/color/jenkinsx-icon-color.png' width='24px' height='24px'> nodey545 </a></td>
+	      <td>3.0.46</td>
+	      <td><a href='http://nodey545-jx-staging.34.105.246.143.xip.io'>view</a></td>
 	      <td></td>
 	    </tr>
     <tr>
@@ -59,7 +65,7 @@
     <tr>
 	      <td><a href='https://github.com/jenkins-x/jx-pipelines-visualizer' title='Web UI for Jenkins X, with a clear goal - visualize the pipelines - and their logs.'> <img src='' width='24px' height='24px'> jx-pipelines-visualizer </a></td>
 	      <td>0.0.61</td>
-	      <td></td>
+	      <td><a href='http://dashboard-jx.34.105.246.143.xip.io'>view</a></td>
 	      <td><a href='https://github.com/jenkins-x/jx-pipelines-visualizer'>source</a></td>
 	    </tr>
     <tr>
@@ -100,7 +106,7 @@
 	    <tr>
 	      <td><a href='https://jenkins.io/' title='Jenkins - Build great things at any scale! The leading open source automation server, Jenkins provides hundreds of plugins to support building, deploying and automating any project.'> <img src='https://wiki.jenkins-ci.org/download/attachments/2916393/logo.png' width='24px' height='24px'> jenkins </a></td>
 	      <td></td>
-	      <td></td>
+	      <td><a href='http://jenkins-myjenkinsa.34.105.246.143.xip.io'>view</a></td>
 	      <td><a href='https://jenkins.io/'>source</a></td>
 	    </tr>
     <tr>

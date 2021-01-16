@@ -8,7 +8,7 @@ import (
 )
 
 // ToMarkdown converts the charts to markdown
-func ToMarkdown(charts []*NamespaceCharts) (string, error) {
+func ToMarkdown(charts []*NamespaceReleases) (string, error) {
 	w := &strings.Builder{}
 
 	w.WriteString("# Deployments\n\n")
@@ -37,8 +37,8 @@ func ToMarkdown(charts []*NamespaceCharts) (string, error) {
 	return w.String(), nil
 }
 
-func WriteNamespaceCharts(w io.StringWriter, ns *NamespaceCharts) {
-	if len(ns.Charts) == 0 {
+func WriteNamespaceCharts(w io.StringWriter, ns *NamespaceReleases) {
+	if len(ns.Releases) == 0 {
 		return
 	}
 
@@ -47,13 +47,13 @@ func WriteNamespaceCharts(w io.StringWriter, ns *NamespaceCharts) {
 		    </tr>
 	`, ns.Namespace))
 
-	for _, ch := range ns.Charts {
+	for _, ch := range ns.Releases {
 		WriteChart(w, ch)
 	}
 
 }
 
-func WriteChart(w io.StringWriter, ch *ChartInfo) {
+func WriteChart(w io.StringWriter, ch *ReleaseInfo) {
 	description := html.EscapeString(ch.Description)
 
 	viewLink := ""

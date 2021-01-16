@@ -1,4 +1,6 @@
-- charts:
+- namespace: cert-manager
+  path: helmfiles/cert-manager/helmfile.yaml
+  releases:
   - apiVersion: v1
     appVersion: v1.1.0
     description: A Helm chart for cert-manager
@@ -18,21 +20,34 @@
     sources:
     - https://github.com/jetstack/cert-manager
     version: 1.1.0
-  namespace: cert-manager
-  path: helmfiles/cert-manager/helmfile.yaml
 - namespace: jx-production
   path: helmfiles/jx-production/helmfile.yaml
-- charts:
+- namespace: jx-staging
+  path: helmfiles/jx-staging/helmfile.yaml
+  releases:
   - apiVersion: v1
     description: A Helm chart for Kubernetes
     icon: https://raw.githubusercontent.com/cdfoundation/artwork/master/jenkinsx/icon/color/jenkinsx-icon-color.png
     name: nodey554
     repositoryName: dev
     repositoryUrl: http://chartmuseum-jx.34.105.246.143.xip.io/
-    version: 1.0.19
-  namespace: jx-staging
-  path: helmfiles/jx-staging/helmfile.yaml
-- charts:
+    resourcePath: config-root/namespaces/jx-staging/nodey554
+    version: 1.0.20
+  - apiVersion: v1
+    applicationUrl: http://nodey545-jx-staging.34.105.246.143.xip.io
+    description: A Helm chart for Kubernetes
+    icon: https://raw.githubusercontent.com/cdfoundation/artwork/master/jenkinsx/icon/color/jenkinsx-icon-color.png
+    ingresses:
+    - name: nodey545
+      url: http://nodey545-jx-staging.34.105.246.143.xip.io
+    name: nodey545
+    repositoryName: dev
+    repositoryUrl: http://chartmuseum-jx.34.105.246.143.xip.io/
+    resourcePath: config-root/namespaces/jx-staging/nodey545
+    version: 3.0.46
+- namespace: jx
+  path: helmfiles/jx/helmfile.yaml
+  releases:
   - apiVersion: v1
     appVersion: 0.7.2
     description: ExternalDNS is a Kubernetes addon that configures public DNS servers with information about exposed Kubernetes services to make them discoverable.
@@ -72,9 +87,17 @@
     description: A Helm chart for the resources for JX Boot
     home: https://github.com/jenkins-x-charts/jxboot-helmfile-resources
     icon: https://raw.githubusercontent.com/jenkins-x/jenkins-x-website/master/images/logo/jenkinsx-icon-color.svg
+    ingresses:
+    - name: chartmuseum
+      url: http://chartmuseum-jx.34.105.246.143.xip.io/
+    - name: hook
+      url: http://hook-jx.34.105.246.143.xip.io
+    - name: nexus
+      url: http://nexus-jx.34.105.246.143.xip.io/
     name: jxboot-helmfile-resources
     repositoryName: jenkins-x
     repositoryUrl: https://storage.googleapis.com/chartmuseum.jenkins-x.io
+    resourcePath: config-root/namespaces/jx/jxboot-helmfile-resources
     version: 1.0.23
   - apiVersion: v2
     appVersion: 3.0.5
@@ -83,14 +106,20 @@
     name: jenkins-x-crds
     repositoryName: jx3
     repositoryUrl: https://storage.googleapis.com/jenkinsxio/charts
+    resourcePath: config-root/namespaces/jx/jenkins-x-crds
     version: 3.0.5
   - apiVersion: v1
     appVersion: latest
+    applicationUrl: http://dashboard-jx.34.105.246.143.xip.io
     description: Web UI for Jenkins X, with a clear goal - visualize the pipelines - and their logs.
     home: https://github.com/jenkins-x/jx-pipelines-visualizer
+    ingresses:
+    - name: jx-pipelines-visualizer
+      url: http://dashboard-jx.34.105.246.143.xip.io
     name: jx-pipelines-visualizer
     repositoryName: jx3
     repositoryUrl: https://storage.googleapis.com/jenkinsxio/charts
+    resourcePath: config-root/namespaces/jx/jx-pipelines-visualizer
     sources:
     - https://github.com/jenkins-x/jx-pipelines-visualizer
     version: 0.0.61
@@ -102,6 +131,7 @@
     name: jx-preview
     repositoryName: jx3
     repositoryUrl: https://storage.googleapis.com/jenkinsxio/charts
+    resourcePath: config-root/namespaces/jx/jx-preview
     version: 0.0.138
   - apiVersion: v1
     appVersion: 0.0.903
@@ -112,6 +142,7 @@
     name: lighthouse
     repositoryName: jenkins-x
     repositoryUrl: https://storage.googleapis.com/chartmuseum.jenkins-x.io
+    resourcePath: config-root/namespaces/jx/lighthouse
     version: 0.0.903
   - apiVersion: v1
     description: A Helm chart for Kubernetes
@@ -120,6 +151,7 @@
     name: nexus
     repositoryName: jenkins-x
     repositoryUrl: https://storage.googleapis.com/chartmuseum.jenkins-x.io
+    resourcePath: config-root/namespaces/jx/nexus
     version: 0.1.35
   - apiVersion: v1
     appVersion: 0.8.2
@@ -140,6 +172,7 @@
     name: chartmuseum
     repositoryName: stable
     repositoryUrl: https://charts.helm.sh/stable
+    resourcePath: config-root/namespaces/jx/chartmuseum
     version: 2.4.1
   - apiVersion: v2
     appVersion: 3.0.0
@@ -152,12 +185,13 @@
     name: jx-build-controller
     repositoryName: jx3
     repositoryUrl: https://storage.googleapis.com/jenkinsxio/charts
+    resourcePath: config-root/namespaces/jx/jx-build-controller
     sources:
     - https://github.com/jenkins-x-plugins/jx-build-controller
     version: 0.0.20
-  namespace: jx
-  path: helmfiles/jx/helmfile.yaml
-- charts:
+- namespace: myjenkinsa
+  path: helmfiles/myjenkinsa/helmfile.yaml
+  releases:
   - annotations:
       artifacthub.io/links: |
         - name: Chart Source
@@ -166,9 +200,13 @@
           url: https://www.jenkins.io/
     apiVersion: v2
     appVersion: 2.263.1
+    applicationUrl: http://jenkins-myjenkinsa.34.105.246.143.xip.io
     description: Jenkins - Build great things at any scale! The leading open source automation server, Jenkins provides hundreds of plugins to support building, deploying and automating any project.
     home: https://jenkins.io/
     icon: https://wiki.jenkins-ci.org/download/attachments/2916393/logo.png
+    ingresses:
+    - name: jenkins
+      url: http://jenkins-myjenkinsa.34.105.246.143.xip.io
     maintainers:
     - email: maor.friedman@redhat.com
       name: maorfr
@@ -183,6 +221,7 @@
     name: jenkins
     repositoryName: jenkinsci
     repositoryUrl: https://charts.jenkins.io
+    resourcePath: config-root/namespaces/myjenkinsa/jenkins
     sources:
     - https://github.com/jenkinsci/jenkins
     - https://github.com/jenkinsci/docker-inbound-agent
@@ -191,9 +230,10 @@
   - name: jenkins-resources
     repositoryName: jx3
     repositoryUrl: https://charts.jenkins.io
-  namespace: myjenkinsa
-  path: helmfiles/myjenkinsa/helmfile.yaml
-- charts:
+    resourcePath: config-root/namespaces/myjenkinsa/jenkins-resources
+- namespace: nginx
+  path: helmfiles/nginx/helmfile.yaml
+  releases:
   - annotations:
       artifacthub.io/changes: |
         - Remove helm2 support and update docs
@@ -211,13 +251,14 @@
     name: ingress-nginx
     repositoryName: ingress-nginx
     repositoryUrl: https://kubernetes.github.io/ingress-nginx
+    resourcePath: config-root/namespaces/nginx/ingress-nginx
     sources:
     - https://github.com/kubernetes/ingress-nginx
     type: application
     version: 3.12.0
-  namespace: nginx
-  path: helmfiles/nginx/helmfile.yaml
-- charts:
+- namespace: secret-infra
+  path: helmfiles/secret-infra/helmfile.yaml
+  releases:
   - apiVersion: v1
     appVersion: 6.0.0
     description: Kubernetes External Secrets CustomResourceDefinition
@@ -233,6 +274,7 @@
     name: kubernetes-external-secrets
     repositoryName: external-secrets
     repositoryUrl: https://external-secrets.github.io/kubernetes-external-secrets
+    resourcePath: config-root/namespaces/secret-infra/kubernetes-external-secrets
     sources:
     - https://github.com/godaddy/kubernetes-external-secrets
     version: 6.0.0
@@ -246,12 +288,13 @@
     name: pusher-wave
     repositoryName: jx3
     repositoryUrl: https://storage.googleapis.com/jenkinsxio/charts
+    resourcePath: config-root/namespaces/secret-infra/pusher-wave
     sources:
     - https://github.com/pusher/wave
     version: 0.4.12
-  namespace: secret-infra
-  path: helmfiles/secret-infra/helmfile.yaml
-- charts:
+- namespace: tekton-pipelines
+  path: helmfiles/tekton-pipelines/helmfile.yaml
+  releases:
   - apiVersion: v1
     appVersion: 0.19.0
     description: A Helm chart for Tekton Pipelines
@@ -260,6 +303,5 @@
     name: tekton-pipeline
     repositoryName: cdf
     repositoryUrl: https://cdfoundation.github.io/tekton-helm-chart
+    resourcePath: config-root/namespaces/tekton-pipelines/tekton-pipeline
     version: 0.19.0
-  namespace: tekton-pipelines
-  path: helmfiles/tekton-pipelines/helmfile.yaml

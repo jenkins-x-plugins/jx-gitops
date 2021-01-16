@@ -6,24 +6,44 @@ import (
 	"helm.sh/helm/v3/pkg/chart"
 )
 
-type NamespaceCharts struct {
-	Path      string       `json:"path,omitempty"`
-	Namespace string       `json:"namespace,omitempty"`
-	Charts    []*ChartInfo `json:"charts,omitempty"`
+type NamespaceReleases struct {
+	Path      string         `json:"path,omitempty"`
+	Namespace string         `json:"namespace,omitempty"`
+	Releases  []*ReleaseInfo `json:"releases,omitempty"`
 }
 
-type ChartInfo struct {
+// ReleaseInfo information about the release
+type ReleaseInfo struct {
 	chart.Metadata
+
+	// RepositoryName the chart repository name used in the fully qualified chart name
 	RepositoryName string `json:"repositoryName,omitempty"`
-	RepositoryURL  string `json:"repositoryUrl,omitempty"`
+	// RepositoryURL the chart repository URL
+	RepositoryURL string `json:"repositoryUrl,omitempty"`
+	// ApplicationURL the ingress URL for the application if available
 	ApplicationURL string `json:"applicationUrl,omitempty"`
+
+	// ResourcesPath the relative path to the kubernetes resources
+	ResourcesPath string `json:"resourcePath,omitempty"`
+
+	// Ingresses the ingress URLs
+	Ingresses []IngressInfo `json:"ingresses,omitempty"`
 }
 
-func (i *ChartInfo) String() string {
-	return fmt.Sprintf("%s version: %s icon: %s", i.Name, i.Version, i.Icon)
+type IngressInfo struct {
+	Name string `json:"name,omitempty"`
+	URL  string `json:"url,omitempty"`
 }
 
-func (i *ChartInfo) handleChartMetadata(manifest *chart.Metadata) {
+func (i *ReleaseInfo) String() string {
+	answer := fmt.Sprintf("%s version: %s", i.Name, i.Version)
+	if i.Home != "" {
+		answer += " " + i.Home
+	}
+	return answer
+}
+
+func (i *ReleaseInfo) handleChartMetadata(manifest *chart.Metadata) {
 	if i.Description == "" {
 		i.Description = manifest.Description
 	}

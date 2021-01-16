@@ -16,6 +16,7 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/helmer"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/services"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/options"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/yaml2s"
@@ -25,6 +26,8 @@ import (
 	"github.com/roboll/helmfile/pkg/state"
 	"github.com/spf13/cobra"
 	"helm.sh/helm/v3/pkg/chart"
+	"k8s.io/api/extensions/v1beta1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/yaml"
 )
 
@@ -49,6 +52,7 @@ type Options struct {
 	options.BaseOptions
 	Dir              string
 	OutDir           string
+	ConfigRootPath   string
 	Namespace        string
 	GitCommitMessage string
 	Helmfile         string
@@ -58,7 +62,7 @@ type Options struct {
 	Gitter           gitclient.Interface
 	CommandRunner    cmdrunner.CommandRunner
 	HelmClient       helmer.Helmer
-	NamespaceCharts  []*NamespaceCharts
+	NamespaceCharts  []*NamespaceReleases
 }
 
 // NewCmdHelmfileReport creates a command object for the command
@@ -78,6 +82,7 @@ func NewCmdHelmfileReport() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.HelmBinary, "helm-binary", "", "", "specifies the helm binary location to use. If not specified defaults to using the downloaded helm plugin")
 	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the directory that contains the helmfile.yaml")
 	cmd.Flags().StringVarP(&o.OutDir, "out-dir", "o", "docs", "the output directory")
+	cmd.Flags().StringVarP(&o.ConfigRootPath, "config-root", "", "config-root", "the folder name containing the kubernetes resources")
 	o.AddFlags(cmd, "")
 	o.BaseOptions.AddBaseFlags(cmd)
 	return cmd, o
@@ -161,8 +166,8 @@ func (o *Options) Run() error {
 	return nil
 }
 
-func (o *Options) processHelmfile(helmfile helmfiles.Helmfile) (*NamespaceCharts, error) {
-	answer := &NamespaceCharts{}
+func (o *Options) processHelmfile(helmfile helmfiles.Helmfile) (*NamespaceReleases, error) {
+	answer := &NamespaceReleases{}
 	// ignore the root file
 	if helmfile.RelativePathToRoot == "" {
 		return nil, nil
@@ -188,7 +193,7 @@ func (o *Options) processHelmfile(helmfile helmfiles.Helmfile) (*NamespaceCharts
 
 	for i := range helmState.Releases {
 		rel := &helmState.Releases[i]
-		ci, err := o.createReleaseInfo(helmState, rel)
+		ci, err := o.createReleaseInfo(helmState, ns, rel)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to create release info for %s", rel.Chart)
 		}
@@ -196,47 +201,52 @@ func (o *Options) processHelmfile(helmfile helmfiles.Helmfile) (*NamespaceCharts
 		if info == nil {
 			continue
 		}
-		answer.Charts = append(answer.Charts, ci)
+		answer.Releases = append(answer.Releases, ci)
 		log.Logger().Infof("found %s", ci.String())
 	}
 	log.Logger().Infof("")
 	return answer, nil
 }
 
-func (o *Options) createReleaseInfo(helmState *state.HelmState, rel *state.ReleaseSpec) (*ChartInfo, error) {
+func (o *Options) createReleaseInfo(helmState *state.HelmState, ns string, rel *state.ReleaseSpec) (*ReleaseInfo, error) {
 	chart := rel.Chart
 	if chart == "" {
 		return nil, nil
 	}
 	paths := strings.SplitN(chart, "/", 2)
-	info := &ChartInfo{}
-	info.Version = rel.Version
+	answer := &ReleaseInfo{}
+	answer.Version = rel.Version
 	switch len(paths) {
 	case 0:
 		return nil, nil
 	case 1:
-		info.Name = paths[0]
+		answer.Name = paths[0]
 	default:
-		info.RepositoryName = paths[0]
-		info.Name = paths[1]
+		answer.RepositoryName = paths[0]
+		answer.Name = paths[1]
 	}
 
-	if info.RepositoryName != "" {
+	if answer.RepositoryName != "" {
 		// lets find the repo URL
 		for i := range helmState.Repositories {
 			repo := &helmState.Repositories[i]
-			if repo.Name == info.RepositoryName {
-				err := o.enrichChartMetadata(info, repo)
+			if repo.Name == answer.RepositoryName {
+				err := o.enrichChartMetadata(answer, repo)
 				if err != nil {
-					return nil, errors.Wrapf(err, "failed to get chart metadata for %s", info.String())
+					return nil, errors.Wrapf(err, "failed to get chart metadata for %s", answer.String())
 				}
+				break
 			}
 		}
 	}
-	return info, nil
+	err := o.discoverResources(answer, ns, rel)
+	if err != nil {
+		return answer, errors.Wrapf(err, "failed to discover resources for %s", answer.String())
+	}
+	return answer, nil
 }
 
-func (o *Options) enrichChartMetadata(i *ChartInfo, repo *state.RepositorySpec) error {
+func (o *Options) enrichChartMetadata(i *ReleaseInfo, repo *state.RepositorySpec) error {
 	version := i.Version
 	name := i.Name
 	repoURL := repo.URL
@@ -286,5 +296,98 @@ func (o *Options) enrichChartMetadata(i *ChartInfo, repo *state.RepositorySpec) 
 	i.Metadata = *m
 	i.Name = name
 	i.Version = version
+	return nil
+}
+
+func (o *Options) discoverResources(ci *ReleaseInfo, ns string, rel *state.ReleaseSpec) error {
+	namespaceDir := filepath.Join(o.Dir, o.ConfigRootPath, "namespaces", ns)
+	exists, err := files.DirExists(namespaceDir)
+	if err != nil {
+		return errors.Wrapf(err, "failed to check if dir exists %s", namespaceDir)
+	}
+	if !exists {
+		return nil
+	}
+
+	// lets try find the resources folder
+	names := []string{ci.Name + "-" + rel.Name, ci.Name}
+	for _, name := range names {
+		chartDir := filepath.Join(namespaceDir, name)
+		exists, err := files.DirExists(chartDir)
+		if err != nil {
+			return errors.Wrapf(err, "failed to check if dir exists %s", chartDir)
+		}
+		if exists {
+			ci.ResourcesPath, err = filepath.Rel(o.Dir, chartDir)
+			if err != nil {
+				return errors.Wrapf(err, "failed to resolve relative path %s from %s", chartDir, o.Dir)
+			}
+			err = o.discoverIngress(ci, ns, rel, chartDir)
+			if err != nil {
+				return errors.Wrapf(err, "failed to discover ingress")
+			}
+			return nil
+		}
+	}
+	return nil
+}
+
+func (o *Options) discoverIngress(ci *ReleaseInfo, ns string, rel *state.ReleaseSpec, resourcesDir string) error {
+	fs, err := ioutil.ReadDir(resourcesDir)
+	if err != nil {
+		return errors.Wrapf(err, "failed to read dir %s", resourcesDir)
+	}
+
+	for _, f := range fs {
+		if f.IsDir() {
+			continue
+		}
+		name := f.Name()
+		if !strings.HasSuffix(name, ".yaml") && !strings.HasSuffix(name, ".yml") {
+			continue
+		}
+
+		path := filepath.Join(resourcesDir, name)
+		data, err := ioutil.ReadFile(path)
+		if err != nil {
+			return errors.Wrapf(err, "failed to load file %s", path)
+		}
+
+		obj := &unstructured.Unstructured{}
+		err = yaml.Unmarshal(data, obj)
+		if err != nil {
+			log.Logger().Infof("could not parse YAML file %s", path)
+			continue
+		}
+		if obj.GetKind() != "Ingress" {
+			continue
+		}
+		apiVersion := obj.GetAPIVersion()
+		if apiVersion != "networking.k8s.io/v1beta1" && apiVersion != "extensions/v1beta1" {
+			log.Logger().Infof("ignoring Ingress in file %s with api version %s", path, apiVersion)
+			continue
+		}
+
+		ing := &v1beta1.Ingress{}
+		err = yaml.Unmarshal(data, ing)
+		if err != nil {
+			log.Logger().Warnf("failed to unmarshal YAML as Ingress in file %s: %s", path, err.Error())
+			continue
+		}
+
+		u := services.IngressURL(ing)
+		if u == "" {
+			continue
+		}
+
+		ci.Ingresses = append(ci.Ingresses, IngressInfo{
+			Name: ing.Name,
+			URL:  u,
+		})
+
+		if ing.Name == ci.Name || ing.Name == ci.Name+"-"+rel.Name {
+			ci.ApplicationURL = u
+		}
+	}
 	return nil
 }

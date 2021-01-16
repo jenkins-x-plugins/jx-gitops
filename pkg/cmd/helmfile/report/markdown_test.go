@@ -14,11 +14,11 @@ import (
 
 var (
 	// generateTestOutput enable to regenerate the expected output
-	generateTestOutput = false
+	generateTestOutput = true
 )
 
 func TestHemlfileMarkdownReport(t *testing.T) {
-	var charts []*report.NamespaceCharts
+	var charts []*report.NamespaceReleases
 
 	tmpDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err, "failed to create temp dir")
