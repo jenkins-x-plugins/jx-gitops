@@ -53,12 +53,6 @@ replace (
 	gopkg.in/yaml.v2 => gopkg.in/yaml.v2 v2.3.0
 	gopkg.in/yaml.v3 => gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
 
-	// override from helm
-	k8s.io/api => k8s.io/api v0.19.4
-	k8s.io/apimachinery => k8s.io/apimachinery v0.19.4
-
-	k8s.io/client-go => k8s.io/client-go v0.19.2
-
 	// fix yaml comment parsing issue
 	sigs.k8s.io/kustomize/kyaml => sigs.k8s.io/kustomize/kyaml v0.6.1
 	sigs.k8s.io/yaml => sigs.k8s.io/yaml v1.2.0
