@@ -3,7 +3,7 @@ package schedulerapi
 import (
 	"time"
 
-	"github.com/jenkins-x/lighthouse/pkg/config/job"
+	"github.com/jenkins-x/lighthouse-client/pkg/config/job"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

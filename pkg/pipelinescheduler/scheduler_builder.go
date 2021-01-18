@@ -9,11 +9,11 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/giturl"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/stringhelpers"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
-	"github.com/jenkins-x/lighthouse/pkg/config"
-	"github.com/jenkins-x/lighthouse/pkg/config/branchprotection"
-	"github.com/jenkins-x/lighthouse/pkg/config/job"
-	"github.com/jenkins-x/lighthouse/pkg/config/keeper"
-	"github.com/jenkins-x/lighthouse/pkg/plugins"
+	"github.com/jenkins-x/lighthouse-client/pkg/config"
+	"github.com/jenkins-x/lighthouse-client/pkg/config/branchprotection"
+	"github.com/jenkins-x/lighthouse-client/pkg/config/job"
+	"github.com/jenkins-x/lighthouse-client/pkg/config/keeper"
+	"github.com/jenkins-x/lighthouse-client/pkg/plugins"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
