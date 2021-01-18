@@ -13,11 +13,11 @@ require (
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.11
 	github.com/jenkins-x/go-scm v1.5.211
-	github.com/jenkins-x/jx-api/v4 v4.0.22
-	github.com/jenkins-x/jx-helpers/v3 v3.0.63
+	github.com/jenkins-x/jx-api/v4 v4.0.23
+	github.com/jenkins-x/jx-helpers/v3 v3.0.64
 	github.com/jenkins-x/jx-kube-client/v3 v3.0.1
 	github.com/jenkins-x/jx-logging/v3 v3.0.3
-	github.com/jenkins-x/lighthouse v0.0.908
+	github.com/jenkins-x/lighthouse-client v0.0.0-20210118141307-27a29c02a663
 	github.com/pborman/uuid v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/roboll/helmfile v0.135.1-0.20201213020320-54eb73b4239a
@@ -27,8 +27,6 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/vrischmann/envconfig v1.3.0 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
-	golang.org/x/net v0.0.0-20201201195509-5d6afe98e0b7 // indirect
-	golang.org/x/sys v0.0.0-20201201145000-ef89a241ccb3 // indirect
 	gopkg.in/validator.v2 v2.0.0-20200605151824-2b28d334fa05
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	helm.sh/helm/v3 v3.5.0
@@ -41,8 +39,6 @@ require (
 )
 
 replace (
-	github.com/jenkins-x/lighthouse => github.com/jstrachan/lighthouse v0.0.0-20210117125431-b895e82778b3
-
 	// TODO - Remove this once https://github.com/roboll/helmfile/pull/1629  merges
 	github.com/roboll/helmfile => github.com/chrismellard/helmfile v0.135.1-0.20201225093459-d90f7f4de7bb
 	// fix yaml comment parsing issue
