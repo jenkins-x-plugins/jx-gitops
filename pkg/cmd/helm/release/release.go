@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
 
 	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	jxc "github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned"
+	"github.com/jenkins-x/jx-gitops/pkg/ghpages"
 	"github.com/jenkins-x/jx-gitops/pkg/plugins"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-gitops/pkg/variablefinders"
@@ -386,7 +386,7 @@ func (o *Options) ChartPageRegistry(repoURL, chartDir, name string) error {
 			o.GithubPagesBranch = "gh-pages"
 		}
 
-		o.GitHubPagesDir, err = o.GitCloneGitHubPages(repoURL, o.GithubPagesBranch)
+		o.GitHubPagesDir, err = ghpages.CloneGitHubPagesToDir(o.GitClient, repoURL, o.GithubPagesBranch, o.RepositoryUsername, o.RepositoryPassword)
 		if err != nil {
 			return errors.Wrapf(err, "failed to clone the github pages repo %s branch %s", repoURL, o.GithubPagesBranch)
 		}
@@ -454,66 +454,7 @@ func (o *Options) ChartPageRegistry(repoURL, chartDir, name string) error {
 
 // Setup sets up the storage in the given directory
 func (o *Options) GitCloneGitHubPages(repoURL, branch string) (string, error) {
-	dir, err := ioutil.TempDir("", "gh-pages-tmp-")
-	if err != nil {
-		return dir, errors.Wrapf(err, "failed to create temp dir")
-	}
-
-	g := o.GitClient
-
-	gitCloneURL, err := o.GitHubPagesCloneURL(repoURL)
-	if err != nil {
-		return dir, errors.Wrapf(err, "failed to get github pages clone URL")
-	}
-
-	_, err = g.Command(dir, "clone", gitCloneURL, "--branch", branch, "--single-branch", dir)
-	if err != nil {
-		log.Logger().Infof("assuming the remote branch does not exist so lets create it")
-
-		_, err = gitclient.CloneToDir(g, gitCloneURL, dir)
-		if err != nil {
-			return dir, errors.Wrapf(err, "failed to clone repository %s to directory: %s", gitCloneURL, dir)
-		}
-
-		// now lets create an empty orphan branch: see https://stackoverflow.com/a/13969482/2068211
-		_, err = g.Command(dir, "checkout", "--orphan", branch)
-		if err != nil {
-			return dir, errors.Wrapf(err, "failed to checkout an orphan branch %s in dir %s", branch, dir)
-		}
-
-		_, err = g.Command(dir, "rm", "--cached", "-r", ".")
-		if err != nil {
-			return dir, errors.Wrapf(err, "failed to remove the cached git files in dir %s", dir)
-		}
-
-		// lets remove all the files other than .git
-		files, err := ioutil.ReadDir(dir)
-		if err != nil {
-			return dir, errors.Wrapf(err, "failed to read files in dir %s", dir)
-		}
-		for _, f := range files {
-			name := f.Name()
-			if name == ".git" {
-				continue
-			}
-			path := filepath.Join(dir, name)
-			err = os.RemoveAll(path)
-			if err != nil {
-				return dir, errors.Wrapf(err, "failed to remove path %s", path)
-			}
-		}
-	}
-	return dir, nil
-}
-
-// GitHubPagesCloneURL returns the git clone URL
-func (o *Options) GitHubPagesCloneURL(repoURL string) (string, error) {
-	u, err := url.Parse(repoURL)
-	if err != nil {
-		return "", errors.Wrapf(err, "failed to parse git URL %s", repoURL)
-	}
-	u.User = url.UserPassword(o.RepositoryUsername, o.RepositoryPassword)
-	return u.String(), nil
+	return ghpages.CloneGitHubPagesToDir(o.GitClient, repoURL, branch, o.RepositoryUsername, o.RepositoryPassword)
 }
 
 func (o *Options) BasicRegistry(repoURL, chartDir, name string) error {
