@@ -13,7 +13,10 @@ spec:
     merge_method: merge
     policy:
       from-branch-protection: true
-      optional-contexts: { }
+      optional-contexts:
+        entries:
+          - cheese
+          - wine
       required-contexts: { }
       required-if-present-contexts: { }
       skip-unknown-contexts: false
