@@ -9,15 +9,16 @@ require (
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/google/go-cmp v0.5.4
 	github.com/google/gofuzz v1.2.0 // indirect
+	github.com/googleapis/gnostic v0.5.3 // indirect
 	github.com/h2non/gock v1.0.9
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.11
-	github.com/jenkins-x/go-scm v1.5.211
+	github.com/jenkins-x/go-scm v1.5.216
 	github.com/jenkins-x/jx-api/v4 v4.0.23
-	github.com/jenkins-x/jx-helpers/v3 v3.0.64
-	github.com/jenkins-x/jx-kube-client/v3 v3.0.1
+	github.com/jenkins-x/jx-helpers/v3 v3.0.72
+	github.com/jenkins-x/jx-kube-client/v3 v3.0.2
 	github.com/jenkins-x/jx-logging/v3 v3.0.3
-	github.com/jenkins-x/lighthouse-client v0.0.0-20210118141307-27a29c02a663
+	github.com/jenkins-x/lighthouse-client v0.0.14
 	github.com/pborman/uuid v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/roboll/helmfile v0.135.1-0.20201213020320-54eb73b4239a
@@ -33,6 +34,7 @@ require (
 	k8s.io/api v0.20.2
 	k8s.io/apimachinery v0.20.2
 	k8s.io/client-go v11.0.1-0.20190805182717-6502b5e7b1b5+incompatible
+	rsc.io/letsencrypt v0.0.3 // indirect
 	sigs.k8s.io/kustomize/api v0.4.1
 	sigs.k8s.io/kustomize/kyaml v0.10.5
 	sigs.k8s.io/yaml v1.2.0

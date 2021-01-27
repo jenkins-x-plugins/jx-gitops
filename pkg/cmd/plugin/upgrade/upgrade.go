@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/jenkins-x/jx-gitops/pkg/plugins"
@@ -99,8 +100,8 @@ func (o *Options) Run() error {
 			log.Logger().Infof("created symlink from %s => %s", fileName, binName)
 		}
 
-		if p.Name == plugins.HelmPluginName {
-
+		if p.Name == plugins.HelmPluginName && !strings.HasPrefix(runtime.GOARCH, "arm") {
+			// we can't install helm-x yet on ARM
 			installHelmX := &cmdrunner.Command{
 				Name: fileName,
 				Args: []string{"plugin", "install", "https://github.com/mumoshu/helm-x"},
@@ -123,6 +124,5 @@ func (o *Options) Run() error {
 			}
 		}
 	}
-
 	return nil
 }
