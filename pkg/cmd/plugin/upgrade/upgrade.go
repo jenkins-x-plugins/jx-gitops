@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/jenkins-x/jx-gitops/pkg/plugins"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
@@ -97,6 +98,31 @@ func (o *Options) Run() error {
 			}
 			log.Logger().Infof("created symlink from %s => %s", fileName, binName)
 		}
+
+		if p.Name == plugins.HelmPluginName {
+
+			installHelmX := &cmdrunner.Command{
+				Name: fileName,
+				Args: []string{"plugin", "install", "https://github.com/mumoshu/helm-x"},
+			}
+			out, err := o.CommandRunner(installHelmX)
+			if err != nil {
+				if strings.Contains(out, "plugin already exists") {
+					updateHelmX := &cmdrunner.Command{
+						Name: fileName,
+						Args: []string{"plugin", "update", "x"},
+					}
+					out, err = o.CommandRunner(updateHelmX)
+					if err != nil {
+						return errors.Wrapf(err, "failed to update plugin helm-x")
+					}
+
+				} else {
+					return errors.Wrapf(err, "failed to install plugin helm-x")
+				}
+			}
+		}
 	}
+
 	return nil
 }
