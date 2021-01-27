@@ -72,7 +72,7 @@ func (o *Options) Run(args []string) error {
 	}
 	if len(args) == 0 {
 		// lets try discover the git url
-		o.gitURL, err = gitdiscovery.FindGitURLFromDir(o.SourceDir)
+		o.gitURL, err = gitdiscovery.FindGitURLFromDir(o.SourceDir, false)
 		if err != nil {
 			return errors.Wrapf(err, "failed to discover git URL in dir %s. you could try pass the git URL as an argument", o.SourceDir)
 		}
