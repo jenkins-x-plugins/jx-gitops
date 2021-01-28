@@ -32,6 +32,9 @@ var (
 	`)
 )
 
+// TODO test if the new helm x plugin is the reason that cloudbuilds have started failing making jx-cli's jx-boot image
+const installHelmX = false
+
 // UpgradeOptions the options for upgrading a cluster
 type Options struct {
 	CommandRunner cmdrunner.CommandRunner
@@ -100,28 +103,30 @@ func (o *Options) Run() error {
 			log.Logger().Infof("created symlink from %s => %s", fileName, binName)
 		}
 
-		goarch := strings.ToLower(runtime.GOARCH)
-		if p.Name == plugins.HelmPluginName && goarch != "arm" && !strings.HasPrefix(goarch, "arm") {
-			log.Logger().Infof("checking if we have installed the helm plugin helm-x on OS %s arch: %s", runtime.GOOS, goarch)
-			// we can't install helm-x yet on ARM
-			installHelmX := &cmdrunner.Command{
-				Name: fileName,
-				Args: []string{"plugin", "install", "https://github.com/mumoshu/helm-x"},
-			}
-			out, err := o.CommandRunner(installHelmX)
-			if err != nil {
-				if strings.Contains(out, "plugin already exists") {
-					updateHelmX := &cmdrunner.Command{
-						Name: fileName,
-						Args: []string{"plugin", "update", "x"},
-					}
-					out, err = o.CommandRunner(updateHelmX)
-					if err != nil {
-						return errors.Wrapf(err, "failed to update plugin helm-x")
-					}
+		if installHelmX {
+			goarch := strings.ToLower(runtime.GOARCH)
+			if p.Name == plugins.HelmPluginName && goarch != "arm" && !strings.HasPrefix(goarch, "arm") {
+				log.Logger().Infof("checking if we have installed the helm plugin helm-x on OS %s arch: %s", runtime.GOOS, goarch)
+				// we can't install helm-x yet on ARM
+				installHelmX := &cmdrunner.Command{
+					Name: fileName,
+					Args: []string{"plugin", "install", "https://github.com/mumoshu/helm-x"},
+				}
+				out, err := o.CommandRunner(installHelmX)
+				if err != nil {
+					if strings.Contains(out, "plugin already exists") {
+						updateHelmX := &cmdrunner.Command{
+							Name: fileName,
+							Args: []string{"plugin", "update", "x"},
+						}
+						out, err = o.CommandRunner(updateHelmX)
+						if err != nil {
+							return errors.Wrapf(err, "failed to update plugin helm-x")
+						}
 
-				} else {
-					return errors.Wrapf(err, "failed to install plugin helm-x")
+					} else {
+						return errors.Wrapf(err, "failed to install plugin helm-x")
+					}
 				}
 			}
 		}
