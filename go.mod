@@ -42,7 +42,7 @@ require (
 
 replace (
 	// TODO - Remove this once https://github.com/roboll/helmfile/pull/1629  merges
-	github.com/roboll/helmfile => github.com/chrismellard/helmfile v0.135.1-0.20201225093459-d90f7f4de7bb
+	github.com/roboll/helmfile => github.com/chrismellard/helmfile v0.138.1-cm
 	// fix yaml comment parsing issue
 	gopkg.in/yaml.v2 => gopkg.in/yaml.v2 v2.3.0
 	gopkg.in/yaml.v3 => gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
