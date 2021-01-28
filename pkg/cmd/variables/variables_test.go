@@ -3,6 +3,7 @@ package variables_test
 import (
 	"context"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -23,7 +24,14 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-func TODOTestCmdVariables(t *testing.T) {
+func TestCmdVariables(t *testing.T) {
+	// lets skip this test if inside a goreleaser when we've got the env vars defined
+	chartEnv := os.Getenv("JX_CHART_REPOSITORY")
+	if chartEnv != "" {
+		t.Skipf("skipping test as $JX_CHART_REPOSITORY = %s\n", chartEnv)
+		return
+	}
+
 	tmpDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err, "failed to create temp dir")
 
