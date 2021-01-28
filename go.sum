@@ -263,8 +263,8 @@ github.com/cespare/xxhash/v2 v2.1.1 h1:6MnRN8NT7+YBpUIWxHtefFZOKTAPgGjpQSxqLNn0+
 github.com/cespare/xxhash/v2 v2.1.1/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
 github.com/chai2010/gettext-go v0.0.0-20160711120539-c6fed771bfd5/go.mod h1:/iP1qXHoty45bqomnu2LM+VVyAEdWN+vtSHGlQgyxbw=
 github.com/cheggaaa/pb v1.0.27/go.mod h1:pQciLPpbU0oxA0h+VJYYLxO+XeDQb5pZijXscXHm81s=
-github.com/chrismellard/helmfile v0.135.1-0.20201225093459-d90f7f4de7bb h1:IgY4n+9nitAmwVGtqGwj6JOhtC8tnvb0UeTcr5/sy4o=
-github.com/chrismellard/helmfile v0.135.1-0.20201225093459-d90f7f4de7bb/go.mod h1:eD9cu2hZTR9K+03HB4RBkd8whuBkdRyFeKT4moiL3RY=
+github.com/chrismellard/helmfile v0.138.1-cm h1:wu5+awHMb5yBjaXQmm2/WXCBafKAFn7q/DP2r7q8IjM=
+github.com/chrismellard/helmfile v0.138.1-cm/go.mod h1:ojJk9SozHd5abTH0AiIKpI6OiRl03RtO2+U3ldy43SI=
 github.com/chzyer/logex v1.1.10/go.mod h1:+Ywpsq7O8HXn0nuIou7OrIPyXbp3wmkHB+jjWRnGsAI=
 github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e/go.mod h1:nSuG5e5PlCu98SY8svDHJxuZscDgtXS6KTTbou5AhLI=
 github.com/chzyer/test v0.0.0-20180213035817-a1ea475d72b1/go.mod h1:Q3SI9o4m/ZMnBNeIyt5eFwwo7qiLfzFZmjNmxjkiQlU=
@@ -1277,8 +1277,8 @@ github.com/variantdev/chartify v0.6.0 h1:QQ00a8Vtuhk6F9jeTZJEXV2g0zRXhYG43xovWZr
 github.com/variantdev/chartify v0.6.0/go.mod h1:qF4XzQlkfH/6k2jAi1hLas+lK4zSCa8kY+r5JdmLA68=
 github.com/variantdev/dag v0.0.0-20191028002400-bb0b3c785363 h1:KrfQBEUn+wEOQ/6UIfoqRDvn+Q/wZridQ7t0G1vQqKE=
 github.com/variantdev/dag v0.0.0-20191028002400-bb0b3c785363/go.mod h1:pH1TQsNSLj2uxMo9NNl9zdGy01Wtn+/2MT96BrKmVyE=
-github.com/variantdev/vals v0.11.0 h1:818ztGk5yPTiixbUeE3LkkBGGATEAKtWq09n8q8PFqc=
-github.com/variantdev/vals v0.11.0/go.mod h1:pZ0ZJZnOwB5aCJmXZgwrgMMMKMfIYMrhpsHllInRQ8c=
+github.com/variantdev/vals v0.12.0 h1:1fk2nlSzGkoY5/Ij7dyIB6r0eemFGWQMa5TD2ZhDSB8=
+github.com/variantdev/vals v0.12.0/go.mod h1:KHSazZ2M3pFiwu6mw4O56YdjNatCZpJZkk4s23rexW8=
 github.com/vdemeester/k8s-pkg-credentialprovider v1.18.1-0.20201019120933-f1d16962a4db/go.mod h1:grWy0bkr1XO6hqbaaCKaPXqkBVlMGHYG6PGykktwbJc=
 github.com/vektah/gqlparser v1.1.2/go.mod h1:1ycwN7Ij5njmMkPPAOaRFY4rET2Enx7IkVv3vaXspKw=
 github.com/vektra/mockery v1.1.2/go.mod h1:VcfZjKaFOPO+MpN4ZvwPjs4c48lkq1o3Ym8yHZJu0jU=
