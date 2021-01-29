@@ -150,6 +150,12 @@ func (o *Options) Validate() error {
 		if o.RepositoryUsername == "" {
 			o.RepositoryUsername = os.Getenv("GITHUB_REPOSITORY_OWNER")
 		}
+		if o.RepositoryUsername == "" {
+			o.RepositoryUsername = os.Getenv("GIT_USERNAME")
+		}
+		if o.RepositoryUsername == "" {
+			o.RepositoryUsername = os.Getenv("GITHUB_ACTOR")
+		}
 	}
 	if o.RepositoryPassword == "" {
 		o.RepositoryPassword = os.Getenv("JX_REPOSITORY_PASSWORD")

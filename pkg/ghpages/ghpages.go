@@ -60,6 +60,12 @@ func CloneGitHubPagesToDir(g gitclient.Interface, repoURL, branch, username, pas
 			}
 		}
 	}
+	if err == nil {
+		_, err = g.Command(dir, "remote", "set-url", "origin", gitCloneURL)
+		if err != nil {
+			return dir, errors.Wrapf(err, "failed to set origin URL")
+		}
+	}
 	return dir, nil
 }
 
