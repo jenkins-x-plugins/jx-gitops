@@ -357,9 +357,9 @@ func (o *Options) Run() error {
 				}
 			}
 			if value != "" {
-				log.Logger().Infof("export %s=\"%s\"", name, value)
+				log.Logger().Infof("export %s='%s'", name, value)
 
-				line := fmt.Sprintf("export %s=\"%s\"", name, value)
+				line := fmt.Sprintf("export %s='%s'", name, value)
 				buf.WriteString(line)
 				buf.WriteString("\n")
 			}
