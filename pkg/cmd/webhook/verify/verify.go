@@ -275,6 +275,7 @@ func (o *Options) updateRepositoryWebhook(scmClient *scm.Client, owner string, r
 			PullRequest:        true,
 			PullRequestComment: true,
 			Push:               true,
+			Review:             true,
 			ReviewComment:      true,
 			Tag:                true,
 		},
