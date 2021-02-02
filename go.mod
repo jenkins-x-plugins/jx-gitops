@@ -9,7 +9,7 @@ require (
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/google/go-cmp v0.5.4
 	github.com/google/gofuzz v1.2.0 // indirect
-	github.com/googleapis/gnostic v0.5.3 // indirect
+	github.com/googleapis/gnostic v0.5.4 // indirect
 	github.com/h2non/gock v1.0.9
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.11
@@ -18,7 +18,7 @@ require (
 	github.com/jenkins-x/jx-helpers/v3 v3.0.73
 	github.com/jenkins-x/jx-kube-client/v3 v3.0.2
 	github.com/jenkins-x/jx-logging/v3 v3.0.3
-	github.com/jenkins-x/lighthouse-client v0.0.19
+	github.com/jenkins-x/lighthouse-client v0.0.20
 	github.com/pborman/uuid v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/roboll/helmfile v0.135.1-0.20201213020320-54eb73b4239a
