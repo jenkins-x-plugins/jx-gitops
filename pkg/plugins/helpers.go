@@ -62,7 +62,11 @@ func GetHelmfileBinary(version string) (string, error) {
 // CreateHelmfilePlugin creates the helmfile plugin
 func CreateHelmfilePlugin(version string) jenkinsv1.Plugin {
 	binaries := extensions.CreateBinaries(func(p extensions.Platform) string {
-		return fmt.Sprintf("https://github.com/roboll/helmfile/releases/download/v%s/helmfile_%s_%s_%s.tar.gz", version, version, p.Goos, p.Goarch)
+		ext := ""
+		if p.IsWindows() {
+			ext = ".exe"
+		}
+		return fmt.Sprintf("https://github.com/roboll/helmfile/releases/download/v%s/helmfile_%s_%s%s", version, strings.ToLower(p.Goos), strings.ToLower(p.Goarch), ext)
 	})
 
 	plugin := jenkinsv1.Plugin{
