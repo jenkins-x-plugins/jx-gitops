@@ -50,19 +50,20 @@ var (
 // Options the options for the command
 type Options struct {
 	options.BaseOptions
-	Dir              string
-	OutDir           string
-	ConfigRootPath   string
-	Namespace        string
-	GitCommitMessage string
-	Helmfile         string
-	Helmfiles        []helmfiles.Helmfile
-	HelmBinary       string
-	DoGitCommit      bool
-	Gitter           gitclient.Interface
-	CommandRunner    cmdrunner.CommandRunner
-	HelmClient       helmer.Helmer
-	NamespaceCharts  []*NamespaceReleases
+	Dir                     string
+	OutDir                  string
+	ConfigRootPath          string
+	Namespace               string
+	GitCommitMessage        string
+	Helmfile                string
+	Helmfiles               []helmfiles.Helmfile
+	HelmBinary              string
+	DoGitCommit             bool
+	Gitter                  gitclient.Interface
+	CommandRunner           cmdrunner.CommandRunner
+	HelmClient              helmer.Helmer
+	NamespaceCharts         []*NamespaceReleases
+	PreviousNamespaceCharts []*NamespaceReleases
 }
 
 // NewCmdHelmfileReport creates a command object for the command
@@ -139,6 +140,19 @@ func (o *Options) Run() error {
 		return errors.Wrapf(err, "failed to ")
 	}
 
+	path := filepath.Join(o.OutDir, "releases.yaml")
+
+	exists, err := files.FileExists(path)
+	if err != nil {
+		return errors.Wrapf(err, "failed to check file exists %s", path)
+	}
+	if exists {
+		err = yamls.LoadFile(path, &o.PreviousNamespaceCharts)
+		if err != nil {
+			return errors.Wrapf(err, "failed to load %s", path)
+		}
+	}
+
 	for _, hf := range o.Helmfiles {
 		charts, err := o.processHelmfile(hf)
 		if err != nil {
@@ -149,7 +163,6 @@ func (o *Options) Run() error {
 		}
 	}
 
-	path := filepath.Join(o.OutDir, "releases.yaml")
 	err = yamls.SaveFile(o.NamespaceCharts, path)
 	if err != nil {
 		return errors.Wrapf(err, "failed to save %s", path)
@@ -231,7 +244,7 @@ func (o *Options) createReleaseInfo(helmState *state.HelmState, ns string, rel *
 		for i := range helmState.Repositories {
 			repo := &helmState.Repositories[i]
 			if repo.Name == answer.RepositoryName {
-				err := o.enrichChartMetadata(answer, repo)
+				err := o.enrichChartMetadata(answer, repo, rel, ns)
 				if err != nil {
 					return nil, errors.Wrapf(err, "failed to get chart metadata for %s", answer.String())
 				}
@@ -246,7 +259,33 @@ func (o *Options) createReleaseInfo(helmState *state.HelmState, ns string, rel *
 	return answer, nil
 }
 
-func (o *Options) enrichChartMetadata(i *ReleaseInfo, repo *state.RepositorySpec) error {
+func localName(chartName string) string {
+	paths := strings.SplitN(chartName, "/", 2)
+	if len(paths) == 2 {
+		return paths[1]
+	}
+	return chartName
+}
+
+func (o *Options) enrichChartMetadata(i *ReleaseInfo, repo *state.RepositorySpec, rel *state.ReleaseSpec, ns string) error {
+	// lets see if we can find the previous data in the previous release
+	localChartName := localName(rel.Chart)
+
+	for _, nc := range o.PreviousNamespaceCharts {
+		if nc.Namespace != ns {
+			continue
+		}
+		for _, ch := range nc.Releases {
+			if ch.Name == localChartName && ch.Version == rel.Version {
+				*i = *ch
+				// lets clear the old ingress/app URLs
+				i.ApplicationURL = ""
+				i.Ingresses = nil
+				return nil
+			}
+		}
+	}
+
 	version := i.Version
 	name := i.Name
 	repoURL := repo.URL

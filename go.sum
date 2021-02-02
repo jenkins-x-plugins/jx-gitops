@@ -655,8 +655,8 @@ github.com/googleapis/gnostic v0.4.1/go.mod h1:LRhVm6pbyptWbWbuZ38d1eyptfvIytN3i
 github.com/googleapis/gnostic v0.4.2/go.mod h1:P0d+GwDcJO8XvMi7aihGGl/CkivFa9JX/V/FfjyYzI0=
 github.com/googleapis/gnostic v0.5.1 h1:A8Yhf6EtqTv9RMsU6MQTyrtV1TjWlR6xU9BsZIwuTCM=
 github.com/googleapis/gnostic v0.5.1/go.mod h1:6U4PtQXGIEt/Z3h5MAT7FNofLnw9vXk2cUuW7uA/OeU=
-github.com/googleapis/gnostic v0.5.3 h1:2qsuRm+bzgwSIKikigPASa2GhW8H2Dn4Qq7UxD8K/48=
-github.com/googleapis/gnostic v0.5.3/go.mod h1:TRWw1s4gxBGjSe301Dai3c7wXJAZy57+/6tawkOvqHQ=
+github.com/googleapis/gnostic v0.5.4 h1:ynbQIWjLw7iv6HAFdixb30U7Uvcmx+f4KlLJpmhkTK0=
+github.com/googleapis/gnostic v0.5.4/go.mod h1:TRWw1s4gxBGjSe301Dai3c7wXJAZy57+/6tawkOvqHQ=
 github.com/gophercloud/gophercloud v0.1.0/go.mod h1:vxM41WHh5uqHVBMZHzuwNOHh8XEoIEcSTewFxm1c5g8=
 github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1/go.mod h1:wJfORRmW1u3UXTncJ5qlYoELFm8eSnnEO6hX4iZ3EWY=
 github.com/gopherjs/gopherjs v0.0.0-20181103185306-d547d1d9531e h1:JKmoR8x90Iww1ks85zJ1lfDGgIiMDuIptTOhJq+zKyg=
@@ -806,8 +806,8 @@ github.com/jenkins-x/jx-kube-client/v3 v3.0.2 h1:sJs6FaIwycDYwE4UsA7j9tpdXOxXEta
 github.com/jenkins-x/jx-kube-client/v3 v3.0.2/go.mod h1:C/mKnCT5wvolX61eLKJVBNev9sqnkGNpi4skTQ1Gr3Q=
 github.com/jenkins-x/jx-logging/v3 v3.0.3 h1:sVACbwiKuaDFYPfJeVAU10MJI4DA6LcH1RqJKwfNozc=
 github.com/jenkins-x/jx-logging/v3 v3.0.3/go.mod h1:Vp2ER2SYgGhAgEEHlLwfi2ZB54tz6ya1qExq0A4CKMI=
-github.com/jenkins-x/lighthouse-client v0.0.19 h1:BiIg5hrP/qlClQSb9qWtxXVAumaoTWynABlAvaBFz1A=
-github.com/jenkins-x/lighthouse-client v0.0.19/go.mod h1:xr0nj9xyh1BfU3MaIpRq42IFKdVRaLuSKNPSx2F9dm0=
+github.com/jenkins-x/lighthouse-client v0.0.20 h1:3rcGyiKg2K+8riMVVDsmiOikTWoMhMffqd4R5ZArSYA=
+github.com/jenkins-x/lighthouse-client v0.0.20/go.mod h1:xr0nj9xyh1BfU3MaIpRq42IFKdVRaLuSKNPSx2F9dm0=
 github.com/jenkins-x/logrus-stackdriver-formatter v0.2.3 h1:NuRWKUPCEX1wKlXA8ZYSG28qGKd41R7BK11YDQkPwqo=
 github.com/jenkins-x/logrus-stackdriver-formatter v0.2.3/go.mod h1:litPp7VZWDRCl8LvXuqGngy+65kkg/+T23TgFnDmfTk=
 github.com/jessevdk/go-flags v1.4.0/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=
