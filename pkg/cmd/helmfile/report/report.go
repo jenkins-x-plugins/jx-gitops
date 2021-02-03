@@ -105,7 +105,7 @@ func (o *Options) Validate() error {
 	}
 
 	var err error
-	o.Helmfiles, err = helmfiles.GatherHelmfiles(o.Helmfile)
+	o.Helmfiles, err = helmfiles.GatherHelmfiles(o.Helmfile, o.Dir)
 	if err != nil {
 		return errors.Wrapf(err, "failed to gather nested helmfiles")
 	}

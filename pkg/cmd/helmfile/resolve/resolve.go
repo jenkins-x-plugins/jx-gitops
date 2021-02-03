@@ -114,10 +114,10 @@ func (o *Options) Validate() error {
 	}
 
 	if o.Helmfile == "" {
-		o.Helmfile = filepath.Join(o.Dir, "helmfile.yaml")
+		o.Helmfile = "helmfile.yaml"
 	}
 
-	helmfiles, err := helmfiles.GatherHelmfiles(o.Helmfile)
+	helmfiles, err := helmfiles.GatherHelmfiles(o.Helmfile, o.Dir)
 	if err != nil {
 		return errors.Wrapf(err, "failed to gather nested helmfiles")
 	}
@@ -165,7 +165,7 @@ func (o *Options) Run() error {
 		}
 	}
 
-	helmfiles, err := helmfiles.GatherHelmfiles(o.Helmfile)
+	helmfiles, err := helmfiles.GatherHelmfiles(o.Helmfile, o.Dir)
 	if err != nil {
 		return errors.Wrapf(err, "error gathering helmfiles")
 	}
@@ -291,7 +291,7 @@ func (o *Options) upgradeHelmfileStructure(dir string) (int, error) {
 	}
 	count++
 
-	helmfiles, err := helmfiles.GatherHelmfiles(o.Helmfile)
+	helmfiles, err := helmfiles.GatherHelmfiles(o.Helmfile, o.Dir)
 	if err != nil {
 		return 0, errors.Wrapf(err, "error gathering helmfiles")
 	}
@@ -552,6 +552,8 @@ func (o *Options) addValues(helmfile helmfiles.Helmfile, name string, release *s
 func (o *Options) HasHelmfile() (bool, error) {
 	if o.Helmfile == "" {
 		o.Helmfile = filepath.Join(o.Dir, "helmfile.yaml")
+	} else {
+		o.Helmfile = filepath.Join(o.Dir, o.Helmfile)
 	}
 
 	exists, err := files.FileExists(o.Helmfile)

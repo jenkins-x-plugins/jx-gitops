@@ -27,6 +27,7 @@ import (
 func TestStepHelmfileResolve(t *testing.T) {
 	tests := []struct {
 		folder     string
+		helmfile   string
 		namespaces []string
 	}{
 		{
@@ -48,6 +49,11 @@ func TestStepHelmfileResolve(t *testing.T) {
 		{
 			folder:     "input",
 			namespaces: []string{"foo", "jx", "secret-infra", "tekton-pipelines"},
+		},
+		{
+			folder:     "helmfile_subfolder",
+			helmfile:   filepath.Join("helmfiles", "helmfile.yaml"),
+			namespaces: []string{"secret-infra"},
 		},
 	}
 
@@ -103,6 +109,10 @@ func TestStepHelmfileResolve(t *testing.T) {
 		o.CommandRunner = runner.Run
 		o.Gitter = cli.NewCLIClient("", runner.Run)
 		o.UpdateMode = true
+		if test.helmfile != "" {
+			o.Helmfile = test.helmfile
+		}
+
 		err = o.Run()
 		require.NoError(t, err, "failed to run the command")
 
@@ -129,7 +139,11 @@ func TestStepHelmfileResolve(t *testing.T) {
 			}
 		}
 
-		testhelpers.AssertTextFilesEqual(t, filepath.Join(tmpDir, "expected-helmfile.yaml"), filepath.Join(tmpDir, "helmfile.yaml"), "generated file: "+name)
+		if test.helmfile != "" {
+			testhelpers.AssertTextFilesEqual(t, filepath.Join(tmpDir, "expected-helmfile.yaml"), filepath.Join(tmpDir, test.helmfile), "generated file: "+name)
+		} else {
+			testhelpers.AssertTextFilesEqual(t, filepath.Join(tmpDir, "expected-helmfile.yaml"), filepath.Join(tmpDir, "helmfile.yaml"), "generated file: "+name)
+		}
 
 		for _, ns := range test.namespaces {
 			expectedHelmfile := fmt.Sprintf("expected-%s-helmfile.yaml", ns)
