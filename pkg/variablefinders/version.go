@@ -34,10 +34,10 @@ func FindVersion(versionFile, branch, buildNumber string) (string, error) {
 	if version == "" {
 		pullNumber := os.Getenv("PULL_NUMBER")
 		if pullNumber != "" {
-			return "0.0.0-SNAPSHOT-PR-" + pullNumber + "-" + buildNumber, nil
+			return "0.0.0-PR-" + pullNumber + "-" + buildNumber + "-SNAPSHOT", nil
 		}
 		if strings.HasPrefix(branch, "PR-") {
-			return "0.0.0-SNAPSHOT-" + branch + "-" + buildNumber, nil
+			return "0.0.0-" + branch + "-" + buildNumber + "-SNAPSHOT", nil
 		}
 		log.Logger().Warnf("could not detect version from $VERSION or version file %s. Try supply the command option: --version", versionFile)
 	}
