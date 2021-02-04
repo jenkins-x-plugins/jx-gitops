@@ -217,6 +217,7 @@ func (o *Options) Run() error {
 					modified = true
 				}
 			}
+			break
 		}
 	}
 	if !found {
