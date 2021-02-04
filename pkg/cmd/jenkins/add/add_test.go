@@ -71,7 +71,9 @@ func TestJenkinsAdd(t *testing.T) {
 	// now lets run helmfile resolve...
 	_, ro := resolve.NewCmdHelmfileResolve()
 	ro.Dir = tmpDir
+	ro.QuietCommandRunner = runner.Run
 	ro.CommandRunner = runner.Run
+	ro.TestOutOfCluster = true
 
 	err = ro.Run()
 	require.NoError(t, err, "failed to run the helmfile resolve in dir %s", tmpDir)
