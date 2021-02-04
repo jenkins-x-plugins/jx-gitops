@@ -9,6 +9,7 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/resolve"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/jenkins/add"
 	"github.com/jenkins-x/jx-gitops/pkg/sourceconfigs"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner/fakerunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/cli"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/yaml2s"
@@ -22,6 +23,8 @@ func TestJenkinsAdd(t *testing.T) {
 	require.NoError(t, err, "could not create temp dir")
 
 	srcDir := filepath.Join("test_data")
+
+	runner := &fakerunner.FakeRunner{}
 
 	err = files.CopyDirOverwrite(srcDir, tmpDir)
 	require.NoError(t, err, "failed to copy from %s to %s", srcDir, tmpDir)
@@ -68,6 +71,7 @@ func TestJenkinsAdd(t *testing.T) {
 	// now lets run helmfile resolve...
 	_, ro := resolve.NewCmdHelmfileResolve()
 	ro.Dir = tmpDir
+	ro.CommandRunner = runner.Run
 
 	err = ro.Run()
 	require.NoError(t, err, "failed to run the helmfile resolve in dir %s", tmpDir)
