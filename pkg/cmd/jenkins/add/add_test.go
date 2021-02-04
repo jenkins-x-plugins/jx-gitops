@@ -1,14 +1,18 @@
 package add_test
 
 import (
+	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"testing"
 
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/resolve"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/jenkins/add"
 	"github.com/jenkins-x/jx-gitops/pkg/sourceconfigs"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/cli"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/yaml2s"
+	"github.com/roboll/helmfile/pkg/state"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -48,4 +52,59 @@ func TestJenkinsAdd(t *testing.T) {
 	require.NoError(t, err, "failed to load source configs in dir %s", tmpDir)
 	require.Len(t, sourceConfig.Spec.JenkinsServers, 1, "should have created 1 jenkins server")
 	assert.Equal(t, "myjenkins", sourceConfig.Spec.JenkinsServers[0].Server, "jenkins server name")
+
+	assertValidHelmfile(t, expectedFile)
+
+	// lets test that re-running the command doesn't result in duplicates
+	_, o = add.NewCmdJenkinsAdd()
+	o.Dir = tmpDir
+	o.Name = "myjenkins"
+
+	err = o.Run()
+	require.NoError(t, err, "failed to run the command in dir %s", tmpDir)
+
+	assertValidHelmfile(t, expectedFile)
+
+	// now lets run helmfile resolve...
+	_, ro := resolve.NewCmdHelmfileResolve()
+	ro.Dir = tmpDir
+
+	err = ro.Run()
+	require.NoError(t, err, "failed to run the helmfile resolve in dir %s", tmpDir)
+
+	assertValidHelmfile(t, expectedFile)
+}
+
+func assertValidHelmfile(t *testing.T, expectedFile string) {
+	helmState := &state.HelmState{}
+	err := yaml2s.LoadFile(expectedFile, helmState)
+	require.NoError(t, err, "failed to load %s", expectedFile)
+
+	AssertHemlfileChartCount(t, 1, helmState, "jx3/jenkins-resources", "file %s", expectedFile)
+	AssertHemlfileChartCount(t, 1, helmState, "jenkinsci/jenkins", "file %s", expectedFile)
+
+	AssertHemlfileRepository(t, helmState, "jenkinsci", "https://charts.jenkins.io", "file %s", expectedFile)
+	AssertHemlfileRepository(t, helmState, "jx3", "https://storage.googleapis.com/jenkinsxio/charts", "file %s", expectedFile)
+}
+
+func AssertHemlfileChartCount(t *testing.T, expectedCount int, helmState *state.HelmState, chartName string, messageAndArgs ...interface{}) {
+	count := 0
+	for _, rel := range helmState.Releases {
+		if rel.Chart == chartName {
+			count++
+		}
+	}
+	assert.Equal(t, expectedCount, count, messageAndArgs...)
+}
+
+func AssertHemlfileRepository(t *testing.T, helmState *state.HelmState, name string, url string, message string, args ...interface{}) {
+	text := fmt.Sprintf(message, args...)
+	found := false
+	for _, r := range helmState.Repositories {
+		if r.Name == name {
+			found = true
+			assert.Equal(t, url, r.URL, "url for repository name %s for %s", name, text)
+		}
+	}
+	assert.True(t, found, "should have found repository with name %s url %s for %s", name, url, text)
 }
