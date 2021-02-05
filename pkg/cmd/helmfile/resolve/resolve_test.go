@@ -55,6 +55,10 @@ func TestStepHelmfileResolve(t *testing.T) {
 			helmfile:   filepath.Join("helmfiles", "helmfile.yaml"),
 			namespaces: []string{"secret-infra"},
 		},
+		{
+			folder:     "helmfile_multi_subfolder",
+			namespaces: []string{"secret-infra"},
+		},
 	}
 
 	// lets find the helm binary on the $PATH or download a plugin if inside CI/CD
