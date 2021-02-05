@@ -1,8 +1,4 @@
 filepath: ""
-environments:
-  default:
-    values:
-    - jx-values.yaml
 helmfiles:
 - path: secret-infra/helmfile.yaml
 templates: {}
