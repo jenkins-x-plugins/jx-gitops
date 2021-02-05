@@ -670,6 +670,16 @@ func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
 		}
 	}
 
+	// lets check for terraform installed vault
+	if requirements.SecretStorage == jxcore.SecretStorageTypeVault && requirements.TerraformVault {
+		for i := range helmstate.Releases {
+			release := &helmstate.Releases[i]
+			if release.Chart == "jx3/vault-instance" || release.Chart == "banzaicloud-stable/vault-operator" {
+				log.Logger().Infof("Terraform installed detected and Vault chart %s still present in helmfile. Please migrate secrets as necessary and remove this chart from your helmfile", release.Chart)
+			}
+		}
+	}
+
 	// lets replace the old chartmuseum chart if its being used
 	for i := range helmstate.Releases {
 		release := &helmstate.Releases[i]
