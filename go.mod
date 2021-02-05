@@ -26,7 +26,7 @@ require (
 	github.com/rollout/rox-go v0.0.0-20181220111955-29ddae74a8c4
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.7.0
 	github.com/vrischmann/envconfig v1.3.0 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad // indirect
