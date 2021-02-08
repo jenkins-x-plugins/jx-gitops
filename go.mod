@@ -33,8 +33,8 @@ require (
 	k8s.io/apimachinery v0.20.2
 	k8s.io/client-go v11.0.1-0.20190805182717-6502b5e7b1b5+incompatible
 	rsc.io/letsencrypt v0.0.3 // indirect
-	sigs.k8s.io/kustomize/api v0.4.1
-	sigs.k8s.io/kustomize/kyaml v0.10.5
+	sigs.k8s.io/kustomize/api v0.7.3
+	sigs.k8s.io/kustomize/kyaml v0.10.7
 	sigs.k8s.io/yaml v1.2.0
 )
 
