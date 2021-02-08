@@ -6,7 +6,7 @@
 [![LICENSE](https://img.shields.io/github/license/jenkins-x/jx-gitops.svg)](https://github.com/jenkins-x/jx-gitops/blob/master/LICENSE)
 [![Slack Status](https://img.shields.io/badge/slack-join_chat-white.svg?logo=slack&style=social)](https://slack.k8s.io/)
 
-jx-gitops is a small command line tool working with Kubernetes resources and CRD files in a GitOps repository.
+jx-gitops is a small command line tool working with Kubernetes resources in a GitOps repository.
 
 ## Commands
 
