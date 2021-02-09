@@ -642,6 +642,10 @@ func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
 			repo.URL = "https://charts.helm.sh/stable"
 		case "https://godaddy.github.io/kubernetes-external-secrets":
 			repo.URL = "https://external-secrets.github.io/kubernetes-external-secrets"
+		case "https://external-secrets.github.io/kubernetes-external-secrets":
+			repo.URL = "https://storage.googleapis.com/jenkinsxio/charts"
+		case "https://chrismellard.github.io/kubernetes-external-secrets":
+			repo.URL = "https://storage.googleapis.com/jenkinsxio/charts"
 		}
 	}
 
