@@ -58,19 +58,20 @@ var (
 // Options the options for the command
 type Options struct {
 	versionstreamer.Options
-	Namespace        string
-	GitCommitMessage string
-	Helmfile         string
-	Helmfiles        []helmfiles.Helmfile
-	KptBinary        string
-	HelmBinary       string
-	BatchMode        bool
-	UpdateMode       bool
-	DoGitCommit      bool
-	TestOutOfCluster bool
-	Gitter           gitclient.Interface
-	prefixes         *versionstream.RepositoryPrefixes
-	Results          Results
+	Namespace               string
+	GitCommitMessage        string
+	Helmfile                string
+	Helmfiles               []helmfiles.Helmfile
+	KptBinary               string
+	HelmBinary              string
+	BatchMode               bool
+	UpdateMode              bool
+	DoGitCommit             bool
+	TestOutOfCluster        bool
+	Gitter                  gitclient.Interface
+	prefixes                *versionstream.RepositoryPrefixes
+	Results                 Results
+	AddEnvironmentPipelines bool
 }
 
 type Results struct {
@@ -101,6 +102,7 @@ func (o *Options) AddFlags(cmd *cobra.Command, prefix string) {
 	cmd.Flags().StringVarP(&o.Helmfile, "helmfile", "", "", "the helmfile to resolve. If not specified defaults to 'helmfile.yaml' in the dir")
 	cmd.Flags().StringVarP(&o.GitCommitMessage, prefix+"commit-message", "", "chore: generated kubernetes resources from helm chart", "the git commit message used")
 	cmd.Flags().StringVarP(&o.Namespace, "namespace", "", "jx", "the default namespace if none is specified in the helmfile.yaml")
+	cmd.Flags().BoolVarP(&o.AddEnvironmentPipelines, "add-environment-pipelines", "", false, "skips the custom upgrade step for adding .lighthouse folder")
 
 	// git commit stuff....
 	cmd.Flags().BoolVarP(&o.DoGitCommit, prefix+"git-commit", "", false, "if set then the template command will git commit the modified helmfile.yaml files")
@@ -832,38 +834,39 @@ func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
 	}
 
 	// TODO lets remove the jx-labs repository if its no longer referenced...
-
-	lighthouseTriggerFile := filepath.Join(o.Dir, ".lighthouse", "jenkins-x", "triggers.yaml")
-	exists, err := files.FileExists(lighthouseTriggerFile)
-	if err != nil {
-		return errors.Wrapf(err, "failed to detect file %s", lighthouseTriggerFile)
-	}
-	if !exists {
-		bin := o.KptBinary
-		if bin == "" {
-			bin, err = plugins.GetKptBinary(plugins.KptVersion)
-			if err != nil {
-				return err
+	if o.AddEnvironmentPipelines {
+		lighthouseTriggerFile := filepath.Join(o.Dir, ".lighthouse", "jenkins-x", "triggers.yaml")
+		exists, err := files.FileExists(lighthouseTriggerFile)
+		if err != nil {
+			return errors.Wrapf(err, "failed to detect file %s", lighthouseTriggerFile)
+		}
+		if !exists {
+			bin := o.KptBinary
+			if bin == "" {
+				bin, err = plugins.GetKptBinary(plugins.KptVersion)
+				if err != nil {
+					return err
+				}
 			}
-		}
 
-		args := []string{"pkg", "get", "https://github.com/jenkins-x/jx3-pipeline-catalog.git/environment/.lighthouse", o.Dir}
-		c := &cmdrunner.Command{
-			Name: bin,
-			Args: args,
-			Dir:  o.Dir,
-		}
-		_, err = o.CommandRunner(c)
-		if err != nil {
-			return errors.Wrapf(err, "failed to get environment tekton pipeline via kpt in dir %s", o.Dir)
-		}
+			args := []string{"pkg", "get", "https://github.com/jenkins-x/jx3-pipeline-catalog.git/environment/.lighthouse", o.Dir}
+			c := &cmdrunner.Command{
+				Name: bin,
+				Args: args,
+				Dir:  o.Dir,
+			}
+			_, err = o.CommandRunner(c)
+			if err != nil {
+				return errors.Wrapf(err, "failed to get environment tekton pipeline via kpt in dir %s", o.Dir)
+			}
 
-		err = gitclient.Add(o.Git(), o.Dir, ".lighthouse")
-		if err != nil {
-			return errors.Wrapf(err, "failed to add .lighthouse dir to git")
-		}
+			err = gitclient.Add(o.Git(), o.Dir, ".lighthouse")
+			if err != nil {
+				return errors.Wrapf(err, "failed to add .lighthouse dir to git")
+			}
 
-		log.Logger().Infof("got tekton pipeline for envirnment at %s", lighthouseTriggerFile)
+			log.Logger().Infof("got tekton pipeline for envirnment at %s", lighthouseTriggerFile)
+		}
 	}
 
 	return o.customBootJob(requirements)
