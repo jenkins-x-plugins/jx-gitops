@@ -81,9 +81,9 @@ func TestScheduler(t *testing.T) {
 	}
 
 	assert.NotNil(t, lhCfg.InRepoConfig.Enabled, "should have inRepoConfig enabled")
-	assert.NotNil(t, lhCfg.InRepoConfig.Enabled[inRepoFullName], "should have inRepoConfig.Enabled['myorg/in-repo']")
-	assert.NotNil(t, lhCfg.InRepoConfig.Enabled[otherInRepoFullName], "should have inRepoConfig.Enabled['myorg/another-in-repo']")
-	assert.NotNil(t, lhCfg.InRepoConfig.Enabled["myorg/env-mycluster-dev"], "should have inRepoConfig.Enabled['myorg/env-mycluster-dev']")
+	assert.NotNil(t, lhCfg.InRepoConfig.Enabled[inRepoFullName], "should have inRepoConfig.ToBool['myorg/in-repo']")
+	assert.NotNil(t, lhCfg.InRepoConfig.Enabled[otherInRepoFullName], "should have inRepoConfig.ToBool['myorg/another-in-repo']")
+	assert.NotNil(t, lhCfg.InRepoConfig.Enabled["myorg/env-mycluster-dev"], "should have inRepoConfig.ToBool['myorg/env-mycluster-dev']")
 
 	approveQuery := keeper.Query{}
 	foundApproveQuery := false
