@@ -1,12 +1,48 @@
 package v1alpha1
 
 import (
+	"strings"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
 	// SourceConfigFileName default name of the source repository configuration
 	SourceConfigFileName = "source-config.yaml"
+)
+
+// BooleanFlag a type that is used for string boolean values that can be blank or yes/no
+type BooleanFlag string
+
+var (
+	// BooleanFlagNone indicates no value
+	BooleanFlagNone BooleanFlag = ""
+
+	// BooleanFlagYes BooleanFlagYes indicates yes
+	BooleanFlagYes BooleanFlag = "yes"
+
+	// BooleanFlagNo indicates no
+	BooleanFlagNo BooleanFlag = "no"
+)
+
+// NotifyKind what kind of notification
+type NotifyKind string
+
+var (
+	// NotifyKindNone indicates no notification
+	NotifyKindNone NotifyKind = ""
+
+	// NotifyKindAlways always notify
+	NotifyKindAlways NotifyKind = "always"
+
+	// NotifyKindFailure only failures
+	NotifyKindFailure NotifyKind = "failure"
+
+	// NotifyKindFailureOrFirstSuccess only failures or first success after failure
+	NotifyKindFailureOrFirstSuccess NotifyKind = "failureOrNextSuccess"
+
+	// NotifyKindSuccess only successful
+	NotifyKindSuccess NotifyKind = "success"
 )
 
 // +genclient
@@ -79,6 +115,9 @@ type RepositoryGroup struct {
 
 	// JenkinsJobTemplate the default job template file to use to generate the projects job DSL script
 	JenkinsJobTemplate string `json:"jenkinsJobTemplate,omitempty"`
+
+	// Slack optional slack notification configuration
+	Slack *SlackNotify `json:"slack,omitempty"`
 }
 
 // Repository the name of the repository to import and the optional scheduler
@@ -103,6 +142,9 @@ type Repository struct {
 
 	// SSHCloneURL the SSH based clone URL
 	SSHCloneURL string `json:"sshCloneURL,omitempty"`
+
+	// Slack optional slack notification configuration
+	Slack *SlackNotify `json:"slack,omitempty"`
 }
 
 // JenkinsServer the Jenkins server configuration
@@ -118,4 +160,64 @@ type JenkinsServer struct {
 
 	// Groups the groups of source repositories
 	Groups []RepositoryGroup `json:"groups,omitempty"`
+}
+
+// SlackNotify the slack notification configuration
+type SlackNotify struct {
+	// Channel the name of the channel to notify pipelines
+	Channel string `json:"channel,omitempty"`
+
+	// Kind kind of notification
+	Kind NotifyKind `json:"kind,omitempty"`
+
+	// Disable disables the notifications
+	Disable BooleanFlag `json:"disable,omitempty"`
+
+	// DirectMessage whether to use Direct Messages
+	DirectMessage BooleanFlag `json:"noDirectMessage,omitempty"`
+
+	// NotifyReviewers whether to use Direct Messages
+	NotifyReviewers BooleanFlag `json:"noDirectMessage,omitempty"`
+
+	// IgnorePullLabels the labels which if present on a Pull Request are ignored
+	IgnorePullLabels []string `json:"ignorePullLabels,omitempty"`
+}
+
+// ToBool converts the flag to a boolean such that it is only true if the
+// value is "yes"
+func (f BooleanFlag) ToBool() bool {
+	return strings.ToLower(string(f)) == "yes"
+}
+
+// Inherit if the current flag is blank lets use the group value
+func (f BooleanFlag) Inherit(group BooleanFlag) BooleanFlag {
+	if string(f) != "" {
+		return f
+	}
+	return group
+}
+
+// Inherit inherits the settings on this repository from the group
+func (repo *SlackNotify) Inherit(group *SlackNotify) *SlackNotify {
+	if repo == nil {
+		return group
+	}
+	if group == nil {
+		return repo
+	}
+	answer := *group
+	if repo.Channel != "" {
+		answer.Channel = repo.Channel
+	}
+	if string(repo.Kind) != "" {
+		answer.Kind = repo.Kind
+	}
+
+	if len(repo.IgnorePullLabels) > 0 {
+		answer.IgnorePullLabels = repo.IgnorePullLabels
+	}
+	answer.Disable = repo.Disable.Inherit(group.Disable)
+	answer.DirectMessage = repo.Disable.Inherit(group.DirectMessage)
+	answer.NotifyReviewers = repo.Disable.Inherit(group.NotifyReviewers)
+	return &answer
 }
