@@ -219,8 +219,9 @@ func EnrichConfig(config *v1alpha1.SourceConfig) {
 
 func DefaultSlackNotify() *v1alpha1.SlackNotify {
 	return &v1alpha1.SlackNotify{
-		Channel: v1alpha1.DefaultSlackChannel,
-		Kind:    v1alpha1.NotifyKindFailureOrFirstSuccess,
+		Channel:  v1alpha1.DefaultSlackChannel,
+		Kind:     v1alpha1.NotifyKindFailureOrFirstSuccess,
+		Pipeline: v1alpha1.PipelineKindRelease,
 	}
 }
 

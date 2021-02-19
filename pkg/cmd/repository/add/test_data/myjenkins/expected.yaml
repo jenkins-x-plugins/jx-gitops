@@ -22,3 +22,4 @@ spec:
   slack:
     channel: '#jenkins-x-pipelines'
     kind: failureOrNextSuccess
+    pipeline: release
