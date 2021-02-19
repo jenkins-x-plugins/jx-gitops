@@ -15,7 +15,7 @@ var (
 	gitServer = giturl.GitHubURL
 )
 
-func TestDefaultValues(t *testing.T) {
+func TestSourceConfigDefaultValues(t *testing.T) {
 	owner := "myowner"
 
 	config := &v1alpha1.SourceConfig{
@@ -51,15 +51,36 @@ func TestDefaultValues(t *testing.T) {
 						{
 							Name: "repo-enabled",
 							Slack: &v1alpha1.SlackNotify{
-								Disable: v1alpha1.BooleanFlagNo,
+								DirectMessage: v1alpha1.BooleanFlagNo,
 							},
 						},
 					},
 					Slack: &v1alpha1.SlackNotify{
-						Channel: "default-channel",
-						Disable: v1alpha1.BooleanFlagYes,
+						Channel:       "default-channel",
+						DirectMessage: v1alpha1.BooleanFlagYes,
 					},
 				},
+				{
+					Provider:     gitServer,
+					ProviderKind: gitKind,
+					Owner:        "no-cfg",
+					Repositories: []v1alpha1.Repository{
+						{
+							Name: "default-value",
+						},
+						{
+							Name: "repo-enabled",
+							Slack: &v1alpha1.SlackNotify{
+								DirectMessage:   v1alpha1.BooleanFlagNo,
+								NotifyReviewers: v1alpha1.BooleanFlagNo,
+							},
+						},
+					},
+				},
+			},
+			Slack: &v1alpha1.SlackNotify{
+				Channel:         "default-channel-for-orgs",
+				NotifyReviewers: v1alpha1.BooleanFlagYes,
 			},
 		},
 	}
@@ -67,19 +88,23 @@ func TestDefaultValues(t *testing.T) {
 	err := sourceconfigs.DefaultConfigValues(config)
 	require.NoError(t, err, "default values")
 
-	assertSlackChannel(t, config, owner, "no-cfg", "default-channel", false)
-	assertSlackChannel(t, config, owner, "override-channel", "new-channel", false)
+	assertSlackChannel(t, config, owner, "no-cfg", "default-channel", false, true)
+	assertSlackChannel(t, config, owner, "override-channel", "new-channel", false, true)
 
-	assertSlackChannel(t, config, "default-disabled", "default-value", "default-channel", true)
-	assertSlackChannel(t, config, "default-disabled", "repo-enabled", "default-channel", false)
+	assertSlackChannel(t, config, "default-disabled", "default-value", "default-channel", true, true)
+	assertSlackChannel(t, config, "default-disabled", "repo-enabled", "default-channel", false, true)
+
+	assertSlackChannel(t, config, "no-cfg", "default-value", "default-channel-for-orgs", false, true)
+	assertSlackChannel(t, config, "no-cfg", "repo-enabled", "default-channel-for-orgs", false, false)
 }
 
-func assertSlackChannel(t *testing.T, config *v1alpha1.SourceConfig, owner string, repoName string, expectedChannel string, expectedDisabled bool) {
+func assertSlackChannel(t *testing.T, config *v1alpha1.SourceConfig, owner string, repoName string, expectedChannel string, expectedDirectMessage bool, expectedNotifyReviewers bool) {
 	group := sourceconfigs.GetOrCreateGroup(config, gitKind, gitServer, owner)
 	repo := sourceconfigs.GetOrCreateRepository(group, repoName)
 	require.NotNil(t, repo, "should have found a repo for owner %s and repo %s", owner, repoName)
 	slack := repo.Slack
 	require.NotNil(t, slack, "no slack configuration found for owner %s and repo %s", owner, repoName)
 	assert.Equal(t, expectedChannel, slack.Channel, "slack channel for owner %s and repo %s", owner, repoName)
-	assert.Equal(t, expectedDisabled, slack.Disable.ToBool(), "slack channel disabled flag for owner %s and repo %s", owner, repoName)
+	assert.Equal(t, expectedDirectMessage, slack.DirectMessage.ToBool(), "slack channel directMessage flag for owner %s and repo %s", owner, repoName)
+	assert.Equal(t, expectedNotifyReviewers, slack.NotifyReviewers.ToBool(), "slack channel notifyReviewers flag for owner %s and repo %s", owner, repoName)
 }

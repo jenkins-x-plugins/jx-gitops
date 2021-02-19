@@ -87,6 +87,8 @@ func DefaultGroupValues(config *v1alpha1.SourceConfig, groups []v1alpha1.Reposit
 
 // DefaultValues defaults values from the given config, group and repository if they are missing
 func DefaultValues(config *v1alpha1.SourceConfig, group *v1alpha1.RepositoryGroup, repo *v1alpha1.Repository) error {
+	group.Slack = group.Slack.Inherit(config.Spec.Slack)
+
 	if group.Provider == "" {
 		group.Provider = "https://github.com"
 	}
@@ -207,6 +209,19 @@ func EnrichConfig(config *v1alpha1.SourceConfig) {
 	}
 	if config.Kind == "" {
 		config.Kind = v1alpha1.KindSourceConfig
+	}
+
+	// lets add a default slack configuration if it doesn't exist
+	if config.Spec.Slack == nil {
+		config.Spec.Slack = DefaultSlackNotify()
+	}
+}
+
+func DefaultSlackNotify() *v1alpha1.SlackNotify {
+	return &v1alpha1.SlackNotify{
+		Channel:  v1alpha1.DefaultSlackChannel,
+		Kind:     v1alpha1.NotifyKindFailureOrFirstSuccess,
+		Pipeline: v1alpha1.PipelineKindRelease,
 	}
 }
 

@@ -3,12 +3,16 @@ package v1alpha1
 import (
 	"strings"
 
+	"github.com/jenkins-x/jx-helpers/v3/pkg/stringhelpers"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
 	// SourceConfigFileName default name of the source repository configuration
 	SourceConfigFileName = "source-config.yaml"
+
+	//DefaultSlackChannel
+	DefaultSlackChannel = "#jenkins-x-pipelines"
 )
 
 // BooleanFlag a type that is used for string boolean values that can be blank or yes/no
@@ -25,12 +29,29 @@ var (
 	BooleanFlagNo BooleanFlag = "no"
 )
 
+// PipelineKind what pipeline to notify on
+type PipelineKind string
+
+var (
+	// PipelineKindNone indicates all pipelines
+	PipelineKindAll PipelineKind = ""
+
+	// PipelineKindRelease only notify on release pipelines
+	PipelineKindRelease PipelineKind = "release"
+
+	// PipelineKindPullRequest only notify on pullRequest pipelines
+	PipelineKindPullRequest PipelineKind = "pullRequest"
+)
+
 // NotifyKind what kind of notification
 type NotifyKind string
 
 var (
 	// NotifyKindNone indicates no notification
 	NotifyKindNone NotifyKind = ""
+
+	// NotifyKindNever never notify
+	NotifyKindNever NotifyKind = "never"
 
 	// NotifyKindAlways always notify
 	NotifyKindAlways NotifyKind = "always"
@@ -79,6 +100,9 @@ type SourceConfigSpec struct {
 
 	// Scheduler the default scheduler for any group/repository which does not specify one
 	Scheduler string `json:"scheduler,omitempty"`
+
+	// Slack optional default slack notification configuration inherited by groups
+	Slack *SlackNotify `json:"slack,omitempty"`
 
 	// JenkinsServers the jenkins servers configured for this repository
 	JenkinsServers []JenkinsServer `json:"jenkinsServers,omitempty"`
@@ -170,8 +194,8 @@ type SlackNotify struct {
 	// Kind kind of notification
 	Kind NotifyKind `json:"kind,omitempty"`
 
-	// Disable disables the notifications
-	Disable BooleanFlag `json:"disable,omitempty"`
+	// Pipeline kind of pipeline to notify on
+	Pipeline PipelineKind `json:"pipeline,omitempty"`
 
 	// DirectMessage whether to use Direct Messages
 	DirectMessage BooleanFlag `json:"noDirectMessage,omitempty"`
@@ -179,8 +203,68 @@ type SlackNotify struct {
 	// NotifyReviewers whether to use Direct Messages
 	NotifyReviewers BooleanFlag `json:"noDirectMessage,omitempty"`
 
-	// IgnorePullLabels the labels which if present on a Pull Request are ignored
-	IgnorePullLabels []string `json:"ignorePullLabels,omitempty"`
+	// Branch specify the branch name or filter to notify
+	Branch *Pattern `json:"branch,omitempty"`
+
+	// Context specify the context name or filter to notify
+	Context *Pattern `json:"branch,omitempty"`
+
+	// PullRequestLabel specify the label pull request label to notify
+	PullRequestLabel *Pattern `json:"branch,omitempty"`
+}
+
+// Pattern for matching strings
+type Pattern struct {
+	// Name
+	Name string `json:"name,omitempty"`
+	// Includes patterns to include in changing
+	Includes []string `json:"include,omitempty"`
+	// Excludes patterns to exclude from upgrading
+	Excludes []string `json:"exclude,omitempty"`
+}
+
+// Matches returns true if the text matches the given text
+func (p *Pattern) Matches(text string) bool {
+	if p == nil {
+		return true
+	}
+	if p.Name != "" {
+		return text == p.Name
+	}
+	return stringhelpers.StringMatchesAny(text, p.Includes, p.Excludes)
+}
+
+// Matches returns true if the text matches the given text
+func (p *Pattern) MatchesLabels(labels []string) bool {
+	if p == nil {
+		return true
+	}
+	if p.Name != "" {
+		if stringhelpers.StringArrayIndex(labels, p.Name) < 0 {
+			return false
+		}
+	}
+	for _, text := range p.Excludes {
+		if stringhelpers.StringArrayIndex(labels, text) >= 0 {
+			return false
+		}
+	}
+	if len(p.Includes) == 0 {
+		return true
+	}
+	for _, text := range p.Includes {
+		if stringhelpers.StringArrayIndex(labels, text) >= 0 {
+			return true
+		}
+	}
+	return false
+}
+
+func (p *Pattern) Inherit(group *Pattern) *Pattern {
+	if p == nil {
+		return group
+	}
+	return p
 }
 
 // ToBool converts the flag to a boolean such that it is only true if the
@@ -213,11 +297,10 @@ func (repo *SlackNotify) Inherit(group *SlackNotify) *SlackNotify {
 		answer.Kind = repo.Kind
 	}
 
-	if len(repo.IgnorePullLabels) > 0 {
-		answer.IgnorePullLabels = repo.IgnorePullLabels
-	}
-	answer.Disable = repo.Disable.Inherit(group.Disable)
-	answer.DirectMessage = repo.Disable.Inherit(group.DirectMessage)
-	answer.NotifyReviewers = repo.Disable.Inherit(group.NotifyReviewers)
+	answer.Branch = repo.Branch.Inherit(group.Branch)
+	answer.Context = repo.Context.Inherit(group.Context)
+	answer.PullRequestLabel = repo.PullRequestLabel.Inherit(group.PullRequestLabel)
+	answer.DirectMessage = repo.DirectMessage.Inherit(group.DirectMessage)
+	answer.NotifyReviewers = repo.NotifyReviewers.Inherit(group.NotifyReviewers)
 	return &answer
 }

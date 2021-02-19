@@ -12,3 +12,7 @@ spec:
     - name: jx-cli
     - name: jx-gitops
     scheduler: cheese
+  slack:
+    channel: '#jenkins-x-pipelines'
+    kind: failureOrNextSuccess
+    pipeline: release
