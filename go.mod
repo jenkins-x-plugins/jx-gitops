@@ -16,7 +16,7 @@ require (
 	github.com/jenkins-x/jx-helpers/v3 v3.0.81
 	github.com/jenkins-x/jx-kube-client/v3 v3.0.2
 	github.com/jenkins-x/jx-logging/v3 v3.0.3
-	github.com/jenkins-x/lighthouse-client v0.0.37
+	github.com/jenkins-x/lighthouse-client v0.0.38
 	github.com/pborman/uuid v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/roboll/helmfile v0.138.4
@@ -28,8 +28,8 @@ require (
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	gopkg.in/validator.v2 v2.0.0-20200605151824-2b28d334fa05
 	helm.sh/helm/v3 v3.5.0
-	k8s.io/api v0.20.3
-	k8s.io/apimachinery v0.20.3
+	k8s.io/api v0.20.4
+	k8s.io/apimachinery v0.20.4
 	k8s.io/client-go v11.0.1-0.20190805182717-6502b5e7b1b5+incompatible
 	rsc.io/letsencrypt v0.0.3 // indirect
 	sigs.k8s.io/kustomize/api v0.4.1
