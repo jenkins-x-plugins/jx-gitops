@@ -427,6 +427,19 @@ string
 </tr>
 <tr>
 <td>
+<code>slack</code></br>
+<em>
+<a href="#gitops.jenkins-x.io/v1alpha1.SlackNotify">
+SlackNotify
+</a>
+</em>
+</td>
+<td>
+<p>Slack optional default slack notification configuration inherited by groups</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>jenkinsServers</code></br>
 <em>
 <a href="#gitops.jenkins-x.io/v1alpha1.JenkinsServer">
@@ -474,6 +487,15 @@ string
 </p>
 <p>
 <p>BackendType describes a secrets backend</p>
+</p>
+<h3 id="gitops.jenkins-x.io/v1alpha1.BooleanFlag">BooleanFlag
+(<code>string</code> alias)</p></h3>
+<p>
+(<em>Appears on:</em>
+<a href="#gitops.jenkins-x.io/v1alpha1.SlackNotify">SlackNotify</a>)
+</p>
+<p>
+<p>BooleanFlag a type that is used for string boolean values that can be blank or yes/no</p>
 </p>
 <h3 id="gitops.jenkins-x.io/v1alpha1.Defaults">Defaults
 </h3>
@@ -733,6 +755,67 @@ string
 </tr>
 </tbody>
 </table>
+<h3 id="gitops.jenkins-x.io/v1alpha1.NotifyKind">NotifyKind
+(<code>string</code> alias)</p></h3>
+<p>
+(<em>Appears on:</em>
+<a href="#gitops.jenkins-x.io/v1alpha1.SlackNotify">SlackNotify</a>)
+</p>
+<p>
+<p>NotifyKind what kind of notification</p>
+</p>
+<h3 id="gitops.jenkins-x.io/v1alpha1.Pattern">Pattern
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#gitops.jenkins-x.io/v1alpha1.SlackNotify">SlackNotify</a>)
+</p>
+<p>
+<p>Pattern for matching strings</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>name</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Name</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>include</code></br>
+<em>
+[]string
+</em>
+</td>
+<td>
+<p>Includes patterns to include in changing</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>exclude</code></br>
+<em>
+[]string
+</em>
+</td>
+<td>
+<p>Excludes patterns to exclude from upgrading</p>
+</td>
+</tr>
+</tbody>
+</table>
 <h3 id="gitops.jenkins-x.io/v1alpha1.PipelineCatalogSource">PipelineCatalogSource
 </h3>
 <p>
@@ -824,6 +907,15 @@ string
 </tr>
 </tbody>
 </table>
+<h3 id="gitops.jenkins-x.io/v1alpha1.PipelineKind">PipelineKind
+(<code>string</code> alias)</p></h3>
+<p>
+(<em>Appears on:</em>
+<a href="#gitops.jenkins-x.io/v1alpha1.SlackNotify">SlackNotify</a>)
+</p>
+<p>
+<p>PipelineKind what pipeline to notify on</p>
+</p>
 <h3 id="gitops.jenkins-x.io/v1alpha1.QuickstartImport">QuickstartImport
 </h3>
 <p>
@@ -1143,6 +1235,19 @@ string
 <p>SSHCloneURL the SSH based clone URL</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>slack</code></br>
+<em>
+<a href="#gitops.jenkins-x.io/v1alpha1.SlackNotify">
+SlackNotify
+</a>
+</em>
+</td>
+<td>
+<p>Slack optional slack notification configuration</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="gitops.jenkins-x.io/v1alpha1.RepositoryGroup">RepositoryGroup
@@ -1251,6 +1356,19 @@ string
 </td>
 <td>
 <p>JenkinsJobTemplate the default job template file to use to generate the projects job DSL script</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>slack</code></br>
+<em>
+<a href="#gitops.jenkins-x.io/v1alpha1.SlackNotify">
+SlackNotify
+</a>
+</em>
+</td>
+<td>
+<p>Slack optional slack notification configuration</p>
 </td>
 </tr>
 </tbody>
@@ -1390,6 +1508,129 @@ GcpSecretsManager
 </tr>
 </tbody>
 </table>
+<h3 id="gitops.jenkins-x.io/v1alpha1.SlackNotify">SlackNotify
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#gitops.jenkins-x.io/v1alpha1.Repository">Repository</a>, 
+<a href="#gitops.jenkins-x.io/v1alpha1.RepositoryGroup">RepositoryGroup</a>, 
+<a href="#gitops.jenkins-x.io/v1alpha1.SourceConfigSpec">SourceConfigSpec</a>)
+</p>
+<p>
+<p>SlackNotify the slack notification configuration</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>channel</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Channel the name of the channel to notify pipelines</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>kind</code></br>
+<em>
+<a href="#gitops.jenkins-x.io/v1alpha1.NotifyKind">
+NotifyKind
+</a>
+</em>
+</td>
+<td>
+<p>Kind kind of notification</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>pipeline</code></br>
+<em>
+<a href="#gitops.jenkins-x.io/v1alpha1.PipelineKind">
+PipelineKind
+</a>
+</em>
+</td>
+<td>
+<p>Pipeline kind of pipeline to notify on</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>noDirectMessage</code></br>
+<em>
+<a href="#gitops.jenkins-x.io/v1alpha1.BooleanFlag">
+BooleanFlag
+</a>
+</em>
+</td>
+<td>
+<p>DirectMessage whether to use Direct Messages</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>noDirectMessage</code></br>
+<em>
+<a href="#gitops.jenkins-x.io/v1alpha1.BooleanFlag">
+BooleanFlag
+</a>
+</em>
+</td>
+<td>
+<p>NotifyReviewers whether to use Direct Messages</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>branch</code></br>
+<em>
+<a href="#gitops.jenkins-x.io/v1alpha1.Pattern">
+Pattern
+</a>
+</em>
+</td>
+<td>
+<p>Branch specify the branch name or filter to notify</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>branch</code></br>
+<em>
+<a href="#gitops.jenkins-x.io/v1alpha1.Pattern">
+Pattern
+</a>
+</em>
+</td>
+<td>
+<p>Context specify the context name or filter to notify</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>branch</code></br>
+<em>
+<a href="#gitops.jenkins-x.io/v1alpha1.Pattern">
+Pattern
+</a>
+</em>
+</td>
+<td>
+<p>PullRequestLabel specify the label pull request label to notify</p>
+</td>
+</tr>
+</tbody>
+</table>
 <h3 id="gitops.jenkins-x.io/v1alpha1.SourceConfigSpec">SourceConfigSpec
 </h3>
 <p>
@@ -1433,6 +1674,19 @@ string
 </tr>
 <tr>
 <td>
+<code>slack</code></br>
+<em>
+<a href="#gitops.jenkins-x.io/v1alpha1.SlackNotify">
+SlackNotify
+</a>
+</em>
+</td>
+<td>
+<p>Slack optional default slack notification configuration inherited by groups</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>jenkinsServers</code></br>
 <em>
 <a href="#gitops.jenkins-x.io/v1alpha1.JenkinsServer">
@@ -1471,5 +1725,5 @@ string
 <hr/>
 <p><em>
 Generated with <code>gen-crd-api-reference-docs</code>
-on git commit <code>510ea1f</code>.
+on git commit <code>18a97d9</code>.
 </em></p>
