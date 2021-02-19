@@ -9,6 +9,9 @@ import (
 const (
 	// SourceConfigFileName default name of the source repository configuration
 	SourceConfigFileName = "source-config.yaml"
+
+	//DefaultSlackChannel
+	DefaultSlackChannel = "#jenkins-x-pipelines"
 )
 
 // BooleanFlag a type that is used for string boolean values that can be blank or yes/no
@@ -31,6 +34,9 @@ type NotifyKind string
 var (
 	// NotifyKindNone indicates no notification
 	NotifyKindNone NotifyKind = ""
+
+	// NotifyKindNever never notify
+	NotifyKindNever NotifyKind = "never"
 
 	// NotifyKindAlways always notify
 	NotifyKindAlways NotifyKind = "always"
@@ -79,6 +85,9 @@ type SourceConfigSpec struct {
 
 	// Scheduler the default scheduler for any group/repository which does not specify one
 	Scheduler string `json:"scheduler,omitempty"`
+
+	// Slack optional default slack notification configuration inherited by groups
+	Slack *SlackNotify `json:"slack,omitempty"`
 
 	// JenkinsServers the jenkins servers configured for this repository
 	JenkinsServers []JenkinsServer `json:"jenkinsServers,omitempty"`
@@ -170,9 +179,6 @@ type SlackNotify struct {
 	// Kind kind of notification
 	Kind NotifyKind `json:"kind,omitempty"`
 
-	// Disable disables the notifications
-	Disable BooleanFlag `json:"disable,omitempty"`
-
 	// DirectMessage whether to use Direct Messages
 	DirectMessage BooleanFlag `json:"noDirectMessage,omitempty"`
 
@@ -216,8 +222,7 @@ func (repo *SlackNotify) Inherit(group *SlackNotify) *SlackNotify {
 	if len(repo.IgnorePullLabels) > 0 {
 		answer.IgnorePullLabels = repo.IgnorePullLabels
 	}
-	answer.Disable = repo.Disable.Inherit(group.Disable)
-	answer.DirectMessage = repo.Disable.Inherit(group.DirectMessage)
-	answer.NotifyReviewers = repo.Disable.Inherit(group.NotifyReviewers)
+	answer.DirectMessage = repo.DirectMessage.Inherit(group.DirectMessage)
+	answer.NotifyReviewers = repo.NotifyReviewers.Inherit(group.NotifyReviewers)
 	return &answer
 }

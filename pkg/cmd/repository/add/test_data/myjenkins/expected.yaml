@@ -19,3 +19,6 @@ spec:
       repositories:
       - name: myjenkins
     server: jenkins1
+  slack:
+    channel: '#jenkins-x-pipelines'
+    kind: failureOrNextSuccess
