@@ -32,7 +32,8 @@ func TestSourceConfigDefaultValues(t *testing.T) {
 						{
 							Name: "override-channel",
 							Slack: &v1alpha1.SlackNotify{
-								Channel: "new-channel",
+								Channel:  "new-channel",
+								Pipeline: v1alpha1.PipelineKindAll,
 							},
 						},
 					},
@@ -80,6 +81,7 @@ func TestSourceConfigDefaultValues(t *testing.T) {
 			},
 			Slack: &v1alpha1.SlackNotify{
 				Channel:         "default-channel-for-orgs",
+				Pipeline:        v1alpha1.PipelineKindRelease,
 				NotifyReviewers: v1alpha1.BooleanFlagYes,
 			},
 		},
@@ -88,23 +90,24 @@ func TestSourceConfigDefaultValues(t *testing.T) {
 	err := sourceconfigs.DefaultConfigValues(config)
 	require.NoError(t, err, "default values")
 
-	assertSlackChannel(t, config, owner, "no-cfg", "default-channel", false, true)
-	assertSlackChannel(t, config, owner, "override-channel", "new-channel", false, true)
+	assertSlackChannel(t, config, owner, "no-cfg", "default-channel", v1alpha1.PipelineKindRelease, false, true)
+	assertSlackChannel(t, config, owner, "override-channel", "new-channel", v1alpha1.PipelineKindAll, false, true)
 
-	assertSlackChannel(t, config, "default-disabled", "default-value", "default-channel", true, true)
-	assertSlackChannel(t, config, "default-disabled", "repo-enabled", "default-channel", false, true)
+	assertSlackChannel(t, config, "default-disabled", "default-value", "default-channel", v1alpha1.PipelineKindRelease, true, true)
+	assertSlackChannel(t, config, "default-disabled", "repo-enabled", "default-channel", v1alpha1.PipelineKindRelease, false, true)
 
-	assertSlackChannel(t, config, "no-cfg", "default-value", "default-channel-for-orgs", false, true)
-	assertSlackChannel(t, config, "no-cfg", "repo-enabled", "default-channel-for-orgs", false, false)
+	assertSlackChannel(t, config, "no-cfg", "default-value", "default-channel-for-orgs", v1alpha1.PipelineKindRelease, false, true)
+	assertSlackChannel(t, config, "no-cfg", "repo-enabled", "default-channel-for-orgs", v1alpha1.PipelineKindRelease, false, false)
 }
 
-func assertSlackChannel(t *testing.T, config *v1alpha1.SourceConfig, owner string, repoName string, expectedChannel string, expectedDirectMessage bool, expectedNotifyReviewers bool) {
+func assertSlackChannel(t *testing.T, config *v1alpha1.SourceConfig, owner string, repoName string, expectedChannel string, expectedPipeline v1alpha1.PipelineKind, expectedDirectMessage bool, expectedNotifyReviewers bool) {
 	group := sourceconfigs.GetOrCreateGroup(config, gitKind, gitServer, owner)
 	repo := sourceconfigs.GetOrCreateRepository(group, repoName)
 	require.NotNil(t, repo, "should have found a repo for owner %s and repo %s", owner, repoName)
 	slack := repo.Slack
 	require.NotNil(t, slack, "no slack configuration found for owner %s and repo %s", owner, repoName)
 	assert.Equal(t, expectedChannel, slack.Channel, "slack channel for owner %s and repo %s", owner, repoName)
+	assert.Equal(t, expectedPipeline, slack.Pipeline, "slack pipeline for owner %s and repo %s", owner, repoName)
 	assert.Equal(t, expectedDirectMessage, slack.DirectMessage.ToBool(), "slack channel directMessage flag for owner %s and repo %s", owner, repoName)
 	assert.Equal(t, expectedNotifyReviewers, slack.NotifyReviewers.ToBool(), "slack channel notifyReviewers flag for owner %s and repo %s", owner, repoName)
 }

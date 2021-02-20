@@ -34,7 +34,10 @@ type PipelineKind string
 
 var (
 	// PipelineKindNone indicates all pipelines
-	PipelineKindAll PipelineKind = ""
+	PipelineKindNone PipelineKind = ""
+
+	// PipelineKindAll indicates all pipelines
+	PipelineKindAll PipelineKind = "all"
 
 	// PipelineKindRelease only notify on release pipelines
 	PipelineKindRelease PipelineKind = "release"
@@ -289,9 +292,12 @@ func (repo *SlackNotify) Inherit(group *SlackNotify) *SlackNotify {
 	if group == nil {
 		return repo
 	}
-	answer := *group
-	if repo.Channel != "" {
-		answer.Channel = repo.Channel
+	answer := *repo
+	if repo.Channel == "" {
+		answer.Channel = group.Channel
+	}
+	if string(repo.Pipeline) == "" {
+		answer.Pipeline = group.Pipeline
 	}
 	if string(repo.Kind) != "" {
 		answer.Kind = repo.Kind
