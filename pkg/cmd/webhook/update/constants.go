@@ -1,4 +1,4 @@
-package verify
+package update
 
 const (
 	// LighthouseHMACToken names of the hmac token secret for Lighthouse

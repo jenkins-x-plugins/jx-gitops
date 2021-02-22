@@ -1,7 +1,7 @@
 package webhook
 
 import (
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/webhook/verify"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/webhook/update"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
@@ -25,6 +25,6 @@ func NewCmdWebhook() *cobra.Command {
 			}
 		},
 	}
-	command.AddCommand(helper.RetryOnErrorCommand(cobras.SplitCommand(verify.NewCmdWebHookVerify()), helper.RegexRetryFunction(webHookUpdateRetriableErrors)))
+	command.AddCommand(helper.RetryOnErrorCommand(cobras.SplitCommand(update.NewCmdWebHookVerify()), helper.RegexRetryFunction(webHookUpdateRetriableErrors)))
 	return command
 }
