@@ -162,7 +162,11 @@ func (o *Options) GetWebHookEndpointFromHook() (string, error) {
 		return "", err
 	}
 
-	return stringhelpers.UrlJoin(baseURL, "hook"), nil
+	// lets add /hook if it does not already have it
+	if !strings.HasSuffix(baseURL, "/hook") {
+		baseURL = stringhelpers.UrlJoin(baseURL, "hook")
+	}
+	return baseURL, nil
 }
 
 // GetHMACTokenFromSecret gets the appropriate HMAC secret, for either Prow or Lighthouse
