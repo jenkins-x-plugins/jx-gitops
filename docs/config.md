@@ -1566,7 +1566,7 @@ PipelineKind
 </tr>
 <tr>
 <td>
-<code>noDirectMessage</code></br>
+<code>directMessage</code></br>
 <em>
 <a href="#gitops.jenkins-x.io/v1alpha1.BooleanFlag">
 BooleanFlag
@@ -1605,7 +1605,7 @@ Pattern
 </tr>
 <tr>
 <td>
-<code>branch</code></br>
+<code>context</code></br>
 <em>
 <a href="#gitops.jenkins-x.io/v1alpha1.Pattern">
 Pattern
@@ -1618,7 +1618,7 @@ Pattern
 </tr>
 <tr>
 <td>
-<code>branch</code></br>
+<code>pullRequestLabel</code></br>
 <em>
 <a href="#gitops.jenkins-x.io/v1alpha1.Pattern">
 Pattern
@@ -1725,5 +1725,5 @@ string
 <hr/>
 <p><em>
 Generated with <code>gen-crd-api-reference-docs</code>
-on git commit <code>18a97d9</code>.
+on git commit <code>c28ca94</code>.
 </em></p>
