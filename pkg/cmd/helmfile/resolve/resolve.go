@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
 	"github.com/jenkins-x/jx-gitops/pkg/helmfiles"
 	"github.com/jenkins-x/jx-gitops/pkg/jxtmpl/reqvalues"
 	"github.com/jenkins-x/jx-gitops/pkg/pipelinecatalogs"
@@ -239,7 +240,7 @@ func (o *Options) saveNamespaceJXValuesFile(helmfileDir string, ns string) error
 	subDomain := strings.ReplaceAll(requirements.Ingress.NamespaceSubDomain, "jx", ns)
 	requirements.Ingress.NamespaceSubDomain = subDomain
 
-	// TODO should we add a Namespace into the requirements.ennvironments structures?
+	// TODO should we add a Namespace into the requirements.environments structures?
 	// lets assume either the key is the namespace or the namespace is "jx-${envKey}"
 	envKey := ""
 	for _, e := range requirements.Environments {
@@ -263,6 +264,12 @@ func (o *Options) saveNamespaceJXValuesFile(helmfileDir string, ns string) error
 				requirements.Ingress.Domain = o.Options.Requirements.Ingress.Domain
 			}
 		}
+	}
+
+	// lets make sure we use a default domain name to avoid the validation of the Ingress
+	// resources from failing
+	if requirements.Ingress.Domain == "" {
+		requirements.Ingress.Domain = v1alpha1.DomainPlaceholder
 	}
 
 	err := reqvalues.SaveRequirementsValuesFile(&requirements, o.Dir, jxReqValuesFileName)

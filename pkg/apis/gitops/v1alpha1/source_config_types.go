@@ -194,26 +194,26 @@ type SlackNotify struct {
 	// Channel the name of the channel to notify pipelines
 	Channel string `json:"channel,omitempty"`
 
-	// Kind kind of notification
+	// Kind kind of notification such as always, only failures, failures or first succeed, only succeeds etc
 	Kind NotifyKind `json:"kind,omitempty"`
 
-	// Pipeline kind of pipeline to notify on
+	// Pipeline kind of pipeline to notify on (all, releases, pull requests etc)
 	Pipeline PipelineKind `json:"pipeline,omitempty"`
 
 	// DirectMessage whether to use Direct Messages
-	DirectMessage BooleanFlag `json:"noDirectMessage,omitempty"`
+	DirectMessage BooleanFlag `json:"directMessage,omitempty"`
 
-	// NotifyReviewers whether to use Direct Messages
-	NotifyReviewers BooleanFlag `json:"noDirectMessage,omitempty"`
+	// NotifyReviewers whether to notify reviews of Pull Request pipelines
+	NotifyReviewers BooleanFlag `json:"notifyReviewers,omitempty"`
 
 	// Branch specify the branch name or filter to notify
 	Branch *Pattern `json:"branch,omitempty"`
 
 	// Context specify the context name or filter to notify
-	Context *Pattern `json:"branch,omitempty"`
+	Context *Pattern `json:"context,omitempty"`
 
-	// PullRequestLabel specify the label pull request label to notify
-	PullRequestLabel *Pattern `json:"branch,omitempty"`
+	// PullRequestLabel specify the pull request labels to notify
+	PullRequestLabel *Pattern `json:"pullRequestLabel,omitempty"`
 }
 
 // Pattern for matching strings
