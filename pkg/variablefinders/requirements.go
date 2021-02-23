@@ -48,6 +48,9 @@ func FindRequirements(g gitclient.Interface, jxClient jxc.Interface, ns string, 
 	req, err := requirements.GetRequirementsFromGit(g, gitURL)
 	ss := &settings.Spec
 
+	if req == nil {
+		return nil, nil
+	}
 	if ss.Destination != nil {
 		err = mergo.Merge(&req.Cluster.DestinationConfig, ss.Destination, mergo.WithOverride)
 		if err != nil {
