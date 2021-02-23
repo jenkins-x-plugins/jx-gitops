@@ -201,7 +201,7 @@ type SlackNotify struct {
 	Pipeline PipelineKind `json:"pipeline,omitempty"`
 
 	// DirectMessage whether to use Direct Messages
-	DirectMessage BooleanFlag `json:"noDirectMessage,omitempty"`
+	DirectMessage BooleanFlag `json:"directMessage,omitempty"`
 
 	// NotifyReviewers whether to use Direct Messages
 	NotifyReviewers BooleanFlag `json:"noDirectMessage,omitempty"`
@@ -210,10 +210,10 @@ type SlackNotify struct {
 	Branch *Pattern `json:"branch,omitempty"`
 
 	// Context specify the context name or filter to notify
-	Context *Pattern `json:"branch,omitempty"`
+	Context *Pattern `json:"context,omitempty"`
 
 	// PullRequestLabel specify the label pull request label to notify
-	PullRequestLabel *Pattern `json:"branch,omitempty"`
+	PullRequestLabel *Pattern `json:"pullRequestLabel,omitempty"`
 }
 
 // Pattern for matching strings
