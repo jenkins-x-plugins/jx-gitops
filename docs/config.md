@@ -1548,7 +1548,7 @@ NotifyKind
 </em>
 </td>
 <td>
-<p>Kind kind of notification</p>
+<p>Kind kind of notification such as always, only failures, failures or first succeed, only succeeds etc</p>
 </td>
 </tr>
 <tr>
@@ -1561,7 +1561,7 @@ PipelineKind
 </em>
 </td>
 <td>
-<p>Pipeline kind of pipeline to notify on</p>
+<p>Pipeline kind of pipeline to notify on (all, releases, pull requests etc)</p>
 </td>
 </tr>
 <tr>
@@ -1579,7 +1579,7 @@ BooleanFlag
 </tr>
 <tr>
 <td>
-<code>noDirectMessage</code></br>
+<code>notifyReviewers</code></br>
 <em>
 <a href="#gitops.jenkins-x.io/v1alpha1.BooleanFlag">
 BooleanFlag
@@ -1587,7 +1587,7 @@ BooleanFlag
 </em>
 </td>
 <td>
-<p>NotifyReviewers whether to use Direct Messages</p>
+<p>NotifyReviewers whether to notify reviews of Pull Request pipelines</p>
 </td>
 </tr>
 <tr>
@@ -1626,7 +1626,7 @@ Pattern
 </em>
 </td>
 <td>
-<p>PullRequestLabel specify the label pull request label to notify</p>
+<p>PullRequestLabel specify the pull request labels to notify</p>
 </td>
 </tr>
 </tbody>
@@ -1725,5 +1725,5 @@ string
 <hr/>
 <p><em>
 Generated with <code>gen-crd-api-reference-docs</code>
-on git commit <code>c28ca94</code>.
+on git commit <code>af4f7d6</code>.
 </em></p>
