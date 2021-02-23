@@ -20,7 +20,7 @@ import (
 
 var (
 	// generateTestOutput enable to regenerate the expected output
-	generateTestOutput = false
+	generateTestOutput = true
 )
 
 func TestFindRequirements(t *testing.T) {
@@ -61,7 +61,11 @@ func TestFindRequirements(t *testing.T) {
 						return "", errors.Errorf("no dir for git clone")
 					}
 					devGitPath := filepath.Join(dir, "dev-env")
-					err := files.CopyDirOverwrite(devGitPath, command.Dir)
+					destDir := command.Dir
+					if len(command.Args) > 2 {
+						destDir = command.Args[2]
+					}
+					err := files.CopyDirOverwrite(devGitPath, destDir)
 					if err != nil {
 						return "", errors.Wrapf(err, "failed to copy %s to %s", devGitPath, command.Dir)
 					}
