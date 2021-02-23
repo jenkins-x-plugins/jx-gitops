@@ -42,15 +42,14 @@ func FindRequirements(g gitclient.Interface, jxClient jxc.Interface, ns string, 
 			return nil, errors.New("failed to find a dev environment source url on development environment resource")
 		}
 	}
+	ss := &settings.Spec
 
 	// now lets merge the local requirements with the dev environment so that we can locally override things
 	// while inheriting common stuff
 	req, err := requirements.GetRequirementsFromGit(g, gitURL)
-	ss := &settings.Spec
-
 	if req == nil {
-		return nil, nil
 	}
+
 	if ss.Destination != nil {
 		err = mergo.Merge(&req.Cluster.DestinationConfig, ss.Destination, mergo.WithOverride)
 		if err != nil {
