@@ -12,7 +12,7 @@ require (
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.11
 	github.com/jenkins-x/go-scm v1.5.223
-	github.com/jenkins-x/jx-api/v4 v4.0.24
+	github.com/jenkins-x/jx-api/v4 v4.0.25
 	github.com/jenkins-x/jx-helpers/v3 v3.0.81
 	github.com/jenkins-x/jx-kube-client/v3 v3.0.2
 	github.com/jenkins-x/jx-logging/v3 v3.0.3
