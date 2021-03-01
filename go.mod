@@ -32,13 +32,12 @@ require (
 	k8s.io/apimachinery v0.20.4
 	k8s.io/client-go v11.0.1-0.20190805182717-6502b5e7b1b5+incompatible
 	rsc.io/letsencrypt v0.0.3 // indirect
-	sigs.k8s.io/kustomize/api v0.4.1
-	sigs.k8s.io/kustomize/kyaml v0.10.5
+	sigs.k8s.io/kustomize/api v0.8.4
+	sigs.k8s.io/kustomize/kyaml v0.10.13
 	sigs.k8s.io/yaml v1.2.0
 )
 
 replace (
-
 	// override the go-scm from tekton
 	github.com/jenkins-x/go-scm => github.com/jenkins-x/go-scm v1.5.223
 	// fix yaml comment parsing issue
