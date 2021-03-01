@@ -159,6 +159,15 @@ func (o *Options) Run() error {
 			return errors.Wrapf(err, "failed to process helmfile %s", hf.Filepath)
 		}
 		if charts != nil {
+			for i, nc := range o.NamespaceCharts {
+				// lets remove the old entry for the namespace
+				if nc.Namespace == charts.Namespace {
+					s := o.NamespaceCharts[0:i]
+					if i+1 < len(o.NamespaceCharts) {
+						s = append(s, o.NamespaceCharts[i+1:]...)
+					}
+				}
+			}
 			o.NamespaceCharts = append(o.NamespaceCharts, charts)
 		}
 	}
