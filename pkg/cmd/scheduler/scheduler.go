@@ -169,7 +169,7 @@ func (o *Options) Run() error {
 			log.Logger().Infof("ignored %s name %s in namespace %s", kind, name, namespace)
 		}
 		if loaded {
-			log.Logger().Infof("loaded %s name %s in namespace %s", kind, name, namespace)
+			log.Logger().Debugf("loaded %s name %s in namespace %s", kind, name, namespace)
 		}
 		return false, nil
 	}
@@ -178,7 +178,7 @@ func (o *Options) Run() error {
 		return errors.Wrapf(err, "failed to load resources from dir %s", o.SourceRepoDir)
 	}
 
-	log.Logger().Infof("loaded %d SourceRepository resources from %s", len(repoList.Items), o.SourceRepoDir)
+	log.Logger().Debugf("loaded %d SourceRepository resources from %s", len(repoList.Items), o.SourceRepoDir)
 
 	schedulerModifyFn := func(node *yaml.RNode, path string) (bool, error) {
 		namespace := kyamls.GetNamespace(node, path)
@@ -193,7 +193,7 @@ func (o *Options) Run() error {
 		schedulerMap[name] = scheduler
 		loaded = true
 		if loaded {
-			log.Logger().Infof("loaded %s name %s in namespace %s", kind, name, namespace)
+			log.Logger().Debugf("loaded %s name %s in namespace %s", kind, name, namespace)
 		}
 		return false, nil
 	}
@@ -203,7 +203,7 @@ func (o *Options) Run() error {
 			return errors.Wrapf(err, "failed to load resources from dir %s", scheduleDir)
 		}
 	}
-	log.Logger().Infof("loaded %d Scheduler resources from dirs %s", len(schedulerMap), strings.Join(o.SchedulerDir, ", "))
+	log.Logger().Debugf("loaded %d Scheduler resources from dirs %s", len(schedulerMap), strings.Join(o.SchedulerDir, ", "))
 
 	if devEnv == nil {
 		devEnv = &v1.Environment{
@@ -299,7 +299,7 @@ func (o *Options) Run() error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to save file %s", pluginsFileName)
 	}
-	log.Logger().Infof("generated config ConfigMap %s and plugins ConfigMap %s", termcolor.ColorInfo(configFileName), termcolor.ColorInfo(pluginsFileName))
+	log.Logger().Debugf("generated config ConfigMap %s and plugins ConfigMap %s", termcolor.ColorInfo(configFileName), termcolor.ColorInfo(pluginsFileName))
 	return nil
 }
 

@@ -72,7 +72,7 @@ func addTeamScheduler(defaultSchedulerName string, defaultScheduler *schedulerap
 		applicableSchedulers = append([]*schedulerapi.SchedulerSpec{&defaultScheduler.Spec}, applicableSchedulers...)
 	} else {
 		if defaultSchedulerName != "" {
-			log.Logger().Warnf("A team pipeline scheduler named %s was configured but could not be found", defaultSchedulerName)
+			log.Logger().Debugf("A team pipeline scheduler named %s was configured but could not be found", defaultSchedulerName)
 		}
 	}
 	return applicableSchedulers
