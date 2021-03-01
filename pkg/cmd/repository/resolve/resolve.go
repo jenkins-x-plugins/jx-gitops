@@ -94,7 +94,7 @@ func (o *Options) Run(args []string) error {
 	if discovered {
 		o.gitURL = o.gitInfo.URL
 
-		log.Logger().Infof("discovered git URL %s replacing it in the dev Environment and Source Repository in dir %s", termcolor.ColorInfo(stringhelpers.SanitizeURL(o.gitURL)), termcolor.ColorInfo(o.SourceDir))
+		log.Logger().Debugf("discovered git URL %s replacing it in the dev Environment and Source Repository in dir %s", termcolor.ColorInfo(stringhelpers.SanitizeURL(o.gitURL)), termcolor.ColorInfo(o.SourceDir))
 	}
 
 	modifyFn := func(node *yaml.RNode, path string) (bool, error) {
@@ -177,7 +177,7 @@ func (o *Options) modifyRequirements() error {
 
 	repository := o.gitInfo.Name
 	owner := o.gitInfo.Organisation
-	log.Logger().Infof("modifying jx-requirements.yml in dir %s to set the dev environment git repository to be %s/%s", dir, owner, repository)
+	log.Logger().Debugf("modifying jx-requirements.yml in dir %s to set the dev environment git repository to be %s/%s", dir, owner, repository)
 
 	modified := false
 	for i, env := range requirements.Environments {
@@ -190,7 +190,7 @@ func (o *Options) modifyRequirements() error {
 	if !modified {
 		return errors.Errorf("could not find a 'dev' environment in the file %s", fileName)
 	}
-	log.Logger().Infof("saving %s", fileName)
+	log.Logger().Debugf("saving %s", fileName)
 	err = requirementsResource.SaveConfig(fileName)
 	if err != nil {
 		return errors.Wrapf(err, "failed to save file %s", fileName)

@@ -445,7 +445,7 @@ func (o *Options) resolveHelmfile(helmState *state.HelmState, helmfile helmfiles
 				version := versionProperties.Version
 
 				if release.Version == "" && version == "" {
-					log.Logger().Warnf("could not find version for chart %s so using latest found in helm repository %s", fullChartName, repository)
+					log.Logger().Debugf("could not find version for chart %s so using latest found in helm repository %s", fullChartName, repository)
 				}
 
 				versionChanged := false
@@ -457,7 +457,7 @@ func (o *Options) resolveHelmfile(helmState *state.HelmState, helmfile helmfiles
 					versionChanged = true
 				}
 				if versionChanged {
-					log.Logger().Infof("resolved chart %s version %s", fullChartName, version)
+					log.Logger().Debugf("resolved chart %s version %s", fullChartName, version)
 				}
 
 				if release.Namespace == "" && helmState.OverrideNamespace == "" && versionProperties.Namespace != "" {

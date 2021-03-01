@@ -99,6 +99,6 @@ func (o *Options) Run() error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to annotate files in dir %s", o.Dir)
 	}
-	log.Logger().Infof("added annotation: %s to Deployments in dir %s", annotationExpression, o.Dir)
+	log.Logger().Debugf("added annotation: %s to Deployments in dir %s", annotationExpression, o.Dir)
 	return nil
 }

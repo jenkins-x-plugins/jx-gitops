@@ -234,7 +234,7 @@ func (o *Options) Run() error {
 		modified = true
 	}
 	if !modified {
-		log.Logger().Infof("no changes were made to file %s", o.Helmfile)
+		log.Logger().Debugf("no changes were made to file %s", o.Helmfile)
 		return nil
 	}
 

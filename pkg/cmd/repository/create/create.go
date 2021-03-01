@@ -210,6 +210,6 @@ func (o *Options) ensureSourceRepositoryExists(config *v1alpha1.SourceConfig, gr
 	if exists {
 		action = "modified"
 	}
-	log.Logger().Infof("%s file %s", action, termcolor.ColorInfo(fileName))
+	log.Logger().Debugf("%s file %s", action, termcolor.ColorInfo(fileName))
 	return nil
 }
