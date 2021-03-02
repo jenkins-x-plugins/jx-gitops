@@ -7,6 +7,8 @@ namespace: jx
 repositories:
 - name: jenkins-x
   url: https://storage.googleapis.com/chartmuseum.jenkins-x.io
+- name: jxgh
+  url: https://jenkins-x-charts.github.io/repo
 - name: jx3
   url: https://storage.googleapis.com/jenkinsxio/charts
 releases:
@@ -14,6 +16,11 @@ releases:
   version: 0.0.255
   name: jxboot-helmfile-resources
   values:
+  - jx-values.yaml
+- chart: jxgh/jx-preview
+  name: jx-preview
+  values:
+  - ../../jx-values.yaml
   - jx-values.yaml
 - chart: jx3/jenkins-x-crds
   version: 1.0.7
