@@ -1,0 +1,31 @@
+apiVersion: core.jenkins-x.io/v4beta1
+kind: Requirements
+spec:
+  cluster:
+    clusterName: "my_cluster_name"
+    project: "my_gcp_project"
+    provider: gke
+    zone: "my_zone"
+  ingress:
+    domain: "my_subdomain.my_apex_domain"
+    externalDNS: true
+    tls:
+      email: "my_tls_email"
+      enabled: true
+      production: true
+  kuberhealthy: true
+  storage:
+    - name: logs
+      url: gs://logs-bucket
+    - name: reports
+      url: gs://reports-bucket
+    - name: repository
+      url: gs://repository-bucket
+  terraformVault: false
+  vault:
+    name: ""
+    bucket: ""
+    key: ""
+    keyring: ""
+    serviceAccount: ""
+  webhook: "my_webhook"
