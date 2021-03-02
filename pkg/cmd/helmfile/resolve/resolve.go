@@ -685,6 +685,30 @@ func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
 		}
 	}
 
+	// lets replace the old jx-preview chart if its being used
+	for i := range helmstate.Releases {
+		release := &helmstate.Releases[i]
+		if release.Chart == "jx3/jx-preview" {
+			release.Chart = "jxgh/jx-preview"
+
+			// lets make sure we have a jxgh repository
+			found := false
+			for _, repo := range helmstate.Repositories {
+				if repo.Name == "jxgh" {
+					found = true
+					break
+				}
+			}
+			if !found {
+				helmstate.Repositories = append(helmstate.Repositories, state.RepositorySpec{
+					Name: "jxgh",
+					URL:  "https://jenkins-x-charts.github.io/repo",
+				})
+			}
+			break
+		}
+	}
+
 	// lets check for terraform installed vault
 	if requirements.SecretStorage == jxcore.SecretStorageTypeVault && requirements.TerraformVault {
 		for i := range helmstate.Releases {

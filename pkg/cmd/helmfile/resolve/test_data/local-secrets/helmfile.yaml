@@ -6,6 +6,10 @@ repositories:
 releases:
   - chart: jenkins-x/tekton
   - chart: jenkins-x/jxboot-helmfile-resources
+  - chart: jx3/jx-preview
+    name: jx-preview
+    values:
+    - jx-values.yaml
   - chart: jx-labs/jenkins-x-crds
     version: 0.0.7
     name: jenkins-x-crds
