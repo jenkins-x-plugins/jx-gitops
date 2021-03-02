@@ -304,7 +304,7 @@ func (o *Options) updateRepositoryWebhook(scmClient *scm.Client, owner string, r
 		}
 	}
 
-	// first lets create a new webhook...
+	// lets create a new webhook...
 	_, _, err = scmClient.Repositories.CreateHook(ctx, fullName, webHookArgs)
 	if err != nil {
 		return errors.Wrapf(err, "failed to create webhook %q on repository '%s'", webhookURL, fullName)
