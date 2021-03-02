@@ -30,6 +30,8 @@ import (
 )
 
 var (
+	info = termcolor.ColorInfo
+
 	cmdLong = templates.LongDesc(`
 		Sets up git to ensure the git user name and email is setup.
 
@@ -125,7 +127,12 @@ func (o *Options) Run() error {
 			return errors.Wrap(err, "unable to determine for git credentials")
 		}
 
-		return o.createGitCredentialsFile(outFile, credentials)
+		err = o.createGitCredentialsFile(outFile, credentials)
+		if err != nil {
+			return errors.Wrapf(err, "failed to generate credentials file %s", outFile)
+		}
+		log.Logger().Infof("generated Git credentials file: %s with username: %s email: %s", info(outFile), info(o.UserName), info(o.UserEmail))
+
 	}
 	return nil
 }
@@ -137,6 +144,9 @@ func InGitHubActions() bool {
 
 func (o *Options) GitClient() gitclient.Interface {
 	if o.gitClient == nil {
+		if o.CommandRunner == nil {
+			o.CommandRunner = cmdrunner.QuietCommandRunner
+		}
 		o.gitClient = cli.NewCLIClient("", o.CommandRunner)
 	}
 	return o.gitClient
@@ -238,7 +248,6 @@ func (o *Options) createGitCredentialsFile(fileName string, credentials []creden
 	if err := ioutil.WriteFile(fileName, data, files.DefaultDirWritePermissions); err != nil {
 		return fmt.Errorf("failed to write to %s: %s", fileName, err)
 	}
-	log.Logger().Infof("Generated Git credentials file %s", termcolor.ColorInfo(fileName))
 	return nil
 }
 
