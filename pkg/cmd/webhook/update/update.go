@@ -247,7 +247,7 @@ func (o *Options) ensureWebHookCreated(repository *v1.SourceRepository, webhookU
 func (o *Options) updateRepositoryWebhook(scmClient *scm.Client, owner string, repoName string, webhookURL string, hmacToken string) error {
 	fullName := scm.Join(owner, repoName)
 
-	log.Logger().Infof("Checking hooks for repository %s", info(fullName))
+	log.Logger().Debugf("Checking hooks for repository %s", info(fullName))
 
 	ctx := context.Background()
 	hooks, _, err := scmClient.Repositories.ListHooks(ctx, fullName, scm.ListOptions{})
@@ -295,7 +295,7 @@ func (o *Options) updateRepositoryWebhook(scmClient *scm.Client, owner string, r
 		for _, hook := range hooks {
 			if o.matchesWebhookURL(hook, webhookURL) {
 				// lets remove any old ones
-				log.Logger().Infof("Found matching hook for url %s", info(hook.Target))
+				log.Logger().Infof("repository %s has hook for url %s", info(fullName), info(hook.Target))
 				_, err = scmClient.Repositories.DeleteHook(ctx, fullName, hook.ID)
 				if err != nil {
 					return errors.Wrapf(err, "failed to delete webhook %s with target %s", hook.ID, hook.Target)
@@ -304,7 +304,7 @@ func (o *Options) updateRepositoryWebhook(scmClient *scm.Client, owner string, r
 		}
 	}
 
-	// first lets create a new webhook...
+	// lets create a new webhook...
 	_, _, err = scmClient.Repositories.CreateHook(ctx, fullName, webHookArgs)
 	if err != nil {
 		return errors.Wrapf(err, "failed to create webhook %q on repository '%s'", webhookURL, fullName)
