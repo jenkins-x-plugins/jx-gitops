@@ -166,6 +166,7 @@ func (o *Options) Run() error {
 					if i+1 < len(o.NamespaceCharts) {
 						s = append(s, o.NamespaceCharts[i+1:]...)
 					}
+					o.NamespaceCharts = s
 				}
 			}
 			o.NamespaceCharts = append(o.NamespaceCharts, charts)
