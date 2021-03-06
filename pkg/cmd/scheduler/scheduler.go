@@ -261,6 +261,14 @@ func (o *Options) Run() error {
 			}
 			fullName := scm.Join(sr.Spec.Org, sr.Spec.Repo)
 			config.ProwConfig.InRepoConfig.Enabled[fullName] = &flag
+
+			// handle the upper case organisation names of bitbucket server
+			if sr.Spec.ProviderKind == "bitbucketserver" {
+				upperFullName := scm.Join(strings.ToUpper(sr.Spec.Org), sr.Spec.Repo)
+				if upperFullName != fullName {
+					config.ProwConfig.InRepoConfig.Enabled[upperFullName] = &flag
+				}
+			}
 		}
 	}
 
