@@ -36,6 +36,7 @@ var (
 type Options struct {
 	Dir         string
 	Annotation  string
+	PodSpec     bool
 	SourceFiles []string
 	Filter      kyamls.Filter
 }
@@ -57,6 +58,7 @@ func NewCmdHashAnnotate() (*cobra.Command, *Options) {
 	cmd.Flags().StringArrayVarP(&o.SourceFiles, "source", "s", nil, "the source files to hash")
 	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the directory to recursively look for the *.yaml or *.yml files")
 	cmd.Flags().StringVarP(&o.Annotation, "annotation", "a", DefaultAnnotation, "the annotation for the hash to add to the files")
+	cmd.Flags().BoolVarP(&o.PodSpec, "pod-spec", "p", false, "annotate the PodSpec in spec.templates.metadata.annotations rather than the top level annotations")
 
 	f := &o.Filter
 	cmd.Flags().StringArrayVarP(&f.Kinds, "kind", "k", []string{"Deployment"}, "adds Kubernetes resource kinds to filter on to annotate. For kind expressions see: https://github.com/jenkins-x/jx-gitops/tree/master/docs/kind_filters.md")
@@ -95,7 +97,7 @@ func (o *Options) Run() error {
 	}
 	hashBytes := sha256.Sum256(buff.Bytes())
 	annotationExpression := fmt.Sprintf("%s=%x", o.Annotation, hashBytes)
-	err := annotate.UpdateAnnotateInYamlFiles(o.Dir, []string{annotationExpression}, o.Filter)
+	err := annotate.UpdateAnnotateInYamlFiles(o.Dir, []string{annotationExpression}, o.Filter, o.PodSpec)
 	if err != nil {
 		return errors.Wrapf(err, "failed to annotate files in dir %s", o.Dir)
 	}

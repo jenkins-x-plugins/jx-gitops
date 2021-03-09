@@ -47,3 +47,39 @@ func TestUpdateAnnotatesInYamlFiles(t *testing.T) {
 
 	t.Logf("found annotation %s value: %s on file %s\n", hash.DefaultAnnotation, value, outFile)
 }
+
+func TestUpdatePodSpecAnnotatesInYamlFiles(t *testing.T) {
+	sourceDir := filepath.Join("test_data", "configs")
+	tmpDir, err := ioutil.TempDir("", "")
+	require.NoError(t, err, "could not create temp dir")
+
+	_, ho := hash.NewCmdHashAnnotate()
+	ho.SourceFiles = []string{
+		filepath.Join(sourceDir, "config.yaml"),
+		filepath.Join(sourceDir, "plugins.yaml"),
+	}
+	ho.Dir = tmpDir
+	ho.PodSpec = true
+
+	deploymentsDir := filepath.Join("test_data", "deployments")
+	err = files.CopyDir(deploymentsDir, tmpDir, true)
+	require.NoError(t, err, "failed to copy from %s to %s", deploymentsDir, tmpDir)
+
+	err = ho.Run()
+	assert.NoError(t, err)
+
+	outFile := filepath.Join(tmpDir, "mydeploy.yaml")
+	require.FileExists(t, outFile)
+
+	deploy := appsv1.Deployment{}
+	err = yamls.LoadFile(outFile, &deploy)
+	require.NoError(t, err, "failed to load YAML file %s", outFile)
+
+	annotations := deploy.Spec.Template.ObjectMeta.Annotations
+	require.NotNil(t, annotations, "deployment has no annotations")
+
+	value := annotations[hash.DefaultAnnotation]
+	require.NotEmpty(t, value, "no annotation %s found on file %s", hash.DefaultAnnotation, outFile)
+
+	t.Logf("found annotation %s value: %s on file %s\n", hash.DefaultAnnotation, value, outFile)
+}
