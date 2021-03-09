@@ -709,6 +709,40 @@ func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
 		}
 	}
 
+	// lets replace the old jxboot-helmfile-resources chart repository location if its being used
+	for i := range helmstate.Releases {
+		release := &helmstate.Releases[i]
+		if release.Chart == "jenkins-x/jxboot-helmfile-resources" {
+			release.Chart = "jx3/jxboot-helmfile-resources"
+
+			for i := range release.Values {
+				v := release.Values[i]
+				s, ok := v.(string)
+				// lets switch invalid paths to the one inside a chart repo folder
+				if ok && s == fmt.Sprintf("%s/charts/jenkins-x/jxboot-helmfile-resources/values.yaml.gotmpl", versionStreamPath) {
+					release.Values[i] = fmt.Sprintf("%s/charts/jx3/jxboot-helmfile-resources/values.yaml.gotmpl", versionStreamPath)
+					break
+				}
+			}
+
+			// lets make sure we have a jxgh repository
+			found := false
+			for _, repo := range helmstate.Repositories {
+				if repo.Name == "jx3" {
+					found = true
+					break
+				}
+			}
+			if !found {
+				helmstate.Repositories = append(helmstate.Repositories, state.RepositorySpec{
+					Name: "jx3",
+					URL:  "https://storage.googleapis.com/jenkinsxio/charts",
+				})
+			}
+			break
+		}
+	}
+
 	// lets check for terraform installed vault
 	if requirements.SecretStorage == jxcore.SecretStorageTypeVault && requirements.TerraformVault {
 		for i := range helmstate.Releases {

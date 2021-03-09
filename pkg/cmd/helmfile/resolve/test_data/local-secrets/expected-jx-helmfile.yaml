@@ -5,15 +5,13 @@ environments:
     - jx-values.yaml
 namespace: jx
 repositories:
-- name: jenkins-x
-  url: https://storage.googleapis.com/chartmuseum.jenkins-x.io
-- name: jxgh
-  url: https://jenkins-x-charts.github.io/repo
 - name: jx3
   url: https://storage.googleapis.com/jenkinsxio/charts
+- name: jxgh
+  url: https://jenkins-x-charts.github.io/repo
 releases:
-- chart: jenkins-x/jxboot-helmfile-resources
-  version: 0.0.255
+- chart: jx3/jxboot-helmfile-resources
+  version: 1.0.37
   name: jxboot-helmfile-resources
   values:
   - jx-values.yaml
