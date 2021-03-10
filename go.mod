@@ -39,7 +39,7 @@ require (
 
 replace (
 	// override the go-scm from tekton
-	github.com/jenkins-x/go-scm => github.com/jenkins-x/go-scm v1.5.223
+	github.com/jenkins-x/go-scm => github.com/jenkins-x/go-scm v1.5.229
 	// fix yaml comment parsing issue
 	gopkg.in/yaml.v2 => gopkg.in/yaml.v2 v2.3.0
 	gopkg.in/yaml.v3 => gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
