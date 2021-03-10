@@ -113,6 +113,19 @@ func (o *Options) Run() error {
 	if pr == nil {
 		return errors.Errorf("no Pull Request could be found for %d in repository %s", o.Number, o.Repository)
 	}
+	if len(pr.Labels) == 0 {
+		// lets fetch the labels if git provider does not include them OOTB such as for things like BitBucketServer
+		ctx := context.TODO()
+		repo := pr.Repository()
+		repoName := repo.FullName
+		if repoName == "" {
+			repoName = scm.Join(repo.Namespace, repo.Name)
+		}
+		pr.Labels, _, err = o.PullRequestOptions.ScmClient.PullRequests.ListLabels(ctx, repoName, pr.Number, scm.ListOptions{})
+		if err != nil {
+			return errors.Wrapf(err, "failed to query Labels for repo %s and PullRequest %d", repoName, pr.Number)
+		}
+	}
 	return o.labelPullRequest(pr)
 }
 
