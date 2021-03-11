@@ -42,7 +42,8 @@ presubmits:
       rerun_command: /test this
       trigger: (?m)^/test( all| this),?(\s+|$)
 #prowjob_namespace: jx
-#push_gateway: {}
+push_gateway:
+  serve_metrics: true
 #sinker: {}
 tide:
   target_url: http://targeturl
