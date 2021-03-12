@@ -209,6 +209,7 @@ func buildExternalPlugin(answer *plugins.ExternalPlugin, plugin *schedulerapi.Ex
 }
 
 func buildProwConfig(prowConfig *config.ProwConfig, scheduler *schedulerapi.SchedulerSpec, org string, repo string) error {
+	prowConfig.PushGateway.ServeMetrics = true
 	if scheduler.Policy != nil {
 		err := buildGlobalBranchProtection(&prowConfig.BranchProtection, scheduler.Policy)
 		if err != nil {

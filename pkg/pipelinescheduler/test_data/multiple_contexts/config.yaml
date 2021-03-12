@@ -63,7 +63,8 @@ presubmits:
       rerun_command: /test context3
       trigger: (?m)^/test( all| context3),?(\s+|$)
 #prowjob_namespace: jx
-#push_gateway: {}
+push_gateway:
+  serve_metrics: true
 #sinker: {}
 tide:
   context_options:
