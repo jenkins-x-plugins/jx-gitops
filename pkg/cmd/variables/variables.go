@@ -214,6 +214,12 @@ func (o *Options) Validate() error {
 			},
 		},
 		{
+			Name: "PUSH_CONTAINER_REGISTRY",
+			Function: func() (string, error) {
+				return o.pushContainerRegistry()
+			},
+		},
+		{
 			Name: "DOCKER_REGISTRY",
 			Function: func() (string, error) {
 				return o.dockerRegistry()
@@ -403,6 +409,14 @@ func (o *Options) dockerRegistry() (string, error) {
 	}
 	if answer == "" {
 		answer = o.ConfigMapData["DOCKER_REGISTRY"]
+	}
+	return answer, nil
+}
+
+func (o *Options) pushContainerRegistry() (string, error) {
+	answer := o.ConfigMapData["PUSH_CONTAINER_REGISTRY"]
+	if answer == "" {
+		return o.dockerRegistry()
 	}
 	return answer, nil
 }

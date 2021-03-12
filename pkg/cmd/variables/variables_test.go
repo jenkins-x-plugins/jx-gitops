@@ -92,8 +92,9 @@ func TestCmdVariables(t *testing.T) {
 					Namespace: ns,
 				},
 				Data: map[string]string{
-					"docker.registry": "my-registry.com",
-					"kaniko.flags":    "cheese",
+					"docker.registry":         "my-registry.com",
+					"kaniko.flags":            "cheese",
+					"PUSH_CONTAINER_REGISTRY": "localhost:5000",
 				},
 			},
 		)
