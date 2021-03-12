@@ -5,6 +5,7 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/apply"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/condition"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/copy"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/gc"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/git"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/hash"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helm"
@@ -51,6 +52,7 @@ func Main() *cobra.Command {
 	}
 	cmd.AddCommand(helm.NewCmdHelm())
 	cmd.AddCommand(helmfile.NewCmdHelmfile())
+	cmd.AddCommand(gc.NewCmdGC())
 	cmd.AddCommand(git.NewCmdGit())
 	cmd.AddCommand(jenkins.NewCmdJenkins())
 	cmd.AddCommand(kpt.NewCmdKpt())
