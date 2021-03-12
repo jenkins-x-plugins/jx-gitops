@@ -3,6 +3,7 @@ package update
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"strings"
 
 	"github.com/jenkins-x/go-scm/scm"
@@ -305,9 +306,16 @@ func (o *Options) updateRepositoryWebhook(scmClient *scm.Client, owner string, r
 	}
 
 	// lets create a new webhook...
-	_, _, err = scmClient.Repositories.CreateHook(ctx, fullName, webHookArgs)
+	_, resp, err := scmClient.Repositories.CreateHook(ctx, fullName, webHookArgs)
 	if err != nil {
-		return errors.Wrapf(err, "failed to create webhook %q on repository '%s'", webhookURL, fullName)
+		status := ""
+		if resp != nil && resp.Body != nil {
+			body, err := ioutil.ReadAll(resp.Body)
+			if err == nil && body != nil {
+				status = " " + string(body)
+			}
+		}
+		return errors.Wrapf(err, "failed to create webhook %q on repository '%s'%s", webhookURL, fullName, status)
 	}
 	return nil
 }
