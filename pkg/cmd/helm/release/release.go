@@ -464,12 +464,17 @@ func (o *Options) GitCloneGitHubPages(repoURL, branch string) (string, error) {
 }
 
 func (o *Options) BasicRegistry(repoURL, chartDir, name string) error {
+	username, password, err := o.findChartRepositoryUserPassword()
+	if err != nil {
+		return errors.Wrapf(err, "failed to find chart repository user and password")
+	}
+
 	c := &cmdrunner.Command{
 		Dir:  chartDir,
 		Name: o.HelmBinary,
-		Args: []string{"repo", "add", o.RepositoryName, repoURL},
+		Args: []string{"repo", "add", "--username", username, "--password", password, o.RepositoryName, repoURL},
 	}
-	_, err := o.CommandRunner(c)
+	_, err = o.CommandRunner(c)
 	if err != nil {
 		return errors.Wrapf(err, "failed to add remote repo")
 	}
@@ -484,7 +489,7 @@ func (o *Options) BasicRegistry(repoURL, chartDir, name string) error {
 		return nil
 	}
 
-	c, err = o.createPublishCommand(repoURL, name, chartDir)
+	c, err = o.createPublishCommand(repoURL, name, chartDir, username, password)
 	if err != nil {
 		return errors.Wrapf(err, "failed to create release command in dir %s", chartDir)
 	}
@@ -529,7 +534,7 @@ func (o *Options) BuildAndPackage(chartDir string) error {
 	return nil
 }
 
-func (o *Options) createPublishCommand(repoURL, name, chartDir string) (*cmdrunner.Command, error) {
+func (o *Options) createPublishCommand(repoURL, name, chartDir, username, password string) (*cmdrunner.Command, error) {
 	tarFile := name + "-" + o.Version + ".tgz"
 
 	if strings.HasPrefix(repoURL, "gs:") {
@@ -541,10 +546,7 @@ func (o *Options) createPublishCommand(repoURL, name, chartDir string) (*cmdrunn
 		}, nil
 	}
 
-	userSecret, err := o.findChartRepositoryUserPassword()
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to find chart repository user:password")
-	}
+	userSecret := username + ":" + password
 
 	url := stringhelpers.UrlJoin(repoURL, "/api/charts")
 
@@ -556,7 +558,7 @@ func (o *Options) createPublishCommand(repoURL, name, chartDir string) (*cmdrunn
 	}, nil
 }
 
-func (o *Options) findChartRepositoryUserPassword() (string, error) {
+func (o *Options) findChartRepositoryUserPassword() (string, string, error) {
 	userName := o.RepositoryUsername
 	password := o.RepositoryPassword
 	if userName == "" || password == "" {
@@ -581,10 +583,10 @@ func (o *Options) findChartRepositoryUserPassword() (string, error) {
 		}
 	}
 	if userName == "" {
-		return "", fmt.Errorf("No environment variable $JX_REPOSITORY_USERNAME defined")
+		return "", "", fmt.Errorf("No environment variable $JX_REPOSITORY_USERNAME defined")
 	}
 	if password == "" {
-		return "", fmt.Errorf("No environment variable $JX_REPOSITORY_PASSWORD defined")
+		return "", "", fmt.Errorf("No environment variable $JX_REPOSITORY_PASSWORD defined")
 	}
-	return userName + ":" + password, nil
+	return userName, password, nil
 }
