@@ -42,6 +42,10 @@ Annotates all kubernetes resources in the given directory tree
 \[la]https://github.com/jenkins-x/jx-helpers/v3/tree/master/docs/kind_filters.md\[ra]
 
 .PP
+\fB\-p\fP, \fB\-\-pod\-spec\fP[=false]
+    annotate the PodSpec in spec.templates.metadata.annotations rather than the top level annotations
+
+.PP
 \fB\-\-selector\fP=[]
     adds Kubernetes label selector to filter on, e.g. \-s app=pusher\-wave,heritage=Helm
 
