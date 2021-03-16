@@ -657,6 +657,8 @@ func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
 			if repo.Name == "external-secrets" {
 				repo.URL = "https://external-secrets.github.io/kubernetes-external-secrets"
 			}
+		case "http://chartmuseum.jenkins-x.io":
+			repo.URL = "https://storage.googleapis.com/chartmuseum.jenkins-x.io"
 		}
 	}
 
