@@ -8,7 +8,7 @@ repositories:
 - name: external-secrets
   url: https://storage.googleapis.com/jenkinsxio/charts
 - name: jx3
-  url: https://storage.googleapis.com/jenkinsxio/charts
+  url: http://chartmuseum.jenkins-x.io
 releases:
 - chart: external-secrets/kubernetes-external-secrets
   name: kubernetes-external-secrets
