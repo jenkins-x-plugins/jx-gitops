@@ -74,6 +74,7 @@ type Options struct {
 	ChartOCI             bool
 	ChartPages           bool
 	NoOCILogin           bool
+	Artifactory          bool
 	HelmBinary           string
 	Dir                  string
 	ChartsDir            string
@@ -122,6 +123,7 @@ func NewCmdHelmRelease() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.GithubPagesURL, "ghpage-url", "", "", "the github pages URL used if creating the first README.md in the github pages branch so we can link to how to add a chart repository")
 	cmd.Flags().BoolVarP(&o.ChartPages, "pages", "", false, "use github pages to release charts")
 	cmd.Flags().BoolVarP(&o.ChartOCI, "oci", "", false, "treat the repository as an OCI container registry. If not specified its defaulted from the cluster.chartOCI flag on the 'jx-requirements.yml' file")
+	cmd.Flags().BoolVarP(&o.Artifactory, "artifactory", "", false, "use artifactory mode for publishing the chart which involves using an artifactory header and -T for pushing the chart")
 	cmd.Flags().BoolVarP(&o.NoOCILogin, "no-oci-login", "", false, "disables using the 'helm registry login' command when using OCI")
 	cmd.Flags().BoolVarP(&o.NoRelease, "no-release", "", false, "disables publishing the release. Useful for a Pull Request pipeline")
 	cmd.Flags().BoolVarP(&o.UseHelmPlugin, "use-helm-plugin", "", false, "uses the jx binary plugin for helm rather than whatever helm is on the $PATH")
@@ -132,6 +134,9 @@ func NewCmdHelmRelease() (*cobra.Command, *Options) {
 func (o *Options) Validate() error {
 	if o.CommandRunner == nil {
 		o.CommandRunner = cmdrunner.QuietCommandRunner
+	}
+	if !o.Artifactory && os.Getenv("ARTIFACTORY_CHART_REPOSITORY") == "true" {
+		o.Artifactory = true
 	}
 	var err error
 	if o.HelmBinary == "" {
@@ -546,6 +551,24 @@ func (o *Options) createPublishCommand(repoURL, name, chartDir, username, passwo
 		}, nil
 	}
 
+	if o.Artifactory {
+		// lets try detect the git repository name
+		url := stringhelpers.UrlJoin(repoURL, tarFile)
+
+		repoName := os.Getenv("REPO_NAME")
+		if repoName != "" {
+			url = stringhelpers.UrlJoin(repoURL, repoName, tarFile)
+		}
+
+		apiKey := "X-JFrog-Art-Api:" + password
+
+		return &cmdrunner.Command{
+			Dir:  chartDir,
+			Name: "curl",
+			// lets hide progress bars (-s) and enable show errors (-S)
+			Args: []string{"--fail", "-sS", "-H", apiKey, "-T", tarFile, url},
+		}, nil
+	}
 	userSecret := username + ":" + password
 
 	url := stringhelpers.UrlJoin(repoURL, "/api/charts")
