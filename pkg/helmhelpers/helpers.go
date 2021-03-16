@@ -20,7 +20,7 @@ func AddHelmRepositories(helmBin string, helmState state.HelmState, runner cmdru
 		helmBin = "helm"
 	}
 	repoMap := map[string]string{
-		"jx": "http://chartmuseum.jenkins-x.io",
+		"jx": "https://storage.googleapis.com/chartmuseum.jenkins-x.io",
 	}
 	for _, repo := range helmState.Repositories {
 		if !repo.OCI {

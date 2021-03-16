@@ -78,11 +78,11 @@
     dependencies:
     - alias: gcactivities
       name: jx
-      repository: http://chartmuseum.jenkins-x.io
+      repository: https://storage.googleapis.com/chartmuseum.jenkins-x.io
       version: 2.0.1143
     - alias: gcpods
       name: jx
-      repository: http://chartmuseum.jenkins-x.io
+      repository: https://storage.googleapis.com/chartmuseum.jenkins-x.io
       version: 2.0.1143
     description: A Helm chart for the resources for JX Boot
     home: https://github.com/jenkins-x-charts/jxboot-helmfile-resources
