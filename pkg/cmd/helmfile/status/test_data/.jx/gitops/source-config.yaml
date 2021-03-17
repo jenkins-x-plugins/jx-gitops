@@ -1,0 +1,20 @@
+apiVersion: gitops.jenkins-x.io/v1alpha1
+kind: SourceConfig
+metadata:
+  creationTimestamp: null
+spec:
+  groups:
+  - owner: jstrachan
+    provider: https://fake.com
+    providerKind: fake
+    repositories:
+    - name: nodey560
+    scheduler: in-repo
+    slack:
+      channel: testing-bot
+      kind: failureOrNextSuccess
+      pipeline: release
+  slack:
+    channel: '#jenkins-x-pipelines'
+    kind: failureOrNextSuccess
+    pipeline: release
