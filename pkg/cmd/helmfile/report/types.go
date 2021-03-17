@@ -22,6 +22,8 @@ type ReleaseInfo struct {
 	RepositoryURL string `json:"repositoryUrl,omitempty"`
 	// ApplicationURL the ingress URL for the application if available
 	ApplicationURL string `json:"applicationUrl,omitempty"`
+	// LogsURL the URL to browse the application logs if available
+	LogsURL string `json:"logsUrl,omitempty"`
 
 	// ResourcesPath the relative path to the kubernetes resources
 	ResourcesPath string `json:"resourcePath,omitempty"`

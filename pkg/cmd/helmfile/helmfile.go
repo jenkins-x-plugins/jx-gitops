@@ -5,6 +5,7 @@ import (
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/move"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/report"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/resolve"
+	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/status"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/structure"
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/validate"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras"
@@ -29,7 +30,8 @@ func NewCmdHelmfile() *cobra.Command {
 	command.AddCommand(cobras.SplitCommand(move.NewCmdHelmfileMove()))
 	command.AddCommand(cobras.SplitCommand(report.NewCmdHelmfileReport()))
 	command.AddCommand(cobras.SplitCommand(resolve.NewCmdHelmfileResolve()))
-	command.AddCommand(cobras.SplitCommand(validate.NewCmdHelmfileValidate()))
+	command.AddCommand(cobras.SplitCommand(status.NewCmdHelmfileStatus()))
 	command.AddCommand(cobras.SplitCommand(structure.NewCmdHelmfileStructure()))
+	command.AddCommand(cobras.SplitCommand(validate.NewCmdHelmfileValidate()))
 	return command
 }
