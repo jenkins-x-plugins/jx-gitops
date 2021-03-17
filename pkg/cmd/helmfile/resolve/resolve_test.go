@@ -168,8 +168,6 @@ func TestStepHelmfileResolve(t *testing.T) {
 			t.Logf("fake command: %s\n", c.CLI())
 		}
 
-		require.FileExists(t, filepath.Join(o.Dir, ".jx", "git-operator", "filename.txt"), "should have generated the git operator job file name")
-
 		switch name {
 		case "input":
 			require.FileExists(t, filepath.Join(o.Dir, "jx-global-values.yaml"), "should have renamed imagePullSecrets.yaml")
