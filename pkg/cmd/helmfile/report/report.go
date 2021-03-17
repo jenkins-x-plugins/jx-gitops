@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	"github.com/jenkins-x/jx-gitops/pkg/helmfiles"
 	"github.com/jenkins-x/jx-gitops/pkg/plugins"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
@@ -62,6 +63,7 @@ type Options struct {
 	Gitter                  gitclient.Interface
 	CommandRunner           cmdrunner.CommandRunner
 	HelmClient              helmer.Helmer
+	Requirements            *jxcore.Requirements
 	NamespaceCharts         []*NamespaceReleases
 	PreviousNamespaceCharts []*NamespaceReleases
 }
@@ -129,6 +131,11 @@ func (o *Options) Validate() error {
 	err = os.MkdirAll(o.OutDir, files.DefaultDirWritePermissions)
 	if err != nil {
 		return errors.Wrapf(err, "failed to create output dir %s", o.OutDir)
+	}
+
+	o.Requirements, _, err = jxcore.LoadRequirementsConfig(o.Dir, false)
+	if err != nil {
+		return errors.Wrapf(err, "failed to load requirements in dir %s", o.Dir)
 	}
 	return nil
 }
@@ -266,6 +273,8 @@ func (o *Options) createReleaseInfo(helmState *state.HelmState, ns string, rel *
 	if err != nil {
 		return answer, errors.Wrapf(err, "failed to discover resources for %s", answer.String())
 	}
+
+	answer.LogsURL = getLogURL(&o.Requirements.Spec, ns, answer.Name)
 	return answer, nil
 }
 
