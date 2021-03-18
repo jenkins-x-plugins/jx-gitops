@@ -114,13 +114,6 @@ func (o *Options) Validate() error {
 		o.Namespace = ns
 	}
 
-	if o.HMAC == "" {
-		o.HMAC, err = o.GetHMACTokenFromSecret()
-		if err != nil {
-			return errors.Wrapf(err, "failed to find hmac token from secret")
-		}
-	}
-
 	if o.Endpoint == "" {
 		o.Endpoint, err = o.GetWebHookEndpointFromHook()
 		if err != nil {
@@ -148,6 +141,15 @@ func (o *Options) Run() error {
 
 	for _, sr := range srList.Items {
 		sourceRepo := sr
+
+		// hmac isn't supported on bitbucketcloud
+		if sr.Spec.ProviderKind != "bitbucketcloud" && o.HMAC == "" {
+			o.HMAC, err = o.GetHMACTokenFromSecret()
+			if err != nil {
+				return errors.Wrapf(err, "failed to find hmac token from secret")
+			}
+		}
+
 		_, err2 := o.UpdateWebhookForSourceRepository(&sourceRepo, envMap, err, o.Endpoint, o.HMAC)
 		if err2 != nil {
 			return err2
