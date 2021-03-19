@@ -222,7 +222,7 @@ func (o *Options) ensureWebHookCreated(repository *v1.SourceRepository, webhookU
 		repository.Annotations = map[string]string{}
 	}
 	annotate := func() {
-		repository, err = srInterface.Update(context.TODO(), repository, metav1.UpdateOptions{})
+		repository, err := srInterface.Update(context.TODO(), repository, metav1.UpdateOptions{})
 		if err != nil {
 			log.Logger().Warnf("failed to annotate SourceRepository %s with webhook status: %s", repository.Name, err.Error())
 		}
@@ -244,7 +244,7 @@ func (o *Options) ensureWebHookCreated(repository *v1.SourceRepository, webhookU
 
 	repository.Annotations[WebHookAnnotation] = "true"
 	annotate()
-	return nil
+	return err
 }
 
 func (o *Options) updateRepositoryWebhook(scmClient *scm.Client, owner string, repoName string, webhookURL string, hmacToken string) error {
