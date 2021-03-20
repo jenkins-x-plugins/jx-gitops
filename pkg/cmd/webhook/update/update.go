@@ -222,9 +222,10 @@ func (o *Options) ensureWebHookCreated(repository *v1.SourceRepository, webhookU
 		repository.Annotations = map[string]string{}
 	}
 	annotate := func() {
-		repository, err := srInterface.Update(context.TODO(), repository, metav1.UpdateOptions{})
-		if err != nil {
-			log.Logger().Warnf("failed to annotate SourceRepository %s with webhook status: %s", repository.Name, err.Error())
+		var err2 error
+		repository, err2 = srInterface.Update(context.TODO(), repository, metav1.UpdateOptions{})
+		if err2 != nil {
+			log.Logger().Warnf("failed to annotate SourceRepository %s with webhook status: %s", repository.Name, err2.Error())
 		}
 		if repository.Annotations == nil {
 			repository.Annotations = map[string]string{}
