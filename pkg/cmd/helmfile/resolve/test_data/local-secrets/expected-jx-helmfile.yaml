@@ -10,6 +10,11 @@ repositories:
 - name: jxgh
   url: https://jenkins-x-charts.github.io/repo
 releases:
+- chart: jx3/lighthouse
+  version: 0.0.628
+  name: lighthouse
+  values:
+  - jx-values.yaml
 - chart: jx3/jxboot-helmfile-resources
   version: 1.0.37
   name: jxboot-helmfile-resources

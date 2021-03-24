@@ -5,6 +5,9 @@ repositories:
   url: https://storage.googleapis.com/jenkinsxio-labs-private/charts
 releases:
   - chart: jenkins-x/tekton
+  - chart: jenkins-x/lighthouse
+    version: 0.0.628
+    name: lighthouse
   - chart: jenkins-x/jxboot-helmfile-resources
   - chart: jx3/jx-preview
     name: jx-preview
