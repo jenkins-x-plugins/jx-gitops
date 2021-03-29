@@ -131,7 +131,7 @@ func TestGCPipelineActivities(t *testing.T) {
 	activities, err := jxClient.JenkinsV1().PipelineActivities(ns).List(ctx, metav1.ListOptions{})
 	assert.NoError(t, err)
 
-	assert.Len(t, activities.Items, 4, "Two of the activities should've been garbage collected")
+	assert.Len(t, activities.Items, 3, "Two of the activities should've been garbage collected")
 
 	var verifier []bool
 	for _, v := range activities.Items {
@@ -139,5 +139,5 @@ func TestGCPipelineActivities(t *testing.T) {
 			verifier = append(verifier, true)
 		}
 	}
-	assert.Len(t, verifier, 3, "Both PR and Batch builds should've been verified")
+	assert.Len(t, verifier, 2, "Both PR and Batch builds should've been verified")
 }
