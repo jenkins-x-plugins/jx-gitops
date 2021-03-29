@@ -43,7 +43,7 @@ This lets you take requirements from, say, the output of a terraform plan and me
 		# merge requirements from a file
 		%s requirements merge -f /tmp/jx-requirements.yml
 
-		# merge requirements from a ConfigMap called 'terraform-jx-requiremnets' in the default namespace
+		# merge requirements from a ConfigMap called 'terraform-jx-requirements' in the default namespace
 		%s requirements merge 
 	`)
 )
