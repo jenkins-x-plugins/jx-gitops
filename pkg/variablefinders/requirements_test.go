@@ -20,7 +20,7 @@ import (
 
 var (
 	// generateTestOutput enable to regenerate the expected output
-	generateTestOutput = true
+	generateTestOutput = false
 )
 
 func TestFindRequirements(t *testing.T) {
@@ -35,15 +35,24 @@ func TestFindRequirements(t *testing.T) {
 	devEnv.Spec.Source.URL = devGitURL
 	jxClient := fakejx.NewSimpleClientset(devEnv)
 
+	owner := "myorg"
+	repo := "somerepo"
+
 	testCases := []struct {
 		path        string
 		expectError bool
 	}{
 		{
-			path: "chart_repo",
+			path: "no_settings",
 		},
 		{
-			path: "no_settings",
+			path: "group_settings",
+		},
+		{
+			path: "group_and_local_settings",
+		},
+		{
+			path: "chart_repo",
 		},
 		{
 			path: "all",
@@ -76,7 +85,7 @@ func TestFindRequirements(t *testing.T) {
 		}
 
 		g := cli.NewCLIClient("git", runner.Run)
-		requirements, err := variablefinders.FindRequirements(g, jxClient, ns, dir)
+		requirements, err := variablefinders.FindRequirements(g, jxClient, ns, dir, owner, repo)
 
 		if tc.expectError {
 			require.Error(t, err, "expected error for %s", name)

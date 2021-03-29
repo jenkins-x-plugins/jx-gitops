@@ -3,6 +3,7 @@ package v1alpha1
 import (
 	"strings"
 
+	"github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/stringhelpers"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -145,6 +146,9 @@ type RepositoryGroup struct {
 
 	// Slack optional slack notification configuration
 	Slack *SlackNotify `json:"slack,omitempty"`
+
+	// Settings optional settinsg for repositories in this group
+	Settings *v4beta1.SettingsConfig `json:"settings,omitempty"`
 }
 
 // Repository the name of the repository to import and the optional scheduler

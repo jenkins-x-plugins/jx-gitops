@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"sort"
 
+	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/stringhelpers"
@@ -276,4 +277,37 @@ func DryConfig(config *v1alpha1.SourceConfig) {
 			}
 		}
 	}
+}
+
+// FindSettings finds the settings for the given owner and repository name
+func FindSettings(config *v1alpha1.SourceConfig, owner string, repoName string) *jxcore.SettingsConfig {
+	if owner == "" {
+		owner = os.Getenv("REPO_OWNER")
+	}
+	if repoName == "" {
+		repoName = os.Getenv("REPO_NAME")
+	}
+
+	// lets try find the group for the repository name
+	for i := range config.Spec.Groups {
+		group := &config.Spec.Groups[i]
+		if group.Owner != owner {
+			continue
+		}
+		for j := range group.Repositories {
+			repo := &group.Repositories[j]
+			if repo.Name == repoName {
+				return group.Settings
+			}
+		}
+	}
+
+	// if the repo name can't be found then lets just find the first group for this owner
+	for i := range config.Spec.Groups {
+		group := &config.Spec.Groups[i]
+		if group.Owner == owner {
+			return group.Settings
+		}
+	}
+	return nil
 }
