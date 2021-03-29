@@ -19,7 +19,7 @@ require (
 	github.com/jenkins-x/lighthouse-client v0.0.83
 	github.com/pborman/uuid v1.2.0
 	github.com/pkg/errors v0.9.1
-	github.com/roboll/helmfile v0.138.4
+	github.com/roboll/helmfile v0.138.7
 	github.com/rollout/rox-go v0.0.0-20181220111955-29ddae74a8c4
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
