@@ -47,6 +47,10 @@ func GatherHelmfiles(helmfile, dir string) ([]Helmfile, error) {
 	parentHelmfileDir := filepath.Dir(helmfile)
 
 	for _, nested := range helmState.Helmfiles {
+		// lets ignore remote helmfiles
+		if strings.HasPrefix(nested.Path, "git::") {
+			continue
+		}
 
 		// recursively gather nested helmfiles including their relative path so we can add correct location to version stream values files
 		// note: unit tests cover this as it is a complex function however they set a test dir with files copied into it,
