@@ -4,6 +4,7 @@ import (
 	"github.com/imdario/mergo"
 	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	jxc "github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned"
+	"github.com/jenkins-x/jx-gitops/pkg/sourceconfigs"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/jxenv"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/requirements"
@@ -11,21 +12,20 @@ import (
 )
 
 // FindRequirements finds the requirements from the dev Environment CRD
-func FindRequirements(g gitclient.Interface, jxClient jxc.Interface, ns string, dir string) (*jxcore.RequirementsConfig, error) {
+func FindRequirements(g gitclient.Interface, jxClient jxc.Interface, ns string, dir, owner, repo string) (*jxcore.RequirementsConfig, error) {
 	settings, err := requirements.LoadSettings(dir, true)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to load settings")
 	}
-
 	if settings == nil {
-		req, err := requirements.GetClusterRequirementsConfig(g, jxClient)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to load requirements from dev environment")
-		}
-		return req, nil
+		// lets use an empty settings file
+		settings = &jxcore.Settings{}
 	}
 
-	gitURL := settings.Spec.GitURL
+	gitURL := ""
+	if settings != nil {
+		gitURL = settings.Spec.GitURL
+	}
 	if gitURL == "" {
 		if ns == "" {
 			ns = jxcore.DefaultNamespace
@@ -42,14 +42,32 @@ func FindRequirements(g gitclient.Interface, jxClient jxc.Interface, ns string, 
 			return nil, errors.New("failed to find a dev environment source url on development environment resource")
 		}
 	}
-	ss := &settings.Spec
 
 	// now lets merge the local requirements with the dev environment so that we can locally override things
 	// while inheriting common stuff
-	req, err := requirements.GetRequirementsFromGit(g, gitURL)
+	req, clusterDir, err := requirements.GetRequirementsAndGit(g, gitURL)
 	if req == nil {
+		r := jxcore.NewRequirementsConfig()
+		req = &r.Spec
 	}
 
+	// lets see if we have organisation settings
+	srcConfig, err := sourceconfigs.LoadSourceConfig(clusterDir, true)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to load source configs")
+	}
+	groupSettings := sourceconfigs.FindSettings(srcConfig, owner, repo)
+
+	settings, err = mergeSettings(settings, groupSettings)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to merge settings")
+	}
+
+	if settings == nil {
+		settings = &jxcore.Settings{}
+	}
+
+	ss := &settings.Spec
 	if ss.Destination != nil {
 		err = mergo.Merge(&req.Cluster.DestinationConfig, ss.Destination, mergo.WithOverride)
 		if err != nil {
@@ -82,4 +100,25 @@ func FindRequirements(g gitclient.Interface, jxClient jxc.Interface, ns string, 
 		}
 	}
 	return req, nil
+}
+
+// mergeSettings merges the local and group settings
+func mergeSettings(local *jxcore.Settings, groupConfig *jxcore.SettingsConfig) (*jxcore.Settings, error) {
+	var group *jxcore.Settings
+	if groupConfig != nil {
+		group = &jxcore.Settings{
+			Spec: *groupConfig,
+		}
+	}
+	if local == nil {
+		return group, nil
+	}
+	if group == nil {
+		return local, nil
+	}
+	err := mergo.Merge(group, local, mergo.WithOverride)
+	if err != nil {
+		return nil, errors.Wrap(err, "error merging local and source config group Settings")
+	}
+	return group, nil
 }
