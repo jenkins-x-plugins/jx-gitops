@@ -21,7 +21,6 @@ func TestGCPipelineActivities(t *testing.T) {
 	ns := "jx"
 	nowMinusThirtyOneDays := time.Now().AddDate(0, 0, -31)
 	nowMinusThreeDays := time.Now().AddDate(0, 0, -3)
-	nowMinusTwoDays := time.Now().AddDate(0, 0, -2)
 	nowMinusOneDay := time.Now().AddDate(0, 0, -1)
 
 	jxClient := jxfake.NewSimpleClientset(
@@ -61,7 +60,7 @@ func TestGCPipelineActivities(t *testing.T) {
 			},
 			Spec: v1.PipelineActivitySpec{
 				Pipeline:           "org/project/PR-1",
-				CompletedTimestamp: &metav1.Time{Time: nowMinusTwoDays},
+				CompletedTimestamp: &metav1.Time{Time: nowMinusThreeDays},
 			},
 		},
 		&v1.PipelineActivity{
