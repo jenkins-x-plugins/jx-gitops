@@ -1371,6 +1371,17 @@ SlackNotify
 <p>Slack optional slack notification configuration</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>settings</code></br>
+<em>
+github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1.SettingsConfig
+</em>
+</td>
+<td>
+<p>Settings optional settinsg for repositories in this group</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="gitops.jenkins-x.io/v1alpha1.SecretMappingSpec">SecretMappingSpec
@@ -1725,5 +1736,5 @@ string
 <hr/>
 <p><em>
 Generated with <code>gen-crd-api-reference-docs</code>
-on git commit <code>980fcc0</code>.
+on git commit <code>4d3128d</code>.
 </em></p>
