@@ -10,6 +10,7 @@ import (
 	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	"github.com/jenkins-x/jx-gitops/pkg/helmfiles"
 	"github.com/jenkins-x/jx-gitops/pkg/plugins"
+	"github.com/jenkins-x/jx-gitops/pkg/releasereport"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
@@ -64,8 +65,8 @@ type Options struct {
 	CommandRunner           cmdrunner.CommandRunner
 	HelmClient              helmer.Helmer
 	Requirements            *jxcore.Requirements
-	NamespaceCharts         []*NamespaceReleases
-	PreviousNamespaceCharts []*NamespaceReleases
+	NamespaceCharts         []*releasereport.NamespaceReleases
+	PreviousNamespaceCharts []*releasereport.NamespaceReleases
 }
 
 // NewCmdHelmfileReport creates a command object for the command
@@ -154,9 +155,9 @@ func (o *Options) Run() error {
 		return errors.Wrapf(err, "failed to check file exists %s", path)
 	}
 	if exists {
-		err = yamls.LoadFile(path, &o.PreviousNamespaceCharts)
+		err = releasereport.LoadReleases(path, &o.PreviousNamespaceCharts)
 		if err != nil {
-			return errors.Wrapf(err, "failed to load %s", path)
+			return err
 		}
 	}
 
@@ -196,8 +197,8 @@ func (o *Options) Run() error {
 	return nil
 }
 
-func (o *Options) processHelmfile(helmfile helmfiles.Helmfile) (*NamespaceReleases, error) {
-	answer := &NamespaceReleases{}
+func (o *Options) processHelmfile(helmfile helmfiles.Helmfile) (*releasereport.NamespaceReleases, error) {
+	answer := &releasereport.NamespaceReleases{}
 	// ignore the root file
 	if helmfile.RelativePathToRoot == "" {
 		return nil, nil
@@ -238,13 +239,13 @@ func (o *Options) processHelmfile(helmfile helmfiles.Helmfile) (*NamespaceReleas
 	return answer, nil
 }
 
-func (o *Options) createReleaseInfo(helmState *state.HelmState, ns string, rel *state.ReleaseSpec) (*ReleaseInfo, error) {
+func (o *Options) createReleaseInfo(helmState *state.HelmState, ns string, rel *state.ReleaseSpec) (*releasereport.ReleaseInfo, error) {
 	chart := rel.Chart
 	if chart == "" {
 		return nil, nil
 	}
 	paths := strings.SplitN(chart, "/", 2)
-	answer := &ReleaseInfo{}
+	answer := &releasereport.ReleaseInfo{}
 	answer.Version = rel.Version
 	switch len(paths) {
 	case 0:
@@ -286,7 +287,7 @@ func localName(chartName string) string {
 	return chartName
 }
 
-func (o *Options) enrichChartMetadata(i *ReleaseInfo, repo *state.RepositorySpec, rel *state.ReleaseSpec, ns string) error {
+func (o *Options) enrichChartMetadata(i *releasereport.ReleaseInfo, repo *state.RepositorySpec, rel *state.ReleaseSpec, ns string) error {
 	// lets see if we can find the previous data in the previous release
 	localChartName := localName(rel.Chart)
 
@@ -357,7 +358,7 @@ func (o *Options) enrichChartMetadata(i *ReleaseInfo, repo *state.RepositorySpec
 	return nil
 }
 
-func (o *Options) discoverResources(ci *ReleaseInfo, ns string, rel *state.ReleaseSpec) error {
+func (o *Options) discoverResources(ci *releasereport.ReleaseInfo, ns string, rel *state.ReleaseSpec) error {
 	namespaceDir := filepath.Join(o.Dir, o.ConfigRootPath, "namespaces", ns)
 	exists, err := files.DirExists(namespaceDir)
 	if err != nil {
@@ -390,7 +391,7 @@ func (o *Options) discoverResources(ci *ReleaseInfo, ns string, rel *state.Relea
 	return nil
 }
 
-func (o *Options) discoverIngress(ci *ReleaseInfo, ns string, rel *state.ReleaseSpec, resourcesDir string) error {
+func (o *Options) discoverIngress(ci *releasereport.ReleaseInfo, ns string, rel *state.ReleaseSpec, resourcesDir string) error {
 	fs, err := ioutil.ReadDir(resourcesDir)
 	if err != nil {
 		return errors.Wrapf(err, "failed to read dir %s", resourcesDir)
@@ -438,7 +439,7 @@ func (o *Options) discoverIngress(ci *ReleaseInfo, ns string, rel *state.Release
 			continue
 		}
 
-		ci.Ingresses = append(ci.Ingresses, IngressInfo{
+		ci.Ingresses = append(ci.Ingresses, releasereport.IngressInfo{
 			Name: ing.Name,
 			URL:  u,
 		})

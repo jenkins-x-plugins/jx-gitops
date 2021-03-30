@@ -1,4 +1,4 @@
-package report
+package releasereport
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 	"helm.sh/helm/v3/pkg/chart"
 )
 
+// NamespaceReleases the releases for a namespace
 type NamespaceReleases struct {
 	Path      string         `json:"path,omitempty"`
 	Namespace string         `json:"namespace,omitempty"`
@@ -32,6 +33,7 @@ type ReleaseInfo struct {
 	Ingresses []IngressInfo `json:"ingresses,omitempty"`
 }
 
+// IngressInfo details of an ingress
 type IngressInfo struct {
 	Name string `json:"name,omitempty"`
 	URL  string `json:"url,omitempty"`

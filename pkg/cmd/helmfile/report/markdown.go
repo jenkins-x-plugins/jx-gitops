@@ -5,10 +5,12 @@ import (
 	"html"
 	"io"
 	"strings"
+
+	"github.com/jenkins-x/jx-gitops/pkg/releasereport"
 )
 
 // ToMarkdown converts the charts to markdown
-func ToMarkdown(charts []*NamespaceReleases) (string, error) {
+func ToMarkdown(charts []*releasereport.NamespaceReleases) (string, error) {
 	w := &strings.Builder{}
 
 	w.WriteString("## Releases\n\n")
@@ -39,7 +41,7 @@ created by [Jenkins X](https://jenkins-x.io/) - see the docs on [how to configur
 	return w.String(), nil
 }
 
-func WriteNamespaceCharts(w io.StringWriter, ns *NamespaceReleases) {
+func WriteNamespaceCharts(w io.StringWriter, ns *releasereport.NamespaceReleases) {
 	if len(ns.Releases) == 0 {
 		return
 	}
@@ -55,7 +57,7 @@ func WriteNamespaceCharts(w io.StringWriter, ns *NamespaceReleases) {
 
 }
 
-func WriteChart(w io.StringWriter, ch *ReleaseInfo) {
+func WriteChart(w io.StringWriter, ch *releasereport.ReleaseInfo) {
 	description := html.EscapeString(ch.Description)
 
 	viewLink := ""
