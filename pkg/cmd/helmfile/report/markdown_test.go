@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/report"
+	"github.com/jenkins-x/jx-gitops/pkg/releasereport"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/testhelpers"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"
@@ -18,7 +19,7 @@ var (
 )
 
 func TestHemlfileMarkdownReport(t *testing.T) {
-	var charts []*report.NamespaceReleases
+	var charts []*releasereport.NamespaceReleases
 
 	tmpDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err, "failed to create temp dir")

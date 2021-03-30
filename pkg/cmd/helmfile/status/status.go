@@ -9,7 +9,7 @@ import (
 	"github.com/jenkins-x/go-scm/scm"
 	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/report"
+	"github.com/jenkins-x/jx-gitops/pkg/releasereport"
 	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-gitops/pkg/sourceconfigs"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
@@ -43,7 +43,7 @@ type Options struct {
 	scmhelpers.Factory
 	Dir               string
 	SourceConfig      *v1alpha1.SourceConfig
-	NamespaceReleases []*report.NamespaceReleases
+	NamespaceReleases []*releasereport.NamespaceReleases
 	Requirements      *jxcore.Requirements
 	TestGitToken      string
 	EnvironmentNames  map[string]string
