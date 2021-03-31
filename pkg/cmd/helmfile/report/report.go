@@ -288,6 +288,9 @@ func localName(chartName string) string {
 }
 
 func (o *Options) enrichChartMetadata(i *releasereport.ReleaseInfo, repo *state.RepositorySpec, rel *state.ReleaseSpec, ns string) error {
+	if repo.OCI {
+		return nil
+	}
 	// lets see if we can find the previous data in the previous release
 	localChartName := localName(rel.Chart)
 
