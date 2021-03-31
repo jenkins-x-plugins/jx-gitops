@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/add"
-	"github.com/jenkins-x/jx-gitops/pkg/fakekpt"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/helmfile/add"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/fakekpt"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner/fakerunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"

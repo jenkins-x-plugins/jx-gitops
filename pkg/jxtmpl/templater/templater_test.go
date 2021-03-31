@@ -7,7 +7,7 @@ import (
 
 	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 
-	"github.com/jenkins-x/jx-gitops/pkg/jxtmpl/templater"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/jxtmpl/templater"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/testhelpers"
 	"github.com/stretchr/testify/require"
 )

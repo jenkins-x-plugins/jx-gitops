@@ -8,7 +8,7 @@ MAIN_SRC_FILE=cmd/main.go
 GO := GO111MODULE=on go
 GO_NOMOD :=GO111MODULE=off go
 REV := $(shell git rev-parse --short HEAD 2> /dev/null || echo 'unknown')
-ORG := jenkins-x
+ORG := jenkins-x-plugins
 ORG_REPO := $(ORG)/$(NAME)
 RELEASE_ORG_REPO := $(ORG_REPO)
 ROOT_PACKAGE := github.com/$(ORG_REPO)
@@ -32,7 +32,7 @@ VERSION ?= $(shell echo "$$(git for-each-ref refs/tags/ --count=1 --sort=-versio
 # Full build flags used when building binaries. Not used for test compilation/execution.
 BUILDFLAGS :=  -ldflags \
   " -X $(ROOT_PACKAGE)/pkg/cmd/version.Version=$(VERSION)\
-		-X github.com/jenkins-x/jx-gitops/pkg/cmd/version.Version=$(VERSION)\
+		-X github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/version.Version=$(VERSION)\
 		-X $(ROOT_PACKAGE)/pkg/cmd/version.Revision='$(REV)'\
 		-X $(ROOT_PACKAGE)/pkg/cmd/version.Branch='$(BRANCH)'\
 		-X $(ROOT_PACKAGE)/pkg/cmd/version.BuildDate='$(BUILD_DATE)'\

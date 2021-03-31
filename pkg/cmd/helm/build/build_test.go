@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/helm/build"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/helm/build"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner/fakerunner"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

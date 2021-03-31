@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/jenkins-x/jx-gitops/pkg/matcher"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/matcher"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"
 	"github.com/pkg/errors"

@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/go-yaml/yaml"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/scheduler"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/scheduler"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/stringhelpers"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/testhelpers"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"

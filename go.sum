@@ -1013,8 +1013,6 @@ github.com/jcmturner/gofork v1.0.0 h1:J7uCkflzTEhUZ64xqKnkDxq3kzc96ajM1Gli5ktUem
 github.com/jcmturner/gofork v1.0.0/go.mod h1:MK8+TM0La+2rjBD4jE12Kj1pCCxK7d2LK/UM3ncEo0o=
 github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869 h1:IPJ3dvxmJ4uczJe5YQdrYB16oTJlGSC/OyZDqUk9xX4=
 github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869/go.mod h1:cJ6Cj7dQo+O6GJNiMx+Pa94qKj+TG8ONdKHgMNIyyag=
-github.com/jenkins-x/go-scm v1.6.7 h1:Tc8yLV1B0OdKCbtQX76Bc5FfbsvShqa+HWrTky92vGY=
-github.com/jenkins-x/go-scm v1.6.7/go.mod h1:yVqpMl3ZSkPWVcPi9EhcK3QtTM/anrtYqI//FqwrdxQ=
 github.com/jenkins-x/go-scm v1.6.9 h1:aurCg0/GGC/EZG0f2IinyYEB2Hjs24Mn3H129r+nMFg=
 github.com/jenkins-x/go-scm v1.6.9/go.mod h1:yVqpMl3ZSkPWVcPi9EhcK3QtTM/anrtYqI//FqwrdxQ=
 github.com/jenkins-x/jx-api/v4 v4.0.25 h1:G80im88KcIOH8smhzvK/6qOI76RB328dAX9Wneb+xyo=

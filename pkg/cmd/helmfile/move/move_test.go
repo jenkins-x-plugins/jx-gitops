@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/move"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/helmfile/move"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

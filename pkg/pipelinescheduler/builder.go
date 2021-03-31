@@ -2,7 +2,7 @@ package pipelinescheduler
 
 import (
 	"github.com/davecgh/go-spew/spew"
-	"github.com/jenkins-x/jx-gitops/pkg/schedulerapi"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/schedulerapi"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/stringhelpers"
 	"github.com/jenkins-x/lighthouse-client/pkg/config/job"
 	"github.com/pkg/errors"

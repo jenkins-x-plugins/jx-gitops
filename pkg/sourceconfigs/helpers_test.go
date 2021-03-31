@@ -3,8 +3,8 @@ package sourceconfigs_test
 import (
 	"testing"
 
-	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
-	"github.com/jenkins-x/jx-gitops/pkg/sourceconfigs"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/apis/gitops/v1alpha1"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/sourceconfigs"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/giturl"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

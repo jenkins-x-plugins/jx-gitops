@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/jenkins-x/jx-gitops/pkg/pipelinescheduler"
-	"github.com/jenkins-x/jx-gitops/pkg/pipelinescheduler/testhelpers"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/pipelinescheduler"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/pipelinescheduler/testhelpers"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/pborman/uuid"

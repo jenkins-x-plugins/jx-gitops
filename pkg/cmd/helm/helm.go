@@ -1,10 +1,10 @@
 package helm
 
 import (
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/helm/build"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/helm/escape"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/helm/mirror"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/helm/release"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/helm/build"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/helm/escape"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/helm/mirror"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/helm/release"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/spf13/cobra"
