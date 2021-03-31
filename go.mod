@@ -1,4 +1,4 @@
-module github.com/jenkins-x/jx-gitops
+module github.com/jenkins-x-plugins/jx-gitops
 
 require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
