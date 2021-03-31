@@ -278,6 +278,8 @@ func (o *Options) updateRepositoryWebhook(scmClient *scm.Client, owner string, r
 		Secret: hmacToken,
 		Events: scm.HookEvents{
 			Branch:             true,
+			Deployment:         true,
+			DeploymentStatus:   true,
 			Issue:              true,
 			IssueComment:       true,
 			PullRequest:        true,
@@ -287,11 +289,9 @@ func (o *Options) updateRepositoryWebhook(scmClient *scm.Client, owner string, r
 			ReviewComment:      true,
 			Tag:                true,
 		},
-
 		SkipVerify:   skipVerify,
 		NativeEvents: nil,
 	}
-	webHookArgs.Secret = hmacToken
 
 	// now lets remove any old ones
 	if len(hooks) > 0 {
