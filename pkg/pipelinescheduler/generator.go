@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/jenkins-x/jx-gitops/pkg/schedulerapi"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/schedulerapi"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/jenkins-x/lighthouse-client/pkg/config"
 	"github.com/jenkins-x/lighthouse-client/pkg/plugins"

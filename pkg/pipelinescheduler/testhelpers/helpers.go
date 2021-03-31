@@ -7,12 +7,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jenkins-x/jx-gitops/pkg/schedulerapi"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/schedulerapi"
 	"github.com/jenkins-x/lighthouse-client/pkg/config/job"
 
 	"github.com/ghodss/yaml"
 
-	"github.com/jenkins-x/jx-gitops/pkg/pipelinescheduler"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/pipelinescheduler"
 	"github.com/jenkins-x/lighthouse-client/pkg/config"
 	"github.com/jenkins-x/lighthouse-client/pkg/plugins"
 

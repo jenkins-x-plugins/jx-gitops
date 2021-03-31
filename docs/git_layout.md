@@ -9,7 +9,7 @@ We follow the [naming conventions](https://cloud.google.com/anthos-config-manage
 
 Also note that any resource in a specific namespace will need the `metadata.namespace` property set to the namespace. Otherwise resources default to using the `default` namespace.
 
-You can use the [jx-gitops namespace](https://github.com/jenkins-x/jx-gitops/blob/master/docs/cmd/jx-gitops_namespace.md) command to set the namespaces on your kubernetes resources. Or to ensure namespaces are set based on the child directory name within `namespaces/` use [jx-gitops namespace --dir-mode --dir config-root/namespaces](https://github.com/jenkins-x/jx-gitops/blob/master/docs/cmd/jx-gitops_namespace.md)  
+You can use the [jx-gitops namespace](https://github.com/jenkins-x-plugins/jx-gitops/blob/master/docs/cmd/jx-gitops_namespace.md) command to set the namespaces on your kubernetes resources. Or to ensure namespaces are set based on the child directory name within `namespaces/` use [jx-gitops namespace --dir-mode --dir config-root/namespaces](https://github.com/jenkins-x-plugins/jx-gitops/blob/master/docs/cmd/jx-gitops_namespace.md)  
 
   
 Many tools can be used to fetch the YAML files from repositories and modify them such as any permutation of:
@@ -36,7 +36,7 @@ We highly recommend using [Kubernetes External Secrets](https://github.com/godad
 * Google Secret Manager
 * HashiCorp Vault
 
-If you use [jx-gitops extsecret](https://github.com/jenkins-x/jx-gitops/blob/master/docs/cmd/jx-gitops_extsecret.md) [jx-gitops helm template](https://github.com/jenkins-x/jx-gitops/blob/master/docs/cmd/jx-gitops_helm_template.md) commands all of your kubernetes `Secret`resources will get automatically converted to `ExternalSecret` resources so you can safely check them into your git repository. You may also find the [document on Secret Mapping](secret_mapping.md) useful
+If you use [jx-gitops extsecret](https://github.com/jenkins-x-plugins/jx-gitops/blob/master/docs/cmd/jx-gitops_extsecret.md) [jx-gitops helm template](https://github.com/jenkins-x-plugins/jx-gitops/blob/master/docs/cmd/jx-gitops_helm_template.md) commands all of your kubernetes `Secret`resources will get automatically converted to `ExternalSecret` resources so you can safely check them into your git repository. You may also find the [document on Secret Mapping](secret_mapping.md) useful
 
 
 ### Deployment Tools
@@ -83,4 +83,4 @@ make apply
 
 We recommend you lint your YAML files to ensure a consistent layout. If using tools like `helm` we recommend splitting YAML files into a file per resource to simplify understanding and to make things easier to process with tools. 
 
-e.g. use [jx-gitops split](https://github.com/jenkins-x/jx-gitops/blob/master/docs/cmd/jx-gitops_split.md) in your `Makefile`.
+e.g. use [jx-gitops split](https://github.com/jenkins-x-plugins/jx-gitops/blob/master/docs/cmd/jx-gitops_split.md) in your `Makefile`.

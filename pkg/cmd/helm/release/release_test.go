@@ -5,10 +5,10 @@ import (
 	"testing"
 
 	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
-	"github.com/jenkins-x/jx-gitops/pkg/fakerunners"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/fakerunners"
 
 	jxfake "github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned/fake"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/helm/release"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/helm/release"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/jxenv"
 	"github.com/stretchr/testify/require"

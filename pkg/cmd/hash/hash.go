@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/annotate"
-	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/annotate"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
@@ -61,8 +61,8 @@ func NewCmdHashAnnotate() (*cobra.Command, *Options) {
 	cmd.Flags().BoolVarP(&o.PodSpec, "pod-spec", "p", false, "annotate the PodSpec in spec.templates.metadata.annotations rather than the top level annotations")
 
 	f := &o.Filter
-	cmd.Flags().StringArrayVarP(&f.Kinds, "kind", "k", []string{"Deployment"}, "adds Kubernetes resource kinds to filter on to annotate. For kind expressions see: https://github.com/jenkins-x/jx-gitops/tree/master/docs/kind_filters.md")
-	cmd.Flags().StringArrayVarP(&f.KindsIgnore, "kind-ignore", "", nil, "adds Kubernetes resource kinds to exclude. For kind expressions see: https://github.com/jenkins-x/jx-gitops/tree/master/docs/kind_filters.md")
+	cmd.Flags().StringArrayVarP(&f.Kinds, "kind", "k", []string{"Deployment"}, "adds Kubernetes resource kinds to filter on to annotate. For kind expressions see: https://github.com/jenkins-x-plugins/jx-gitops/tree/master/docs/kind_filters.md")
+	cmd.Flags().StringArrayVarP(&f.KindsIgnore, "kind-ignore", "", nil, "adds Kubernetes resource kinds to exclude. For kind expressions see: https://github.com/jenkins-x-plugins/jx-gitops/tree/master/docs/kind_filters.md")
 
 	return cmd, o
 }

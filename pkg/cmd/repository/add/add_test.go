@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	jxfake "github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned/fake"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/repository/add"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/repository/add"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/stringhelpers"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/testhelpers"

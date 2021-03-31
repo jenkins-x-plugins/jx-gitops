@@ -3,7 +3,7 @@ package status_test
 import (
 	"testing"
 
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/status"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/helmfile/status"
 	"github.com/stretchr/testify/require"
 )
 

@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/helm/mirror"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/helm/mirror"
 	"github.com/stretchr/testify/require"
 )
 

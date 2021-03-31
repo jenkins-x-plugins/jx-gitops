@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/webhook/update"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/webhook/update"
 
 	"github.com/jenkins-x/go-scm/scm"
 	fakejx "github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned/fake"

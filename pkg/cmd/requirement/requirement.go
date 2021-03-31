@@ -1,10 +1,10 @@
 package requirement
 
 import (
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/requirement/edit"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/requirement/merge"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/requirement/publish"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/requirement/resolve"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/requirement/edit"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/requirement/merge"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/requirement/publish"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/requirement/resolve"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"

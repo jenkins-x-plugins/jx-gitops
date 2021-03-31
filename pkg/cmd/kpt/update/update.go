@@ -13,13 +13,13 @@ import (
 
 	kyaml "sigs.k8s.io/kustomize/kyaml/yaml"
 
-	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/apis/gitops/v1alpha1"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
 
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 
-	"github.com/jenkins-x/jx-gitops/pkg/plugins"
-	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/plugins"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"

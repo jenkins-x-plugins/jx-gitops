@@ -1,8 +1,8 @@
 package plugin
 
 import (
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/plugin/get"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/plugin/upgrade"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/plugin/get"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/plugin/upgrade"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/spf13/cobra"

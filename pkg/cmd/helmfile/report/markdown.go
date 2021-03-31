@@ -6,7 +6,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/jenkins-x/jx-gitops/pkg/releasereport"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/releasereport"
 )
 
 // ToMarkdown converts the charts to markdown

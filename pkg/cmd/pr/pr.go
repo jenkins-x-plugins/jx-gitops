@@ -1,10 +1,10 @@
 package pr
 
 import (
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/pr/comment"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/pr/get"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/pr/label"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/pr/push"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/pr/comment"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/pr/get"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/pr/label"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/pr/push"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/spf13/cobra"

@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/report"
-	"github.com/jenkins-x/jx-gitops/pkg/releasereport"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/helmfile/report"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/releasereport"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/testhelpers"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"

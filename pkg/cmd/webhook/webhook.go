@@ -1,7 +1,7 @@
 package webhook
 
 import (
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/webhook/update"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/webhook/update"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"

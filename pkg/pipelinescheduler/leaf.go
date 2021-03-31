@@ -1,7 +1,7 @@
 package pipelinescheduler
 
 import (
-	"github.com/jenkins-x/jx-gitops/pkg/schedulerapi"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/schedulerapi"
 )
 
 // SchedulerLeaf defines a pipeline scheduler leaf
