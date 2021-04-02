@@ -11,12 +11,12 @@ require (
 	github.com/h2non/gock v1.0.9
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.12
-	github.com/jenkins-x/go-scm v1.6.9
-	github.com/jenkins-x/jx-api/v4 v4.0.25
-	github.com/jenkins-x/jx-helpers/v3 v3.0.92
+	github.com/jenkins-x/go-scm v1.6.13
+	github.com/jenkins-x/jx-api/v4 v4.0.27
+	github.com/jenkins-x/jx-helpers/v3 v3.0.94
 	github.com/jenkins-x/jx-kube-client/v3 v3.0.2
 	github.com/jenkins-x/jx-logging/v3 v3.0.3
-	github.com/jenkins-x/lighthouse-client v0.0.83
+	github.com/jenkins-x/lighthouse-client v0.0.88
 	github.com/pborman/uuid v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/roboll/helmfile v0.138.4
@@ -26,6 +26,7 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/vrischmann/envconfig v1.3.0 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
+	golang.org/x/text v0.3.6 // indirect
 	gopkg.in/validator.v2 v2.0.0-20200605151824-2b28d334fa05
 	helm.sh/helm/v3 v3.5.0
 	k8s.io/api v0.20.5
@@ -39,7 +40,7 @@ require (
 
 replace (
 	// override the go-scm from tekton
-	github.com/jenkins-x/go-scm => github.com/jenkins-x/go-scm v1.6.9
+	github.com/jenkins-x/go-scm => github.com/jenkins-x/go-scm v1.6.13
 	// fix yaml comment parsing issue
 	gopkg.in/yaml.v2 => gopkg.in/yaml.v2 v2.3.0
 	gopkg.in/yaml.v3 => gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
