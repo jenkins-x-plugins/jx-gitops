@@ -66,7 +66,7 @@ func NewCmdCopy() (*cobra.Command, *Options) {
 		Use:     "copy",
 		Short:   "Copies resources (by default confimaps) with the given selector or name from a source namespace to a destination namespace",
 		Long:    cmdLong,
-		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
+		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName, rootcmd.BinaryName, rootcmd.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
 			err := o.Run()
 			helper.CheckErr(err)
