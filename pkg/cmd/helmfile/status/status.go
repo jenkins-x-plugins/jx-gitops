@@ -6,12 +6,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jenkins-x/go-scm/scm"
-	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/apis/gitops/v1alpha1"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/releasereport"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/sourceconfigs"
+	"github.com/jenkins-x/go-scm/scm"
+	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
@@ -42,6 +42,7 @@ var (
 type Options struct {
 	scmhelpers.Factory
 	Dir               string
+	FailOnError       bool
 	SourceConfig      *v1alpha1.SourceConfig
 	NamespaceReleases []*releasereport.NamespaceReleases
 	Requirements      *jxcore.Requirements
@@ -65,6 +66,7 @@ func NewCmdHelmfileStatus() (*cobra.Command, *Options) {
 		},
 	}
 	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the directory that contains the content")
+	cmd.Flags().BoolVarP(&o.FailOnError, "fail", "f", false, "if enabled then fail the boot pipeline if we cannot report the deployment status")
 	return cmd, o
 }
 
@@ -131,7 +133,10 @@ func (o *Options) Run() error {
 
 			err = o.updateStatus(group, repo)
 			if err != nil {
-				return errors.Wrapf(err, "failed to update status for repository %s/%s", group.Owner, repo.Name)
+				if o.FailOnError {
+					return errors.Wrapf(err, "failed to update status for repository %s/%s", group.Owner, repo.Name)
+				}
+				log.Logger().Warnf("failed to update status for repository %s/%s : %s", group.Owner, repo.Name, err.Error())
 			}
 		}
 	}
