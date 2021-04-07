@@ -15,12 +15,12 @@ spec:
     clusterName: my_cluster_name
     devEnvApprovers:
     - todo
-    environmentGitOwner: todo
+    environmentGitOwner: my_git_owner_requirement_repos
     gitKind: github
     gitName: github
     gitServer: https://acme.com
-    provider: gke
-    registry: gcr.io
+    provider: aks
+    registry: my_registry_name
   environments:
   - key: dev
   - key: staging

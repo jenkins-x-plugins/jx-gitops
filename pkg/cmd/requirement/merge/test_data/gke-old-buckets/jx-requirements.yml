@@ -6,39 +6,36 @@ spec:
     schedule: ""
   cluster:
     chartRepository: http://bucketrepo/bucketrepo/charts/
-    clusterName: my_cluster_name
     devEnvApprovers:
     - todo
     environmentGitOwner: todo
     gitKind: github
     gitName: github
     gitServer: https://acme.com
-    project: my_gcp_project
     provider: gke
     registry: gcr.io
-    zone: my_zone
   environments:
   - key: dev
   - key: staging
   - key: production
   ingress:
-    domain: my_subdomain.my_apex_domain
-    externalDNS: true
-    kind: ingress
+    domain: ""
+    externalDNS: false
     namespaceSubDomain: -jx.
     tls:
-      email: my_tls_email
-      enabled: true
-      production: true
-  kuberhealthy: true
+      email: ""
+      enabled: false
+      production: false
   repository: nexus
-  secretStorage: vault
   storage:
+  - name: backup
+    url: gs://old-mybackup-bucket
   - name: logs
-    url: gs://logs-bucket
+    url: gs://old-logs-bucket
   - name: reports
-    url: gs://reports-bucket
+    url: gs://old-reports-bucket
   - name: repository
-    url: gs://repository-bucket
+    url: gs://old-repo-bucket
+  secretStorage: vault
   vault: {}
-  webhook: my_webhook
+  webhook: lighthouse

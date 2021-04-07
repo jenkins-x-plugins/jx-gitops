@@ -14,9 +14,9 @@ spec:
     gitName: github
     gitServer: https://acme.com
     project: my_project
-    provider: gke
+    provider: eks
     region: my_region
-    registry: gcr.io
+    registry: my_registry
   environments:
   - key: dev
   - key: staging
