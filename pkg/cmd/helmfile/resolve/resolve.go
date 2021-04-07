@@ -15,11 +15,11 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"
 
-	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/helmfile/structure"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/helmhelpers"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/plugins"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/versionstreamer"
+	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient"

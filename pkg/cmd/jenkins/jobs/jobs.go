@@ -8,11 +8,11 @@ import (
 	"strings"
 
 	"github.com/Masterminds/sprig"
-	"github.com/jenkins-x/go-scm/scm"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/apis/gitops/v1alpha1"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/jenkins/add"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/sourceconfigs"
+	"github.com/jenkins-x/go-scm/scm"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"

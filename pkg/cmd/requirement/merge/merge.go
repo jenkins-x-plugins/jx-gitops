@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 
 	"github.com/imdario/mergo"
-	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
+	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube"
@@ -136,7 +136,7 @@ func (o *Options) Run() error {
 
 // MergeChanges merges changes from the given requirements into the source
 func (o *Options) MergeChanges(reqs *jxcore.Requirements) error {
-	err := mergo.Merge(o.requirements, reqs.Spec)
+	err := mergo.Merge(o.requirements, reqs.Spec, mergo.WithOverride)
 	if err != nil {
 		return errors.Wrap(err, "error merging requirements")
 	}

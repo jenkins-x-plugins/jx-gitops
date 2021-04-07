@@ -5,11 +5,11 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/apis/gitops/v1alpha1"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/repository/export"
 	jenkinsio "github.com/jenkins-x/jx-api/v4/pkg/apis/jenkins.io"
 	jenkinsv1 "github.com/jenkins-x/jx-api/v4/pkg/apis/jenkins.io/v1"
 	"github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned/fake"
-	"github.com/jenkins-x-plugins/jx-gitops/pkg/apis/gitops/v1alpha1"
-	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/repository/export"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/testhelpers"
 	"github.com/stretchr/testify/require"
 

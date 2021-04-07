@@ -9,7 +9,7 @@ spec:
     clusterName: my_cluster_name
     devEnvApprovers:
     - todo
-    environmentGitOwner: todo
+    environmentGitOwner: my_git_owner_requirement_repos
     gitKind: github
     gitName: github
     gitServer: https://acme.com
@@ -48,4 +48,4 @@ spec:
     name: my_vault_name
     serviceAccount: my_vault_sa
     url: my_vault_url
-  webhook: lighthouse
+  webhook: my_webhook
