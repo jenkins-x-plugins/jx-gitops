@@ -2,9 +2,9 @@ package variablefinders
 
 import (
 	"github.com/imdario/mergo"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/sourceconfigs"
 	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	jxc "github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned"
-	"github.com/jenkins-x-plugins/jx-gitops/pkg/sourceconfigs"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/jxenv"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/requirements"
@@ -88,7 +88,7 @@ func FindRequirements(g gitclient.Interface, jxClient jxc.Interface, ns string, 
 				sharedEnv := &req.Environments[j]
 				if key == sharedEnv.Key {
 					found = true
-					err = mergo.Merge(sharedEnv, env)
+					err = mergo.Merge(sharedEnv, env, mergo.WithOverride)
 					if err != nil {
 						return nil, errors.Wrapf(err, "error merging requirements.environment for %s,", key)
 					}

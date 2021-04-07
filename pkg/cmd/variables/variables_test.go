@@ -8,11 +8,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/variables"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/fakerunners"
 	scmfake "github.com/jenkins-x/go-scm/scm/driver/fake"
 	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	jxfake "github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned/fake"
-	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/variables"
-	"github.com/jenkins-x-plugins/jx-gitops/pkg/fakerunners"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/jxenv"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/testhelpers"
