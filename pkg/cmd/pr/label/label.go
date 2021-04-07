@@ -12,8 +12,8 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 
-	"github.com/jenkins-x/go-scm/scm"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x/go-scm/scm"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/pkg/errors"
@@ -56,7 +56,7 @@ func NewCmdPullRequestLabel() (*cobra.Command, *Options) {
 		Use:     "label",
 		Short:   "Add label to the pull request",
 		Long:    cmdLong,
-		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
+		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName, rootcmd.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
 			err := o.Run()
 			helper.CheckErr(err)
