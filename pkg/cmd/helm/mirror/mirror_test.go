@@ -9,6 +9,8 @@ import (
 )
 
 func TestHelmMirror(t *testing.T) {
+	t.SkipNow()
+
 	_, o := mirror.NewCmdMirror()
 	o.Dir = filepath.Join("test_data", "versionStream")
 
