@@ -11,7 +11,6 @@ require (
 	github.com/h2non/gock v1.0.9
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.12
-	github.com/jenkins-x/gen-crd-api-reference-docs v0.1.6 // indirect
 	github.com/jenkins-x/go-scm v1.6.13
 	github.com/jenkins-x/jx-api/v4 v4.0.28
 	github.com/jenkins-x/jx-helpers/v3 v3.0.94
