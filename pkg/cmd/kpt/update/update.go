@@ -9,6 +9,7 @@ import (
 
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/cli"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/options"
 	"sigs.k8s.io/yaml"
 
 	kyaml "sigs.k8s.io/kustomize/kyaml/yaml"
@@ -53,6 +54,7 @@ var (
 
 // KptOptions the options for the command
 type Options struct {
+	options.BaseOptions
 	Dir                    string
 	Version                string
 	RepositoryURL          string
@@ -85,6 +87,8 @@ func NewCmdKptUpdate() (*cobra.Command, *Options) {
 
 // AddFlags adds CLI flags
 func (o *Options) AddFlags(cmd *cobra.Command) {
+	o.BaseOptions.AddBaseFlags(cmd)
+
 	cmd.Flags().StringVarP(&o.Dir, "dir", "", ".", "the directory to recursively look for the *.yaml or *.yml files")
 	cmd.Flags().StringVarP(&o.Version, "version", "v", "", "the git version of the kpt package to upgrade to")
 	cmd.Flags().StringVarP(&o.RepositoryURL, "url", "u", "", "filter on the Kptfile repository URL for which packages to update")
@@ -107,7 +111,7 @@ func (o *Options) Run() error {
 	}
 
 	if o.CommandRunner == nil {
-		o.CommandRunner = cmdrunner.DefaultCommandRunner
+		o.CommandRunner = cmdrunner.QuietCommandRunner
 	}
 	if o.GitClient == nil {
 		o.GitClient = cli.NewCLIClient("", o.CommandRunner)

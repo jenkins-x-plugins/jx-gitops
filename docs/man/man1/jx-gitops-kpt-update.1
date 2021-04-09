@@ -32,6 +32,10 @@ If you know a specific directory which needs updating you can always use 'kpt' d
 
 .SH OPTIONS
 .PP
+\fB\-b\fP, \fB\-\-batch\-mode\fP[=false]
+    Runs in batch mode without prompting for user input
+
+.PP
 \fB\-\-bin\fP=""
     the 'kpt' binary name to use. If not specified this command will download the jx binary plugin into \~/.jx3/plugins/bin and use that
 
@@ -48,6 +52,10 @@ If you know a specific directory which needs updating you can always use 'kpt' d
     ignore kpt errors of the form: yaml: did not find expected node content
 
 .PP
+\fB\-\-log\-level\fP=""
+    Sets the logging level. If not specified defaults to $JX\_LOG\_LEVEL
+
+.PP
 \fB\-o\fP, \fB\-\-owner\fP=""
     filter on the Kptfile repository owner (user/organisation) for which packages to update
 
@@ -62,6 +70,10 @@ If you know a specific directory which needs updating you can always use 'kpt' d
 .PP
 \fB\-u\fP, \fB\-\-url\fP=""
     filter on the Kptfile repository URL for which packages to update
+
+.PP
+\fB\-\-verbose\fP[=false]
+    Enables verbose output. The environment variable JX\_LOG\_LEVEL has precedence over this flag and allows setting the logging level to any value of: panic, fatal, error, warn, info, debug, trace
 
 .PP
 \fB\-v\fP, \fB\-\-version\fP=""
