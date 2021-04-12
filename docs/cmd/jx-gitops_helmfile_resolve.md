@@ -28,6 +28,7 @@ Resolves the helmfile.yaml from the version stream to specify versions and helm 
   -h, --help                        help for resolve
       --namespace string            the default namespace if none is specified in the helmfile.yaml (default "jx")
       --update                      updates versions from the version stream if they have changed
+      --version-stream-dir string   the directory for the version stream. Defaults to 'versionStream' in the current --dir
 ```
 
 ### SEE ALSO

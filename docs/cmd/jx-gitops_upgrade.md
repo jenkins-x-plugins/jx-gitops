@@ -34,6 +34,7 @@ Upgrades the GitOps git repository with the latest configuration and versions th
   -u, --url string                  filter on the Kptfile repository URL for which packages to update
       --verbose                     Enables verbose output. The environment variable JX_LOG_LEVEL has precedence over this flag and allows setting the logging level to any value of: panic, fatal, error, warn, info, debug, trace
   -v, --version string              the git version of the kpt package to upgrade to
+      --version-stream-dir string   the directory for the version stream. Defaults to 'versionStream' in the current --dir
 ```
 
 ### SEE ALSO
