@@ -71,7 +71,7 @@ func (o *Options) Run() error {
 		return nil
 	}
 
-	log.Logger().Infof("checking for git repository versions in file %s", info(path))
+	log.Logger().Infof("checking for terraform git repository versions in file: %s", info(path))
 
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -108,7 +108,7 @@ func (o *Options) Run() error {
 		return errors.Wrapf(err, "failed to save file %s", path)
 	}
 
-	log.Logger().Infof("updated git repository versions in %s", info(path))
+	log.Logger().Infof("updated terraform git repository versions in: %s", info(path))
 	return nil
 }
 
