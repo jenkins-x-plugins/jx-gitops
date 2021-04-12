@@ -78,11 +78,10 @@ func (o *Options) Run() error {
 		return errors.Wrapf(err, "failed to load file %s", path)
 	}
 
-	if o.Resolver == nil {
-		o.Resolver, err = o.createResolver()
-		if err != nil {
-			return errors.Wrapf(err, "failed to create the version resolver")
-		}
+	// lets verify we have a resolver
+	_, err = o.GetResolver()
+	if err != nil {
+		return errors.Wrapf(err, "failed to create a Resolver")
 	}
 
 	text := string(data)
@@ -113,10 +112,17 @@ func (o *Options) Run() error {
 }
 
 func (o *Options) ReplaceValue(gitURL string) string {
+	if strings.HasPrefix(gitURL, "git::") {
+		answer := o.ReplaceValue(strings.TrimPrefix(gitURL, "git::"))
+		if answer == "" {
+			return ""
+		}
+		return "git::" + answer
+	}
 	u, err := url.Parse(gitURL)
 	if err != nil {
 		log.Logger().Infof("failed to parse terraform source URL %s due to: %s", gitURL, err.Error())
-		return ""
+		return gitURL
 	}
 	ref := u.Query().Get("ref")
 
@@ -146,7 +152,12 @@ func (o *Options) ReplaceValue(gitURL string) string {
 }
 
 func (o *Options) findGitVersion(gitRepo string) (string, error) {
-	version, err := o.Resolver.StableVersionNumber(versionstream.KindGit, gitRepo)
+	resolver, err := o.GetResolver()
+	if err != nil {
+		return "", errors.Wrapf(err, "failed to create Resolver")
+	}
+
+	version, err := resolver.StableVersionNumber(versionstream.KindGit, gitRepo)
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to resolve git version %s", gitRepo)
 	}
@@ -198,4 +209,16 @@ func (o *Options) createResolver() (*versionstream.VersionResolver, error) {
 	return &versionstream.VersionResolver{
 		VersionsDir: o.VersionStreamDir,
 	}, nil
+}
+
+// GetResolver lazy creates the version stream resolver if we don't have one configured
+func (o *Options) GetResolver() (*versionstream.VersionResolver, error) {
+	if o.Resolver == nil {
+		var err error
+		o.Resolver, err = o.createResolver()
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to create the version resolver")
+		}
+	}
+	return o.Resolver, nil
 }
