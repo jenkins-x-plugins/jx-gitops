@@ -83,6 +83,9 @@ func (o *Options) doTerraformUpgrade(err error) error {
 	if o.Options.Dir != "" {
 		o.TerraformUpgrade.Dir = o.Options.Dir
 	}
+	if o.HelmfileResolve.VersionStreamDir != "" {
+		o.TerraformUpgrade.VersionStreamDir = o.HelmfileResolve.VersionStreamDir
+	}
 	err = o.TerraformUpgrade.Run()
 	if err != nil {
 		return errors.Wrapf(err, "failed to upgrade terraform git repository versions")

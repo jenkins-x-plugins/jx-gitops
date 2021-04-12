@@ -107,6 +107,8 @@ func (o *Options) AddFlags(cmd *cobra.Command, prefix string) {
 
 	// git commit stuff....
 	cmd.Flags().BoolVarP(&o.DoGitCommit, prefix+"git-commit", "", false, "if set then the template command will git commit the modified helmfile.yaml files")
+
+	cmd.Flags().StringVarP(&o.VersionStreamDir, "version-stream-dir", "", "", "the directory for the version stream. Defaults to 'versionStream' in the current --dir")
 }
 
 // Validate validates the options and populates any missing values
