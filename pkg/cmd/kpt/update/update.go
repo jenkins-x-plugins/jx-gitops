@@ -173,10 +173,11 @@ func (o *Options) Run() error {
 		}
 
 		strategy := o.Strategy
-		log.Logger().Infof("looking at dir %s in %v", rel, strategies)
 		if strategies[rel] != "" {
 			strategy = strategies[rel]
 		}
+
+		log.Logger().Infof("processing kpt directory: %s wth strategy: %s", termcolor.ColorInfo(rel), termcolor.ColorInfo(strategy))
 
 		folderExpression := rel
 		if o.Version != "" {
@@ -316,7 +317,7 @@ func (o *Options) LoadOverrideStrategies() (map[string]string, error) {
 
 	exists, err := files.FileExists(kptStrategyFilename)
 	if !exists {
-		log.Logger().Infof("no local strategy file %s found so using default merge strategies", info(kptStrategyFilename))
+		log.Logger().Infof("no strategy configuration file %s found so using default merge strategies", info(kptStrategyFilename))
 		return strategies, nil
 	}
 	data, err := ioutil.ReadFile(kptStrategyFilename)
