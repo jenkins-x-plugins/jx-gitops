@@ -34,6 +34,7 @@ func TestRenameYamlFiles(t *testing.T) {
 		"pipelines.tekton.dev-crd.yaml",
 		"cheese-svc.yaml",
 		"cheese-ksvc.yaml",
+		"foo-bar-cm.yaml",
 	}
 
 	for _, f := range expectedFiles {
