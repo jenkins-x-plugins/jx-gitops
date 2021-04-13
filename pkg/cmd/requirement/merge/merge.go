@@ -107,6 +107,10 @@ func (o *Options) Run() error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to load requirement changes from file: %s", o.File)
 	}
+	if requirementChanges != nil {
+		// lets remove any environments as those are always defined in the dev cluster git repository
+		requirementChanges.Spec.Environments = nil
+	}
 
 	exists := false
 	if o.requirements != nil {
