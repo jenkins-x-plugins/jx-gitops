@@ -1,0 +1,33 @@
+apiVersion: core.jenkins-x.io/v4beta1
+kind: Requirements
+spec:
+  autoUpdate:
+    enabled: false
+    schedule: ""
+  cluster:
+    chartRepository: http://bucketrepo/bucketrepo/charts/
+    devEnvApprovers:
+    - todo
+    environmentGitOwner: todo
+    gitKind: github
+    gitName: github
+    gitServer: https://acme.com
+    provider: gke
+    registry: gcr.io
+  environments:
+  - key: dev
+  - key: my-staging
+  - key: my-pre-prod
+  - key: my-production
+  ingress:
+    domain: ""
+    externalDNS: false
+    namespaceSubDomain: -jx.
+    tls:
+      email: ""
+      enabled: false
+      production: false
+  repository: nexus
+  secretStorage: gsm
+  vault: {}
+  webhook: lighthouse
