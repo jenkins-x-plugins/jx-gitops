@@ -132,6 +132,7 @@ func (o *Options) canonicalName(apiVersion, kind, name string) string {
 	}
 	// lets replace any odd characters
 	name = strings.ReplaceAll(name, ":", "-")
+	name = strings.ReplaceAll(name, string(os.PathSeparator), "-")
 	if kind == "" {
 		return name
 	}
