@@ -1,0 +1,45 @@
+apiVersion: core.jenkins-x.io/v4beta1
+kind: Requirements
+spec:
+  autoUpdate:
+    enabled: false
+    schedule: ""
+  cluster:
+    chartRepository: http://bucketrepo/bucketrepo/charts/
+    clusterName: my_cluster_name
+    devEnvApprovers:
+    - todo
+    environmentGitOwner: todo
+    gitKind: github
+    gitName: github
+    gitServer: https://acme.com
+    project: my_gcp_project
+    provider: gke
+    registry: gcr.io
+    zone: my_zone
+  environments:
+  - key: dev
+  - key: my-staging
+  - key: my-pre-prod
+  - key: my-production
+  ingress:
+    domain: my_subdomain.my_apex_domain
+    externalDNS: true
+    kind: ingress
+    namespaceSubDomain: -jx.
+    tls:
+      email: my_tls_email
+      enabled: true
+      production: true
+  kuberhealthy: true
+  repository: nexus
+  secretStorage: vault
+  storage:
+  - name: logs
+    url: gs://logs-bucket
+  - name: reports
+    url: gs://reports-bucket
+  - name: repository
+    url: gs://repository-bucket
+  vault: {}
+  webhook: my_webhook
