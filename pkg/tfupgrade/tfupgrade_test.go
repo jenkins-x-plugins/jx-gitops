@@ -17,19 +17,30 @@ func TestTerraformUpgrade(t *testing.T) {
 	tmpDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err, "could not create temp dir")
 
-	srcDir := "test_data"
-	err = files.CopyDirOverwrite(srcDir, tmpDir)
-	require.NoError(t, err, "failed to copy %s to %s", srcDir, tmpDir)
+	fileNames, err := ioutil.ReadDir("test_data")
+	assert.NoError(t, err)
 
-	o := &tfupgrade.Options{}
-	o.JXClient = jxfake.NewSimpleClientset()
-	o.Namespace = "ns"
-	o.Dir = tmpDir
+	for _, f := range fileNames {
+		if !f.IsDir() {
+			continue
+		}
+		name := f.Name()
+		srcDir := filepath.Join("test_data", name)
+		require.DirExists(t, srcDir)
 
-	err = o.Run()
-	require.NoError(t, err, "failed to run in dir %s", srcDir, tmpDir)
+		err = files.CopyDirOverwrite(srcDir, tmpDir)
+		require.NoError(t, err, "failed to copy %s to %s", srcDir, tmpDir)
 
-	testhelpers.AssertEqualFileText(t, filepath.Join(tmpDir, "expected.tf"), filepath.Join(tmpDir, "main.tf"))
+		o := &tfupgrade.Options{}
+		o.JXClient = jxfake.NewSimpleClientset()
+		o.Namespace = "ns"
+		o.Dir = tmpDir
+
+		err = o.Run()
+		require.NoError(t, err, "failed to run in dir %s for %s", srcDir, name)
+
+		testhelpers.AssertEqualFileText(t, filepath.Join(tmpDir, "expected.tf"), filepath.Join(tmpDir, "main.tf"))
+	}
 }
 
 func TestTerraformUpgradeReplaceValue(t *testing.T) {
@@ -64,7 +75,7 @@ func TestTerraformUpgradeReplaceValue(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		o := &tfupgrade.Options{
-			VersionStreamDir: filepath.Join("test_data", "versionStream"),
+			VersionStreamDir: filepath.Join("test_data", "gke", "versionStream"),
 		}
 
 		got := o.ReplaceValue(tc.input)
