@@ -32,6 +32,7 @@ import (
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/version"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/versionstream"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/webhook"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/yset"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
@@ -82,5 +83,6 @@ func Main() *cobra.Command {
 	cmd.AddCommand(cobras.SplitCommand(variables.NewCmdVariables()))
 	cmd.AddCommand(cobras.SplitCommand(version.NewCmdVersion()))
 	cmd.AddCommand(cobras.SplitCommand(versionstream.NewCmdVersionstream()))
+	cmd.AddCommand(cobras.SplitCommand(yset.NewCmdYSet()))
 	return cmd
 }
