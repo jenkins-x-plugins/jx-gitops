@@ -19,27 +19,29 @@ func AddHelmRepositories(helmBin string, helmState state.HelmState, runner cmdru
 	if helmBin == "" {
 		helmBin = "helm"
 	}
-	repoMap := map[string]string{
-		"jx": "https://storage.googleapis.com/chartmuseum.jenkins-x.io",
+	repoMap := map[string]state.RepositorySpec{
+		"jx": {
+			URL: "https://storage.googleapis.com/chartmuseum.jenkins-x.io",
+		},
 	}
 	for _, repo := range helmState.Repositories {
 		if !repo.OCI {
-			repoMap[repo.Name] = repo.URL
+			repoMap[repo.Name] = repo
 		}
 	}
 
 	helmClient := helmer.NewHelmCLIWithRunner(runner, helmBin, "", false)
 
-	for repoName, repoURL := range repoMap {
-		if stringhelpers.StringArrayIndex(ignoreRepositories, repoURL) >= 0 {
+	for repoName, repo := range repoMap {
+		if stringhelpers.StringArrayIndex(ignoreRepositories, repo.URL) >= 0 {
 			continue
 		}
 
-		_, err := helmer.AddHelmRepoIfMissing(helmClient, repoURL, repoName, "", "")
+		_, err := helmer.AddHelmRepoIfMissing(helmClient, repo.URL, repoName, repo.Username, repo.Password)
 		if err != nil {
-			return errors.Wrapf(err, "failed to add helm repository %s %s", repoName, repoURL)
+			return errors.Wrapf(err, "failed to add helm repository %s %s", repoName, repo.URL)
 		}
-		log.Logger().Debugf("added helm repository %s %s", repoName, repoURL)
+		log.Logger().Debugf("added helm repository %s %s", repoName, repo.URL)
 	}
 	return nil
 }
