@@ -172,7 +172,7 @@ func (o *Options) Run() error {
 		Name: o.HelmfileBinary,
 		Args: []string{"repos"},
 	}
-	_, err = o.CommandRunner(c)
+	_, err = o.QuietCommandRunner(c)
 	if err != nil {
 		return errors.Wrapf(err, "failed to run command %s in dir %s", c.CLI(), o.Dir)
 	}
