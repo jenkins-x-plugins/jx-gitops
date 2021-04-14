@@ -17,12 +17,21 @@ func GetHelmBinary(version string) (string, error) {
 	if version == "" {
 		version = HelmVersion
 	}
-	pluginBinDir, err := homedir.PluginBinDir(os.Getenv("JX_GITOPS_HOME"), ".jx-gitops")
+	pluginBinDir, err := pluginBinDir()
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to find plugin home dir")
 	}
 	plugin := CreateHelmPlugin(version)
 	return extensions.EnsurePluginInstalled(plugin, pluginBinDir)
+}
+
+func pluginBinDir() (string, error) {
+	for _, v := range []string{"JX_GITOPS_HOME", "JX3_HOME", "JX_HOME"} {
+		if os.Getenv(v) != "" {
+			return v, nil
+		}
+	}
+	return homedir.PluginBinDir("", ".jx")
 }
 
 // CreateHelmPlugin creates the helm 3 plugin
@@ -51,7 +60,7 @@ func GetHelmfileBinary(version string) (string, error) {
 	if version == "" {
 		version = HelmfileVersion
 	}
-	pluginBinDir, err := homedir.PluginBinDir(os.Getenv("JX_GITOPS_HOME"), ".jx-gitops")
+	pluginBinDir, err := pluginBinDir()
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to find plugin home dir")
 	}
