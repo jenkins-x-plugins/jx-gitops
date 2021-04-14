@@ -64,6 +64,7 @@ type Options struct {
 	Helmfile                string
 	Helmfiles               []helmfiles.Helmfile
 	KptBinary               string
+	HelmfileBinary          string
 	HelmBinary              string
 	BatchMode               bool
 	UpdateMode              bool
@@ -94,7 +95,8 @@ func NewCmdHelmfileResolve() (*cobra.Command, *Options) {
 		},
 	}
 	cmd.Flags().BoolVarP(&o.UpdateMode, "update", "", false, "updates versions from the version stream if they have changed")
-	cmd.Flags().StringVarP(&o.HelmBinary, "helm-binary", "", "", "specifies the helm binary location to use. If not specified defaults to using the downloaded helm plugin")
+	cmd.Flags().StringVarP(&o.HelmfileBinary, "helmfile-binary", "", "", "specifies the helmfile binary location to use. If not specified defaults to using the downloaded helmfile plugin")
+	//cmd.Flags().StringVarP(&o.HelmBinary, "helm-binary", "", "", "specifies the helm binary location to use. If not specified defaults to using the downloaded helm plugin")
 	o.AddFlags(cmd, "")
 	return cmd, o
 }
@@ -120,6 +122,13 @@ func (o *Options) Validate() error {
 
 	if o.Helmfile == "" {
 		o.Helmfile = "helmfile.yaml"
+	}
+
+	if o.HelmfileBinary == "" {
+		o.HelmfileBinary, err = plugins.GetHelmfileBinary(plugins.HelmfileVersion)
+		if err != nil {
+			return errors.Wrapf(err, "failed to download helmfile plugin")
+		}
 	}
 
 	helmfiles, err := helmfiles.GatherHelmfiles(o.Helmfile, o.Dir)
@@ -156,6 +165,17 @@ func (o *Options) Run() error {
 	}
 
 	count := 0
+
+	// lets add the helm repositories
+	c := &cmdrunner.Command{
+		Dir:  o.Dir,
+		Name: o.HelmfileBinary,
+		Args: []string{"repos"},
+	}
+	_, err = o.QuietCommandRunner(c)
+	if err != nil {
+		return errors.Wrapf(err, "failed to run command %s in dir %s", c.CLI(), o.Dir)
+	}
 
 	if o.UpdateMode {
 		increment, err := o.upgradeHelmfileStructure(o.Dir)
@@ -325,10 +345,12 @@ func (o *Options) resolveHelmfile(helmState *state.HelmState, helmfile helmfiles
 		}
 	}
 
-	err = helmhelpers.AddHelmRepositories(o.HelmBinary, *helmState, o.QuietCommandRunner, ignoreRepositories)
-	if err != nil {
-		return 0, errors.Wrapf(err, "failed to add helm repositories")
-	}
+	/*
+		err = helmhelpers.AddHelmRepositories(o.HelmBinary, *helmState, o.QuietCommandRunner, ignoreRepositories)
+		if err != nil {
+			return 0, errors.Wrapf(err, "failed to add helm repositories")
+		}
+	*/
 
 	if helmfile.RelativePathToRoot != "" {
 		// ensure we have added the jx-values.yaml file in the envirionment
