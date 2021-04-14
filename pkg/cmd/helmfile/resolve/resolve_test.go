@@ -77,7 +77,6 @@ func TestStepHelmfileResolve(t *testing.T) {
 	}
 
 	for _, test := range tests {
-
 		name := test.folder
 
 		t.Logf("running test %s\n", name)
@@ -95,10 +94,14 @@ func TestStepHelmfileResolve(t *testing.T) {
 
 		o.Dir = tmpDir
 		o.HelmBinary = helmBin
+		o.HelmfileBinary = "helmfile"
 		o.TestOutOfCluster = true
 
 		runner := &fakerunner.FakeRunner{
 			CommandRunner: func(c *cmdrunner.Command) (string, error) {
+				if c.Name == "helmfile" {
+					return "", nil
+				}
 				if c.Name == "clone" && len(c.Args) > 0 {
 					// lets really git clone but then fake out all other commands
 					return cmdrunner.DefaultCommandRunner(c)
@@ -111,6 +114,7 @@ func TestStepHelmfileResolve(t *testing.T) {
 			},
 		}
 		o.CommandRunner = runner.Run
+		o.QuietCommandRunner = runner.Run
 		o.Gitter = cli.NewCLIClient("", runner.Run)
 		o.UpdateMode = true
 		if test.helmfile != "" {
