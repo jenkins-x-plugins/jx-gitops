@@ -26,8 +26,9 @@ func GetHelmBinary(version string) (string, error) {
 }
 
 func pluginBinDir() (string, error) {
-	for _, v := range []string{"JX_GITOPS_HOME", "JX3_HOME", "JX_HOME"} {
-		if os.Getenv(v) != "" {
+	for _, e := range []string{"JX_GITOPS_HOME", "JX3_HOME", "JX_HOME"} {
+		v := os.Getenv(e)
+		if v != "" {
 			return v, nil
 		}
 	}
