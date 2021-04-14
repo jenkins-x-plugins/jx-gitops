@@ -5,46 +5,12 @@ import (
 	"strings"
 
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/helmer"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/stringhelpers"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/pkg/errors"
 	"github.com/roboll/helmfile/pkg/state"
 	"k8s.io/client-go/rest"
 )
-
-// AddHelmRepositories ensures the repositories in the helmfile are added to helm
-// so that we can use helm templating etc
-func AddHelmRepositories(helmBin string, helmState state.HelmState, runner cmdrunner.CommandRunner, ignoreRepositories []string) error {
-	if helmBin == "" {
-		helmBin = "helm"
-	}
-	repoMap := map[string]state.RepositorySpec{
-		"jx": {
-			URL: "https://storage.googleapis.com/chartmuseum.jenkins-x.io",
-		},
-	}
-	for _, repo := range helmState.Repositories {
-		if !repo.OCI {
-			repoMap[repo.Name] = repo
-		}
-	}
-
-	helmClient := helmer.NewHelmCLIWithRunner(runner, helmBin, "", false)
-
-	for repoName, repo := range repoMap {
-		if stringhelpers.StringArrayIndex(ignoreRepositories, repo.URL) >= 0 {
-			continue
-		}
-
-		_, err := helmer.AddHelmRepoIfMissing(helmClient, repo.URL, repoName, repo.Username, repo.Password)
-		if err != nil {
-			return errors.Wrapf(err, "failed to add helm repository %s %s", repoName, repo.URL)
-		}
-		log.Logger().Debugf("added helm repository %s %s", repoName, repo.URL)
-	}
-	return nil
-}
 
 // IsWhitespaceOrComments returns true if the text is empty, whitespace or comments only
 func IsWhitespaceOrComments(text string) bool {
