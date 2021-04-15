@@ -15,7 +15,7 @@ import (
 
 var (
 	annotateLong = templates.LongDesc(`
-		Modifies one or more yaml files using a path expression
+		Modifies one or more yaml files using a path expression while preserving comments
 `)
 
 	annotateExample = templates.Examples(`
@@ -37,7 +37,7 @@ func NewCmdYSet() (*cobra.Command, *Options) {
 
 	cmd := &cobra.Command{
 		Use:     "yset",
-		Short:   "Modifies a value in a YAML file at a given path",
+		Short:   "Modifies a value in a YAML file at a given path expression while preserving comments",
 		Long:    annotateLong,
 		Example: fmt.Sprintf(annotateExample, rootcmd.BinaryName, rootcmd.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
