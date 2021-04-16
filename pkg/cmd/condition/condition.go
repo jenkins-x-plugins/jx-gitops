@@ -36,7 +36,7 @@ you can use ! in front of a filter to be the equivalant of not matching the cond
 	pathSeparator = string(os.PathSeparator)
 )
 
-// KptOptions the options for the command
+// Options the options for the command
 type Options struct {
 	Dir                     string
 	Args                    []string

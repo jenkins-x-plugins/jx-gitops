@@ -26,7 +26,7 @@ var (
 	`)
 )
 
-// KptOptions the options for the command
+// Options the options for the command
 type Options struct {
 	scmhelpers.PullRequestOptions
 

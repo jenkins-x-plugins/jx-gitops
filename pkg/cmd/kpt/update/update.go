@@ -52,7 +52,7 @@ var (
 	info = termcolor.ColorInfo
 )
 
-// KptOptions the options for the command
+// Options the options for the command
 type Options struct {
 	options.BaseOptions
 	Dir                    string
