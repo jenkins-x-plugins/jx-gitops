@@ -1,34 +1,34 @@
-## jx-gitops pr push
+## jx-gitops pr variables
 
-Pushes the current git directory to the branch used to create the Pull Request
+Adds Pull Request environment variables to the .jx/variables.sh file
+
+***Aliases**: var,variable*
 
 ### Usage
 
 ```
-jx-gitops pr push
+jx-gitops pr variables
 ```
 
 ### Synopsis
 
-Pushes the current git directory to the branch used to create the Pull Request
+Adds Pull Request environment variables to the .jx/variables.sh file
 
 ### Examples
 
-  # pushes the current directories git contents to the branch used to create the current PR via $BRANCH_NAME
-  jx-gitops pr push
+  # add Pull Request env vars to the .jx/variables.sh file
+  jx-gitops pr variables
 
 ### Options
 
 ```
       --branch string       specifies the branch if not inside a git clone
       --dir string          the directory to search for the .git to discover the git source URL (default ".")
-      --email string        the git user email to use if one is not setup
+  -f, --file string         the default variables file to lazily create or enrich (default ".jx/variables.sh")
       --git-kind string     the kind of git server to connect to
       --git-server string   the git server URL to create the git provider client. If not specified its defaulted from the current source URL
       --git-token string    the git token used to operate on the git repository
-  -h, --help                help for push
-      --ignore-no-pr        if an error is returned finding the Pull Request (maybe due to missing environment variables to find the PULL_NUMBER) just push to the current branch instead
-      --name string         the git user name to use if one is not setup
+  -h, --help                help for variables
       --pr int              the Pull Request number. If not specified we detect it via $PULL_NUMBER or $BRANCH_NAME environment variables
   -r, --repo string         the full git repository name of the form 'owner/name'
       --source-url string   the git source URL of the repository
