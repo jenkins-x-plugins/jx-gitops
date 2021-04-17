@@ -52,6 +52,7 @@ type Options struct {
 	DirIncludesReleaseName       bool
 	ClusterDir                   string
 	ClusterNamespacesDir         string
+	ClusterResourcesDir          string
 	CustomResourceDefinitionsDir string
 	NamespacesDir                string
 	SingleNamespace              string
@@ -88,6 +89,13 @@ func (o *Options) Run() error {
 	}
 	if o.NamespacesDir == "" {
 		o.NamespacesDir = filepath.Join(o.OutputDir, "namespaces")
+	}
+	if o.ClusterResourcesDir == "" {
+		o.ClusterResourcesDir = filepath.Join(o.ClusterDir, "resources")
+		err := os.MkdirAll(o.ClusterResourcesDir, files.DefaultDirWritePermissions)
+		if err != nil {
+			return errors.Wrapf(err, "failed to create cluster resources dir %s", o.ClusterResourcesDir)
+		}
 	}
 	if o.ClusterNamespacesDir == "" {
 		o.ClusterNamespacesDir = filepath.Join(o.ClusterDir, "namespaces")
@@ -252,7 +260,7 @@ func (o *Options) moveFilesToClusterOrNamespacesFolder(dir string, ns string, re
 		}
 
 		kind := kyamls.GetKind(node, path)
-		outDir := filepath.Join(o.ClusterDir, ns, pathName)
+		outDir := filepath.Join(o.ClusterResourcesDir, ns, pathName)
 
 		if kyamls.IsCustomResourceDefinition(kind) {
 			outDir = filepath.Join(o.CustomResourceDefinitionsDir, ns, pathName)

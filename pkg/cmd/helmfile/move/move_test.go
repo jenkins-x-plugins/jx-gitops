@@ -24,7 +24,7 @@ func TestUpdateNamespaceInYamlFiles(t *testing.T) {
 			hasReleaseName: false,
 			expectedFiles: []string{
 				"customresourcedefinitions/jx/lighthouse/lighthousejobs.lighthouse.jenkins.io-crd.yaml",
-				"cluster/nginx/nginx-ingress/nginx-ingress-clusterrole.yaml",
+				"cluster/resources/nginx/nginx-ingress/nginx-ingress-clusterrole.yaml",
 				"namespaces/jx/lighthouse/lighthouse-foghorn-deploy.yaml",
 			},
 		},
@@ -33,10 +33,10 @@ func TestUpdateNamespaceInYamlFiles(t *testing.T) {
 			hasReleaseName: true,
 			expectedFiles: []string{
 				"customresourcedefinitions/jx/lighthouse/lighthousejobs.lighthouse.jenkins.io-crd.yaml",
-				"cluster/nginx/nginx-ingress/nginx-ingress-clusterrole.yaml",
+				"cluster/resources/nginx/nginx-ingress/nginx-ingress-clusterrole.yaml",
 				"namespaces/jx/lighthouse/lighthouse-foghorn-deploy.yaml",
 				"customresourcedefinitions/jx/lighthouse-2/lighthousejobs.lighthouse.jenkins.io-crd.yaml",
-				"cluster/nginx/nginx-ingress-2/nginx-ingress-clusterrole.yaml",
+				"cluster/resources/nginx/nginx-ingress-2/nginx-ingress-clusterrole.yaml",
 				"namespaces/jx/lighthouse-2/lighthouse-foghorn-deploy.yaml",
 				"namespaces/jx/chart-release/example.yaml",
 			},
