@@ -271,6 +271,12 @@ func (o *Options) Validate() error {
 				return variablefinders.FindVersion(o.VersionFile, o.Options.Branch, o.BuildNumber)
 			},
 		},
+		{
+			Name: "DOMAIN",
+			Function: func() (string, error) {
+				return o.Requirements.Ingress.Domain, nil
+			},
+		},
 	}
 
 	// lets add any extra values from the ConfigMap
