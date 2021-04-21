@@ -856,6 +856,17 @@ which eliminates the need to re-lgtm minor fixes/updates.</p>
 <tbody>
 <tr>
 <td>
+<code>sync_period</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>SyncPeriodString compiles into SyncPeriod at load time.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>-</code></br>
 <em>
 time.Duration
@@ -863,6 +874,17 @@ time.Duration
 </td>
 <td>
 <p>SyncPeriod specifies how often Merger will sync jobs with Github. Defaults to 1m.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>status_update_period</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>StatusUpdatePeriodString compiles into StatusUpdatePeriod at load time.</p>
 </td>
 </tr>
 <tr>
@@ -1997,5 +2019,5 @@ string
 <hr/>
 <p><em>
 Generated with <code>gen-crd-api-reference-docs</code>
-on git commit <code>6db4d1c</code>.
+on git commit <code>e4223c7</code>.
 </em></p>
