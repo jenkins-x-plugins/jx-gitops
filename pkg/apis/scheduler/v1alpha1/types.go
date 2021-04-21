@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/jenkins-x/lighthouse-client/pkg/config/job"
+	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -249,8 +250,12 @@ const (
 
 // Merger defines the options used to merge the PR
 type Merger struct {
+	// SyncPeriodString compiles into SyncPeriod at load time.
+	SyncPeriodString string `json:"sync_period,omitempty"`
 	// SyncPeriod specifies how often Merger will sync jobs with Github. Defaults to 1m.
 	SyncPeriod *time.Duration `json:"-"`
+	// StatusUpdatePeriodString compiles into StatusUpdatePeriod at load time.
+	StatusUpdatePeriodString string `json:"status_update_period,omitempty"`
 	// StatusUpdatePeriod
 	StatusUpdatePeriod *time.Duration `json:"-"`
 
@@ -285,6 +290,18 @@ type Merger struct {
 	// combined status; otherwise it may apply the branch protection setting or let user
 	// define their own options in case branch protection is not used.
 	ContextPolicy *ContextPolicy `json:"policy,omitempty"`
+}
+
+// GetSyncPeriod returns the sync period, lazily parsing the duration string if required
+func (m *Merger) GetSyncPeriod() (*time.Duration, error) {
+	if m.SyncPeriod == nil && m.SyncPeriodString != "" {
+		d, err := time.ParseDuration(m.SyncPeriodString)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to parse duration %s", m.SyncPeriodString)
+		}
+		m.SyncPeriod = &d
+	}
+	return m.SyncPeriod, nil
 }
 
 // RepoContextPolicy overrides the policy for repo, and any branch overrides.

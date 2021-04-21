@@ -608,12 +608,24 @@ func buildPeriodics(answer *config.JobConfig, periodics *schedulerapi.Periodics)
 }
 
 func buildMerger(answer *keeper.Config, merger *schedulerapi.Merger, org string, repo string) error {
-	if merger.SyncPeriod != nil {
-		answer.SyncPeriod = *merger.SyncPeriod
+	syncPeriod, err := merger.GetSyncPeriod()
+	if err != nil {
+		return errors.Wrapf(err, "failed to parse sync period")
 	}
+	if syncPeriod != nil {
+		answer.SyncPeriod = *syncPeriod
+	}
+	if answer.SyncPeriod.Milliseconds() != 0 {
+		answer.SyncPeriodString = answer.SyncPeriod.String()
+	}
+
 	if merger.StatusUpdatePeriod != nil {
 		answer.StatusUpdatePeriod = *merger.StatusUpdatePeriod
 	}
+	if answer.StatusUpdatePeriod.Milliseconds() != 0 {
+		answer.StatusUpdatePeriodString = answer.StatusUpdatePeriod.String()
+	}
+
 	if merger.TargetURL != nil {
 		answer.TargetURL = *merger.TargetURL
 	}

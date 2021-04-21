@@ -194,7 +194,8 @@ func applyToMerger(parent *schedulerapi.Merger, child *schedulerapi.Merger) {
 	if child.TargetURL == nil {
 		child.TargetURL = parent.TargetURL
 	}
-	if child.SyncPeriod == nil {
+	syncPeriod, err := child.GetSyncPeriod()
+	if err != nil || syncPeriod == nil {
 		child.SyncPeriod = parent.SyncPeriod
 	}
 	if child.StatusUpdatePeriod == nil {

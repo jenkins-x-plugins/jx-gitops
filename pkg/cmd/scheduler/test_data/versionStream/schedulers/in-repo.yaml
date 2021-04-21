@@ -8,6 +8,7 @@ spec:
     lgtm_acts_as_approve: true
     require_self_approval: true
   merger:
+    sync_period: "30m"
     blocker_label: ""
     max_goroutines: 0
     merge_method: merge
