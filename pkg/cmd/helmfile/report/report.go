@@ -353,7 +353,9 @@ func (o *Options) enrichChartMetadata(i *releasereport.ReleaseInfo, repo *state.
 	m := &chart.Metadata{}
 	err = yaml.UnmarshalStrict([]byte(text), &m)
 	if err != nil {
-		return errors.Wrapf(err, "failed to parse the output of %s got results: %s", c.CLI(), text)
+		log.Logger().Warnf("failed to parse the output of %s which failed with: %v", c.CLI(), err)
+		log.Logger().Infof("output Chart YAML:\n%s", text)
+		return nil
 	}
 	i.Metadata = *m
 	i.Name = name
