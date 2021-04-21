@@ -3,7 +3,7 @@ package pipelinescheduler
 import (
 	"strings"
 
-	"github.com/jenkins-x-plugins/jx-gitops/pkg/schedulerapi"
+	schedulerapi "github.com/jenkins-x-plugins/jx-gitops/pkg/apis/scheduler/v1alpha1"
 	jenkinsio "github.com/jenkins-x/jx-api/v4/pkg/apis/jenkins.io"
 	jenkinsv1 "github.com/jenkins-x/jx-api/v4/pkg/apis/jenkins.io/v1"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/giturl"
