@@ -655,7 +655,7 @@ func (o *Options) GetDashboardURL() (string, error) {
 		name := "jx-pipelines-visualizer"
 		o.DashboardURL, err = services.GetServiceURLFromName(o.KubeClient, name, o.Namespace)
 		if err != nil {
-			return o.DashboardURL, errors.Wrapf(err, "failed to find service URL of %s in namespace %s", name, o.Namespace)
+			log.Logger().Warnf("cannot discover the URL of service %s in namespace %s due to %v", name, o.Namespace, err)
 		}
 	}
 	return o.DashboardURL, nil
