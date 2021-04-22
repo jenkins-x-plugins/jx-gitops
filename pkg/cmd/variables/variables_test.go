@@ -21,7 +21,11 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
-	"sigs.k8s.io/yaml"
+)
+
+var (
+	// generateTestOutput enable to regenerate the expected output
+	generateTestOutput = true
 )
 
 func TestCmdVariables(t *testing.T) {
@@ -63,14 +67,13 @@ func TestCmdVariables(t *testing.T) {
 		devEnv := jxenv.CreateDefaultDevEnvironment(ns)
 		devEnv.Namespace = ns
 		devEnv.Spec.Source.URL = "https://github.com/jx3-gitops-repositories/jx3-kubernetes.git"
+
+		requirements := jxcore.NewRequirementsConfig()
+		requirements.Spec.Cluster.ChartRepository = "http://bucketrepo/bucketrepo/charts/"
+		requirements.Spec.Ingress.Domain = "mydomain.com"
+
 		if name == "nokube" {
 			devEnv.Spec.Source.URL = "https://github.com/jx3-gitops-repositories/jx3-github.git"
-		} else {
-			requirements := jxcore.NewRequirementsConfig()
-			requirements.Spec.Cluster.ChartRepository = "http://bucketrepo/bucketrepo/charts/"
-			data, err := yaml.Marshal(requirements)
-			require.NoError(t, err, "failed to marshal requirements")
-			devEnv.Spec.TeamSettings.BootRequirements = string(data)
 		}
 
 		runner := fakerunners.NewFakeRunnerWithGitClone()
@@ -84,6 +87,12 @@ func TestCmdVariables(t *testing.T) {
 		o.JXClient = jxClient
 		o.Namespace = ns
 		o.BuildNumber = "5"
+		o.GitBranch = "mybranch"
+		o.DashboardURL = "https://dashboard-mydomain.com"
+
+		if name == "empty" {
+			o.Requirements = &requirements.Spec
+		}
 
 		o.KubeClient = fake.NewSimpleClientset(
 			&corev1.ConfigMap{
@@ -111,6 +120,19 @@ func TestCmdVariables(t *testing.T) {
 		f := filepath.Join(runDir, o.File)
 		require.FileExists(t, f, "should have generated file")
 		t.Logf("generated file %s\n", f)
+
+		if generateTestOutput {
+			generatedFile := f
+			expectedPath := filepath.Join(srcDir, "expected.sh")
+			data, err := ioutil.ReadFile(generatedFile)
+			require.NoError(t, err, "failed to load %s", generatedFile)
+
+			err = ioutil.WriteFile(expectedPath, data, 0666)
+			require.NoError(t, err, "failed to save file %s", expectedPath)
+
+			t.Logf("saved file %s\n", expectedPath)
+			continue
+		}
 
 		testhelpers.AssertTextFilesEqual(t, filepath.Join(runDir, "expected.sh"), f, "generated file")
 	}

@@ -25,6 +25,7 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/activities"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/jxclient"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/naming"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/services"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/scmhelpers"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/stringhelpers"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
@@ -62,6 +63,8 @@ type Options struct {
 	BuildID            string
 	GitCommitUsername  string
 	GitCommitUserEmail string
+	GitBranch          string
+	DashboardURL       string
 	Commit             bool
 	KubeClient         kubernetes.Interface
 	JXClient           jxc.Interface
@@ -138,9 +141,11 @@ func (o *Options) Validate() error {
 	if o.GitClient == nil {
 		o.GitClient = cli.NewCLIClient("", o.CommandRunner)
 	}
-	o.Requirements, err = variablefinders.FindRequirements(o.GitClient, o.JXClient, o.Namespace, o.Dir, o.Owner, o.Repository)
-	if err != nil {
-		return errors.Wrapf(err, "failed to load requirements")
+	if o.Requirements == nil {
+		o.Requirements, err = variablefinders.FindRequirements(o.GitClient, o.JXClient, o.Namespace, o.Dir, o.Owner, o.Repository)
+		if err != nil {
+			return errors.Wrapf(err, "failed to load requirements")
+		}
 	}
 
 	if o.ConfigMapData == nil {
@@ -214,12 +219,6 @@ func (o *Options) Validate() error {
 			},
 		},
 		{
-			Name: "PUSH_CONTAINER_REGISTRY",
-			Function: func() (string, error) {
-				return o.pushContainerRegistry()
-			},
-		},
-		{
 			Name: "DOCKER_REGISTRY",
 			Function: func() (string, error) {
 				return o.dockerRegistry()
@@ -229,6 +228,24 @@ func (o *Options) Validate() error {
 			Name: "DOCKER_REGISTRY_ORG",
 			Function: func() (string, error) {
 				return o.dockerRegistryOrg()
+			},
+		},
+		{
+			Name: "DOMAIN",
+			Function: func() (string, error) {
+				return o.Requirements.Ingress.Domain, nil
+			},
+		},
+		{
+			Name: "GIT_BRANCH",
+			Function: func() (string, error) {
+				return o.GetGitBranch()
+			},
+		},
+		{
+			Name: "JENKINS_X_URL",
+			Function: func() (string, error) {
+				return o.GetJenkinsXURL()
 			},
 		},
 		{
@@ -248,9 +265,21 @@ func (o *Options) Validate() error {
 			},
 		},
 		{
+			Name: "NAMESPACE_SUB_DOMAIN",
+			Function: func() (string, error) {
+				return o.Requirements.Ingress.NamespaceSubDomain, nil
+			},
+		},
+		{
 			Name: "PIPELINE_KIND",
 			Function: func() (string, error) {
 				return variablefinders.FindPipelineKind(o.Branch)
+			},
+		},
+		{
+			Name: "PUSH_CONTAINER_REGISTRY",
+			Function: func() (string, error) {
+				return o.pushContainerRegistry()
 			},
 		},
 		{
@@ -269,12 +298,6 @@ func (o *Options) Validate() error {
 			Name: "VERSION",
 			Function: func() (string, error) {
 				return variablefinders.FindVersion(o.VersionFile, o.Options.Branch, o.BuildNumber)
-			},
-		},
-		{
-			Name: "DOMAIN",
-			Function: func() (string, error) {
-				return o.Requirements.Ingress.Domain, nil
 			},
 		},
 	}
@@ -446,6 +469,17 @@ func (o *Options) dockerRegistryOrg() (string, error) {
 	return answer, nil
 }
 
+func (o *Options) GetGitBranch() (string, error) {
+	if o.GitBranch == "" {
+		var err error
+		o.GitBranch, err = gitclient.Branch(o.GitClient, o.Dir)
+		if err != nil {
+			return o.GitBranch, errors.Wrapf(err, "failed to ")
+		}
+	}
+	return o.GitBranch, nil
+}
+
 func (o *Options) minkImage() (string, error) {
 	registry, err := o.dockerRegistry()
 	if err != nil {
@@ -595,6 +629,36 @@ func (o *Options) FindDockerfilePath() (string, error) {
 	}
 	return "Dockerfile", nil
 
+}
+
+// GetJenkinsXURL returns the Jenkins URL
+func (o *Options) GetJenkinsXURL() (string, error) {
+	dash, err := o.GetDashboardURL()
+	if dash == "" || err != nil {
+		return "", err
+	}
+	owner := o.Options.Owner
+	repo := o.Options.Repository
+	branch := o.Options.Branch
+	build := o.BuildNumber
+
+	if owner == "" || repo == "" || branch == "" || build == "" {
+		return "", nil
+	}
+	return stringhelpers.UrlJoin(dash, owner, repo, branch, build), nil
+}
+
+// GetDashboardURL
+func (o *Options) GetDashboardURL() (string, error) {
+	if o.DashboardURL == "" {
+		var err error
+		name := "jx-pipelines-visualizer"
+		o.DashboardURL, err = services.GetServiceURLFromName(o.KubeClient, name, o.Namespace)
+		if err != nil {
+			return o.DashboardURL, errors.Wrapf(err, "failed to find service URL of %s in namespace %s", name, o.Namespace)
+		}
+	}
+	return o.DashboardURL, nil
 }
 
 func configMapKeyToEnvVar(k string) string {

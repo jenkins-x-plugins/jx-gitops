@@ -100,6 +100,36 @@ func TestSourceConfigDefaultValues(t *testing.T) {
 	assertSlackChannel(t, config, "no-cfg", "repo-enabled", "default-channel-for-orgs", v1alpha1.PipelineKindRelease, false, false)
 }
 
+func TestSourceConfigGlobalDefaultValues(t *testing.T) {
+	owner := "myowner"
+
+	config := &v1alpha1.SourceConfig{
+		Spec: v1alpha1.SourceConfigSpec{
+			Groups: []v1alpha1.RepositoryGroup{
+				{
+					Provider:     gitServer,
+					ProviderKind: gitKind,
+					Owner:        owner,
+					Repositories: []v1alpha1.Repository{
+						{
+							Name: "myrepo",
+						},
+					},
+				},
+			},
+			Slack: &v1alpha1.SlackNotify{
+				Channel:  "my-channel",
+				Pipeline: v1alpha1.PipelineKindAll,
+			},
+		},
+	}
+
+	err := sourceconfigs.DefaultConfigValues(config)
+	require.NoError(t, err, "default values")
+
+	assertSlackChannel(t, config, owner, "myrepo", "my-channel", v1alpha1.PipelineKindAll, false, false)
+}
+
 func assertSlackChannel(t *testing.T, config *v1alpha1.SourceConfig, owner string, repoName string, expectedChannel string, expectedPipeline v1alpha1.PipelineKind, expectedDirectMessage bool, expectedNotifyReviewers bool) {
 	group := sourceconfigs.GetOrCreateGroup(config, gitKind, gitServer, owner)
 	repo := sourceconfigs.GetOrCreateRepository(group, repoName)
