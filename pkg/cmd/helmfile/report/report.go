@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	charter "github.com/jenkins-x-plugins/jx-charter/pkg/apis/chart/v1alpha1"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/helmfiles"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/plugins"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/releasereport"
@@ -29,7 +30,9 @@ import (
 	"github.com/spf13/cobra"
 	"helm.sh/helm/v3/pkg/chart"
 	"k8s.io/api/extensions/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+
 	"sigs.k8s.io/yaml"
 )
 
@@ -194,7 +197,8 @@ func (o *Options) Run() error {
 		return errors.Wrapf(err, "failed to save %s", path)
 	}
 	log.Logger().Infof("saved %s", info(path))
-	return nil
+
+	return o.generateChartCRDs()
 }
 
 func (o *Options) processHelmfile(helmfile helmfiles.Helmfile) (*releasereport.NamespaceReleases, error) {
@@ -451,6 +455,59 @@ func (o *Options) discoverIngress(ci *releasereport.ReleaseInfo, ns string, rel 
 
 		if ing.Name == ci.Name || ing.Name == ci.Name+"-"+rel.Name {
 			ci.ApplicationURL = u
+		}
+	}
+	return nil
+}
+
+func (o *Options) generateChartCRDs() error {
+	// lets check if we have installed the jx-charter chart which if not we don't generate Chart CRDs
+	// as we need the CRD to know if we should create them....
+	found := false
+	for _, nc := range o.NamespaceCharts {
+		for _, r := range nc.Releases {
+			if r.Name == "jx-charter" {
+				found = true
+				break
+			}
+		}
+	}
+	if !found {
+		return nil
+	}
+
+	for _, nc := range o.NamespaceCharts {
+		for _, r := range nc.Releases {
+			ns := nc.Namespace
+			name := r.Name
+			dir := filepath.Join(o.Dir, o.ConfigRootPath, "namespaces", ns, "chart-crds")
+			err := os.MkdirAll(dir, files.DefaultDirWritePermissions)
+			if err != nil {
+				return errors.Wrapf(err, "failed to create dir %s", dir)
+			}
+			path := filepath.Join(dir, name+".yaml")
+			ch := &charter.Chart{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: charter.APIVersion,
+					Kind:       charter.KindChart,
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      name,
+					Namespace: ns,
+				},
+				Spec: charter.ChartSpec{
+					r.Metadata,
+				},
+				Status: &charter.ChartStatus{
+					Description: "Install complete",
+					Status:      "deployed",
+					Notes:       "",
+				},
+			}
+			err = yamls.SaveFile(ch, path)
+			if err != nil {
+				return errors.Wrapf(err, "failed to save file %s", path)
+			}
 		}
 	}
 	return nil
