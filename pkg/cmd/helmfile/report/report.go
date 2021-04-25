@@ -480,12 +480,12 @@ func (o *Options) generateChartCRDs() error {
 		for _, r := range nc.Releases {
 			ns := nc.Namespace
 			name := r.Name
-			dir := filepath.Join(o.Dir, o.ConfigRootPath, "namespaces", ns, "chart-crds")
+			path := filepath.Join(o.Dir, o.ConfigRootPath, "namespaces", ns, "chart-crds", name+".yaml")
+			dir := filepath.Dir(path)
 			err := os.MkdirAll(dir, files.DefaultDirWritePermissions)
 			if err != nil {
 				return errors.Wrapf(err, "failed to create dir %s", dir)
 			}
-			path := filepath.Join(dir, name+".yaml")
 			ch := &charter.Chart{
 				TypeMeta: metav1.TypeMeta{
 					APIVersion: charter.APIVersion,
