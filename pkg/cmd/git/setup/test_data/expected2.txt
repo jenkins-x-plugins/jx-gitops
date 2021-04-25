@@ -1,0 +1,1 @@
+https://myuser:my%2Fpwd@github.com
