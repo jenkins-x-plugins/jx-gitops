@@ -495,7 +495,7 @@ func (o *Options) generateChartCRDs() error {
 			name := r.Name
 
 			// lets make sure we don't have a relative path or anything funky
-			i := strings.Index(name, "/")
+			i := strings.LastIndex(name, "/")
 			if i > 0 {
 				name = name[i+1:]
 			}
