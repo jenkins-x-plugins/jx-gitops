@@ -10,10 +10,10 @@ require (
 	github.com/h2non/gock v1.0.9
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.12
-	github.com/jenkins-x-plugins/jx-charter v0.0.15
-	github.com/jenkins-x/go-scm v1.7.1
-	github.com/jenkins-x/jx-api/v4 v4.0.28
-	github.com/jenkins-x/jx-helpers/v3 v3.0.105
+	github.com/jenkins-x-plugins/jx-charter v0.0.16
+	github.com/jenkins-x/go-scm v1.7.2
+	github.com/jenkins-x/jx-api/v4 v4.0.29
+	github.com/jenkins-x/jx-helpers/v3 v3.0.106
 	github.com/jenkins-x/jx-kube-client/v3 v3.0.2
 	github.com/jenkins-x/jx-logging/v3 v3.0.3
 	github.com/jenkins-x/lighthouse-client v0.0.114
@@ -40,7 +40,7 @@ replace (
 	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20191216044856-a8371794149d
 	github.com/docker/docker => github.com/moby/moby v17.12.0-ce-rc1.0.20200618181300-9dc6525e6118+incompatible
 	// override the go-scm from tekton
-	github.com/jenkins-x/go-scm => github.com/jenkins-x/go-scm v1.7.1
+	github.com/jenkins-x/go-scm => github.com/jenkins-x/go-scm v1.7.2
 	// fix yaml comment parsing issue
 	gopkg.in/yaml.v2 => gopkg.in/yaml.v2 v2.3.0
 	gopkg.in/yaml.v3 => gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
