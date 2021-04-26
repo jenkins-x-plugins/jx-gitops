@@ -10,7 +10,7 @@ require (
 	github.com/h2non/gock v1.0.9
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.12
-	github.com/jenkins-x-plugins/jx-charter v0.0.16
+	github.com/jenkins-x-plugins/jx-charter v0.0.17
 	github.com/jenkins-x/go-scm v1.7.2
 	github.com/jenkins-x/jx-api/v4 v4.0.29
 	github.com/jenkins-x/jx-helpers/v3 v3.0.106
