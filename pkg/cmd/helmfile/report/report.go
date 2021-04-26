@@ -543,7 +543,9 @@ func (o *Options) generateChartCRDs() error {
 					Namespace: ns,
 				},
 				Spec: charter.ChartSpec{
-					r.Metadata,
+					Metadata:       r.Metadata,
+					RepositoryName: r.RepositoryName,
+					RepositoryURL:  r.RepositoryURL,
 				},
 				Status: status,
 			}
