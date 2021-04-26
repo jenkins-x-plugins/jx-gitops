@@ -493,6 +493,15 @@ func (o *Options) generateChartCRDs() error {
 		for _, r := range nc.Releases {
 			ns := nc.Namespace
 			name := r.Name
+
+			// lets make sure we don't have a relative path or anything funky
+			i := strings.Index(name, "/")
+			if i > 0 {
+				name = name[i+1:]
+			}
+			if name == "" {
+				continue
+			}
 			path := filepath.Join(o.Dir, o.ConfigRootPath, "namespaces", ns, "chart-crds", name+".yaml")
 			dir := filepath.Dir(path)
 			err := os.MkdirAll(dir, files.DefaultDirWritePermissions)
