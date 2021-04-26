@@ -228,6 +228,19 @@ func (o *Options) processHelmfile(helmfile helmfiles.Helmfile) (*releasereport.N
 
 	for i := range helmState.Releases {
 		rel := &helmState.Releases[i]
+		exists, err := o.verifyReleaseExists(ns, rel)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to verify if release exists %s in namespace %s", rel.Chart, ns)
+		}
+		if !exists {
+			if rel.Condition == "" {
+				log.Logger().Warnf("ignoring release %s in namespace %s as we cannot find any generated resources but there is no conditional", rel.Chart, ns)
+				continue
+			}
+			log.Logger().Infof("ignoring release %s in namespace %s as using conditional %s", info(rel.Chart), info(ns), info(rel.Condition))
+			continue
+		}
+
 		ci, err := o.createReleaseInfo(helmState, ns, rel)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to create release info for %s", rel.Chart)
@@ -511,4 +524,31 @@ func (o *Options) generateChartCRDs() error {
 		}
 	}
 	return nil
+}
+
+func (o *Options) verifyReleaseExists(ns string, r *state.ReleaseSpec) (bool, error) {
+	name := r.Name
+	nsDir := filepath.Join(o.Dir, o.ConfigRootPath, "namespaces", ns)
+	path := filepath.Join(nsDir, name)
+	exists, err := files.DirExists(path)
+	if err != nil {
+		return false, errors.Wrapf(err, "failed to check if directory exist %s", path)
+	}
+	if exists {
+		return true, nil
+	}
+	// lets see if we are using chartName-releaseName as the dir which `jx gitops move` uses
+	localChartName := r.Chart
+	i := strings.LastIndex(localChartName, "/")
+	if i > 0 {
+		localChartName = localChartName[i+1:]
+	}
+	releaseName := r.Name
+	name = localChartName + "-" + releaseName
+	path = filepath.Join(nsDir, name)
+	exists, err = files.DirExists(path)
+	if err != nil {
+		return false, errors.Wrapf(err, "failed to check if directory exist %s", path)
+	}
+	return exists, nil
 }
