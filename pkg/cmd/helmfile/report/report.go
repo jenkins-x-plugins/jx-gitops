@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	charter "github.com/jenkins-x-plugins/jx-charter/pkg/apis/chart/v1alpha1"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/helmfiles"
@@ -292,6 +293,13 @@ func (o *Options) createReleaseInfo(helmState *state.HelmState, ns string, rel *
 		return answer, errors.Wrapf(err, "failed to discover resources for %s", answer.String())
 	}
 
+	if answer.FirstDeployed == nil {
+		answer.FirstDeployed = createNow()
+	}
+	if answer.LastDeployed.IsZero() {
+		answer.LastDeployed = createNow()
+	}
+
 	answer.LogsURL = getLogURL(&o.Requirements.Spec, ns, answer.Name)
 	return answer, nil
 }
@@ -378,6 +386,12 @@ func (o *Options) enrichChartMetadata(i *releasereport.ReleaseInfo, repo *state.
 	i.Name = name
 	i.Version = version
 	return nil
+}
+
+func createNow() *metav1.Time {
+	return &metav1.Time{
+		Time: time.Now(),
+	}
 }
 
 func (o *Options) discoverResources(ci *releasereport.ReleaseInfo, ns string, rel *state.ReleaseSpec) error {
@@ -508,6 +522,17 @@ func (o *Options) generateChartCRDs() error {
 			if err != nil {
 				return errors.Wrapf(err, "failed to create dir %s", dir)
 			}
+			status := &charter.ChartStatus{
+				Description: "Install complete",
+				Status:      "deployed",
+				Notes:       "",
+			}
+			if r.FirstDeployed != nil {
+				status.FirstDeployed = *r.FirstDeployed
+			}
+			if r.LastDeployed != nil {
+				status.LastDeployed = *r.LastDeployed
+			}
 			ch := &charter.Chart{
 				TypeMeta: metav1.TypeMeta{
 					APIVersion: charter.APIVersion,
@@ -520,11 +545,7 @@ func (o *Options) generateChartCRDs() error {
 				Spec: charter.ChartSpec{
 					r.Metadata,
 				},
-				Status: &charter.ChartStatus{
-					Description: "Install complete",
-					Status:      "deployed",
-					Notes:       "",
-				},
+				Status: status,
 			}
 			err = yamls.SaveFile(ch, path)
 			if err != nil {

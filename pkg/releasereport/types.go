@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"helm.sh/helm/v3/pkg/chart"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // NamespaceReleases the releases for a namespace
@@ -16,6 +17,11 @@ type NamespaceReleases struct {
 // ReleaseInfo information about the release
 type ReleaseInfo struct {
 	chart.Metadata
+
+	// FirstDeployed is when the chart version was first deployed.
+	FirstDeployed *metav1.Time `json:"firstDeployed,omitempty"`
+	// LastDeployed is when the release was last deployed.
+	LastDeployed *metav1.Time `json:"lastDeployed,omitempty"`
 
 	// RepositoryName the chart repository name used in the fully qualified chart name
 	RepositoryName string `json:"repositoryName,omitempty"`
