@@ -43,6 +43,9 @@ func TestFindRequirements(t *testing.T) {
 		expectError bool
 	}{
 		{
+			path: "disable_env",
+		},
+		{
 			path: "no_settings",
 		},
 		{
@@ -109,5 +112,7 @@ func TestFindRequirements(t *testing.T) {
 			continue
 		}
 		testhelpers.AssertTextFilesEqual(t, expectedPath, generatedFile, "generated requirements file for test "+name)
+
+		t.Logf("generated file %s is expected for %s\n", generatedFile, name)
 	}
 }

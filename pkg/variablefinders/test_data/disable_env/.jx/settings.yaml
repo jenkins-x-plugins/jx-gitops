@@ -1,0 +1,6 @@
+apiVersion: core.jenkins-x.io/v4beta1
+kind: Settings
+spec:
+  promoteEnvironments:
+  - key: production
+    promotionStrategy: Never

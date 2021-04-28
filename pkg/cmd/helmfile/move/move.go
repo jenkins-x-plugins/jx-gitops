@@ -25,6 +25,9 @@ import (
 )
 
 const (
+	// HelmReleaseNameAnnotation the annotation added by helm to denote a release name
+	HelmReleaseNameAnnotation = "meta.helm.sh/release-name"
+
 	pathSeparator = string(os.PathSeparator)
 )
 
@@ -36,6 +39,8 @@ The output of 'helmfile template' ignores the namespace specified in the 'helmfi
 
 So this command applies the namespace to all the generated resources and then moves the namespaced resources into the config-root/namespaces/$ns/$releaseName directory
 and then moves any CRDs or cluster level resources into 'config-root/cluster/$releaseName'
+
+If supplied with --dir-includes-release-name then by default we will annotate the resources with the annotation 'meta.helm.sh/release-name' to preserve the helm release name
 `)
 
 	namespaceExample = templates.Examples(`
@@ -49,13 +54,14 @@ type Options struct {
 	kyamls.Filter
 	Dir                          string
 	OutputDir                    string
-	DirIncludesReleaseName       bool
 	ClusterDir                   string
 	ClusterNamespacesDir         string
 	ClusterResourcesDir          string
 	CustomResourceDefinitionsDir string
 	NamespacesDir                string
 	SingleNamespace              string
+	DirIncludesReleaseName       bool
+	AnnotateReleaseNames         bool
 	HelmState                    *state.HelmState
 }
 
@@ -77,6 +83,7 @@ func NewCmdHelmfileMove() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.Dir, "dir", "", "", "the directory containing the generated resources")
 	cmd.Flags().StringVarP(&o.OutputDir, "output-dir", "o", "config-root", "the output directory")
 	cmd.Flags().BoolVarP(&o.DirIncludesReleaseName, "dir-includes-release-name", "", false, "the directory containing the generated resources has a path segment that is the release name")
+	cmd.Flags().BoolVarP(&o.AnnotateReleaseNames, "annotate-release-name", "", true, "if using --dir-includes-release-name layout then lets add the 'meta.helm.sh/release-name' annotation to record the helm release name")
 
 	o.Filter.AddFlags(cmd)
 	return cmd, o
@@ -257,6 +264,20 @@ func (o *Options) moveFilesToClusterOrNamespacesFolder(dir string, ns string, re
 			pathName = releaseName
 		} else {
 			pathName = fmt.Sprintf("%s-%s", chartName, releaseName)
+		}
+
+		if o.AnnotateReleaseNames {
+			k := HelmReleaseNameAnnotation
+			v, err := node.Pipe(yaml.GetAnnotation(k))
+			if err != nil {
+				return errors.Wrapf(err, "failed to get annotation %s for path %s", k, path)
+			}
+			if v == nil {
+				err = node.PipeE(yaml.SetAnnotation(k, releaseName))
+				if err != nil {
+					return errors.Wrapf(err, "failed to set annotation %s to %s for path %s", k, releaseName, path)
+				}
+			}
 		}
 
 		kind := kyamls.GetKind(node, path)

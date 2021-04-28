@@ -23,8 +23,15 @@ The output of 'helmfile template' ignores the namespace specified in the 'helmfi
 .PP
 So this command applies the namespace to all the generated resources and then moves the namespaced resources into the config\-root/namespaces/$ns/$releaseName directory and then moves any CRDs or cluster level resources into 'config\-root/cluster/$releaseName'
 
+.PP
+If supplied with \-\-dir\-includes\-release\-name then by default we will annotate the resources with the annotation 'meta.helm.sh/release\-name' to preserve the helm release name
+
 
 .SH OPTIONS
+.PP
+\fB\-\-annotate\-release\-name\fP[=true]
+    if using \-\-dir\-includes\-release\-name layout then lets add the 'meta.helm.sh/release\-name' annotation to record the helm release name
+
 .PP
 \fB\-\-dir\fP=""
     the directory containing the generated resources
