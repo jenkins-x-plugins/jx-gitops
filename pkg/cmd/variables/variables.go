@@ -475,6 +475,7 @@ func (o *Options) GetGitBranch() (string, error) {
 		o.GitBranch, err = gitclient.Branch(o.GitClient, o.Dir)
 		if err != nil {
 			log.Logger().Warnf("failed to get the current git branch as probably not in a git clone directory, so cannot create the GIT_BRANCH. (%s)", err.Error())
+			o.GitBranch = ""
 		}
 	}
 	return o.GitBranch, nil
