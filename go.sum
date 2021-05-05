@@ -1019,8 +1019,8 @@ github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869 h1:IPJ3dvxmJ4uc
 github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869/go.mod h1:cJ6Cj7dQo+O6GJNiMx+Pa94qKj+TG8ONdKHgMNIyyag=
 github.com/jenkins-x-plugins/jx-charter v0.0.23 h1:rsn8vNdb7VvL05rUkQffOvk8+yxRkxnQQMTmh75DPxY=
 github.com/jenkins-x-plugins/jx-charter v0.0.23/go.mod h1:+amEHK4AU61UJ5B1qa55lxFYcs8SvvXKb0mmm2sUjxI=
-github.com/jenkins-x/go-scm v1.7.2 h1:EWUHRFtJoLFInBMGkfceMqhrzIS8E+L2gKjJQCbnDgY=
-github.com/jenkins-x/go-scm v1.7.2/go.mod h1:z7xTO9/VzqW3xEbEMH2z5cpOGrZ8+nOHOWfU1ngFGxs=
+github.com/jenkins-x/go-scm v1.8.2 h1:GMEUz6ap0pAeyUkwWP3SQxJoz/qN+tJmCkr9sWvbXs4=
+github.com/jenkins-x/go-scm v1.8.2/go.mod h1:z7xTO9/VzqW3xEbEMH2z5cpOGrZ8+nOHOWfU1ngFGxs=
 github.com/jenkins-x/jx-api/v4 v4.0.29 h1:Bu7dQJD2exsFrJNRQM6awZk9XeapZwAegHe4xBaRmrw=
 github.com/jenkins-x/jx-api/v4 v4.0.29/go.mod h1:IC88X+24Nmexuj7lRNRgzfrchzlo0qysfwkICpqDmMQ=
 github.com/jenkins-x/jx-helpers/v3 v3.0.106 h1:K6pdjbNscakdJYlfixV5to+ri2ipA9Qn/Lt0WtY9WX0=
@@ -1034,8 +1034,8 @@ github.com/jenkins-x/jx-logging/v3 v3.0.3/go.mod h1:Vp2ER2SYgGhAgEEHlLwfi2ZB54tz
 github.com/jenkins-x/jx-logging/v3 v3.0.5/go.mod h1:Vp2ER2SYgGhAgEEHlLwfi2ZB54tz6ya1qExq0A4CKMI=
 github.com/jenkins-x/jx-logging/v3 v3.0.6 h1:rXiLYK7WuliCtujKkeU77fnSTJRDSIgbIk7PG4fnZGc=
 github.com/jenkins-x/jx-logging/v3 v3.0.6/go.mod h1:Vp2ER2SYgGhAgEEHlLwfi2ZB54tz6ya1qExq0A4CKMI=
-github.com/jenkins-x/lighthouse-client v0.0.123 h1:kLRV5iREwmD66JoJiv232GOnyFp7eiqrFWXG0CLn0wQ=
-github.com/jenkins-x/lighthouse-client v0.0.123/go.mod h1:pa1XwFJH+QEgMqLHKnbvb5GbrTHWk9Z8+w15c5cj2kQ=
+github.com/jenkins-x/lighthouse-client v0.0.124 h1:arG1jOGTnQ3myyYeki1sGCUvOBFW64S+5hk2hXgimLg=
+github.com/jenkins-x/lighthouse-client v0.0.124/go.mod h1:pa1XwFJH+QEgMqLHKnbvb5GbrTHWk9Z8+w15c5cj2kQ=
 github.com/jenkins-x/logrus-stackdriver-formatter v0.2.3 h1:NuRWKUPCEX1wKlXA8ZYSG28qGKd41R7BK11YDQkPwqo=
 github.com/jenkins-x/logrus-stackdriver-formatter v0.2.3/go.mod h1:litPp7VZWDRCl8LvXuqGngy+65kkg/+T23TgFnDmfTk=
 github.com/jessevdk/go-flags v1.4.0 h1:4IU2WS7AumrZ/40jfhf4QVDMsQwqA7VEHozFRrGARJA=
