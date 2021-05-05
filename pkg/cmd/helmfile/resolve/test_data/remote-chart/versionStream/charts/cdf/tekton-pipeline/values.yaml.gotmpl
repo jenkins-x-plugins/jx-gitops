@@ -1,0 +1,11 @@
+dummy: value
+
+{{- if and (hasKey .Values.jxRequirements.cluster "project") (hasKey .Values.jxRequirements.cluster "clusterName") (eq .Values.jxRequirements.cluster.provider "eks") }}
+serviceaccount:
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::{{ .Values.jxRequirements.cluster.project }}:role/{{ .Values.jxRequirements.cluster.clusterName }}-{{ .Values.jxRequirements.cluster.namespace }}-tekton-bot
+{{- else if eq .Values.jxRequirements.cluster.provider "gke" }}
+serviceaccount:
+  annotations:
+    iam.gke.io/gcp-service-account: {{ .Values.jxRequirements.cluster.clusterName }}-tekton@{{ .Values.jxRequirements.cluster.project }}.iam.gserviceaccount.com
+{{- end }}

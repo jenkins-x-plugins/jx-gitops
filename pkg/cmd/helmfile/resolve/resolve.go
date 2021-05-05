@@ -410,6 +410,11 @@ func (o *Options) resolveHelmfile(helmState *state.HelmState, helmfile helmfiles
 		if release.Name == "" {
 			release.Name = chartName
 		}
+		// ignore remote charts
+		if strings.Contains(fullChartName, "::") {
+			log.Logger().Debugf("ignoring remote chart %s release %s", fullChartName, release.Name)
+			continue
+		}
 
 		// lets not try resolve repository / versions for local charts
 		if prefix != "." && prefix != ".." {
