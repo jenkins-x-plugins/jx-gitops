@@ -83,3 +83,23 @@ func IsInCluster() bool {
 	_, err := rest.InClusterConfig()
 	return err == nil
 }
+
+// IsChartRemote returns true if the chart name is a remote chart such as "git::https://foo.com/cheese"
+func IsChartRemote(chartName string) bool {
+	return strings.Contains(chartName, "::")
+}
+
+// IsChartNameRelative returns true if the chart name is a relative folder
+func IsChartNameRelative(chartName string) bool {
+	parts := strings.Split(chartName, "/")
+	if len(parts) > 1 {
+		prefix := parts[0]
+		switch prefix {
+		case ".", "..":
+			return true
+		default:
+			return false
+		}
+	}
+	return false
+}

@@ -10,6 +10,7 @@ import (
 
 	charter "github.com/jenkins-x-plugins/jx-charter/pkg/apis/chart/v1alpha1"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/helmfiles"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/helmhelpers"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/plugins"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/releasereport"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
@@ -293,11 +294,13 @@ func (o *Options) createReleaseInfo(helmState *state.HelmState, ns string, rel *
 		return answer, errors.Wrapf(err, "failed to discover resources for %s", answer.String())
 	}
 
-	if answer.FirstDeployed == nil {
-		answer.FirstDeployed = createNow()
-	}
-	if answer.LastDeployed.IsZero() {
-		answer.LastDeployed = createNow()
+	if !helmhelpers.IsChartNameRelative(chart) && !helmhelpers.IsChartRemote(chart) {
+		if answer.FirstDeployed == nil {
+			answer.FirstDeployed = createNow()
+		}
+		if answer.LastDeployed.IsZero() {
+			answer.LastDeployed = createNow()
+		}
 	}
 
 	answer.LogsURL = getLogURL(&o.Requirements.Spec, ns, answer.Name)
