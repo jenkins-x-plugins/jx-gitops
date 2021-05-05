@@ -1025,13 +1025,12 @@ github.com/jenkins-x/jx-api/v4 v4.0.29 h1:Bu7dQJD2exsFrJNRQM6awZk9XeapZwAegHe4xB
 github.com/jenkins-x/jx-api/v4 v4.0.29/go.mod h1:IC88X+24Nmexuj7lRNRgzfrchzlo0qysfwkICpqDmMQ=
 github.com/jenkins-x/jx-helpers/v3 v3.0.106 h1:K6pdjbNscakdJYlfixV5to+ri2ipA9Qn/Lt0WtY9WX0=
 github.com/jenkins-x/jx-helpers/v3 v3.0.106/go.mod h1:w3hmKjYrr6Oziqmdj/aLwoGbOkDUvWSmwHu+iMCu9B8=
-github.com/jenkins-x/jx-helpers/v3 v3.0.108 h1:s0SdAytYTefBv1e5MnZiYMcWr3uCcEHRIB/Cv0JGvzA=
-github.com/jenkins-x/jx-helpers/v3 v3.0.108/go.mod h1:7Jidlwnh2uvqQF739yCm6LMktiXk4xdmLQLwCjTM4YY=
+github.com/jenkins-x/jx-helpers/v3 v3.0.109 h1:3ODF6T8J5HuZTEyeqqd4eltHXADEWSiS/ao30NgeBes=
+github.com/jenkins-x/jx-helpers/v3 v3.0.109/go.mod h1:v73py+PEop371sN4/NaMFdii2Hjjag6UoqArj0qGdbw=
 github.com/jenkins-x/jx-kube-client/v3 v3.0.2 h1:sJs6FaIwycDYwE4UsA7j9tpdXOxXEta9KNUJp6s45VI=
 github.com/jenkins-x/jx-kube-client/v3 v3.0.2/go.mod h1:C/mKnCT5wvolX61eLKJVBNev9sqnkGNpi4skTQ1Gr3Q=
 github.com/jenkins-x/jx-logging/v3 v3.0.3 h1:sVACbwiKuaDFYPfJeVAU10MJI4DA6LcH1RqJKwfNozc=
 github.com/jenkins-x/jx-logging/v3 v3.0.3/go.mod h1:Vp2ER2SYgGhAgEEHlLwfi2ZB54tz6ya1qExq0A4CKMI=
-github.com/jenkins-x/jx-logging/v3 v3.0.5/go.mod h1:Vp2ER2SYgGhAgEEHlLwfi2ZB54tz6ya1qExq0A4CKMI=
 github.com/jenkins-x/jx-logging/v3 v3.0.6 h1:rXiLYK7WuliCtujKkeU77fnSTJRDSIgbIk7PG4fnZGc=
 github.com/jenkins-x/jx-logging/v3 v3.0.6/go.mod h1:Vp2ER2SYgGhAgEEHlLwfi2ZB54tz6ya1qExq0A4CKMI=
 github.com/jenkins-x/lighthouse-client v0.0.124 h1:arG1jOGTnQ3myyYeki1sGCUvOBFW64S+5hk2hXgimLg=

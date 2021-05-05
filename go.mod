@@ -13,7 +13,7 @@ require (
 	github.com/jenkins-x-plugins/jx-charter v0.0.23
 	github.com/jenkins-x/go-scm v1.8.2
 	github.com/jenkins-x/jx-api/v4 v4.0.29
-	github.com/jenkins-x/jx-helpers/v3 v3.0.108
+	github.com/jenkins-x/jx-helpers/v3 v3.0.109
 	github.com/jenkins-x/jx-kube-client/v3 v3.0.2
 	github.com/jenkins-x/jx-logging/v3 v3.0.6
 	github.com/jenkins-x/lighthouse-client v0.0.124
