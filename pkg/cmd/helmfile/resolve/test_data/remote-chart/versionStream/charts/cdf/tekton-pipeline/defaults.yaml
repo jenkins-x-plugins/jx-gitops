@@ -1,0 +1,4 @@
+gitUrl: https://github.com/jenkins-x-charts/tekton
+version: 0.0.5
+namespace: tekton-pipelines
+
