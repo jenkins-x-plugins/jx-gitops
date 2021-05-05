@@ -88,12 +88,14 @@ type Options struct {
 	VersionFile          string
 	Namespace            string
 	ContainerRegistryOrg string
+	GitHubPagesDir       string
+	IgnoreChartNames     []string
 	KubeClient           kubernetes.Interface
 	JXClient             jxc.Interface
 	GitClient            gitclient.Interface
 	CommandRunner        cmdrunner.CommandRunner
 	Requirements         *jxcore.RequirementsConfig
-	GitHubPagesDir       string
+	ReleasedCharts       int
 }
 
 // NewCmdHelmRelease creates a command object for the command
@@ -121,6 +123,7 @@ func NewCmdHelmRelease() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.Namespace, "namespace", "", "", "the namespace to look for the dev Environment. Defaults to the current namespace")
 	cmd.Flags().StringVarP(&o.GithubPagesBranch, "repository-branch", "", "gh-pages", "the branch used if using GitHub Pages for the helm chart")
 	cmd.Flags().StringVarP(&o.GithubPagesURL, "ghpage-url", "", "", "the github pages URL used if creating the first README.md in the github pages branch so we can link to how to add a chart repository")
+	cmd.Flags().StringArrayVarP(&o.IgnoreChartNames, "ignore", "I", []string{"preview"}, "the names of helm charts to not release")
 	cmd.Flags().BoolVarP(&o.ChartPages, "pages", "", false, "use github pages to release charts")
 	cmd.Flags().BoolVarP(&o.ChartOCI, "oci", "", false, "treat the repository as an OCI container registry. If not specified its defaulted from the cluster.chartOCI flag on the 'jx-requirements.yml' file")
 	cmd.Flags().BoolVarP(&o.Artifactory, "artifactory", "", false, "use artifactory mode for publishing the chart which involves using an artifactory header and -T for pushing the chart")
@@ -261,6 +264,10 @@ func (o *Options) Run() error {
 			continue
 		}
 
+		if stringhelpers.StringArrayIndex(o.IgnoreChartNames, name) >= 0 {
+			log.Logger().Infof("not releasing chart %s", info(name))
+			continue
+		}
 		log.Logger().Infof("releasing chart %s", info(name))
 
 		// find the repository URL
@@ -291,6 +298,7 @@ func (o *Options) Run() error {
 	}
 
 	log.Logger().Infof("released %d charts from the charts dir: %s", count, dir)
+	o.ReleasedCharts = count
 	return nil
 }
 
