@@ -19,7 +19,7 @@ const (
 	KappPluginName = "kapp"
 
 	// HelmVersion the default version of helm to use
-	HelmVersion = "3.5.3"
+	HelmVersion = "3.5.4"
 
 	// HelmfileVersion the default version of helmfile to use
 	HelmfileVersion = "0.139.0"
