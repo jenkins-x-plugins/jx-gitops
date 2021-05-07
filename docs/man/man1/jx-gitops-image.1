@@ -20,6 +20,10 @@ Updates images in the kubernetes resources from the version stream
 
 .SH OPTIONS
 .PP
+\fB\-b\fP, \fB\-\-batch\-mode\fP[=false]
+    Runs in batch mode without prompting for user input
+
+.PP
 \fB\-d\fP, \fB\-\-dir\fP="."
     the directory that contains the jx\-requirements.yml
 
@@ -42,12 +46,20 @@ Updates images in the kubernetes resources from the version stream
 \[la]https://github.com/jenkins-x/jx-helpers/v3/tree/master/docs/kind_filters.md\[ra]
 
 .PP
+\fB\-\-log\-level\fP=""
+    Sets the logging level. If not specified defaults to $JX\_LOG\_LEVEL
+
+.PP
 \fB\-\-selector\fP=[]
     adds Kubernetes label selector to filter on, e.g. \-s app=pusher\-wave,heritage=Helm
 
 .PP
 \fB\-s\fP, \fB\-\-source\-dir\fP="content\-root"
     the directory to recursively look for the *.yaml files to modify
+
+.PP
+\fB\-\-verbose\fP[=false]
+    Enables verbose output. The environment variable JX\_LOG\_LEVEL has precedence over this flag and allows setting the logging level to any value of: panic, fatal, error, warn, info, debug, trace
 
 .PP
 \fB\-\-version\-stream\-dir\fP=""

@@ -94,9 +94,11 @@ func NewCmdHelmfileResolve() (*cobra.Command, *Options) {
 			helper.CheckErr(err)
 		},
 	}
+	o.BaseOptions.AddBaseFlags(cmd)
+
 	cmd.Flags().BoolVarP(&o.UpdateMode, "update", "", false, "updates versions from the version stream if they have changed")
 	cmd.Flags().StringVarP(&o.HelmfileBinary, "helmfile-binary", "", "", "specifies the helmfile binary location to use. If not specified defaults to using the downloaded helmfile plugin")
-	//cmd.Flags().StringVarP(&o.HelmBinary, "helm-binary", "", "", "specifies the helm binary location to use. If not specified defaults to using the downloaded helm plugin")
+	cmd.Flags().StringVarP(&o.HelmBinary, "helm-binary", "", "", "specifies the helm binary location to use. If not specified defaults to using the downloaded helm plugin")
 	o.AddFlags(cmd, "")
 	return cmd, o
 }
@@ -128,6 +130,12 @@ func (o *Options) Validate() error {
 		o.HelmfileBinary, err = plugins.GetHelmfileBinary(plugins.HelmfileVersion)
 		if err != nil {
 			return errors.Wrapf(err, "failed to download helmfile plugin")
+		}
+	}
+	if o.HelmBinary == "" {
+		o.HelmBinary, err = plugins.GetHelmBinary(plugins.HelmVersion)
+		if err != nil {
+			return errors.Wrapf(err, "failed to download helm plugin")
 		}
 	}
 
@@ -167,10 +175,15 @@ func (o *Options) Run() error {
 	count := 0
 
 	// lets add the helm repositories
+	args := []string{}
+	if o.HelmBinary != "" {
+		args = append(args, "--helm-binary", o.HelmBinary)
+	}
+	args = append(args, "repos")
 	c := &cmdrunner.Command{
 		Dir:  o.Dir,
 		Name: o.HelmfileBinary,
-		Args: []string{"repos"},
+		Args: args,
 	}
 	_, err = o.QuietCommandRunner(c)
 	if err != nil {
