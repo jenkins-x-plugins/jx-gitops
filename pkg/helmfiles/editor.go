@@ -50,6 +50,15 @@ func NewEditor(dir string, helmfiles []Helmfile) (*Editor, error) {
 	return e, nil
 }
 
+func (e *Editor) getOrCreateState(path string) *state.HelmState {
+	hf := e.pathToState[path]
+	if hf == nil {
+		hf = &state.HelmState{}
+		e.pathToState[path] = hf
+	}
+	return hf
+}
+
 // ChartDetails adds a chart to the right helmfile for the given namespace
 func (e *Editor) AddChart(opts *ChartDetails) error {
 	ns := opts.Namespace
@@ -63,10 +72,23 @@ func (e *Editor) AddChart(opts *ChartDetails) error {
 		path = filepath.Join(e.dir, ns, "helmfile.yaml")
 		e.namespaceToPath[ns] = path
 	}
-	hf := e.pathToState[path]
-	if hf == nil {
-		hf = &state.HelmState{}
-		e.pathToState[path] = hf
+	hf := e.getOrCreateState(path)
+
+	rootPath := e.helmfiles[0].Filepath
+	root := e.getOrCreateState(rootPath)
+	rel := filepath.Join(ns, "helmfile.yaml")
+	found := false
+	for _, f := range root.Helmfiles {
+		if f.Path == rel {
+			found = true
+			break
+		}
+	}
+	if !found {
+		root.Helmfiles = append(root.Helmfiles, state.SubHelmfileSpec{
+			Path: rel,
+		})
+		e.modified[rootPath] = true
 	}
 
 	modified, err := opts.Add(hf)

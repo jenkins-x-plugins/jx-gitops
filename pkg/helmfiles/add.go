@@ -33,6 +33,20 @@ func NewChartDetails(helmState *state.HelmState, rel *state.ReleaseSpec, prefixe
 	if a.Namespace == "" {
 		a.Namespace = helmState.OverrideNamespace
 	}
+
+	parts := strings.Split(a.Chart, "/")
+	prefix := ""
+	if len(parts) > 1 {
+		prefix = parts[0]
+	}
+
+	if a.Repository == "" && prefix != "" {
+		for _, r := range helmState.Repositories {
+			if r.Name == prefix {
+				a.Repository = r.URL
+			}
+		}
+	}
 	return a
 }
 
