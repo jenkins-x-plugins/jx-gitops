@@ -22,9 +22,23 @@ var (
 
 func TestStepHelmfileAdd(t *testing.T) {
 	testCases := []struct {
-		chart      string
-		repository string
+		chart       string
+		repository  string
+		namespace   string
+		version     string
+		releaseName string
 	}{
+		{
+			chart:       "ingress-nginx/ingress-nginx",
+			namespace:   "nginx",
+			version:     "4.0",
+			releaseName: "nginx-ingress",
+		},
+		{
+			chart:       "jenkins-x/new-cheese",
+			namespace:   "cheese",
+			releaseName: "mythingy",
+		},
 		{
 			chart: "jenkins-x/jx-test-collector",
 		},
@@ -61,8 +75,13 @@ func TestStepHelmfileAdd(t *testing.T) {
 		_, o := add.NewCmdHelmfileAdd()
 		o.Dir = tmpDir
 		o.Chart = tc.chart
+		if tc.namespace == "" {
+			tc.namespace = "jx"
+		}
+		o.Namespace = tc.namespace
+		o.ReleaseName = tc.releaseName
 		o.Repository = tc.repository
-		o.Namespace = "jx"
+		o.Version = tc.version
 
 		t.Logf("installing chart %s\n", o.Chart)
 

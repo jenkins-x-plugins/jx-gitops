@@ -123,6 +123,10 @@ func (o *ChartDetails) Add(helmState *state.HelmState) (bool, error) {
 				release.Namespace = namespace
 				modified = true
 			}
+			if release.Version != o.Version && o.Version != "" {
+				release.Version = o.Version
+				modified = true
+			}
 
 			// lets add any missing values
 			for _, v := range o.Values {
