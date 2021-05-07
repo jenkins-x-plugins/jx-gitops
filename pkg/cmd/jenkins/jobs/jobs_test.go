@@ -91,7 +91,8 @@ func AssertGenerateJobs(t *testing.T, tmpDir string, jenkinsName string) {
 	require.NotEmpty(t, state.Releases, "no releases in %s", jenkinsHelmfile)
 
 	release := state.Releases[0]
-	assert.Equal(t, jenkinsName, release.Namespace, "release.Namespace for %s", jenkinsHelmfile)
+	assert.Equal(t, jenkinsName, state.OverrideNamespace, "namespace for %s", jenkinsHelmfile)
+	assert.Equal(t, "", release.Namespace, "release.Namespace for %s", jenkinsHelmfile)
 	assert.Equal(t, "jenkins", release.Name, "release.Name for %s", jenkinsHelmfile)
 	assert.Equal(t, "jenkinsci/jenkins", release.Chart, "release.Chart for %s", jenkinsHelmfile)
 

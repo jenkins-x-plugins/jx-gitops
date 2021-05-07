@@ -80,7 +80,6 @@ func (o *Options) Run() error {
 	o.Name = naming.ToValidName(o.Name)
 	o.Namespace = o.Name
 	o.Options.ReleaseName = "jenkins"
-	o.Helmfile = filepath.Join(o.Dir, "helmfiles", o.Namespace, "helmfile.yaml")
 
 	err := o.verifyValuesExists()
 	if err != nil {

@@ -4,17 +4,14 @@ import (
 	"fmt"
 
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/helmfiles"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/versionstreamer"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/cli"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/options"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/yaml2s"
-	"github.com/roboll/helmfile/pkg/state"
-
-	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -45,12 +42,6 @@ type Options struct {
 	Helmfile         string
 	DoGitCommit      bool
 	Gitter           gitclient.Interface
-	Results          Results
-}
-
-type Results struct {
-	HelmState                  state.HelmState
-	RequirementsValuesFileName string
 }
 
 // NewCmdHelmfileAdd creates a command object for the command
@@ -104,11 +95,6 @@ func (o *Options) Validate() error {
 	o.Prefixes, err = o.Options.Resolver.GetRepositoryPrefixes()
 	if err != nil {
 		return errors.Wrapf(err, "failed to load repository prefixes at %s", o.VersionStreamDir)
-	}
-
-	err = yaml2s.LoadFile(o.Helmfile, &o.Results.HelmState)
-	if err != nil {
-		return errors.Wrapf(err, "failed to load helmfile %s", o.Helmfile)
 	}
 
 	if o.GitCommitMessage == "" {

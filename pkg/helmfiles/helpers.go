@@ -23,6 +23,9 @@ var (
 
 // GatherHelmfiles gathers the helmfiles from the given file
 func GatherHelmfiles(helmfile, dir string) ([]Helmfile, error) {
+	if helmfile == "" {
+		helmfile = "helmfile.yaml"
+	}
 	baseParentHelmfileDir := filepath.Dir(helmfile)
 
 	// we need to check if the main helmfile itself is in a subdirectory, if it is then we need to add that to any
