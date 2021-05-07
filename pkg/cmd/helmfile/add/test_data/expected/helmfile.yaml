@@ -1,5 +1,7 @@
 filepath: ""
 helmfiles:
+- path: helmfiles/cheese/helmfile.yaml
+- path: helmfiles/jx/helmfile.yaml
 - path: helmfiles/nginx/helmfile.yaml
 templates: {}
 renderedvalues: {}
