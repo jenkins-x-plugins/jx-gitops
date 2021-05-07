@@ -1,4 +1,5 @@
 filepath: ""
+namespace: jx
 repositories:
 - name: jenkins-x
   url: https://storage.googleapis.com/chartmuseum.jenkins-x.io
@@ -6,8 +7,8 @@ repositories:
   url: https://raw.githubusercontent.com/jenkinsci/kubernetes-operator/master/chart
 releases:
 - chart: jenkins-x/jx-test-collector
-  namespace: jx
+  name: jx-test-collector
 - chart: jenkins/jenkins-operator
-  namespace: jx
+  name: jenkins-operator
 templates: {}
 renderedvalues: {}

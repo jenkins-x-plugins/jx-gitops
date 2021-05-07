@@ -7,12 +7,17 @@ import (
 
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/helmfile/add"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/fakekpt"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/helmfiles/testhelmfile"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner/fakerunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/cli"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/testhelpers"
 	"github.com/stretchr/testify/require"
+)
+
+var (
+	// generateTestOutput enable to regenerate the expected output
+	generateTestOutput = false
 )
 
 func TestStepHelmfileAdd(t *testing.T) {
@@ -70,5 +75,5 @@ func TestStepHelmfileAdd(t *testing.T) {
 
 	t.Logf("generated files to %s\n", tmpDir)
 
-	testhelpers.AssertTextFilesEqual(t, filepath.Join(tmpDir, "expected-helmfile.yaml"), filepath.Join(tmpDir, "helmfiles", "jx", "helmfile.yaml"), "generated file")
+	testhelmfile.AssertHelmfiles(t, filepath.Join("test_data", "expected"), tmpDir, generateTestOutput)
 }

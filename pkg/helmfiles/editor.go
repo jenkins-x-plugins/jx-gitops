@@ -3,6 +3,7 @@ package helmfiles
 import (
 	"os"
 	"path/filepath"
+	"sort"
 
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
@@ -66,17 +67,18 @@ func (e *Editor) AddChart(opts *ChartDetails) error {
 		return errors.Errorf("no namespace")
 	}
 
+	rel := filepath.Join("helmfiles", ns, "helmfile.yaml")
 	path := e.namespaceToPath[ns]
 	if path == "" {
 		// lets create a new path
-		path = filepath.Join(e.dir, ns, "helmfile.yaml")
+		path = filepath.Join(e.dir, rel)
 		e.namespaceToPath[ns] = path
 	}
 	hf := e.getOrCreateState(path)
+	hf.OverrideNamespace = ns
 
 	rootPath := e.helmfiles[0].Filepath
 	root := e.getOrCreateState(rootPath)
-	rel := filepath.Join(ns, "helmfile.yaml")
 	found := false
 	for _, f := range root.Helmfiles {
 		if f.Path == rel {
@@ -87,6 +89,11 @@ func (e *Editor) AddChart(opts *ChartDetails) error {
 	if !found {
 		root.Helmfiles = append(root.Helmfiles, state.SubHelmfileSpec{
 			Path: rel,
+		})
+		sort.Slice(root.Helmfiles, func(i, j int) bool {
+			h1 := root.Helmfiles[i]
+			h2 := root.Helmfiles[j]
+			return h1.Path < h2.Path
 		})
 		e.modified[rootPath] = true
 	}

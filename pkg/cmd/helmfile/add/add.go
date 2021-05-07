@@ -2,13 +2,9 @@ package add
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
-	"sort"
 
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/helmfiles"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/versionstreamer"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/cli"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/options"
@@ -100,8 +96,9 @@ func (o *Options) Validate() error {
 	if o.Chart == "" {
 		return options.MissingOption("chart")
 	}
+
 	if o.Helmfile == "" {
-		o.Helmfile = filepath.Join(o.Dir, "helmfiles", o.Namespace, "helmfile.yaml")
+		o.Helmfile = "helmfile.yaml"
 	}
 
 	o.Prefixes, err = o.Options.Resolver.GetRepositoryPrefixes()
@@ -132,32 +129,24 @@ func (o *Options) Run() error {
 		return errors.Errorf("failed to create the VersionResolver")
 	}
 
-	helmState := &o.Results.HelmState
+	hfNames, err := helmfiles.GatherHelmfiles(o.Helmfile, o.Dir)
+	if err != nil {
+		return errors.Wrapf(err, "failed to gather target helmfiles from %s", o.Dir)
+	}
 
-	modified, err := o.ChartDetails.Add(helmState)
+	editor, err := helmfiles.NewEditor(o.Dir, hfNames)
+	if err != nil {
+		return errors.Wrapf(err, "failed to create helmfile editor")
+	}
+
+	err = editor.AddChart(&o.ChartDetails)
 	if err != nil {
 		return errors.Wrapf(err, "failed to add chart")
 	}
 
-	if !modified {
-		log.Logger().Debugf("no changes were made to file %s", o.Helmfile)
-		return nil
-	}
-
-	dir := filepath.Dir(o.Helmfile)
-	err = os.MkdirAll(dir, files.DefaultDirWritePermissions)
+	err = editor.Save()
 	if err != nil {
-		return errors.Wrapf(err, "failed to create dir %s", dir)
-	}
-
-	err = yaml2s.SaveFile(helmState, o.Helmfile)
-	if err != nil {
-		return errors.Wrapf(err, "failed to save file %s", o.Helmfile)
-	}
-
-	err = o.ensureHelmfileInRootHelmfile(o.Helmfile)
-	if err != nil {
-		return errors.Wrapf(err, "failed to reference the helmfile %s in the root helmfile", o.Helmfile)
+		return errors.Wrapf(err, "failed to save modified files")
 	}
 
 	_, err = o.Git().Command(o.Dir, "add", "*")
@@ -190,41 +179,5 @@ func (o *Options) GitCommit(outDir string, commitMessage string) error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to commit changes to git in dir %s", outDir)
 	}
-	return nil
-}
-
-func (o *Options) ensureHelmfileInRootHelmfile(path string) error {
-	rel, err := filepath.Rel(o.Dir, path)
-	if err != nil {
-		return errors.Wrapf(err, "failed to get relative path of %s to %s", path, o.Dir)
-	}
-
-	root := filepath.Join(o.Dir, "helmfile.yaml")
-	rootState := &state.HelmState{}
-	err = yaml2s.LoadFile(root, rootState)
-	if err != nil {
-		return errors.Wrapf(err, "failed to load root helmfile %s", root)
-	}
-
-	for _, hf := range rootState.Helmfiles {
-		if hf.Path == rel {
-			return nil
-		}
-	}
-	rootState.Helmfiles = append(rootState.Helmfiles, state.SubHelmfileSpec{
-		Path: rel,
-	})
-
-	sort.Slice(rootState.Helmfiles, func(i, j int) bool {
-		h1 := rootState.Helmfiles[i]
-		h2 := rootState.Helmfiles[j]
-		return h1.Path < h2.Path
-	})
-
-	err = yaml2s.SaveFile(rootState, root)
-	if err != nil {
-		return errors.Wrapf(err, "failed to save %s", root)
-	}
-	log.Logger().Infof("added new child helmfile %s to root file %s", info(rel), info(root))
 	return nil
 }

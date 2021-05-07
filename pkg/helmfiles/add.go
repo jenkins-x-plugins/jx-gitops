@@ -33,13 +33,7 @@ func NewChartDetails(helmState *state.HelmState, rel *state.ReleaseSpec, prefixe
 	if a.Namespace == "" {
 		a.Namespace = helmState.OverrideNamespace
 	}
-
-	parts := strings.Split(a.Chart, "/")
-	prefix := ""
-	if len(parts) > 1 {
-		prefix = parts[0]
-	}
-
+	prefix, _ := SpitChartName(a.Chart)
 	if a.Repository == "" && prefix != "" {
 		for _, r := range helmState.Repositories {
 			if r.Name == prefix {
@@ -48,6 +42,18 @@ func NewChartDetails(helmState *state.HelmState, rel *state.ReleaseSpec, prefixe
 		}
 	}
 	return a
+}
+
+// SpitChartName splits the chart name into prefix and local name
+func SpitChartName(name string) (string, string) {
+	prefix := ""
+	local := name
+	parts := strings.Split(name, "/")
+	if len(parts) > 1 {
+		prefix = parts[0]
+		local = parts[1]
+	}
+	return prefix, local
 }
 
 // String returns the string representation of the chart options
@@ -60,12 +66,11 @@ func (o *ChartDetails) Add(helmState *state.HelmState) (bool, error) {
 	modified := false
 	found := false
 	var err error
-	parts := strings.Split(o.Chart, "/")
-	prefix := ""
-	if len(parts) > 1 {
-		prefix = parts[0]
-	}
+	prefix, localName := SpitChartName(o.Chart)
 	repository := o.Repository
+	if o.ReleaseName == "" {
+		o.ReleaseName = localName
+	}
 
 	// lets resolve the chart prefix from a local repository from the file or from a
 	// prefix in the versions stream
@@ -105,12 +110,17 @@ func (o *ChartDetails) Add(helmState *state.HelmState) (bool, error) {
 		}
 	}
 
+	// lets only set the namespace if its different to the default to keep the helmfiles DRY
+	namespace := o.Namespace
+	if namespace == helmState.OverrideNamespace {
+		namespace = ""
+	}
 	for i := range helmState.Releases {
 		release := &helmState.Releases[i]
 		if release.Chart == o.Chart && release.Name == o.ReleaseName {
 			found = true
-			if release.Namespace != "" && release.Namespace != o.Namespace {
-				release.Namespace = o.Namespace
+			if release.Namespace != "" && release.Namespace != namespace {
+				release.Namespace = namespace
 				modified = true
 			}
 
@@ -136,7 +146,7 @@ func (o *ChartDetails) Add(helmState *state.HelmState) (bool, error) {
 			Chart:     o.Chart,
 			Version:   o.Version,
 			Name:      o.ReleaseName,
-			Namespace: o.Namespace,
+			Namespace: namespace,
 		}
 		for _, v := range o.Values {
 			release.Values = append(release.Values, v)
