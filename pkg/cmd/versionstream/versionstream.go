@@ -9,7 +9,7 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/cli"
 
-	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 
 	"sigs.k8s.io/kustomize/kyaml/yaml"
 
@@ -72,7 +72,7 @@ func NewCmdVersionstream() (*cobra.Command, *Options) {
 		Use:     "versionstream",
 		Short:   "Administer the cluster version stream settings",
 		Long:    createLong,
-		Example: fmt.Sprintf(createExample, rootcmd.BinaryName),
+		Example: fmt.Sprintf(createExample, rootcmd.BinaryName, rootcmd.BinaryName, rootcmd.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
 			o.Cmd = cmd
 			o.Args = args

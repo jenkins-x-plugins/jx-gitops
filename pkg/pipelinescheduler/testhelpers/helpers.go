@@ -7,14 +7,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jenkins-x/jx-gitops/pkg/schedulerapi"
-	"github.com/jenkins-x/lighthouse/pkg/config/job"
+	schedulerapi "github.com/jenkins-x-plugins/jx-gitops/pkg/apis/scheduler/v1alpha1"
+	"github.com/jenkins-x/lighthouse-client/pkg/config/job"
 
 	"github.com/ghodss/yaml"
 
-	"github.com/jenkins-x/jx-gitops/pkg/pipelinescheduler"
-	"github.com/jenkins-x/lighthouse/pkg/config"
-	"github.com/jenkins-x/lighthouse/pkg/plugins"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/pipelinescheduler"
+	"github.com/jenkins-x/lighthouse-client/pkg/config"
+	"github.com/jenkins-x/lighthouse-client/pkg/plugins"
 
 	"github.com/stretchr/testify/assert"
 

@@ -3,7 +3,7 @@ package condition_test
 import (
 	"testing"
 
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/condition"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/condition"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner/fakerunner"
 	"github.com/stretchr/testify/require"

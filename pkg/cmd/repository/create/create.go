@@ -5,10 +5,10 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/apis/gitops/v1alpha1"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/sourceconfigs"
 	v1 "github.com/jenkins-x/jx-api/v4/pkg/apis/jenkins.io/v1"
-	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
-	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
-	"github.com/jenkins-x/jx-gitops/pkg/sourceconfigs"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
@@ -210,6 +210,6 @@ func (o *Options) ensureSourceRepositoryExists(config *v1alpha1.SourceConfig, gr
 	if exists {
 		action = "modified"
 	}
-	log.Logger().Infof("%s file %s", action, termcolor.ColorInfo(fileName))
+	log.Logger().Debugf("%s file %s", action, termcolor.ColorInfo(fileName))
 	return nil
 }

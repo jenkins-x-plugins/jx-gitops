@@ -12,8 +12,8 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/go-scm/scm"
-	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/pkg/errors"
@@ -56,7 +56,7 @@ func NewCmdPullRequestLabel() (*cobra.Command, *Options) {
 		Use:     "label",
 		Short:   "Add label to the pull request",
 		Long:    cmdLong,
-		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
+		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName, rootcmd.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
 			err := o.Run()
 			helper.CheckErr(err)
@@ -112,6 +112,19 @@ func (o *Options) Run() error {
 	}
 	if pr == nil {
 		return errors.Errorf("no Pull Request could be found for %d in repository %s", o.Number, o.Repository)
+	}
+	if len(pr.Labels) == 0 {
+		// lets fetch the labels if git provider does not include them OOTB such as for things like BitBucketServer
+		ctx := context.TODO()
+		repo := pr.Repository()
+		repoName := repo.FullName
+		if repoName == "" {
+			repoName = scm.Join(repo.Namespace, repo.Name)
+		}
+		pr.Labels, _, err = o.PullRequestOptions.ScmClient.PullRequests.ListLabels(ctx, repoName, pr.Number, scm.ListOptions{})
+		if err != nil {
+			return errors.Wrapf(err, "failed to query Labels for repo %s and PullRequest %d", repoName, pr.Number)
+		}
 	}
 	return o.labelPullRequest(pr)
 }

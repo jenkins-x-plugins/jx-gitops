@@ -5,9 +5,9 @@ package pipelinescheduler_test
 import (
 	"testing"
 
-	"github.com/jenkins-x/jx-gitops/pkg/pipelinescheduler"
-	"github.com/jenkins-x/jx-gitops/pkg/pipelinescheduler/testhelpers"
-	"github.com/jenkins-x/jx-gitops/pkg/schedulerapi"
+	schedulerapi "github.com/jenkins-x-plugins/jx-gitops/pkg/apis/scheduler/v1alpha1"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/pipelinescheduler"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/pipelinescheduler/testhelpers"
 	"github.com/stretchr/testify/assert"
 )
 

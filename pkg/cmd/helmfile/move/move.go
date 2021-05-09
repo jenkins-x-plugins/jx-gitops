@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jenkins-x/jx-gitops/pkg/helmhelpers"
-	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/helmhelpers"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
@@ -25,6 +25,9 @@ import (
 )
 
 const (
+	// HelmReleaseNameAnnotation the annotation added by helm to denote a release name
+	HelmReleaseNameAnnotation = "meta.helm.sh/release-name"
+
 	pathSeparator = string(os.PathSeparator)
 )
 
@@ -36,6 +39,8 @@ The output of 'helmfile template' ignores the namespace specified in the 'helmfi
 
 So this command applies the namespace to all the generated resources and then moves the namespaced resources into the config-root/namespaces/$ns/$releaseName directory
 and then moves any CRDs or cluster level resources into 'config-root/cluster/$releaseName'
+
+If supplied with --dir-includes-release-name then by default we will annotate the resources with the annotation 'meta.helm.sh/release-name' to preserve the helm release name
 `)
 
 	namespaceExample = templates.Examples(`
@@ -51,9 +56,12 @@ type Options struct {
 	OutputDir                    string
 	ClusterDir                   string
 	ClusterNamespacesDir         string
+	ClusterResourcesDir          string
 	CustomResourceDefinitionsDir string
 	NamespacesDir                string
 	SingleNamespace              string
+	DirIncludesReleaseName       bool
+	AnnotateReleaseNames         bool
 	HelmState                    *state.HelmState
 }
 
@@ -74,6 +82,9 @@ func NewCmdHelmfileMove() (*cobra.Command, *Options) {
 	}
 	cmd.Flags().StringVarP(&o.Dir, "dir", "", "", "the directory containing the generated resources")
 	cmd.Flags().StringVarP(&o.OutputDir, "output-dir", "o", "config-root", "the output directory")
+	cmd.Flags().BoolVarP(&o.DirIncludesReleaseName, "dir-includes-release-name", "", false, "the directory containing the generated resources has a path segment that is the release name")
+	cmd.Flags().BoolVarP(&o.AnnotateReleaseNames, "annotate-release-name", "", true, "if using --dir-includes-release-name layout then lets add the 'meta.helm.sh/release-name' annotation to record the helm release name")
+
 	o.Filter.AddFlags(cmd)
 	return cmd, o
 }
@@ -86,6 +97,13 @@ func (o *Options) Run() error {
 	if o.NamespacesDir == "" {
 		o.NamespacesDir = filepath.Join(o.OutputDir, "namespaces")
 	}
+	if o.ClusterResourcesDir == "" {
+		o.ClusterResourcesDir = filepath.Join(o.ClusterDir, "resources")
+		err := os.MkdirAll(o.ClusterResourcesDir, files.DefaultDirWritePermissions)
+		if err != nil {
+			return errors.Wrapf(err, "failed to create cluster resources dir %s", o.ClusterResourcesDir)
+		}
+	}
 	if o.ClusterNamespacesDir == "" {
 		o.ClusterNamespacesDir = filepath.Join(o.ClusterDir, "namespaces")
 		err := os.MkdirAll(o.ClusterNamespacesDir, files.DefaultDirWritePermissions)
@@ -97,7 +115,11 @@ func (o *Options) Run() error {
 		o.CustomResourceDefinitionsDir = filepath.Join(o.OutputDir, "customresourcedefinitions")
 	}
 
-	g := filepath.Join(o.Dir, "*/*")
+	globPattern := "*/*"
+	if o.DirIncludesReleaseName {
+		globPattern = "*/*/*"
+	}
+	g := filepath.Join(o.Dir, globPattern)
 	fileNames, err := filepath.Glob(g)
 	if err != nil {
 		return errors.Wrapf(err, "failed to glob files %s", g)
@@ -115,11 +137,22 @@ func (o *Options) Run() error {
 			continue
 		}
 
-		_, releaseName := filepath.Split(dir)
-		_, ns := filepath.Split(filepath.Dir(dir))
+		var ns, releaseName, chartName string
+
+		relDir, _ := filepath.Rel(o.Dir, dir)
+
+		parts := strings.Split(relDir, string(os.PathSeparator))
+
+		if o.DirIncludesReleaseName {
+			// {{.Release.Namespace}}/{{.Release.Name}}/chartName
+			ns, releaseName, chartName = parts[0], parts[1], parts[2]
+		} else {
+			// {{.Release.Namespace}}/chartName
+			ns, releaseName, chartName = parts[0], parts[1], parts[1]
+		}
 		namespaces = append(namespaces, ns)
 
-		err = o.moveFilesToClusterOrNamespacesFolder(dir, ns, releaseName)
+		err = o.moveFilesToClusterOrNamespacesFolder(dir, ns, releaseName, chartName)
 		if err != nil {
 			return errors.Wrapf(err, "failed to ")
 		}
@@ -185,7 +218,7 @@ func (o *Options) lazyCreateNamespaceResource(ns string) error {
 	return nil
 }
 
-func (o *Options) moveFilesToClusterOrNamespacesFolder(dir string, ns string, releaseName string) error {
+func (o *Options) moveFilesToClusterOrNamespacesFolder(dir string, ns string, releaseName string, chartName string) error {
 	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if info == nil || info.IsDir() {
 			return nil
@@ -223,17 +256,41 @@ func (o *Options) moveFilesToClusterOrNamespacesFolder(dir string, ns string, re
 			return errors.Wrapf(err, "failed to load YAML file %s", path)
 		}
 
+		// pathName is always prefixed with chartName but lets also remove any duplication
+		var pathName string
+		if chartName == releaseName {
+			pathName = chartName
+		} else if strings.HasPrefix(releaseName, chartName) {
+			pathName = releaseName
+		} else {
+			pathName = fmt.Sprintf("%s-%s", chartName, releaseName)
+		}
+
+		if o.AnnotateReleaseNames {
+			k := HelmReleaseNameAnnotation
+			v, err := node.Pipe(yaml.GetAnnotation(k))
+			if err != nil {
+				return errors.Wrapf(err, "failed to get annotation %s for path %s", k, path)
+			}
+			if v == nil {
+				err = node.PipeE(yaml.SetAnnotation(k, releaseName))
+				if err != nil {
+					return errors.Wrapf(err, "failed to set annotation %s to %s for path %s", k, releaseName, path)
+				}
+			}
+		}
+
 		kind := kyamls.GetKind(node, path)
-		outDir := filepath.Join(o.ClusterDir, ns, releaseName)
+		outDir := filepath.Join(o.ClusterResourcesDir, ns, pathName)
 
 		if kyamls.IsCustomResourceDefinition(kind) {
-			outDir = filepath.Join(o.CustomResourceDefinitionsDir, ns, releaseName)
+			outDir = filepath.Join(o.CustomResourceDefinitionsDir, ns, pathName)
 		} else if !kyamls.IsClusterKind(kind) {
 			err := node.PipeE(yaml.LookupCreate(yaml.ScalarNode, "metadata", "namespace"), yaml.FieldSetter{StringValue: ns})
 			if err != nil {
 				return errors.Wrapf(err, "failed to set metadata.namespace to %s for path %s", ns, path)
 			}
-			outDir = filepath.Join(o.NamespacesDir, ns, releaseName)
+			outDir = filepath.Join(o.NamespacesDir, ns, pathName)
 		}
 
 		outFile := filepath.Join(outDir, rel)

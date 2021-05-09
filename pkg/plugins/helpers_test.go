@@ -1,10 +1,13 @@
 package plugins_test
 
 import (
+	"path/filepath"
 	"testing"
 
-	"github.com/jenkins-x/jx-gitops/pkg/plugins"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/plugins"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/homedir"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestHelmPlugin(t *testing.T) {
@@ -60,7 +63,7 @@ func TestHelmfilePlugin(t *testing.T) {
 			switch b.Goos {
 			case "Linux":
 				foundArm = true
-				assert.Equal(t, "https://github.com/docularxu/helmfile/releases/download/v0.135.0.arm64/helmfile-0.135.0", b.URL, "URL for arm linux binary")
+				assert.Equal(t, "https://github.com/roboll/helmfile/releases/download/v"+plugins.HelmfileVersion+"/helmfile_linux_arm64", b.URL, "URL for linux arm binary")
 				t.Logf("found linux binary URL %s", b.URL)
 			}
 
@@ -142,15 +145,16 @@ func TestKappPlugin(t *testing.T) {
 		switch b.Goos {
 		case "Darwin":
 			foundMac = true
-			assert.Equal(t, "https://github.com/vmware-tanzu/carvel-kapp/releases/download/v"+v+"/kapp-darwin-amd64", b.URL, "URL for linux binary")
+
+			assert.Equal(t, "https://github.com/chrismellard/carvel-kapp/releases/download/v"+v+"/carvel-kapp_"+v+"_Darwin_amd64.tar.gz", b.URL, "URL for linux binary")
 			t.Logf("found mac binary URL %s", b.URL)
 		case "Linux":
 			foundLinux = true
-			assert.Equal(t, "https://github.com/vmware-tanzu/carvel-kapp/releases/download/v"+v+"/kapp-linux-amd64", b.URL, "URL for linux binary")
+			assert.Equal(t, "https://github.com/chrismellard/carvel-kapp/releases/download/v"+v+"/carvel-kapp_"+v+"_Linux_amd64.tar.gz", b.URL, "URL for linux binary")
 			t.Logf("found linux binary URL %s", b.URL)
 		case "Windows":
 			foundWindows = true
-			assert.Equal(t, "https://github.com/vmware-tanzu/carvel-kapp/releases/download/v"+v+"/kapp-windows-amd64.exe", b.URL, "URL for windows binary")
+			assert.Equal(t, "https://github.com/chrismellard/carvel-kapp/releases/download/v"+v+"/carvel-kapp_"+v+"_Windows_amd64.tar.gz", b.URL, "URL for windows binary")
 			t.Logf("found windows binary URL %s", b.URL)
 		}
 	}
@@ -193,4 +197,44 @@ func TestKubectlPlugin(t *testing.T) {
 	assert.True(t, foundLinux, "did not find a linux binary in the plugin %#v", plugin)
 	assert.True(t, foundMac, "did not find a mac binary in the plugin %#v", plugin)
 	assert.True(t, foundWindows, "did not find a windows binary in the plugin %#v", plugin)
+}
+
+func TestPluginDir(t *testing.T) {
+	testCases := []struct {
+		env      map[string]string
+		expected string
+	}{
+		{
+			env: map[string]string{
+				"JX_GITOPS_HOME": "/tmp/root/.my-jx-gitops",
+			},
+			expected: "/tmp/root/.my-jx-gitops/plugins/bin",
+		},
+		{
+			env: map[string]string{
+				"JX_HOME": "/tmp/home/.jx",
+			},
+			expected: "/tmp/home/.jx/plugins/bin",
+		},
+		{
+			env: map[string]string{
+				"JX3_HOME": "/tmp/home/.jx3",
+			},
+			expected: "/tmp/home/.jx3/plugins/bin",
+		},
+		{
+			env:      map[string]string{},
+			expected: filepath.Join(homedir.HomeDir(), ".jx", "plugins", "bin"),
+		},
+	}
+
+	for _, tc := range testCases {
+		fn := func(k string) string {
+			return tc.env[k]
+		}
+		dir, err := plugins.PluginBinDirFunc(fn)
+		require.NoError(t, err, "failed to get plugin dir")
+		t.Logf("got plugin dir %s\n", dir)
+		assert.Equal(t, tc.expected, dir, "for env %v", tc.env)
+	}
 }

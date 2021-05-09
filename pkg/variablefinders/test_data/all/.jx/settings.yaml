@@ -1,0 +1,18 @@
+apiVersion: core.jenkins-x.io/v4beta1
+kind: Settings
+spec:
+  # inherit destination config and promote environments from this dev environment
+  gitUrl: "https://something.com/cheese.git"
+
+  # lets override the destination configuration
+  destination:
+    chartRepository: https://github.com/myorg/mycharts.git
+    chartKind: pages
+    registry: gcr.io
+
+  # lets replace the promote environments
+  ignoreDevEnvironments: true
+  promoteEnvironments:
+  - key: staging
+    owner: jstrachan
+    repository: my-staging-repo

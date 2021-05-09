@@ -1,10 +1,12 @@
 package sourceconfigs
 
 import (
+	"os"
 	"path/filepath"
 	"sort"
 
-	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/apis/gitops/v1alpha1"
+	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/stringhelpers"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
@@ -40,6 +42,28 @@ func LoadSourceConfig(dir string, applyDefaults bool) (*v1alpha1.SourceConfig, e
 	return config, nil
 }
 
+// SaveSourceConfig saves the source config to the given directory
+func SaveSourceConfig(config *v1alpha1.SourceConfig, dir string) error {
+	if config.APIVersion == "" {
+		config.APIVersion = v1alpha1.APIVersion
+	}
+	if config.Kind == "" {
+		config.Kind = v1alpha1.KindSourceConfig
+	}
+	outDir := filepath.Join(dir, ".jx", "gitops")
+	err := os.MkdirAll(outDir, files.DefaultDirWritePermissions)
+	if err != nil {
+		return errors.Wrapf(err, "failed to make directory %s", outDir)
+	}
+
+	path := filepath.Join(outDir, v1alpha1.SourceConfigFileName)
+	err = yamls.SaveFile(config, path)
+	if err != nil {
+		return errors.Wrapf(err, "failed to save %s", path)
+	}
+	return nil
+}
+
 // DefaultConfigValues defaults values from the given config, group and repository if they are missing
 func DefaultConfigValues(config *v1alpha1.SourceConfig) error {
 	DefaultGroupValues(config, config.Spec.Groups)
@@ -64,6 +88,8 @@ func DefaultGroupValues(config *v1alpha1.SourceConfig, groups []v1alpha1.Reposit
 
 // DefaultValues defaults values from the given config, group and repository if they are missing
 func DefaultValues(config *v1alpha1.SourceConfig, group *v1alpha1.RepositoryGroup, repo *v1alpha1.Repository) error {
+	group.Slack = group.Slack.Inherit(config.Spec.Slack)
+
 	if group.Provider == "" {
 		group.Provider = "https://github.com"
 	}
@@ -92,6 +118,7 @@ func DefaultValues(config *v1alpha1.SourceConfig, group *v1alpha1.RepositoryGrou
 	if repo.Scheduler == "" {
 		repo.Scheduler = group.Scheduler
 	}
+	repo.Slack = repo.Slack.Inherit(group.Slack)
 	return nil
 }
 
@@ -113,7 +140,7 @@ func GetOrCreateJenkinsServerGroup(config *v1alpha1.JenkinsServer, gitKind strin
 func getOrCreateGroup(groups []v1alpha1.RepositoryGroup, gitKind string, gitServerURL string, owner string) ([]v1alpha1.RepositoryGroup, *v1alpha1.RepositoryGroup) {
 	for i := range groups {
 		group := &groups[i]
-		if group.ProviderKind == gitKind && group.Provider == gitServerURL && group.Owner == owner {
+		if (group.ProviderKind == gitKind || gitKind == "") && (group.Provider == gitServerURL || gitServerURL == "") && group.Owner == owner {
 			return groups, group
 		}
 	}
@@ -123,6 +150,12 @@ func getOrCreateGroup(groups []v1alpha1.RepositoryGroup, gitKind string, gitServ
 		Owner:        owner,
 	})
 	return groups, &groups[len(groups)-1]
+}
+
+// GetOrCreateRepositoryFor returns the repository for the given git server URL if specified, owner and repository
+func GetOrCreateRepositoryFor(config *v1alpha1.SourceConfig, gitServerURL, owner, repo string) *v1alpha1.Repository {
+	group := GetOrCreateGroup(config, "", gitServerURL, owner)
+	return GetOrCreateRepository(group, repo)
 }
 
 // GetOrCreateRepository get or create the repository for the given name
@@ -178,6 +211,19 @@ func EnrichConfig(config *v1alpha1.SourceConfig) {
 	if config.Kind == "" {
 		config.Kind = v1alpha1.KindSourceConfig
 	}
+
+	// lets add a default slack configuration if it doesn't exist
+	if config.Spec.Slack == nil {
+		config.Spec.Slack = DefaultSlackNotify()
+	}
+}
+
+func DefaultSlackNotify() *v1alpha1.SlackNotify {
+	return &v1alpha1.SlackNotify{
+		Channel:  v1alpha1.DefaultSlackChannel,
+		Kind:     v1alpha1.NotifyKindFailureOrFirstSuccess,
+		Pipeline: v1alpha1.PipelineKindRelease,
+	}
 }
 
 func DryConfig(config *v1alpha1.SourceConfig) {
@@ -231,4 +277,37 @@ func DryConfig(config *v1alpha1.SourceConfig) {
 			}
 		}
 	}
+}
+
+// FindSettings finds the settings for the given owner and repository name
+func FindSettings(config *v1alpha1.SourceConfig, owner string, repoName string) *jxcore.SettingsConfig {
+	if owner == "" {
+		owner = os.Getenv("REPO_OWNER")
+	}
+	if repoName == "" {
+		repoName = os.Getenv("REPO_NAME")
+	}
+
+	// lets try find the group for the repository name
+	for i := range config.Spec.Groups {
+		group := &config.Spec.Groups[i]
+		if group.Owner != owner {
+			continue
+		}
+		for j := range group.Repositories {
+			repo := &group.Repositories[j]
+			if repo.Name == repoName {
+				return group.Settings
+			}
+		}
+	}
+
+	// if the repo name can't be found then lets just find the first group for this owner
+	for i := range config.Spec.Groups {
+		group := &config.Spec.Groups[i]
+		if group.Owner == owner {
+			return group.Settings
+		}
+	}
+	return nil
 }

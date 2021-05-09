@@ -4,10 +4,10 @@ import (
 	"context"
 	"strings"
 
-	"github.com/jenkins-x/jx-gitops/pkg/schedulerapi"
+	schedulerapi "github.com/jenkins-x-plugins/jx-gitops/pkg/apis/scheduler/v1alpha1"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
-	"github.com/jenkins-x/lighthouse/pkg/config"
-	"github.com/jenkins-x/lighthouse/pkg/plugins"
+	"github.com/jenkins-x/lighthouse-client/pkg/config"
+	"github.com/jenkins-x/lighthouse-client/pkg/plugins"
 	v1 "k8s.io/api/core/v1"
 	kubeerrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/kubernetes"
@@ -72,7 +72,7 @@ func addTeamScheduler(defaultSchedulerName string, defaultScheduler *schedulerap
 		applicableSchedulers = append([]*schedulerapi.SchedulerSpec{&defaultScheduler.Spec}, applicableSchedulers...)
 	} else {
 		if defaultSchedulerName != "" {
-			log.Logger().Warnf("A team pipeline scheduler named %s was configured but could not be found", defaultSchedulerName)
+			log.Logger().Debugf("A team pipeline scheduler named %s was configured but could not be found", defaultSchedulerName)
 		}
 	}
 	return applicableSchedulers

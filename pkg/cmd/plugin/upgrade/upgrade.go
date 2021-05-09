@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
+	"strings"
 
-	"github.com/jenkins-x/jx-gitops/pkg/plugins"
-	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/plugins"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
@@ -96,6 +98,32 @@ func (o *Options) Run() error {
 				return errors.Wrapf(err, "failed to create symlink from %s => %s", fileName, binName)
 			}
 			log.Logger().Infof("created symlink from %s => %s", fileName, binName)
+		}
+
+		goarch := strings.ToLower(runtime.GOARCH)
+		if p.Name == plugins.HelmPluginName && goarch != "arm" && !strings.HasPrefix(goarch, "arm") {
+			log.Logger().Infof("checking if we have installed the helm plugin helm-x on OS %s arch: %s", runtime.GOOS, goarch)
+			// we can't install helm-x yet on ARM
+			installHelmX := &cmdrunner.Command{
+				Name: fileName,
+				Args: []string{"plugin", "install", "https://github.com/mumoshu/helm-x"},
+			}
+			out, err := o.CommandRunner(installHelmX)
+			if err != nil {
+				if strings.Contains(out, "plugin already exists") {
+					updateHelmX := &cmdrunner.Command{
+						Name: fileName,
+						Args: []string{"plugin", "update", "x"},
+					}
+					out, err = o.CommandRunner(updateHelmX)
+					if err != nil {
+						return errors.Wrapf(err, "failed to update plugin helm-x")
+					}
+
+				} else {
+					return errors.Wrapf(err, "failed to install plugin helm-x")
+				}
+			}
 		}
 	}
 	return nil

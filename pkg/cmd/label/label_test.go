@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/label"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/label"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kyamls"
 	"github.com/stretchr/testify/assert"

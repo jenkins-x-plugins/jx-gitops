@@ -20,6 +20,14 @@ Resolves the helmfile.yaml from the version stream to specify versions and helm 
 
 .SH OPTIONS
 .PP
+\fB\-\-add\-environment\-pipelines\fP[=false]
+    skips the custom upgrade step for adding .lighthouse folder
+
+.PP
+\fB\-b\fP, \fB\-\-batch\-mode\fP[=false]
+    Runs in batch mode without prompting for user input
+
+.PP
 \fB\-\-commit\-message\fP="chore: generated kubernetes resources from helm chart"
     the git commit message used
 
@@ -36,8 +44,16 @@ Resolves the helmfile.yaml from the version stream to specify versions and helm 
     the helmfile to resolve. If not specified defaults to 'helmfile.yaml' in the dir
 
 .PP
+\fB\-\-helmfile\-binary\fP=""
+    specifies the helmfile binary location to use. If not specified defaults to using the downloaded helmfile plugin
+
+.PP
 \fB\-h\fP, \fB\-\-help\fP[=false]
     help for resolve
+
+.PP
+\fB\-\-log\-level\fP=""
+    Sets the logging level. If not specified defaults to $JX\_LOG\_LEVEL
 
 .PP
 \fB\-\-namespace\fP="jx"
@@ -46,6 +62,14 @@ Resolves the helmfile.yaml from the version stream to specify versions and helm 
 .PP
 \fB\-\-update\fP[=false]
     updates versions from the version stream if they have changed
+
+.PP
+\fB\-\-verbose\fP[=false]
+    Enables verbose output. The environment variable JX\_LOG\_LEVEL has precedence over this flag and allows setting the logging level to any value of: panic, fatal, error, warn, info, debug, trace
+
+.PP
+\fB\-\-version\-stream\-dir\fP=""
+    the directory for the version stream. Defaults to 'versionStream' in the current \-\-dir
 
 
 .SH EXAMPLE

@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 
 	"github.com/imdario/mergo"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
-	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube"
@@ -43,7 +43,7 @@ This lets you take requirements from, say, the output of a terraform plan and me
 		# merge requirements from a file
 		%s requirements merge -f /tmp/jx-requirements.yml
 
-		# merge requirements from a ConfigMap called 'terraform-jx-requiremnets' in the default namespace
+		# merge requirements from a ConfigMap called 'terraform-jx-requirements' in the default namespace
 		%s requirements merge 
 	`)
 )
@@ -107,6 +107,10 @@ func (o *Options) Run() error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to load requirement changes from file: %s", o.File)
 	}
+	if requirementChanges != nil {
+		// lets remove any environments as those are always defined in the dev cluster git repository
+		requirementChanges.Spec.Environments = nil
+	}
 
 	exists := false
 	if o.requirements != nil {
@@ -136,10 +140,16 @@ func (o *Options) Run() error {
 
 // MergeChanges merges changes from the given requirements into the source
 func (o *Options) MergeChanges(reqs *jxcore.Requirements) error {
-	err := mergo.Merge(o.requirements, reqs.Spec)
+	err := mergo.Merge(o.requirements, reqs.Spec, mergo.WithOverride)
 	if err != nil {
 		return errors.Wrap(err, "error merging requirements")
 	}
+
+	// if domain is set in terraform always use that to override cluster requirements as domains are managed by Terraform
+	if reqs.Spec.Ingress.Domain != "" {
+		o.requirements.Ingress.Domain = reqs.Spec.Ingress.Domain
+	}
+
 	return nil
 }
 

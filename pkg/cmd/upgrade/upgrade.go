@@ -1,9 +1,10 @@
 package upgrade
 
 import (
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/resolve"
-	kptupdate "github.com/jenkins-x/jx-gitops/pkg/cmd/kpt/update"
-	"github.com/jenkins-x/jx-gitops/pkg/plugins"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/helmfile/resolve"
+	kptupdate "github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/kpt/update"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/plugins"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/tfupgrade"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
@@ -14,7 +15,8 @@ import (
 // ShowOptions the options for viewing running PRs
 type Options struct {
 	kptupdate.Options
-	HelmfileResolve resolve.Options
+	HelmfileResolve  resolve.Options
+	TerraformUpgrade tfupgrade.Options
 }
 
 // NewCmdUpgrade creates a command object
@@ -48,12 +50,19 @@ func (o *Options) Run() error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to check for helmfile")
 	}
-	if !exists {
-		return nil
+	if exists {
+		err = o.doHelmfileUpgrade()
+		if err != nil {
+			return errors.Wrapf(err, "failed to resolve helmfile")
+		}
 	}
 
-	log.Logger().Infof("\nnow checking the chart versions in %s\n\n", termcolor.ColorInfo("helmfile.yaml"))
+	return o.doTerraformUpgrade(err)
+}
 
+func (o *Options) doHelmfileUpgrade() error {
+	log.Logger().Infof("\nnow checking the chart versions in %s\n\n", termcolor.ColorInfo("helmfile.yaml"))
+	var err error
 	if o.HelmfileResolve.HelmBinary == "" {
 		o.HelmfileResolve.HelmBinary, err = plugins.GetHelmBinary(plugins.HelmVersion)
 		if err != nil {
@@ -66,6 +75,20 @@ func (o *Options) Run() error {
 	err = o.HelmfileResolve.Run()
 	if err != nil {
 		return errors.Wrapf(err, "failed to update the helmfile versions")
+	}
+	return nil
+}
+
+func (o *Options) doTerraformUpgrade(err error) error {
+	if o.Options.Dir != "" {
+		o.TerraformUpgrade.Dir = o.Options.Dir
+	}
+	if o.HelmfileResolve.VersionStreamDir != "" {
+		o.TerraformUpgrade.VersionStreamDir = o.HelmfileResolve.VersionStreamDir
+	}
+	err = o.TerraformUpgrade.Run()
+	if err != nil {
+		return errors.Wrapf(err, "failed to upgrade terraform git repository versions")
 	}
 	return nil
 }

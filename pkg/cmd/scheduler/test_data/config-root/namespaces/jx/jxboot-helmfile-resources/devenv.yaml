@@ -17,7 +17,7 @@ spec:
   source:
     url: https://github.com/fake/env-mycluster-dev.git
   teamSettings:
-    appsRepository: http://chartmuseum.jenkins-x.io
+    appsRepository: https://storage.googleapis.com/chartmuseum.jenkins-x.io
     buildPackRef: "master"
     buildPackUrl: "https://github.com/jenkins-x/jxr-packs-kubernetes.git"
     defaultScheduler:

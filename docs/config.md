@@ -20,6 +20,8 @@ Resource Types:
 </li><li>
 <a href="#gitops.jenkins-x.io/v1alpha1.PipelineCatalog">PipelineCatalog</a>
 </li><li>
+<a href="#gitops.jenkins-x.io/v1alpha1.Quickstarts">Quickstarts</a>
+</li><li>
 <a href="#gitops.jenkins-x.io/v1alpha1.SecretMapping">SecretMapping</a>
 </li><li>
 <a href="#gitops.jenkins-x.io/v1alpha1.SourceConfig">SourceConfig</a>
@@ -140,6 +142,108 @@ PipelineCatalogSpec
 </td>
 <td>
 <p>Repositories the repositories containing pipeline catalogs</p>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="gitops.jenkins-x.io/v1alpha1.Quickstarts">Quickstarts
+</h3>
+<p>
+<p>Quickstarts represents a collection quickstart project</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>apiVersion</code></br>
+string</td>
+<td>
+<code>
+gitops.jenkins-x.io/v1alpha1
+</code>
+</td>
+</tr>
+<tr>
+<td>
+<code>kind</code></br>
+string
+</td>
+<td><code>Quickstarts</code></td>
+</tr>
+<tr>
+<td>
+<code>metadata</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#objectmeta-v1-meta">
+Kubernetes meta/v1.ObjectMeta
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+Refer to the Kubernetes API documentation for the fields of the
+<code>metadata</code> field.
+</td>
+</tr>
+<tr>
+<td>
+<code>spec</code></br>
+<em>
+<a href="#gitops.jenkins-x.io/v1alpha1.QuickstartsSpec">
+QuickstartsSpec
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Spec holds the specified quicksatrt configuration</p>
+<br/>
+<br/>
+<table>
+<tr>
+<td>
+<code>quickstarts</code></br>
+<em>
+<a href="#gitops.jenkins-x.io/v1alpha1.QuickstartSource">
+[]QuickstartSource
+</a>
+</em>
+</td>
+<td>
+<p>Quickstarts custom quickstarts to include</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>defaultOwner</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>DefaultOwner the default owner if not specfied</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>imports</code></br>
+<em>
+<a href="#gitops.jenkins-x.io/v1alpha1.QuickstartImport">
+[]QuickstartImport
+</a>
+</em>
+</td>
+<td>
+<p>Imports import quickstarts from the version stream</p>
 </td>
 </tr>
 </table>
@@ -323,6 +427,19 @@ string
 </tr>
 <tr>
 <td>
+<code>slack</code></br>
+<em>
+<a href="#gitops.jenkins-x.io/v1alpha1.SlackNotify">
+SlackNotify
+</a>
+</em>
+</td>
+<td>
+<p>Slack optional default slack notification configuration inherited by groups</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>jenkinsServers</code></br>
 <em>
 <a href="#gitops.jenkins-x.io/v1alpha1.JenkinsServer">
@@ -336,13 +453,24 @@ string
 </tr>
 <tr>
 <td>
+<code>jenkinsFolderTemplate</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>JenkinsFolderTemplate the default template file to use to generate the folder job DSL script</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>jenkinsJobTemplate</code></br>
 <em>
 string
 </em>
 </td>
 <td>
-<p>JenkinsJobTemplate the default configuration template file to use to generate the projects job DSL script</p>
+<p>JenkinsJobTemplate the default template file to use to generate the projects job DSL script</p>
 </td>
 </tr>
 </table>
@@ -359,6 +487,15 @@ string
 </p>
 <p>
 <p>BackendType describes a secrets backend</p>
+</p>
+<h3 id="gitops.jenkins-x.io/v1alpha1.BooleanFlag">BooleanFlag
+(<code>string</code> alias)</p></h3>
+<p>
+(<em>Appears on:</em>
+<a href="#gitops.jenkins-x.io/v1alpha1.SlackNotify">SlackNotify</a>)
+</p>
+<p>
+<p>BooleanFlag a type that is used for string boolean values that can be blank or yes/no</p>
 </p>
 <h3 id="gitops.jenkins-x.io/v1alpha1.Defaults">Defaults
 </h3>
@@ -488,13 +625,24 @@ string
 </tr>
 <tr>
 <td>
+<code>folderTemplate</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>FolderTemplate the default template file to use to generate the folder job DSL script</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>jobTemplate</code></br>
 <em>
 string
 </em>
 </td>
 <td>
-<p>JobTemplate the default configuration template file to use to generate the projects job DSL script</p>
+<p>JobTemplate the default template file to use to generate the projects job DSL script</p>
 </td>
 </tr>
 <tr>
@@ -607,6 +755,67 @@ string
 </tr>
 </tbody>
 </table>
+<h3 id="gitops.jenkins-x.io/v1alpha1.NotifyKind">NotifyKind
+(<code>string</code> alias)</p></h3>
+<p>
+(<em>Appears on:</em>
+<a href="#gitops.jenkins-x.io/v1alpha1.SlackNotify">SlackNotify</a>)
+</p>
+<p>
+<p>NotifyKind what kind of notification</p>
+</p>
+<h3 id="gitops.jenkins-x.io/v1alpha1.Pattern">Pattern
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#gitops.jenkins-x.io/v1alpha1.SlackNotify">SlackNotify</a>)
+</p>
+<p>
+<p>Pattern for matching strings</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>name</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Name</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>include</code></br>
+<em>
+[]string
+</em>
+</td>
+<td>
+<p>Includes patterns to include in changing</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>exclude</code></br>
+<em>
+[]string
+</em>
+</td>
+<td>
+<p>Excludes patterns to exclude from upgrading</p>
+</td>
+</tr>
+</tbody>
+</table>
 <h3 id="gitops.jenkins-x.io/v1alpha1.PipelineCatalogSource">PipelineCatalogSource
 </h3>
 <p>
@@ -698,6 +907,240 @@ string
 </tr>
 </tbody>
 </table>
+<h3 id="gitops.jenkins-x.io/v1alpha1.PipelineKind">PipelineKind
+(<code>string</code> alias)</p></h3>
+<p>
+(<em>Appears on:</em>
+<a href="#gitops.jenkins-x.io/v1alpha1.SlackNotify">SlackNotify</a>)
+</p>
+<p>
+<p>PipelineKind what pipeline to notify on</p>
+</p>
+<h3 id="gitops.jenkins-x.io/v1alpha1.QuickstartImport">QuickstartImport
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#gitops.jenkins-x.io/v1alpha1.QuickstartsSpec">QuickstartsSpec</a>)
+</p>
+<p>
+<p>QuickstartImport imports quickstats from another folder (such as from the shared version stream)</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>file</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>File file name relative to the root directory to load</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>includes</code></br>
+<em>
+[]string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>excludes</code></br>
+<em>
+[]string
+</em>
+</td>
+<td>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="gitops.jenkins-x.io/v1alpha1.QuickstartSource">QuickstartSource
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#gitops.jenkins-x.io/v1alpha1.QuickstartsSpec">QuickstartsSpec</a>)
+</p>
+<p>
+<p>QuickstartSource the source of a quickstart</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>ID</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>Owner</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>Name</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>Version</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>Language</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>Framework</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>Tags</code></br>
+<em>
+[]string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>DownloadZipURL</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>GitServer</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>GitKind</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="gitops.jenkins-x.io/v1alpha1.QuickstartsSpec">QuickstartsSpec
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#gitops.jenkins-x.io/v1alpha1.Quickstarts">Quickstarts</a>)
+</p>
+<p>
+<p>QuickstartsSpec defines the desired state of Quickstarts.</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>quickstarts</code></br>
+<em>
+<a href="#gitops.jenkins-x.io/v1alpha1.QuickstartSource">
+[]QuickstartSource
+</a>
+</em>
+</td>
+<td>
+<p>Quickstarts custom quickstarts to include</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>defaultOwner</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>DefaultOwner the default owner if not specfied</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>imports</code></br>
+<em>
+<a href="#gitops.jenkins-x.io/v1alpha1.QuickstartImport">
+[]QuickstartImport
+</a>
+</em>
+</td>
+<td>
+<p>Imports import quickstarts from the version stream</p>
+</td>
+</tr>
+</tbody>
+</table>
 <h3 id="gitops.jenkins-x.io/v1alpha1.Repository">Repository
 </h3>
 <p>
@@ -745,7 +1188,7 @@ string
 </em>
 </td>
 <td>
-<p>JenkinsJobTemplate the configuration template file to use to generate the projects job DSL script</p>
+<p>JenkinsJobTemplate the template file to use to generate the projects job DSL script</p>
 </td>
 </tr>
 <tr>
@@ -790,6 +1233,19 @@ string
 </td>
 <td>
 <p>SSHCloneURL the SSH based clone URL</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>slack</code></br>
+<em>
+<a href="#gitops.jenkins-x.io/v1alpha1.SlackNotify">
+SlackNotify
+</a>
+</em>
+</td>
+<td>
+<p>Slack optional slack notification configuration</p>
 </td>
 </tr>
 </tbody>
@@ -882,13 +1338,48 @@ string
 </tr>
 <tr>
 <td>
+<code>jenkinsFolderTemplate</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>JenkinsFolderTemplate the default template file to use to generate the folder job DSL script</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>jenkinsJobTemplate</code></br>
 <em>
 string
 </em>
 </td>
 <td>
-<p>JenkinsJobTemplate the default configuration template file to use to generate the projects job DSL script</p>
+<p>JenkinsJobTemplate the default job template file to use to generate the projects job DSL script</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>slack</code></br>
+<em>
+<a href="#gitops.jenkins-x.io/v1alpha1.SlackNotify">
+SlackNotify
+</a>
+</em>
+</td>
+<td>
+<p>Slack optional slack notification configuration</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>settings</code></br>
+<em>
+github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1.SettingsConfig
+</em>
+</td>
+<td>
+<p>Settings optional settinsg for repositories in this group</p>
 </td>
 </tr>
 </tbody>
@@ -1028,6 +1519,129 @@ GcpSecretsManager
 </tr>
 </tbody>
 </table>
+<h3 id="gitops.jenkins-x.io/v1alpha1.SlackNotify">SlackNotify
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#gitops.jenkins-x.io/v1alpha1.Repository">Repository</a>, 
+<a href="#gitops.jenkins-x.io/v1alpha1.RepositoryGroup">RepositoryGroup</a>, 
+<a href="#gitops.jenkins-x.io/v1alpha1.SourceConfigSpec">SourceConfigSpec</a>)
+</p>
+<p>
+<p>SlackNotify the slack notification configuration</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>channel</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Channel the name of the channel to notify pipelines</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>kind</code></br>
+<em>
+<a href="#gitops.jenkins-x.io/v1alpha1.NotifyKind">
+NotifyKind
+</a>
+</em>
+</td>
+<td>
+<p>Kind kind of notification such as always, only failures, failures or first succeed, only succeeds etc</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>pipeline</code></br>
+<em>
+<a href="#gitops.jenkins-x.io/v1alpha1.PipelineKind">
+PipelineKind
+</a>
+</em>
+</td>
+<td>
+<p>Pipeline kind of pipeline to notify on (all, releases, pull requests etc)</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>directMessage</code></br>
+<em>
+<a href="#gitops.jenkins-x.io/v1alpha1.BooleanFlag">
+BooleanFlag
+</a>
+</em>
+</td>
+<td>
+<p>DirectMessage whether to use Direct Messages</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>notifyReviewers</code></br>
+<em>
+<a href="#gitops.jenkins-x.io/v1alpha1.BooleanFlag">
+BooleanFlag
+</a>
+</em>
+</td>
+<td>
+<p>NotifyReviewers whether to notify reviews of Pull Request pipelines</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>branch</code></br>
+<em>
+<a href="#gitops.jenkins-x.io/v1alpha1.Pattern">
+Pattern
+</a>
+</em>
+</td>
+<td>
+<p>Branch specify the branch name or filter to notify</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>context</code></br>
+<em>
+<a href="#gitops.jenkins-x.io/v1alpha1.Pattern">
+Pattern
+</a>
+</em>
+</td>
+<td>
+<p>Context specify the context name or filter to notify</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>pullRequestLabel</code></br>
+<em>
+<a href="#gitops.jenkins-x.io/v1alpha1.Pattern">
+Pattern
+</a>
+</em>
+</td>
+<td>
+<p>PullRequestLabel specify the pull request labels to notify</p>
+</td>
+</tr>
+</tbody>
+</table>
 <h3 id="gitops.jenkins-x.io/v1alpha1.SourceConfigSpec">SourceConfigSpec
 </h3>
 <p>
@@ -1071,6 +1685,19 @@ string
 </tr>
 <tr>
 <td>
+<code>slack</code></br>
+<em>
+<a href="#gitops.jenkins-x.io/v1alpha1.SlackNotify">
+SlackNotify
+</a>
+</em>
+</td>
+<td>
+<p>Slack optional default slack notification configuration inherited by groups</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>jenkinsServers</code></br>
 <em>
 <a href="#gitops.jenkins-x.io/v1alpha1.JenkinsServer">
@@ -1084,13 +1711,24 @@ string
 </tr>
 <tr>
 <td>
+<code>jenkinsFolderTemplate</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>JenkinsFolderTemplate the default template file to use to generate the folder job DSL script</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>jenkinsJobTemplate</code></br>
 <em>
 string
 </em>
 </td>
 <td>
-<p>JenkinsJobTemplate the default configuration template file to use to generate the projects job DSL script</p>
+<p>JenkinsJobTemplate the default template file to use to generate the projects job DSL script</p>
 </td>
 </tr>
 </tbody>
@@ -1098,5 +1736,5 @@ string
 <hr/>
 <p><em>
 Generated with <code>gen-crd-api-reference-docs</code>
-on git commit <code>30bccec</code>.
+on git commit <code>5f6b3cb</code>.
 </em></p>

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	"github.com/jenkins-x/jx-api/v4/pkg/util"
-	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/gitdiscovery"
@@ -72,7 +72,7 @@ func (o *Options) Run(args []string) error {
 	}
 	if len(args) == 0 {
 		// lets try discover the git url
-		o.gitURL, err = gitdiscovery.FindGitURLFromDir(o.SourceDir)
+		o.gitURL, err = gitdiscovery.FindGitURLFromDir(o.SourceDir, false)
 		if err != nil {
 			return errors.Wrapf(err, "failed to discover git URL in dir %s. you could try pass the git URL as an argument", o.SourceDir)
 		}
@@ -94,7 +94,7 @@ func (o *Options) Run(args []string) error {
 	if discovered {
 		o.gitURL = o.gitInfo.URL
 
-		log.Logger().Infof("discovered git URL %s replacing it in the dev Environment and Source Repository in dir %s", termcolor.ColorInfo(stringhelpers.SanitizeURL(o.gitURL)), termcolor.ColorInfo(o.SourceDir))
+		log.Logger().Debugf("discovered git URL %s replacing it in the dev Environment and Source Repository in dir %s", termcolor.ColorInfo(stringhelpers.SanitizeURL(o.gitURL)), termcolor.ColorInfo(o.SourceDir))
 	}
 
 	modifyFn := func(node *yaml.RNode, path string) (bool, error) {
@@ -177,7 +177,7 @@ func (o *Options) modifyRequirements() error {
 
 	repository := o.gitInfo.Name
 	owner := o.gitInfo.Organisation
-	log.Logger().Infof("modifying jx-requirements.yml in dir %s to set the dev environment git repository to be %s/%s", dir, owner, repository)
+	log.Logger().Debugf("modifying jx-requirements.yml in dir %s to set the dev environment git repository to be %s/%s", dir, owner, repository)
 
 	modified := false
 	for i, env := range requirements.Environments {
@@ -190,7 +190,7 @@ func (o *Options) modifyRequirements() error {
 	if !modified {
 		return errors.Errorf("could not find a 'dev' environment in the file %s", fileName)
 	}
-	log.Logger().Infof("saving %s", fileName)
+	log.Logger().Debugf("saving %s", fileName)
 	err = requirementsResource.SaveConfig(fileName)
 	if err != nil {
 		return errors.Wrapf(err, "failed to save file %s", fileName)

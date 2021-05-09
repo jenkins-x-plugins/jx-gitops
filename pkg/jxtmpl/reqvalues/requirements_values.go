@@ -38,8 +38,10 @@ type RequirementsValues struct {
 	RequirementsConfig          *jxcore.RequirementsConfig `json:"jxRequirements,omitempty"`
 	IngressExternalDNSCondition *HelmfileConditional       `json:"jxRequirementsIngressExternalDNS,omitempty"`
 	IngressTLSCondition         *HelmfileConditional       `json:"jxRequirementsIngressTLS,omitempty"`
+	KuberhealthyCondition       *HelmfileConditional       `json:"jxRequirementsKuberhealthy,omitempty"`
+	TLSCheckCondition           *HelmfileConditional       `json:"jxRequirementsTLSCheck,omitempty"`
 	VaultCondition              *HelmfileConditional       `json:"jxRequirementsVault,omitempty"`
-	JX                          map[string]interface{}     `json:"jx,omitempty"`
+	//JX                          map[string]interface{}     `json:"jx,omitempty"`
 }
 
 // SaveRequirementsValuesFile saves the requirements yaml file for use with helmfile / helm 3
@@ -57,15 +59,20 @@ func SaveRequirementsValuesFile(c *jxcore.RequirementsConfig, dir, fileName stri
 		RequirementsConfig:          c,
 		IngressExternalDNSCondition: &HelmfileConditional{Enabled: c.Ingress.ExternalDNS},
 		IngressTLSCondition:         &HelmfileConditional{Enabled: c.Ingress.TLS.Enabled},
+		KuberhealthyCondition:       &HelmfileConditional{Enabled: c.Kuberhealthy},
+		TLSCheckCondition:           &HelmfileConditional{Enabled: c.Kuberhealthy && c.Ingress.TLS.Enabled},
 		VaultCondition:              &HelmfileConditional{Enabled: c.SecretStorage == jxcore.SecretStorageTypeVault},
-		JX:                          jxGlobals,
 	}
 
+	global, err := yaml.Marshal(jxGlobals)
+	if err != nil {
+		return errors.Wrap(err, "failed to marshal to YAML")
+	}
 	data, err := yaml.Marshal(y)
 	if err != nil {
 		return errors.Wrap(err, "failed to marshal to YAML")
 	}
-	text := jxValuesComment + string(data)
+	text := jxValuesComment + string(global) + string(data)
 	err = ioutil.WriteFile(fileName, []byte(text), files.DefaultFileWritePermissions)
 	if err != nil {
 		return errors.Wrapf(err, "failed to save file %s", fileName)
@@ -97,10 +104,6 @@ func loadJXGlobals(dir string) (map[string]interface{}, error) {
 			maps.CombineMapTrees(answer, m)
 		}
 	}
-	v := answer["jx"]
-	m, ok := v.(map[string]interface{})
-	if ok {
-		return m, nil
-	}
-	return nil, nil
+	return answer, nil
+
 }

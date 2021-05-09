@@ -6,12 +6,12 @@ import (
 	"testing"
 
 	"github.com/go-yaml/yaml"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/scheduler"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/scheduler"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/stringhelpers"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/testhelpers"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"
-	"github.com/jenkins-x/lighthouse/pkg/config"
-	"github.com/jenkins-x/lighthouse/pkg/config/keeper"
+	"github.com/jenkins-x/lighthouse-client/pkg/config"
+	"github.com/jenkins-x/lighthouse-client/pkg/config/keeper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
@@ -81,9 +81,11 @@ func TestScheduler(t *testing.T) {
 	}
 
 	assert.NotNil(t, lhCfg.InRepoConfig.Enabled, "should have inRepoConfig enabled")
-	assert.NotNil(t, lhCfg.InRepoConfig.Enabled[inRepoFullName], "should have inRepoConfig.Enabled['myorg/in-repo']")
-	assert.NotNil(t, lhCfg.InRepoConfig.Enabled[otherInRepoFullName], "should have inRepoConfig.Enabled['myorg/another-in-repo']")
-	assert.NotNil(t, lhCfg.InRepoConfig.Enabled["myorg/env-mycluster-dev"], "should have inRepoConfig.Enabled['myorg/env-mycluster-dev']")
+	assert.NotNil(t, lhCfg.InRepoConfig.Enabled[inRepoFullName], "should have inRepoConfig.ToBool['myorg/in-repo']")
+	assert.NotNil(t, lhCfg.InRepoConfig.Enabled[otherInRepoFullName], "should have inRepoConfig.ToBool['myorg/another-in-repo']")
+	assert.NotNil(t, lhCfg.InRepoConfig.Enabled["myorg/env-mycluster-dev"], "should have inRepoConfig.ToBool['myorg/env-mycluster-dev']")
+	assert.NotNil(t, lhCfg.InRepoConfig.Enabled["jxbdd/myrepo"], "should have inRepoConfig.ToBool['jxbdd/myrepo']")
+	assert.NotNil(t, lhCfg.InRepoConfig.Enabled["JXBDD/myrepo"], "should have inRepoConfig.ToBool['JXBDD/myrepo']")
 
 	approveQuery := keeper.Query{}
 	foundApproveQuery := false

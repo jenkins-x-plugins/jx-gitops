@@ -1,0 +1,23 @@
+apiVersion: gitops.jenkins-x.io/v1alpha1
+kind: SourceConfig
+metadata:
+  creationTimestamp: null
+spec:
+  groups:
+  - owner: somethingelse
+    provider: https://github.com
+    providerKind: github
+    repositories:
+    - name: cheese
+    scheduler: in-repo
+  - owner: myorg
+    provider: https://github.com
+    providerKind: github
+    repositories:
+    - name: another
+    - name: somerepo
+    scheduler: in-repo
+    settings:
+      destination:
+        chartRepository: https://github.com/owner1/charts.git
+        chartKind: pages

@@ -19,10 +19,10 @@ const (
 	KappPluginName = "kapp"
 
 	// HelmVersion the default version of helm to use
-	HelmVersion = "3.4.0"
+	HelmVersion = "3.5.4"
 
 	// HelmfileVersion the default version of helmfile to use
-	HelmfileVersion = "0.135.0"
+	HelmfileVersion = "0.139.0"
 
 	// KptVersion the default version of kpt to use
 	KptVersion = "0.37.0"
@@ -31,7 +31,7 @@ const (
 	KubectlVersion = "1.16.15"
 
 	// KappVersion the default version of kapp to use
-	KappVersion = "0.35.0"
+	KappVersion = "0.35.1-cmfork"
 )
 
 var (

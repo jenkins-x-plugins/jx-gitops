@@ -1,11 +1,5 @@
 filepath: ""
-repositories:
-- name: doesnotexist
-  url: https://storage.googleapis.com/chartmuseum.jenkins-x.io
-releases:
-- chart: jenkins-x/tekton
-- chart: jenkins-x/jxboot-helmfile-resources
-- chart: bitnami/external-dns
-- chart: doesnotexist/bucketrepo
+helmfiles:
+- path: helmfiles/nginx/helmfile.yaml
 templates: {}
-missingFileHandler: ""
+renderedvalues: {}

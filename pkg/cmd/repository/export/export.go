@@ -6,11 +6,11 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/apis/gitops/v1alpha1"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/sourceconfigs"
 	jenkinsv1 "github.com/jenkins-x/jx-api/v4/pkg/apis/jenkins.io/v1"
 	"github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned"
-	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
-	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
-	"github.com/jenkins-x/jx-gitops/pkg/sourceconfigs"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
@@ -129,11 +129,17 @@ func (o *Options) PopulateSourceConfig(srList []jenkinsv1.SourceRepository) erro
 	sourceconfigs.EnrichConfig(config)
 
 	err = yamls.SaveFile(config, o.ConfigFile)
+
 	if err != nil {
 		return errors.Wrapf(err, "failed to save config file %s", o.ConfigFile)
 	}
 
-	log.Logger().Infof("modified file %s", termcolor.ColorInfo(o.ConfigFile))
+	relName := o.ConfigFile
+	rel, err := filepath.Rel(o.Dir, relName)
+	if err == nil {
+		relName = rel
+	}
+	log.Logger().Infof("modified source configuration: %s", termcolor.ColorInfo(relName))
 	return nil
 }
 

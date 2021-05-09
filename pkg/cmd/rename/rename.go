@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kyamls"
@@ -130,6 +130,9 @@ func (o *Options) canonicalName(apiVersion, kind, name string) string {
 	if suffix == "" {
 		suffix = lk
 	}
+	// lets replace any odd characters
+	name = strings.ReplaceAll(name, ":", "-")
+	name = strings.ReplaceAll(name, string(os.PathSeparator), "-")
 	if kind == "" {
 		return name
 	}

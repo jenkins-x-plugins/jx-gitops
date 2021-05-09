@@ -5,12 +5,12 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"github.com/jenkins-x/jx-gitops/pkg/schedulerapi"
-	"github.com/jenkins-x/lighthouse/pkg/config"
-	"github.com/jenkins-x/lighthouse/pkg/config/branchprotection"
-	"github.com/jenkins-x/lighthouse/pkg/config/job"
-	"github.com/jenkins-x/lighthouse/pkg/config/keeper"
-	"github.com/jenkins-x/lighthouse/pkg/plugins"
+	schedulerapi "github.com/jenkins-x-plugins/jx-gitops/pkg/apis/scheduler/v1alpha1"
+	"github.com/jenkins-x/lighthouse-client/pkg/config"
+	"github.com/jenkins-x/lighthouse-client/pkg/config/branchprotection"
+	"github.com/jenkins-x/lighthouse-client/pkg/config/job"
+	"github.com/jenkins-x/lighthouse-client/pkg/config/keeper"
+	"github.com/jenkins-x/lighthouse-client/pkg/plugins"
 	"github.com/pkg/errors"
 	"github.com/rollout/rox-go/core/utils"
 )
@@ -209,6 +209,7 @@ func buildExternalPlugin(answer *plugins.ExternalPlugin, plugin *schedulerapi.Ex
 }
 
 func buildProwConfig(prowConfig *config.ProwConfig, scheduler *schedulerapi.SchedulerSpec, org string, repo string) error {
+	prowConfig.PushGateway.ServeMetrics = true
 	if scheduler.Policy != nil {
 		err := buildGlobalBranchProtection(&prowConfig.BranchProtection, scheduler.Policy)
 		if err != nil {
@@ -607,12 +608,24 @@ func buildPeriodics(answer *config.JobConfig, periodics *schedulerapi.Periodics)
 }
 
 func buildMerger(answer *keeper.Config, merger *schedulerapi.Merger, org string, repo string) error {
-	if merger.SyncPeriod != nil {
-		answer.SyncPeriod = *merger.SyncPeriod
+	syncPeriod, err := merger.GetSyncPeriod()
+	if err != nil {
+		return errors.Wrapf(err, "failed to parse sync period")
 	}
+	if syncPeriod != nil {
+		answer.SyncPeriod = *syncPeriod
+	}
+	if answer.SyncPeriod.Milliseconds() != 0 {
+		answer.SyncPeriodString = answer.SyncPeriod.String()
+	}
+
 	if merger.StatusUpdatePeriod != nil {
 		answer.StatusUpdatePeriod = *merger.StatusUpdatePeriod
 	}
+	if answer.StatusUpdatePeriod.Milliseconds() != 0 {
+		answer.StatusUpdatePeriodString = answer.StatusUpdatePeriod.String()
+	}
+
 	if merger.TargetURL != nil {
 		answer.TargetURL = *merger.TargetURL
 	}

@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
@@ -36,7 +36,7 @@ var (
 	pathSeparator = string(os.PathSeparator)
 )
 
-// KptOptions the options for the command
+// Options the options for the command
 type Options struct {
 	Dir              string
 	PullRequest      bool
@@ -118,6 +118,16 @@ func (o *Options) Run() error {
 		err = o.RunCommand(c)
 		if err != nil {
 			return errors.Wrapf(err, "failed to regenerate phase 3")
+		}
+	} else {
+		c := &cmdrunner.Command{
+			Dir:  o.Dir,
+			Name: "make",
+			Args: []string{"regen-none"},
+		}
+		err = o.RunCommand(c)
+		if err != nil {
+			return errors.Wrapf(err, "failed to run regen-none hook")
 		}
 	}
 	return nil

@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/annotate"
-	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/annotate"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
@@ -36,6 +36,7 @@ var (
 type Options struct {
 	Dir         string
 	Annotation  string
+	PodSpec     bool
 	SourceFiles []string
 	Filter      kyamls.Filter
 }
@@ -57,10 +58,11 @@ func NewCmdHashAnnotate() (*cobra.Command, *Options) {
 	cmd.Flags().StringArrayVarP(&o.SourceFiles, "source", "s", nil, "the source files to hash")
 	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the directory to recursively look for the *.yaml or *.yml files")
 	cmd.Flags().StringVarP(&o.Annotation, "annotation", "a", DefaultAnnotation, "the annotation for the hash to add to the files")
+	cmd.Flags().BoolVarP(&o.PodSpec, "pod-spec", "p", false, "annotate the PodSpec in spec.templates.metadata.annotations rather than the top level annotations")
 
 	f := &o.Filter
-	cmd.Flags().StringArrayVarP(&f.Kinds, "kind", "k", []string{"Deployment"}, "adds Kubernetes resource kinds to filter on to annotate. For kind expressions see: https://github.com/jenkins-x/jx-gitops/tree/master/docs/kind_filters.md")
-	cmd.Flags().StringArrayVarP(&f.KindsIgnore, "kind-ignore", "", nil, "adds Kubernetes resource kinds to exclude. For kind expressions see: https://github.com/jenkins-x/jx-gitops/tree/master/docs/kind_filters.md")
+	cmd.Flags().StringArrayVarP(&f.Kinds, "kind", "k", []string{"Deployment"}, "adds Kubernetes resource kinds to filter on to annotate. For kind expressions see: https://github.com/jenkins-x-plugins/jx-gitops/tree/master/docs/kind_filters.md")
+	cmd.Flags().StringArrayVarP(&f.KindsIgnore, "kind-ignore", "", nil, "adds Kubernetes resource kinds to exclude. For kind expressions see: https://github.com/jenkins-x-plugins/jx-gitops/tree/master/docs/kind_filters.md")
 
 	return cmd, o
 }
@@ -95,10 +97,10 @@ func (o *Options) Run() error {
 	}
 	hashBytes := sha256.Sum256(buff.Bytes())
 	annotationExpression := fmt.Sprintf("%s=%x", o.Annotation, hashBytes)
-	err := annotate.UpdateAnnotateInYamlFiles(o.Dir, []string{annotationExpression}, o.Filter)
+	err := annotate.UpdateAnnotateInYamlFiles(o.Dir, []string{annotationExpression}, o.Filter, o.PodSpec)
 	if err != nil {
 		return errors.Wrapf(err, "failed to annotate files in dir %s", o.Dir)
 	}
-	log.Logger().Infof("added annotation: %s to Deployments in dir %s", annotationExpression, o.Dir)
+	log.Logger().Debugf("added annotation: %s to Deployments in dir %s", annotationExpression, o.Dir)
 	return nil
 }

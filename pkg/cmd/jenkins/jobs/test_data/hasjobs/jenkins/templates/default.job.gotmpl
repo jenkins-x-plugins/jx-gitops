@@ -1,8 +1,0 @@
-multibranchPipelineJob('{{ .ID }}') {
-    branchSources {
-        git {
-            id = '{{ .ID }}'
-            remote('{{ .CloneURL }}')
-        }
-    }
-}

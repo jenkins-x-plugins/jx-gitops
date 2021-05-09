@@ -1,0 +1,12 @@
+apiVersion: project.jenkins-x.io/v1alpha1
+kind: Quickstarts
+spec:
+  # custom quickstarts
+  quickstarts: []
+
+  # shared quickstarts
+  imports:
+  - file: versionStream/quickstarts.yml
+    includes:
+    - ".*"
+    excludes: []

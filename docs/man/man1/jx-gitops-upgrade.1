@@ -20,6 +20,14 @@ Upgrades the GitOps git repository with the latest configuration and versions th
 
 .SH OPTIONS
 .PP
+\fB\-\-add\-environment\-pipelines\fP[=false]
+    skips the custom upgrade step for adding .lighthouse folder
+
+.PP
+\fB\-b\fP, \fB\-\-batch\-mode\fP[=false]
+    Runs in batch mode without prompting for user input
+
+.PP
 \fB\-\-bin\fP=""
     the 'kpt' binary name to use. If not specified this command will download the jx binary plugin into \~/.jx3/plugins/bin and use that
 
@@ -48,6 +56,10 @@ Upgrades the GitOps git repository with the latest configuration and versions th
     ignore kpt errors of the form: yaml: did not find expected node content
 
 .PP
+\fB\-\-log\-level\fP=""
+    Sets the logging level. If not specified defaults to $JX\_LOG\_LEVEL
+
+.PP
 \fB\-\-namespace\fP="jx"
     the default namespace if none is specified in the helmfile.yaml
 
@@ -68,8 +80,16 @@ Upgrades the GitOps git repository with the latest configuration and versions th
     filter on the Kptfile repository URL for which packages to update
 
 .PP
+\fB\-\-verbose\fP[=false]
+    Enables verbose output. The environment variable JX\_LOG\_LEVEL has precedence over this flag and allows setting the logging level to any value of: panic, fatal, error, warn, info, debug, trace
+
+.PP
 \fB\-v\fP, \fB\-\-version\fP=""
     the git version of the kpt package to upgrade to
+
+.PP
+\fB\-\-version\-stream\-dir\fP=""
+    the directory for the version stream. Defaults to 'versionStream' in the current \-\-dir
 
 
 .SH SEE ALSO

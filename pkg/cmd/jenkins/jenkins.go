@@ -1,7 +1,8 @@
 package jenkins
 
 import (
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/jenkins/jobs"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/jenkins/add"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/jenkins/jobs"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/spf13/cobra"
@@ -19,6 +20,7 @@ func NewCmdJenkins() *cobra.Command {
 			}
 		},
 	}
+	command.AddCommand(cobras.SplitCommand(add.NewCmdJenkinsAdd()))
 	command.AddCommand(cobras.SplitCommand(jobs.NewCmdJenkinsJobs()))
 	return command
 }

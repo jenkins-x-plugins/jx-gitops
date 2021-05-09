@@ -20,6 +20,10 @@ Adds a chart to the local 'helmfile.yaml' file
 
 .SH OPTIONS
 .PP
+\fB\-b\fP, \fB\-\-batch\-mode\fP[=false]
+    Runs in batch mode without prompting for user input
+
+.PP
 \fB\-c\fP, \fB\-\-chart\fP=""
     the name of the helm chart to add
 
@@ -44,6 +48,10 @@ Adds a chart to the local 'helmfile.yaml' file
     help for add
 
 .PP
+\fB\-\-log\-level\fP=""
+    Sets the logging level. If not specified defaults to $JX\_LOG\_LEVEL
+
+.PP
 \fB\-\-name\fP=""
     the name of the helm release
 
@@ -58,6 +66,10 @@ Adds a chart to the local 'helmfile.yaml' file
 .PP
 \fB\-\-values\fP=[]
     the values files to add to the chart
+
+.PP
+\fB\-\-verbose\fP[=false]
+    Enables verbose output. The environment variable JX\_LOG\_LEVEL has precedence over this flag and allows setting the logging level to any value of: panic, fatal, error, warn, info, debug, trace
 
 .PP
 \fB\-v\fP, \fB\-\-version\fP=""

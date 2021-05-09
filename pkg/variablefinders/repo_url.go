@@ -4,11 +4,11 @@ import (
 	"os"
 
 	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
-	jxc "github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/stringhelpers"
 )
 
 // FindRepositoryURL finds the chart repository URL via environment variables or the dev Environment CRD
-func FindRepositoryURL(jxClient jxc.Interface, ns string, requirements *jxcore.RequirementsConfig) (string, error) {
+func FindRepositoryURL(requirements *jxcore.RequirementsConfig, registryOrg, appName string) (string, error) {
 	answer := ""
 	if requirements != nil {
 		answer = requirements.Cluster.ChartRepository
@@ -17,8 +17,14 @@ func FindRepositoryURL(jxClient jxc.Interface, ns string, requirements *jxcore.R
 		answer = os.Getenv("JX_CHART_REPOSITORY")
 	}
 	if answer == "" {
-		// assume default chart museum
-		answer = "http://jenkins-x-chartmuseum:8080"
+		registry := requirements.Cluster.Registry
+		if requirements.Cluster.ChartKind == jxcore.ChartRepositoryTypeOCI && registryOrg != "" && appName != "" && registry != "" {
+			return stringhelpers.UrlJoin(registry, registryOrg, appName), nil
+		}
+		if requirements.Cluster.ChartKind != jxcore.ChartRepositoryTypeOCI && requirements.Cluster.ChartKind != jxcore.ChartRepositoryTypePages {
+			// assume default chart museum
+			answer = "http://jenkins-x-chartmuseum:8080"
+		}
 	}
 	return answer, nil
 }

@@ -5,13 +5,13 @@ import (
 	"io/ioutil"
 	"text/template"
 
+	"github.com/Masterminds/sprig"
 	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/pkg/errors"
-	"k8s.io/helm/pkg/chartutil"
-	"k8s.io/helm/pkg/engine"
+	"helm.sh/helm/v3/pkg/chartutil"
 )
 
 // Templater a templater of values yaml
@@ -55,7 +55,7 @@ func (o *Templater) Generate(sourceFile string, destFile string) error {
 
 // NewFunctionMap creates a new function map for values.tmpl.yaml templating
 func NewFunctionMap() template.FuncMap {
-	funcMap := engine.FuncMap()
+	funcMap := sprig.TxtFuncMap()
 	funcMap["basicAuth"] = BasicAuth
 	funcMap["hashPassword"] = HashPassword
 	funcMap["removeScheme"] = RemoveScheme

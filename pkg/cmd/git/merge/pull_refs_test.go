@@ -5,7 +5,7 @@ package merge_test
 import (
 	"testing"
 
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/git/merge"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/git/merge"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

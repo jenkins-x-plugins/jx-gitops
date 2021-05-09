@@ -8,12 +8,16 @@ spec:
     lgtm_acts_as_approve: true
     require_self_approval: true
   merger:
+    sync_period: "30m"
     blocker_label: ""
     max_goroutines: 0
     merge_method: merge
     policy:
       from-branch-protection: true
-      optional-contexts: { }
+      optional-contexts:
+        entries:
+          - cheese
+          - wine
       required-contexts: { }
       required-if-present-contexts: { }
       skip-unknown-contexts: false
