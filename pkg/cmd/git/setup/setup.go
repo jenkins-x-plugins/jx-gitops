@@ -61,6 +61,7 @@ type Options struct {
 	KubeClient           kubernetes.Interface
 	CommandRunner        cmdrunner.CommandRunner
 	gitClient            gitclient.Interface
+	Requirements         *jxcore.Requirements
 }
 
 // NewCmdGitSetup creates a command object for the command
@@ -279,37 +280,38 @@ func (o *Options) GitCredentialsFileData(credentials []credentialhelper.GitCrede
 }
 
 func (o *Options) findCredentialsFromRequirements() error {
-	if o.Dir == "" {
-		o.Dir = "."
+	if o.Requirements == nil {
+		if o.Dir == "" {
+			o.Dir = "."
+		}
+		path := filepath.Join(o.Dir, jxcore.RequirementsConfigFileName)
+		exists, err := files.FileExists(path)
+		if err != nil {
+			return errors.Wrapf(err, "failed to check for file %s", path)
+		}
+		if !exists {
+			log.Logger().Warnf("could not default pipeline user/email from requirements as file does not exist: %s", path)
+			return nil
+		}
+		o.Requirements, _, err = jxcore.LoadRequirementsConfig(o.Dir, false)
+		if err != nil {
+			return errors.Wrapf(err, "failed to load jx-requirements.yml file")
+		}
 	}
-	path := filepath.Join(o.Dir, jxcore.RequirementsConfigFileName)
-	exists, err := files.FileExists(path)
-	if err != nil {
-		return errors.Wrapf(err, "failed to check for file %s", path)
-	}
-	if !exists {
-		log.Logger().Warnf("could not default pipeline user/email from requirements as file does not exist: %s", path)
+	if o.Requirements == nil {
 		return nil
 	}
-	requirements, fileName, err := jxcore.LoadRequirementsConfig(o.Dir, false)
-	if err != nil {
-		return errors.Wrapf(err, "failed to load jx-requirements.yml file")
-	}
-	if requirements == nil {
-		return nil
-	}
-
-	pu := requirements.Spec.PipelineUser
+	pu := o.Requirements.Spec.PipelineUser
 	if pu == nil {
 		return nil
 	}
 	if o.UserName == "" {
 		o.UserName = pu.Username
-		log.Logger().Infof("found git user.name %s from %s", info(o.UserName), info(fileName))
+		log.Logger().Infof("found git user.name %s from requirements", info(o.UserName))
 	}
 	if o.UserEmail == "" {
 		o.UserEmail = pu.Email
-		log.Logger().Infof("found git user.email %s from %s", info(o.UserEmail), info(fileName))
+		log.Logger().Infof("found git user.email %s from requirements", info(o.UserEmail))
 	}
 	return nil
 }
