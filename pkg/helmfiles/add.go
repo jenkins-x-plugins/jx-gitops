@@ -17,6 +17,7 @@ type ChartDetails struct {
 	Version     string
 	ReleaseName string
 	Values      []string
+	UpdateOnly  bool
 	Prefixes    *versionstream.RepositoryPrefixes
 }
 
@@ -145,7 +146,7 @@ func (o *ChartDetails) Add(helmState *state.HelmState) (bool, error) {
 			break
 		}
 	}
-	if !found {
+	if !found && !o.UpdateOnly {
 		release := state.ReleaseSpec{
 			Chart:     o.Chart,
 			Version:   o.Version,
