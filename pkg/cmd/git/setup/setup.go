@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
+	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/boot"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient"
@@ -103,6 +104,11 @@ func (o *Options) Run() error {
 	err := os.MkdirAll(homeDir, files.DefaultDirWritePermissions)
 	if err != nil {
 		return errors.Wrapf(err, "failed to ensure git config home directory exists %s", homeDir)
+	}
+
+	err = o.findCredentialsFromRequirements()
+	if err != nil {
+		return errors.Wrapf(err, "failed to find credentials from requirements")
 	}
 
 	// lets fetch the credentials so we can default the UserName if its not specified
@@ -270,6 +276,42 @@ func (o *Options) GitCredentialsFileData(credentials []credentialhelper.GitCrede
 	}
 
 	return buffer.Bytes(), nil
+}
+
+func (o *Options) findCredentialsFromRequirements() error {
+	if o.Dir == "" {
+		o.Dir = "."
+	}
+	path := filepath.Join(o.Dir, jxcore.RequirementsConfigFileName)
+	exists, err := files.FileExists(path)
+	if err != nil {
+		return errors.Wrapf(err, "failed to check for file %s", path)
+	}
+	if !exists {
+		log.Logger().Warnf("could not default pipeline user/email from requirements as file does not exist: %s", path)
+		return nil
+	}
+	requirements, fileName, err := jxcore.LoadRequirementsConfig(o.Dir, false)
+	if err != nil {
+		return errors.Wrapf(err, "failed to load jx-requirements.yml file")
+	}
+	if requirements == nil {
+		return nil
+	}
+
+	pu := requirements.Spec.PipelineUser
+	if pu == nil {
+		return nil
+	}
+	if o.UserName == "" {
+		o.UserName = pu.Username
+		log.Logger().Infof("found git user.name %s from %s", info(o.UserName), info(fileName))
+	}
+	if o.UserEmail == "" {
+		o.UserEmail = pu.Email
+		log.Logger().Infof("found git user.email %s from %s", info(o.UserEmail), info(fileName))
+	}
+	return nil
 }
 
 // IsInCluster tells if we are running incluster
