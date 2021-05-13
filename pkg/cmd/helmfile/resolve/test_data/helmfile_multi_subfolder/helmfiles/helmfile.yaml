@@ -1,5 +1,6 @@
 filepath: ""
 helmfiles:
+- path: kuberhealthy/helmfile.yaml
 - path: secret-infra/helmfile.yaml
 templates: {}
 renderedvalues: {}

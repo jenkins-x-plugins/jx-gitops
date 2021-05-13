@@ -1,0 +1,26 @@
+filepath: ""
+environments:
+  default:
+    values:
+    - jx-values.yaml
+namespace: kuberhealthy
+repositories:
+- name: kuberhealthy
+  url: https://comcast.github.io/kuberhealthy/helm-repos
+- name: jx3
+  url: https://storage.googleapis.com/jenkinsxio/charts
+releases:
+- chart: kuberhealthy/kuberhealthy
+  version: "54"
+  name: kuberhealthy
+  values:
+  - ../../versionStream/charts/kuberhealthy/kuberhealthy/values.yaml.gotmpl
+  - jx-values.yaml
+- chart: jx3/jx-kh-check
+  version: 0.0.68
+  name: jx-kh-check
+  values:
+  - ../../versionStream/charts/jx3/jx-kh-check/values.yaml.gotmpl
+  - jx-values.yaml
+templates: {}
+renderedvalues: {}

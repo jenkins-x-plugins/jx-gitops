@@ -691,6 +691,8 @@ func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
 		switch cleanURL {
 		case "https://kubernetes-charts.storage.googleapis.com":
 			repo.URL = "https://charts.helm.sh/stable"
+		case "https://comcast.github.io/kuberhealthy/helm-repos":
+			repo.URL = "https://kuberhealthy.github.io/kuberhealthy/helm-repos"
 		case "https://godaddy.github.io/kubernetes-external-secrets":
 			repo.URL = "https://external-secrets.github.io/kubernetes-external-secrets"
 		case "https://chrismellard.github.io/kubernetes-external-secrets":
