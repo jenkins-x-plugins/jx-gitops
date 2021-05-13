@@ -4,19 +4,20 @@ require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/cpuguy83/go-md2man v1.0.10
 	github.com/davecgh/go-spew v1.1.1
+	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/google/go-cmp v0.5.5
 	github.com/h2non/gock v1.0.9
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.12
-	github.com/jenkins-x-plugins/jx-charter v0.0.23
+	github.com/jenkins-x-plugins/jx-charter v0.0.25
 	github.com/jenkins-x/go-scm v1.8.2
-	github.com/jenkins-x/jx-api/v4 v4.0.29
-	github.com/jenkins-x/jx-helpers/v3 v3.0.112
+	github.com/jenkins-x/jx-api/v4 v4.0.33
+	github.com/jenkins-x/jx-helpers/v3 v3.0.113
 	github.com/jenkins-x/jx-kube-client/v3 v3.0.2
 	github.com/jenkins-x/jx-logging/v3 v3.0.6
-	github.com/jenkins-x/lighthouse-client v0.0.129
+	github.com/jenkins-x/lighthouse-client v0.0.132
 	github.com/pborman/uuid v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/roboll/helmfile v0.139.0

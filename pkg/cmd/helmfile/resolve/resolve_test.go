@@ -61,7 +61,7 @@ func TestStepHelmfileResolve(t *testing.T) {
 		},
 		{
 			folder:     "helmfile_multi_subfolder",
-			namespaces: []string{"secret-infra"},
+			namespaces: []string{"kuberhealthy", "secret-infra"},
 		},
 	}
 
