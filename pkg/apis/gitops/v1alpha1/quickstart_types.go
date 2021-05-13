@@ -14,6 +14,8 @@ import (
 const (
 	// QuickstartsFileName default name of the source repository configuration
 	QuickstartsFileName = "quickstarts.yaml"
+	// MLProjectSetsFileName default name of the source repository configuration for machine learning projectsets
+	MLProjectSetsFileName = "mlprojectsets.yaml"
 )
 
 // +genclient
