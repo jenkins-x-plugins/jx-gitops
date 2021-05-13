@@ -333,12 +333,15 @@ func (o *Options) upgradeHelmfileStructure(dir string) (int, error) {
 	}
 
 	count += increment
-	so := structure.Options{
-		Dir: dir,
-	}
-	err = so.Run()
-	if err != nil {
-		return 0, errors.Wrapf(err, "error restructuring helmfiles during resolve upgrade")
+
+	if exists, _ := files.DirExists(filepath.Join(dir, structure.HelmfileFolder)); !exists {
+		so := structure.Options{
+			Dir: dir,
+		}
+		err = so.Run()
+		if err != nil {
+			return 0, errors.Wrapf(err, "error restructuring helmfiles during resolve upgrade")
+		}
 	}
 	count++
 
