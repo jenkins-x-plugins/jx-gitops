@@ -39,6 +39,8 @@ import (
 
 const (
 	versionStreamDir = "versionStream"
+
+	useHelmfileRepos = false
 )
 
 var (
@@ -97,7 +99,9 @@ func NewCmdHelmfileResolve() (*cobra.Command, *Options) {
 	o.BaseOptions.AddBaseFlags(cmd)
 
 	cmd.Flags().BoolVarP(&o.UpdateMode, "update", "", false, "updates versions from the version stream if they have changed")
-	cmd.Flags().StringVarP(&o.HelmfileBinary, "helmfile-binary", "", "", "specifies the helmfile binary location to use. If not specified defaults to using the downloaded helmfile plugin")
+	if useHelmfileRepos {
+		cmd.Flags().StringVarP(&o.HelmfileBinary, "helmfile-binary", "", "", "specifies the helmfile binary location to use. If not specified defaults to using the downloaded helmfile plugin")
+	}
 	cmd.Flags().StringVarP(&o.HelmBinary, "helm-binary", "", "", "specifies the helm binary location to use. If not specified defaults to using the downloaded helm plugin")
 	o.AddFlags(cmd, "")
 	return cmd, o
@@ -126,10 +130,12 @@ func (o *Options) Validate() error {
 		o.Helmfile = "helmfile.yaml"
 	}
 
-	if o.HelmfileBinary == "" {
-		o.HelmfileBinary, err = plugins.GetHelmfileBinary(plugins.HelmfileVersion)
-		if err != nil {
-			return errors.Wrapf(err, "failed to download helmfile plugin")
+	if useHelmfileRepos {
+		if o.HelmfileBinary == "" {
+			o.HelmfileBinary, err = plugins.GetHelmfileBinary(plugins.HelmfileVersion)
+			if err != nil {
+				return errors.Wrapf(err, "failed to download helmfile plugin")
+			}
 		}
 	}
 	if o.HelmBinary == "" {
@@ -139,6 +145,9 @@ func (o *Options) Validate() error {
 		}
 	}
 
+	if o.Dir == "" {
+		o.Dir = "."
+	}
 	helmfiles, err := helmfiles.GatherHelmfiles(o.Helmfile, o.Dir)
 	if err != nil {
 		return errors.Wrapf(err, "failed to gather nested helmfiles")
@@ -174,22 +183,6 @@ func (o *Options) Run() error {
 
 	count := 0
 
-	// lets add the helm repositories
-	args := []string{}
-	if o.HelmBinary != "" {
-		args = append(args, "--helm-binary", o.HelmBinary)
-	}
-	args = append(args, "repos")
-	c := &cmdrunner.Command{
-		Dir:  o.Dir,
-		Name: o.HelmfileBinary,
-		Args: args,
-	}
-	_, err = o.QuietCommandRunner(c)
-	if err != nil {
-		return errors.Wrapf(err, "failed to run command %s in dir %s", c.CLI(), o.Dir)
-	}
-
 	if o.UpdateMode {
 		increment, err := o.upgradeHelmfileStructure(o.Dir)
 		count += increment
@@ -200,6 +193,24 @@ func (o *Options) Run() error {
 		err = o.upgradePipelineCatalog()
 		if err != nil {
 			return errors.Wrapf(err, "failed to upgrade pipeline catalog")
+		}
+	}
+
+	if useHelmfileRepos {
+		// lets add the helm repositories
+		args := []string{}
+		if o.HelmBinary != "" {
+			args = append(args, "--helm-binary", o.HelmBinary)
+		}
+		args = append(args, "repos")
+		c := &cmdrunner.Command{
+			Dir:  o.Dir,
+			Name: o.HelmfileBinary,
+			Args: args,
+		}
+		_, err = o.QuietCommandRunner(c)
+		if err != nil {
+			return errors.Wrapf(err, "failed to run command %s in dir %s", c.CLI(), o.Dir)
 		}
 	}
 
@@ -315,10 +326,6 @@ func (o *Options) saveNamespaceJXValuesFile(helmfileDir string, ns string) error
 }
 
 func (o *Options) upgradeHelmfileStructure(dir string) (int, error) {
-	if exists, _ := files.DirExists(filepath.Join(dir, structure.HelmfileFolder)); exists {
-		return 0, nil
-	}
-	// First let's resolve parent helmfile before restructuring
 	count := 0
 	increment, err := o.processHelmfile(o.Helmfiles[0])
 	if err != nil {
