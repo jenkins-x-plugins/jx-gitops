@@ -18,6 +18,7 @@ import (
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/label"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/lint"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/namespace"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/patch"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/plugin"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/postprocess"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/pr"
@@ -76,6 +77,7 @@ func Main() *cobra.Command {
 	cmd.AddCommand(cobras.SplitCommand(lint.NewCmdLint()))
 	cmd.AddCommand(cobras.SplitCommand(namespace.NewCmdUpdateNamespace()))
 	cmd.AddCommand(cobras.SplitCommand(rename.NewCmdRename()))
+	cmd.AddCommand(cobras.SplitCommand(patch.NewCmdPatch()))
 	cmd.AddCommand(cobras.SplitCommand(postprocess.NewCmdPostProcess()))
 	cmd.AddCommand(cobras.SplitCommand(scheduler.NewCmdScheduler()))
 	cmd.AddCommand(cobras.SplitCommand(split.NewCmdSplit()))
