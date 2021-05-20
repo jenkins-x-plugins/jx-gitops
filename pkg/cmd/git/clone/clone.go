@@ -21,8 +21,11 @@ var (
 	info = termcolor.ColorInfo
 
 	cmdLong = templates.LongDesc(`
-		Clones the cluster git repository using the URL, git user and token from the Secret
+	Clones the cluster git repository from the URL provided to the jx-git-operator watching the said repository, and
+	authenticating as git user with token provided by jx-boot secret, also provided by jx-git-operator installation.
 
+	Effectively this command runs jx gitops git setup before proceeding to simply clone the repository into either the
+	folder passed in via --clone-dir or into the ./setup directory.
 `)
 
 	cmdExample = templates.Examples(`
@@ -50,7 +53,7 @@ func NewCmdGitClone() (*cobra.Command, *Options) {
 			helper.CheckErr(err)
 		},
 	}
-	cmd.Flags().StringVarP(&o.CloneDir, "clone-dir", "", "", "the directory to clone the repository to")
+	cmd.Flags().StringVarP(&o.CloneDir, "clone-dir", "", "", "the directory to clone the repository to. Default value used is ./source relative to the directory in which the command is running")
 	o.Options.AddFlags(cmd)
 	return cmd, o
 }
