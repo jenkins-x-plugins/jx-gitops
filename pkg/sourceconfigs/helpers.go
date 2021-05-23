@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/apis/gitops/v1alpha1"
 	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
@@ -140,7 +141,7 @@ func GetOrCreateJenkinsServerGroup(config *v1alpha1.JenkinsServer, gitKind strin
 func getOrCreateGroup(groups []v1alpha1.RepositoryGroup, gitKind string, gitServerURL string, owner string) ([]v1alpha1.RepositoryGroup, *v1alpha1.RepositoryGroup) {
 	for i := range groups {
 		group := &groups[i]
-		if (group.ProviderKind == gitKind || gitKind == "") && (group.Provider == gitServerURL || gitServerURL == "") && group.Owner == owner {
+		if (group.ProviderKind == gitKind || gitKind == "") && (group.Provider == gitServerURL || gitServerURL == "") && strings.ToLower(group.Owner) == owner {
 			return groups, group
 		}
 	}
