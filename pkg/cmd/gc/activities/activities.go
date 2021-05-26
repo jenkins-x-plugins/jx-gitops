@@ -225,7 +225,7 @@ func (o *Options) deleteLighthouseJob(ctx context.Context, pa *v1.PipelineActivi
 	}
 	labelMap := map[string]string{}
 	for k, v := range pa.Labels {
-		if strings.HasPrefix(k, "lighthouse.jenkins-x.io/") {
+		if k != "lighthouse.jenkins-x.io/id" && strings.HasPrefix(k, "lighthouse.jenkins-x.io/") {
 			labelMap[k] = v
 		}
 	}
