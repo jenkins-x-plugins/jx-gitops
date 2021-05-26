@@ -10,6 +10,8 @@ import (
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/gc/activities"
 	v1 "github.com/jenkins-x/jx-api/v4/pkg/apis/jenkins.io/v1"
 	jxfake "github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned/fake"
+	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
+	faketekton "github.com/tektoncd/pipeline/pkg/client/clientset/versioned/fake"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -19,9 +21,55 @@ func TestGCPipelineActivities(t *testing.T) {
 
 	ctx := context.TODO()
 	ns := "jx"
+	prName := "pr-z9wm6"
 	nowMinusThirtyOneDays := time.Now().AddDate(0, 0, -31)
 	nowMinusThreeDays := time.Now().AddDate(0, 0, -3)
 	nowMinusOneDay := time.Now().AddDate(0, 0, -1)
+
+	tknClient  := faketekton.NewSimpleClientset(
+		&v1beta1.PipelineRun{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:                       prName+"0",
+				Namespace:                  ns,
+			},
+		},
+		&v1beta1.PipelineRun{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:                       prName+"1",
+				Namespace:                  ns,
+			},
+		},
+		&v1beta1.PipelineRun{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:                       prName+"2",
+				Namespace:                  ns,
+			},
+		},
+		&v1beta1.PipelineRun{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:                       prName+"3",
+				Namespace:                  ns,
+			},
+		},
+		&v1beta1.PipelineRun{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:                       prName+"4",
+				Namespace:                  ns,
+			},
+		},
+		&v1beta1.PipelineRun{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:                       prName+"5",
+				Namespace:                  ns,
+			},
+		},
+		&v1beta1.PipelineRun{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:                       prName+"6",
+				Namespace:                  ns,
+			},
+		},
+	)
 
 	jxClient := jxfake.NewSimpleClientset(
 		&v1.PipelineActivity{
@@ -30,6 +78,7 @@ func TestGCPipelineActivities(t *testing.T) {
 				Namespace: ns,
 				Labels: map[string]string{
 					v1.LabelBranch: "PR-1",
+					activities.PrLabel: prName+"0",
 				},
 			},
 			Spec: v1.PipelineActivitySpec{
@@ -43,6 +92,7 @@ func TestGCPipelineActivities(t *testing.T) {
 				Namespace: ns,
 				Labels: map[string]string{
 					v1.LabelBranch: "PR-1",
+					activities.PrLabel: prName+"1",
 				},
 			},
 			Spec: v1.PipelineActivitySpec{
@@ -56,6 +106,7 @@ func TestGCPipelineActivities(t *testing.T) {
 				Namespace: ns,
 				Labels: map[string]string{
 					v1.LabelBranch: "PR-1",
+					activities.PrLabel: prName+"2",
 				},
 			},
 			Spec: v1.PipelineActivitySpec{
@@ -69,6 +120,7 @@ func TestGCPipelineActivities(t *testing.T) {
 				Namespace: ns,
 				Labels: map[string]string{
 					v1.LabelBranch: "PR-1",
+					activities.PrLabel: prName+"3",
 				},
 			},
 			Spec: v1.PipelineActivitySpec{
@@ -85,6 +137,7 @@ func TestGCPipelineActivities(t *testing.T) {
 				Namespace: ns,
 				Labels: map[string]string{
 					v1.LabelBranch: "PR-1",
+					activities.PrLabel: prName+"4",
 				},
 			},
 			Spec: v1.PipelineActivitySpec{
@@ -98,6 +151,7 @@ func TestGCPipelineActivities(t *testing.T) {
 				Namespace: ns,
 				Labels: map[string]string{
 					v1.LabelBranch: "batch",
+					activities.PrLabel: prName+"5",
 				},
 			},
 			Spec: v1.PipelineActivitySpec{
@@ -111,6 +165,7 @@ func TestGCPipelineActivities(t *testing.T) {
 				Namespace: ns,
 				Labels: map[string]string{
 					v1.LabelBranch: "master",
+					activities.PrLabel: prName+"6",
 				},
 			},
 			Spec: v1.PipelineActivitySpec{
@@ -123,6 +178,7 @@ func TestGCPipelineActivities(t *testing.T) {
 	_, o := activities.NewCmdGCActivities()
 	o.Namespace = ns
 	o.JXClient = jxClient
+	o.TknClient = tknClient
 
 	err := o.Run()
 	assert.NoError(t, err)

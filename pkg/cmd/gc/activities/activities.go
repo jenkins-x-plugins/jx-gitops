@@ -9,6 +9,7 @@ import (
 	v1 "github.com/jenkins-x/jx-api/v4/pkg/apis/jenkins.io/v1"
 	jxc "github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned"
 	jv1 "github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned/typed/jenkins.io/v1"
+	tknC "github.com/tektoncd/pipeline/pkg/client/clientset/versioned"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/jxclient"
@@ -30,7 +31,10 @@ type Options struct {
 	ProwJobAgeLimit         time.Duration
 	Namespace               string
 	JXClient                jxc.Interface
+	TknClient               tknC.Interface
 }
+
+const PrLabel = "tekton.dev/pipeline"
 
 var (
 	info = termcolor.ColorInfo
@@ -150,7 +154,11 @@ func (o *Options) Run() error {
 		maxAge, revisionHistory := o.ageAndHistoryLimits(isPR, isBatch)
 		// lets remove activities that are too old
 		if activity.Spec.CompletedTimestamp != nil && activity.Spec.CompletedTimestamp.Add(maxAge).Before(now) {
-
+			prName := activity.Labels[PrLabel]
+			err = o.deletePipelineRun(ctx, currentNs, prName)
+			if err != nil {
+				return err
+			}
 			err = o.deleteActivity(ctx, activityInterface, &activity)
 			if err != nil {
 				return err
@@ -190,6 +198,18 @@ func (o *Options) deleteActivity(ctx context.Context, activityInterface jv1.Pipe
 		return nil
 	}
 	return activityInterface.Delete(ctx, a.Name, *metav1.NewDeleteOptions(0))
+}
+
+func (o *Options) deletePipelineRun(ctx context.Context, ns, prName string) error {
+	prefix := ""
+	if o.DryRun {
+		prefix = "not "
+	}
+	log.Logger().Infof("%sdeleting PipelineRun %s", prefix, info(prName))
+	if o.DryRun {
+		return nil
+	}
+	return o.TknClient.TektonV1beta1().PipelineRuns(ns).Delete(ctx, prName, metav1.DeleteOptions{})
 }
 
 func (o *Options) ageAndHistoryLimits(isPR, isBatch bool) (time.Duration, int) {
