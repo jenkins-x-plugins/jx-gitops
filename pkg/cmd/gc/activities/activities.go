@@ -13,10 +13,14 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/jxclient"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
+	"github.com/jenkins-x/jx-kube-client/v3/pkg/kubeclient"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
+	lhclient "github.com/jenkins-x/lighthouse-client/pkg/client/clientset/versioned"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 )
 
 // Options command line arguments and flags
@@ -30,6 +34,7 @@ type Options struct {
 	ProwJobAgeLimit         time.Duration
 	Namespace               string
 	JXClient                jxc.Interface
+	LHClient                lhclient.Interface
 }
 
 var (
@@ -108,6 +113,10 @@ func (o *Options) Run() error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to create jx client")
 	}
+	o.LHClient, err = LazyCreateLHClient(o.LHClient)
+	if err != nil {
+		return errors.Wrapf(err, "failed to create the lighthouse client")
+	}
 
 	client := o.JXClient
 	currentNs := o.Namespace
@@ -150,6 +159,10 @@ func (o *Options) Run() error {
 		maxAge, revisionHistory := o.ageAndHistoryLimits(isPR, isBatch)
 		// lets remove activities that are too old
 		if activity.Spec.CompletedTimestamp != nil && activity.Spec.CompletedTimestamp.Add(maxAge).Before(now) {
+			err = o.deleteLighthouseJob(ctx, &activity)
+			if err != nil {
+				return err
+			}
 
 			err = o.deleteActivity(ctx, activityInterface, &activity)
 			if err != nil {
@@ -204,4 +217,68 @@ func (o *Options) ageAndHistoryLimits(isPR, isBatch bool) (time.Duration, int) {
 
 func (o *Options) isPullRequestOrBatchBranch(branchName string) (bool, bool) {
 	return strings.HasPrefix(branchName, "PR-"), branchName == "batch"
+}
+
+func (o *Options) deleteLighthouseJob(ctx context.Context, pa *v1.PipelineActivity) error {
+	if pa.Labels == nil {
+		return nil
+	}
+	labelMap := map[string]string{}
+	for k, v := range pa.Labels {
+		if k != "lighthouse.jenkins-x.io/id" && strings.HasPrefix(k, "lighthouse.jenkins-x.io/") {
+			labelMap[k] = v
+		}
+	}
+	if len(labelMap) < 4 {
+		log.Logger().Infof("ignoring PipelineActivity %s which only has lighthouse labels %v", pa.Name, labelMap)
+		return nil
+	}
+	selector := labels.SelectorFromSet(labelMap).String()
+	lighthouseJobInterface := o.LHClient.LighthouseV1alpha1().LighthouseJobs(o.Namespace)
+	list, err := lighthouseJobInterface.List(ctx, metav1.ListOptions{
+		LabelSelector: selector,
+	})
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			return nil
+		}
+		return errors.Wrapf(err, "failed to list LighthouseJob resources with selector %s", selector)
+	}
+	if list == nil {
+		return nil
+	}
+	for i := range list.Items {
+		r := &list.Items[i]
+		prefix := ""
+		if o.DryRun {
+			prefix = "not "
+		}
+		log.Logger().Infof("%sdeleting LighthouseJob %s", prefix, info(r.Name))
+		if o.DryRun {
+			continue
+		}
+
+		err = lighthouseJobInterface.Delete(ctx, r.Name, metav1.DeleteOptions{})
+		if err != nil {
+			return errors.Wrapf(err, "failed to delete LighthouseJob %s", r.Name)
+		}
+	}
+	return nil
+}
+
+// LazyCreateLHClient lazy creates the jx client if its not defined
+func LazyCreateLHClient(client lhclient.Interface) (lhclient.Interface, error) {
+	if client != nil {
+		return client, nil
+	}
+	f := kubeclient.NewFactory()
+	cfg, err := f.CreateKubeConfig()
+	if err != nil {
+		return client, errors.Wrap(err, "failed to get kubernetes config")
+	}
+	client, err = lhclient.NewForConfig(cfg)
+	if err != nil {
+		return client, errors.Wrap(err, "error building lighthouse clientset")
+	}
+	return client, nil
 }
