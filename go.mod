@@ -1,6 +1,7 @@
 module github.com/jenkins-x-plugins/jx-gitops
 
 require (
+	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/cpuguy83/go-md2man v1.0.10
 	github.com/davecgh/go-spew v1.1.1
@@ -10,13 +11,13 @@ require (
 	github.com/h2non/gock v1.0.9
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.12
-	github.com/jenkins-x-plugins/jx-charter v0.0.25
+	github.com/jenkins-x-plugins/jx-charter v0.0.26
 	github.com/jenkins-x/go-scm v1.9.1
 	github.com/jenkins-x/jx-api/v4 v4.0.33
-	github.com/jenkins-x/jx-helpers/v3 v3.0.115
+	github.com/jenkins-x/jx-helpers/v3 v3.0.116
 	github.com/jenkins-x/jx-kube-client/v3 v3.0.2
 	github.com/jenkins-x/jx-logging/v3 v3.0.6
-	github.com/jenkins-x/lighthouse-client v0.0.145
+	github.com/jenkins-x/lighthouse-client v0.0.146
 	github.com/pborman/uuid v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/roboll/helmfile v0.139.0
@@ -40,7 +41,7 @@ replace (
 	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20191216044856-a8371794149d
 	github.com/docker/docker => github.com/moby/moby v17.12.0-ce-rc1.0.20200618181300-9dc6525e6118+incompatible
 	// override the go-scm from tekton
-	github.com/jenkins-x/go-scm => github.com/jenkins-x/go-scm v1.9.0
+	github.com/jenkins-x/go-scm => github.com/jenkins-x/go-scm v1.9.1
 	// fix yaml comment parsing issue
 	gopkg.in/yaml.v2 => gopkg.in/yaml.v2 v2.3.0
 	gopkg.in/yaml.v3 => gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
