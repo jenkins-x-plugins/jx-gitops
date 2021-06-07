@@ -29,6 +29,7 @@ import (
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -596,12 +597,20 @@ func (o *Options) findChartRepositoryUserPassword() (string, string, error) {
 		// lets try load them from the secret directly
 		client := o.KubeClient
 		ns := o.Namespace
-		secret, err := client.CoreV1().Secrets(ns).Get(context.TODO(), kube.SecretJenkinsChartMuseum, metav1.GetOptions{})
-		if err != nil {
+		var secret *corev1.Secret
+		var err error
+		secretName := kube.SecretJenkinsChartMuseum
+		useBucketRepo := true
+		if o.Requirements != nil && o.Requirements.Cluster.ChartSecret != "" {
+			secretName = o.Requirements.Cluster.ChartSecret
+			useBucketRepo = false
+		}
+		secret, err = client.CoreV1().Secrets(ns).Get(context.TODO(), secretName, metav1.GetOptions{})
+		if err != nil && useBucketRepo {
 			secret, err = client.CoreV1().Secrets(ns).Get(context.TODO(), kube.SecretBucketRepo, metav1.GetOptions{})
 		}
 		if err != nil {
-			log.Logger().Warnf("Could not load Secret %s or %s in namespace %s: %s", kube.SecretJenkinsChartMuseum, kube.SecretBucketRepo, ns, err)
+			log.Logger().Warnf("Could not load Secret %s or %s in namespace %s: %s", secretName, kube.SecretBucketRepo, ns, err)
 		} else {
 			if secret != nil && secret.Data != nil {
 				if userName == "" {
