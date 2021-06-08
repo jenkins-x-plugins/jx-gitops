@@ -14,7 +14,7 @@ import (
 // if the remote repo supports it - see https://github.
 // com/git/git/commit/68ee628932c2196742b77d2961c5e16360734a62) otherwise it uses git remote update to pull down the
 // whole repo.
-func FetchAndMergeSHAs(gitter gitclient.Interface, SHAs []string, baseBranch string, baseSha string, remote string, dir string) error {
+func FetchAndMergeSHAs(gitter gitclient.Interface, SHAs []string, baseBranch string, baseSha string, remote string, dir string, extraMergeArgs []string) error {
 	log.Logger().Infof("using base branch %s and base sha %s", info(baseBranch), info(baseSha))
 
 	refspecs := make([]string, 0)
@@ -89,7 +89,12 @@ func FetchAndMergeSHAs(gitter gitclient.Interface, SHAs []string, baseBranch str
 	// Now do the merges
 	for _, sha := range SHAs {
 		log.Logger().Infof("merging sha: %s", info(sha))
-		_, err = gitter.Command(dir, "merge", sha)
+		args := []string{"merge"}
+		for _, a := range extraMergeArgs {
+			args = append(args, a)
+		}
+		args = append(args, sha)
+		_, err = gitter.Command(dir, args...)
 		if err != nil {
 			return errors.Wrapf(err, "merging %s into master", sha)
 		}

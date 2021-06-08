@@ -47,6 +47,7 @@ type Options struct {
 	UserName             string
 	UserEmail            string
 	SHAs                 []string
+	GitMergeArgs         []string
 	Remote               string
 	Dir                  string
 	BaseBranch           string
@@ -90,6 +91,7 @@ func NewCmdGitMerge() (*cobra.Command, *Options) {
 
 	cmd.Flags().StringVarP(&o.IncludeCommitComment, "include-comment", "", "", "the regular expression to filter commit comment to include in the merge")
 	cmd.Flags().StringVarP(&o.ExcludeCommitComment, "exclude-comment", "", "", "the regular expression to filter commit comment to exclude in the merge")
+	cmd.Flags().StringArrayVarP(&o.GitMergeArgs, "merge-arg", "", nil, "the extra arguments to pass to the 'git merge $sha' command to perform the merge")
 
 	cmd.Flags().BoolVarP(&o.DisableInClusterTest, "fake-in-cluster", "", false, "for testing: lets you fake running this command inside a kubernetes cluster so that it can create the file: $XDG_CONFIG_HOME/git/credentials or $HOME/git/credentials")
 
@@ -148,7 +150,7 @@ func (o *Options) Run() error {
 		return nil
 	}
 
-	err = FetchAndMergeSHAs(o.GitClient, o.SHAs, o.BaseBranch, o.BaseSHA, o.Remote, o.Dir)
+	err = FetchAndMergeSHAs(o.GitClient, o.SHAs, o.BaseBranch, o.BaseSHA, o.Remote, o.Dir, o.GitMergeArgs)
 	if err != nil {
 		return errors.Wrap(err, "error during merge")
 	}
