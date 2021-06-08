@@ -2019,5 +2019,5 @@ string
 <hr/>
 <p><em>
 Generated with <code>gen-crd-api-reference-docs</code>
-on git commit <code>1e6b482</code>.
+on git commit <code>0e6ec57</code>.
 </em></p>
