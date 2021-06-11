@@ -439,7 +439,7 @@ func (o *Options) dockerRegistry() (string, error) {
 	if answer == "" {
 		answer = o.ConfigMapData["DOCKER_REGISTRY"]
 	}
-	return answer, nil
+	return strings.ToLower(answer), nil
 }
 
 func (o *Options) pushContainerRegistry() (string, error) {
