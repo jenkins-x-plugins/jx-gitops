@@ -97,29 +97,27 @@ func (o *Options) Run() error {
 }
 
 func (o *Options) pushToPullRequestBranch(branch string) error {
-	pushArgs := []string{"push"}
+	localBranch, err := gitclient.Branch(o.GitClient(), o.Dir)
+	if err != nil {
+		return errors.Wrapf(err, "failed to determine git branch in dir %s", o.Dir)
+	}
+	if localBranch == "" {
+		localBranch = "master"
+	}
+
+	args := []string{"push"}
 	if o.Force {
-		pushArgs = append(pushArgs, "--force")
+		args = append(args, "--force")
 	}
-	pushArgs = append(pushArgs, "origin", branch)
-
-	argSlices := [][]string{
-		{
-			"checkout", "-b", branch,
-		},
-		pushArgs,
+	args = append(args, "origin", localBranch+":"+branch)
+	c := &cmdrunner.Command{
+		Dir:  o.Dir,
+		Name: "git",
+		Args: args,
 	}
-
-	for _, args := range argSlices {
-		c := &cmdrunner.Command{
-			Dir:  o.Dir,
-			Name: "git",
-			Args: args,
-		}
-		_, err := o.CommandRunner(c)
-		if err != nil {
-			return errors.Wrapf(err, "failed to run command %s", c.CLI())
-		}
+	_, err = o.CommandRunner(c)
+	if err != nil {
+		return errors.Wrapf(err, "failed to run command %s", c.CLI())
 	}
 	return nil
 }
