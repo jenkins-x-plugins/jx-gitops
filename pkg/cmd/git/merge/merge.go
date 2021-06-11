@@ -185,7 +185,7 @@ func (o *Options) RebaseToBaseSHA() error {
 	args = append(args, sha)
 
 	dir := o.Dir
-	log.Logger().Debugf("running: git rebase %s", strings.Join(args, " "))
+	log.Logger().Infof("running: git rebase %s", strings.Join(args, " "))
 	_, err := o.GitClient.Command(dir, args...)
 	if err != nil {
 		return errors.Wrapf(err, "rebasing %s into master", sha)
