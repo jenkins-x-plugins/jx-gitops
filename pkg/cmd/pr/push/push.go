@@ -34,6 +34,7 @@ type Options struct {
 	UserEmail         string
 	PullRequestBranch string
 
+	Force          bool
 	BatchMode      bool
 	DisableGitInit bool
 	gitClient      gitclient.Interface
@@ -57,6 +58,7 @@ func NewCmdPullRequestPush() (*cobra.Command, *Options) {
 	o.PullRequestOptions.AddFlags(cmd)
 	cmd.Flags().StringVarP(&o.UserName, "name", "", "", "the git user name to use if one is not setup")
 	cmd.Flags().StringVarP(&o.UserEmail, "email", "", "", "the git user email to use if one is not setup")
+	cmd.Flags().BoolVarP(&o.Force, "force", "f", false, "force pushes to the branch")
 	cmd.Flags().BoolVarP(&o.IgnoreMissingPullRequest, "ignore-no-pr", "", false, "if an error is returned finding the Pull Request (maybe due to missing environment variables to find the PULL_NUMBER) just push to the current branch instead")
 	return cmd, o
 }
@@ -95,13 +97,17 @@ func (o *Options) Run() error {
 }
 
 func (o *Options) pushToPullRequestBranch(branch string) error {
+	pushArgs := []string{"push"}
+	if o.Force {
+		pushArgs = append(pushArgs, "--force")
+	}
+	pushArgs = append(pushArgs, "origin", branch)
+
 	argSlices := [][]string{
 		{
 			"checkout", "-b", branch,
 		},
-		{
-			"push", "origin", branch,
-		},
+		pushArgs,
 	}
 
 	for _, args := range argSlices {
