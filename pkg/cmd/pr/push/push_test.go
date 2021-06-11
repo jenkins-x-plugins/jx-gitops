@@ -44,7 +44,7 @@ func TestPullRequestPush(t *testing.T) {
 			CLI: "git checkout -b " + prBranch,
 		},
 		fakerunner.FakeResult{
-			CLI: "git push origin " + prBranch,
+			CLI: "git push --force origin " + prBranch,
 		},
 	)
 }
