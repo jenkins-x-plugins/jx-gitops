@@ -41,10 +41,10 @@ func TestPullRequestPush(t *testing.T) {
 
 	runner.ExpectResults(t,
 		fakerunner.FakeResult{
-			CLI: "git checkout -b " + prBranch,
+			CLI: "git rev-parse --abbrev-ref HEAD",
 		},
 		fakerunner.FakeResult{
-			CLI: "git push origin " + prBranch,
+			CLI: "git push origin master:" + prBranch,
 		},
 	)
 }

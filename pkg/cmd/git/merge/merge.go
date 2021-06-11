@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner"
@@ -56,6 +57,7 @@ type Options struct {
 	PullNumber           string
 	IncludeCommitComment string
 	ExcludeCommitComment string
+	Rebase               bool
 	DisableInClusterTest bool
 
 	CommandRunner cmdrunner.CommandRunner
@@ -92,6 +94,8 @@ func NewCmdGitMerge() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.IncludeCommitComment, "include-comment", "", "", "the regular expression to filter commit comment to include in the merge")
 	cmd.Flags().StringVarP(&o.ExcludeCommitComment, "exclude-comment", "", "", "the regular expression to filter commit comment to exclude in the merge")
 	cmd.Flags().StringArrayVarP(&o.GitMergeArgs, "merge-arg", "", nil, "the extra arguments to pass to the 'git merge $sha' command to perform the merge")
+
+	cmd.Flags().BoolVarP(&o.Rebase, "rebase", "r", false, "use git rebase instead of merge")
 
 	cmd.Flags().BoolVarP(&o.DisableInClusterTest, "fake-in-cluster", "", false, "for testing: lets you fake running this command inside a kubernetes cluster so that it can create the file: $XDG_CONFIG_HOME/git/credentials or $HOME/git/credentials")
 
@@ -138,6 +142,10 @@ func (o *Options) Run() error {
 			}
 		}
 	}
+
+	if o.BaseSHA != "" && o.Rebase {
+		return o.RebaseToBaseSHA()
+	}
 	if o.IncludeCommitComment != "" || o.ExcludeCommitComment != "" {
 		o.SHAs, err = o.FindCommitsToMerge()
 		if err != nil {
@@ -165,6 +173,25 @@ func (o *Options) Run() error {
 		}
 	*/
 
+	return nil
+}
+
+func (o *Options) RebaseToBaseSHA() error {
+	args := []string{"rebase"}
+	for _, a := range o.GitMergeArgs {
+		args = append(args, a)
+	}
+	sha := o.BaseSHA
+	args = append(args, sha)
+
+	dir := o.Dir
+	log.Logger().Infof("running: git rebase %s", strings.Join(args, " "))
+	_, err := o.GitClient.Command(dir, args...)
+	if err != nil {
+		return errors.Wrapf(err, "rebasing %s into master", sha)
+	}
+	log.Logger().Infof("rebased git to %s", sha)
+	log.Logger().Debugf("ran: git rebase %s", strings.Join(args, " "))
 	return nil
 }
 
