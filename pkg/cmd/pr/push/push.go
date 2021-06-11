@@ -58,7 +58,7 @@ func NewCmdPullRequestPush() (*cobra.Command, *Options) {
 	o.PullRequestOptions.AddFlags(cmd)
 	cmd.Flags().StringVarP(&o.UserName, "name", "", "", "the git user name to use if one is not setup")
 	cmd.Flags().StringVarP(&o.UserEmail, "email", "", "", "the git user email to use if one is not setup")
-	cmd.Flags().BoolVarP(&o.Force, "force", "f", false, "force pushes to the branch")
+	cmd.Flags().BoolVarP(&o.Force, "force", "f", true, "force pushes to the branch")
 	cmd.Flags().BoolVarP(&o.IgnoreMissingPullRequest, "ignore-no-pr", "", false, "if an error is returned finding the Pull Request (maybe due to missing environment variables to find the PULL_NUMBER) just push to the current branch instead")
 	return cmd, o
 }
