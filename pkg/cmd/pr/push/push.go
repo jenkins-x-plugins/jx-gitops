@@ -27,6 +27,10 @@ var (
 	`)
 )
 
+const (
+	defaultBranch = "main"
+)
+
 // Options the options for the command
 type Options struct {
 	scmhelpers.PullRequestOptions
@@ -102,7 +106,7 @@ func (o *Options) pushToPullRequestBranch(branch string) error {
 		return errors.Wrapf(err, "failed to determine git branch in dir %s", o.Dir)
 	}
 	if localBranch == "" {
-		localBranch = "master"
+		localBranch = defaultBranch
 	}
 
 	args := []string{"push"}
@@ -128,7 +132,7 @@ func (o *Options) pushToCurrentBranch() error {
 		return errors.Wrapf(err, "failed to determine git branch in dir %s", o.Dir)
 	}
 	if branch == "" {
-		branch = "master"
+		branch = defaultBranch
 	}
 
 	c := &cmdrunner.Command{

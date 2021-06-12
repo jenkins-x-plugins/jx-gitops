@@ -44,7 +44,7 @@ func TestPullRequestPush(t *testing.T) {
 			CLI: "git rev-parse --abbrev-ref HEAD",
 		},
 		fakerunner.FakeResult{
-			CLI: "git push origin master:" + prBranch,
+			CLI: "git push origin main:" + prBranch,
 		},
 	)
 }
