@@ -8,6 +8,7 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/options"
+	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/kustomize/kyaml/yaml"
@@ -19,8 +20,14 @@ var (
 `)
 
 	annotateExample = templates.Examples(`
+		# sets the foo.bar=abc in the files *.yaml 
+		jx gitops yset --path foo.bar --value abc *.yaml
+
 		# sets the foo.bar=abc in the file foo.yaml
-		jx gitops yset --file foo.yaml --path foo.bar --value abc
+		jx gitops yset --path foo.bar --value abc --file foo.yaml
+
+		# sets the foo.bar=abc in the file foo.yaml and bar.yaml
+		jx gitops yset --path foo.bar --value abc --file bar.yaml --file foo.yaml
 	`)
 )
 
@@ -29,6 +36,7 @@ type Options struct {
 	Files []string
 	Path  string
 	Value string
+	Args  []string
 }
 
 // NewCmdUpdate creates a command object for the command
@@ -41,6 +49,7 @@ func NewCmdYSet() (*cobra.Command, *Options) {
 		Long:    annotateLong,
 		Example: fmt.Sprintf(annotateExample, rootcmd.BinaryName, rootcmd.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
+			o.Args = args
 			err := o.Run()
 			helper.CheckErr(err)
 		},
@@ -53,7 +62,10 @@ func NewCmdYSet() (*cobra.Command, *Options) {
 
 func (o *Options) Run() error {
 	if len(o.Files) == 0 {
-		return options.MissingOption("file")
+		if len(o.Args) == 0 {
+			return options.MissingOption("file")
+		}
+		o.Files = o.Args
 	}
 	if o.Path == "" {
 		return options.MissingOption("path")
@@ -61,6 +73,8 @@ func (o *Options) Run() error {
 	if o.Value == "" {
 		return options.MissingOption("value")
 	}
+
+	log.Logger().Infof("loading files %v", o.Files)
 
 	for _, fileName := range o.Files {
 		node, err := yaml.ReadFile(fileName)
