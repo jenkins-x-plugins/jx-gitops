@@ -74,7 +74,7 @@ func (o *Options) Run() error {
 		return options.MissingOption("value")
 	}
 
-	log.Logger().Infof("loading files %v", o.Files)
+	log.Logger().Debugf("loading files %v", o.Files)
 
 	for _, fileName := range o.Files {
 		node, err := yaml.ReadFile(fileName)
