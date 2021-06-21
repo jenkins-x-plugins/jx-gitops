@@ -31,6 +31,10 @@ func TestStepHelmfileResolve(t *testing.T) {
 		namespaces []string
 	}{
 		{
+			folder:     "remote-cluster",
+			namespaces: []string{"nginx"},
+		},
+		{
 			folder:     "remote-chart",
 			namespaces: []string{"foo", "jx", "secret-infra", "tekton-pipelines"},
 		},

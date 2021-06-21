@@ -1,0 +1,17 @@
+filepath: ""
+environments:
+  default:
+    values:
+    - jx-values.yaml
+namespace: nginx
+repositories:
+- name: ingress-nginx
+  url: https://kubernetes.github.io/ingress-nginx
+releases:
+- chart: ingress-nginx/ingress-nginx
+  name: nginx-ingress
+  values:
+  - ../../versionStream/charts/ingress-nginx/ingress-nginx/values.yaml.gotmpl
+  - jx-values.yaml
+templates: {}
+renderedvalues: {}
