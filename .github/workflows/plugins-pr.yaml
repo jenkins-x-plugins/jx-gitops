@@ -26,9 +26,9 @@ jobs:
           ./build/${{ matrix.target }}/${{ matrix.binary }} plugin upgrade
           ./build/${{ matrix.target }}/${{ matrix.binary }} --help
       - run: ls -al ~/.jx3/plugins/bin
-        if: ${{ runner.os != "Windows" }}
+        if: ${{ runner.os != 'Windows' }}
       - run: dir ~\.jx3\plugins\bin
-        if: ${{ runner.os == "Windows" }}
+        if: ${{ runner.os == 'Windows' }}
 
 on:
   pull_request:
