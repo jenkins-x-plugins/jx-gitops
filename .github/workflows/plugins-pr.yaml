@@ -23,7 +23,7 @@ jobs:
       - run: make ${{ matrix.target }}
       - run: |
           ./build/${{ matrix.target }}/${{ matrix.binary }} version
-          ./build/${{ matrix.target }}/${{ matrix.binary }} upgrade plugins
+          ./build/${{ matrix.target }}/${{ matrix.binary }} plugin upgrade
           ./build/${{ matrix.target }}/${{ matrix.binary }} --help
 
 on:
