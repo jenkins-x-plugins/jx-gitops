@@ -7,13 +7,13 @@ jobs:
         include:
           - os: ubuntu-latest
             TARGET: linux
-            BINARY: jx
+            BINARY: jx-gitops
           - os: macos-latest
             TARGET: darwin
-            BINARY: jx
+            BINARY: jx-gitops
           - os: windows-latest
             TARGET: win
-            BINARY: jx-windows-amd64.exe
+            BINARY: jx-gitops-windows-amd64.exe
 
     steps:
       - uses: actions/checkout@v2
@@ -24,8 +24,7 @@ jobs:
       - run: |
           ./build/${{ matrix.target }}/${{ matrix.binary }} version
           ./build/${{ matrix.target }}/${{ matrix.binary }} upgrade plugins
-          ./build/${{ matrix.target }}/${{ matrix.binary }} gitops --help
-          ./build/${{ matrix.target }}/${{ matrix.binary }} secret --help
+          ./build/${{ matrix.target }}/${{ matrix.binary }} --help
 
 on:
   pull_request:
