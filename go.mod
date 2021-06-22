@@ -14,12 +14,12 @@ require (
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.12
 	github.com/jenkins-x-plugins/jx-charter v0.0.26
-	github.com/jenkins-x/go-scm v1.9.2
+	github.com/jenkins-x/go-scm v1.9.3
 	github.com/jenkins-x/jx-api/v4 v4.0.33
 	github.com/jenkins-x/jx-helpers/v3 v3.0.116
 	github.com/jenkins-x/jx-kube-client/v3 v3.0.2
 	github.com/jenkins-x/jx-logging/v3 v3.0.6
-	github.com/jenkins-x/lighthouse-client v0.0.167
+	github.com/jenkins-x/lighthouse-client v0.0.172
 	github.com/pborman/uuid v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/roboll/helmfile v0.139.0
@@ -30,8 +30,8 @@ require (
 	github.com/vrischmann/envconfig v1.3.0 // indirect
 	gopkg.in/validator.v2 v2.0.0-20200605151824-2b28d334fa05
 	helm.sh/helm/v3 v3.5.4
-	k8s.io/api v0.20.7
-	k8s.io/apimachinery v0.20.7
+	k8s.io/api v0.20.8
+	k8s.io/apimachinery v0.20.8
 	k8s.io/client-go v11.0.1-0.20190805182717-6502b5e7b1b5+incompatible
 	sigs.k8s.io/kustomize/api v0.4.1
 	sigs.k8s.io/kustomize/kyaml v0.10.5
