@@ -455,18 +455,10 @@ func (o *Options) dockerRegistryOrg() (string, error) {
 	if answer == "" {
 		answer = o.ConfigMapData["DOCKER_REGISTRY_ORG"]
 	}
-	if answer == "" {
-		if o.Requirements != nil {
-			answer = o.Requirements.Cluster.DockerRegistryOrg
-			if answer == "" && o.Requirements.Cluster.Provider == "gke" {
-				answer = o.Requirements.Cluster.ProjectID
-			}
-		}
+	if answer != "" {
+		return answer, nil
 	}
-	if answer == "" {
-		answer = naming.ToValidName(o.Options.Owner)
-	}
-	return answer, nil
+	return variablefinders.DockerRegistryOrg(o.Requirements, o.Options.Owner)
 }
 
 func (o *Options) GetGitBranch() (string, error) {
