@@ -13,6 +13,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var (
+	// generateTestOutput enable to regenerate the expected output
+	generateTestOutput = false
+)
+
 func TestUpdateIngressNoTLS(t *testing.T) {
 	AssertUpdateIngress(t, filepath.Join("test_data", "notls"))
 }
@@ -65,6 +70,12 @@ func AssertUpdateIngress(t *testing.T, rootDir string) {
 
 		result := strings.TrimSpace(string(resultData))
 		expectedText := strings.TrimSpace(string(expectData))
+
+		if generateTestOutput {
+			err = ioutil.WriteFile(expectedFile, []byte(result), 0666)
+			require.NoError(t, err, "failed to save file %s", expectedFile)
+			return nil
+		}
 		if d := cmp.Diff(result, expectedText); d != "" {
 			t.Errorf("modified file %s match expected: %s", path, d)
 		}
