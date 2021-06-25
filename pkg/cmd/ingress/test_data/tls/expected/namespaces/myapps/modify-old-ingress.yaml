@@ -11,9 +11,7 @@ spec:
   - host: godemo48.my.domain.com
     http:
       paths:
-      - backend:
-          serviceName: godemo48
-          servicePort: 80
+      - backend: {}
   tls:
   - hosts:
     - godemo48.my.domain.com

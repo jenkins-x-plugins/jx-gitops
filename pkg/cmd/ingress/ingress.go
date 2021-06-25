@@ -16,7 +16,7 @@ import (
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"k8s.io/api/extensions/v1beta1"
+	nv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/yaml"
 )
@@ -76,7 +76,7 @@ func (o *Options) Run() error {
 
 	log.Logger().Infof("replacing ingress domain %s to %s with TLS: %v", termcolor.ColorInfo(o.ReplaceDomain), termcolor.ColorInfo(newDomain), tlsEnabled)
 
-	fn := func(ing *v1beta1.Ingress, path string) (bool, error) {
+	fn := func(ing *nv1.Ingress, path string) (bool, error) {
 		modified := false
 		s := &ing.Spec
 		for i, r := range s.Rules {
@@ -128,7 +128,7 @@ func (o *Options) modifyHost(host string, newDomain string) (string, error) {
 	return "", nil
 }
 
-func (o *Options) updateIngresses(dir string, fn func(ing *v1beta1.Ingress, path string) (bool, error)) error {
+func (o *Options) updateIngresses(dir string, fn func(ing *nv1.Ingress, path string) (bool, error)) error {
 	return filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if info == nil || info.IsDir() {
 			return nil
@@ -162,11 +162,11 @@ func (o *Options) updateIngresses(dir string, fn func(ing *v1beta1.Ingress, path
 			return nil
 		}
 		apiVersion := obj.GetAPIVersion()
-		if apiVersion != "networking.k8s.io/v1beta1" && apiVersion != "extensions/v1beta1" {
+		if apiVersion != "networking.k8s.io/v1" && apiVersion != "networking.k8s.io/v1beta1" && apiVersion != "extensions/v1beta1" {
 			return nil
 		}
 
-		ing := &v1beta1.Ingress{}
+		ing := &nv1.Ingress{}
 		err = yaml.Unmarshal(data, ing)
 		if err != nil {
 			return errors.Wrapf(err, "failed to unmarshal YAML as Ingress in file %s", path)
