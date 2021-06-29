@@ -955,6 +955,31 @@ func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
 		}
 	}
 
+	// lets remove any unused jx3 repo
+	for i := range helmstate.Repositories {
+		repo := &helmstate.Repositories[i]
+		if repo.Name == "jx3" {
+			// lets check if we have a jx3 release
+			found := false
+			for j := range helmstate.Releases {
+				release := &helmstate.Releases[j]
+				if strings.HasPrefix(release.Chart, "jx3/") {
+					found = true
+					break
+				}
+			}
+
+			if !found {
+				repos := helmstate.Repositories[0:i]
+				if i+1 < len(helmstate.Repositories) {
+					repos = append(repos, helmstate.Repositories[i+1:]...)
+				}
+				helmstate.Repositories = repos
+			}
+			break
+		}
+	}
+
 	// TODO lets remove the jx-labs repository if its no longer referenced...
 	if o.AddEnvironmentPipelines {
 		lighthouseTriggerFile := filepath.Join(o.Dir, ".lighthouse", "jenkins-x", "triggers.yaml")

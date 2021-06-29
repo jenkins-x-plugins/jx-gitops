@@ -7,8 +7,6 @@ namespace: kuberhealthy
 repositories:
 - name: kuberhealthy
   url: https://kuberhealthy.github.io/kuberhealthy/helm-repos
-- name: jx3
-  url: https://storage.googleapis.com/jenkinsxio/charts
 - name: jxgh
   url: https://jenkins-x-charts.github.io/repo
 releases:
