@@ -5,8 +5,6 @@ environments:
     - jx-values.yaml
 namespace: jx
 repositories:
-- name: jenkins-x
-  url: https://storage.googleapis.com/chartmuseum.jenkins-x.io
 - name: jxgh
   url: https://jenkins-x-charts.github.io/repo
 releases:

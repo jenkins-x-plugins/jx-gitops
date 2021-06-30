@@ -977,12 +977,13 @@ func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
 	// lets remove any unused jx3 repo
 	for i := range helmstate.Repositories {
 		repo := &helmstate.Repositories[i]
-		if repo.Name == "jx3" {
+		if repo.Name == "jx3" || repo.Name == "jenkins-x" {
 			// lets check if we have a jx3 release
 			found := false
+			prefix := repo.Name + "/"
 			for j := range helmstate.Releases {
 				release := &helmstate.Releases[j]
-				if strings.HasPrefix(release.Chart, "jx3/") {
+				if strings.HasPrefix(release.Chart, prefix) {
 					found = true
 					break
 				}
