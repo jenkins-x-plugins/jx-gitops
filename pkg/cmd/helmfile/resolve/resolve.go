@@ -748,8 +748,27 @@ func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
 		release := &helmstate.Releases[i]
 		names := strings.SplitN(release.Chart, "/", 2)
 		if len(names) == 2 && names[0] == "jx3" {
-			release.Chart = "jxgh/" + names[1]
+			chartName := names[1]
+			name := release.Name
+			release.Chart = "jxgh/" + chartName
 			addedJxgh = true
+
+			for j := range release.Values {
+				v := release.Values[j]
+				s, ok := v.(string)
+				if !ok {
+					continue
+				}
+				// lets switch invalid paths to the one inside a chart repo folder
+				if s == fmt.Sprintf("%s/charts/jx3/%s/values.yaml.gotmpl", versionStreamPath, chartName) {
+					release.Values[j] = fmt.Sprintf("%s/charts/jxgh/%s/values.yaml.gotmpl", versionStreamPath, chartName)
+					break
+				}
+				if s == fmt.Sprintf("%s/charts/jx3/%s/values.yaml.gotmpl", versionStreamPath, name) {
+					release.Values[j] = fmt.Sprintf("%s/charts/jxgh/%s/values.yaml.gotmpl", versionStreamPath, name)
+					break
+				}
+			}
 		}
 	}
 

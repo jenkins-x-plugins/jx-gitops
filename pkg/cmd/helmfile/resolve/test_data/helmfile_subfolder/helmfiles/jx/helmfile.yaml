@@ -1,0 +1,68 @@
+filepath: ""
+environments:
+  default:
+    values:
+    - jx-values.yaml
+namespace: jx
+repositories:
+- name: jenkins-x
+  url: https://storage.googleapis.com/chartmuseum.jenkins-x.io
+- name: jx3
+  url: https://storage.googleapis.com/jenkinsxio/charts
+- name: jxgh
+  url: https://jenkins-x-charts.github.io/repo
+releases:
+- chart: jx3/jxboot-helmfile-resources
+  version: 1.0.64
+  name: jxboot-helmfile-resources
+  values:
+  - ../../versionStream/charts/jx3/jxboot-helmfile-resources/values.yaml.gotmpl
+  - jx-values.yaml
+- chart: jx3/jenkins-x-crds
+  version: 3.0.7
+  name: jenkins-x-crds
+  values:
+  - ../../versionStream/charts/jx3/jenkins-x-crds/values.yaml.gotmpl
+  - jx-values.yaml
+- chart: jx3/jx-pipelines-visualizer
+  version: 1.7.1
+  name: jx-pipelines-visualizer
+  values:
+  - ../../versionStream/charts/jx3/jx-pipelines-visualizer/values.yaml.gotmpl
+  - jx-values.yaml
+- chart: jxgh/jx-preview
+  version: 0.0.183
+  name: jx-preview
+  values:
+  - jx-values.yaml
+- chart: jx3/lighthouse
+  version: 1.1.10
+  name: lighthouse
+  values:
+  - ../../versionStream/charts/jx3/lighthouse/values.yaml.gotmpl
+  - jx-values.yaml
+- chart: jx3/bucketrepo
+  version: 0.1.65
+  name: bucketrepo
+  values:
+  - ../../versionStream/charts/jx3/bucketrepo/values.yaml.gotmpl
+  - jx-values.yaml
+- chart: jx3/jx-build-controller
+  version: 0.3.1
+  name: jx-build-controller
+  values:
+  - ../../versionStream/charts/jx3/jx-build-controller/values.yaml.gotmpl
+  - jx-values.yaml
+- chart: jx3/local-external-secrets
+  version: 0.0.13
+  name: local-external-secrets
+  values:
+  - jx-values.yaml
+- chart: jx3/jx-kh-check
+  version: 0.0.56
+  name: health-checks-jx
+  values:
+  - ../../versionStream/charts/jx3/health-checks-jx/values.yaml.gotmpl
+  - jx-values.yaml
+templates: {}
+renderedvalues: {}

@@ -66,7 +66,7 @@ func TestStepHelmfileResolve(t *testing.T) {
 		{
 			folder:     "helmfile_subfolder",
 			helmfile:   filepath.Join("helmfiles", "helmfile.yaml"),
-			namespaces: []string{"secret-infra"},
+			namespaces: []string{"jx", "secret-infra"},
 		},
 		{
 			folder:     "helmfile_multi_subfolder",

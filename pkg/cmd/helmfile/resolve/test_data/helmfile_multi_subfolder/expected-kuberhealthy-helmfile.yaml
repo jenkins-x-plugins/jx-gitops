@@ -20,7 +20,7 @@ releases:
   version: 0.0.68
   name: jx-kh-check
   values:
-  - ../../versionStream/charts/jx3/jx-kh-check/values.yaml.gotmpl
+  - ../../versionStream/charts/jxgh/jx-kh-check/values.yaml.gotmpl
   - jx-values.yaml
 templates: {}
 renderedvalues: {}
