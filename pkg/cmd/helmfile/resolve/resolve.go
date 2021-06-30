@@ -741,62 +741,35 @@ func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
 		}
 	}
 
-	// lets replace the old jx-preview chart if its being used
+	addedJxgh := false
+
+	// lets replace the old jx3 charts
 	for i := range helmstate.Releases {
 		release := &helmstate.Releases[i]
-		if release.Chart == "jx3/jx-preview" {
-			release.Chart = "jxgh/jx-preview"
-
-			// lets make sure we have a jxgh repository
-			found := false
-			for _, repo := range helmstate.Repositories {
-				if repo.Name == "jxgh" {
-					found = true
-					break
-				}
-			}
-			if !found {
-				helmstate.Repositories = append(helmstate.Repositories, state.RepositorySpec{
-					Name: "jxgh",
-					URL:  "https://jenkins-x-charts.github.io/repo",
-				})
-			}
-			break
+		names := strings.SplitN(release.Chart, "/", 2)
+		if len(names) == 2 && names[0] == "jx3" {
+			release.Chart = "jxgh/" + names[1]
+			addedJxgh = true
 		}
 	}
 
 	// lets replace the old jenkins-x charts
-	for _, chartName := range []string{"jxboot-helmfile-resources", "bucketrepo"} {
+	for _, chartName := range []string{"jxboot-helmfile-resources", "bucketrepo", "nexus"} {
 		for i := range helmstate.Releases {
 			release := &helmstate.Releases[i]
 			if release.Chart == "jenkins-x/"+chartName {
-				release.Chart = "jx3/" + chartName
+				release.Chart = "jxgh/" + chartName
+				addedJxgh = true
 
-				for i := range release.Values {
-					v := release.Values[i]
+				for j := range release.Values {
+					v := release.Values[j]
 					s, ok := v.(string)
 					// lets switch invalid paths to the one inside a chart repo folder
 					if ok && s == fmt.Sprintf("%s/charts/jenkins-x/%s/values.yaml.gotmpl", versionStreamPath, chartName) {
-						release.Values[i] = fmt.Sprintf("%s/charts/jx3/%s/values.yaml.gotmpl", versionStreamPath, chartName)
+						release.Values[j] = fmt.Sprintf("%s/charts/jxgh/%s/values.yaml.gotmpl", versionStreamPath, chartName)
 						break
 					}
 				}
-
-				// lets make sure we have a jx3 repository
-				found := false
-				for _, repo := range helmstate.Repositories {
-					if repo.Name == "jx3" {
-						found = true
-						break
-					}
-				}
-				if !found {
-					helmstate.Repositories = append(helmstate.Repositories, state.RepositorySpec{
-						Name: "jx3",
-						URL:  "https://storage.googleapis.com/jenkinsxio/charts",
-					})
-				}
-				break
 			}
 		}
 	}
@@ -805,33 +778,18 @@ func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
 	for i := range helmstate.Releases {
 		release := &helmstate.Releases[i]
 		if release.Chart == "jenkins-x/lighthouse" {
-			release.Chart = "jx3/lighthouse"
+			release.Chart = "jxgh/lighthouse"
+			addedJxgh = true
 
 			for i := range release.Values {
 				v := release.Values[i]
 				s, ok := v.(string)
 				// lets switch invalid paths to the one inside a chart repo folder
 				if ok && s == fmt.Sprintf("%s/charts/jenkins-x/lighthouse/values.yaml.gotmpl", versionStreamPath) {
-					release.Values[i] = fmt.Sprintf("%s/charts/jx3/lighthouse/values.yaml.gotmpl", versionStreamPath)
+					release.Values[i] = fmt.Sprintf("%s/charts/jxgh/lighthouse/values.yaml.gotmpl", versionStreamPath)
 					break
 				}
 			}
-
-			// lets make sure we have a jx3 repository
-			found := false
-			for _, repo := range helmstate.Repositories {
-				if repo.Name == "jx3" {
-					found = true
-					break
-				}
-			}
-			if !found {
-				helmstate.Repositories = append(helmstate.Repositories, state.RepositorySpec{
-					Name: "jx3",
-					URL:  "https://storage.googleapis.com/jenkinsxio/charts",
-				})
-			}
-			break
 		}
 	}
 
@@ -839,7 +797,7 @@ func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
 	if requirements.SecretStorage == jxcore.SecretStorageTypeVault && requirements.TerraformVault {
 		for i := range helmstate.Releases {
 			release := &helmstate.Releases[i]
-			if release.Chart == "jx3/vault-instance" || release.Chart == "banzaicloud-stable/vault-operator" {
+			if release.Chart == "jxgh/vault-instance" || release.Chart == "banzaicloud-stable/vault-operator" {
 				log.Logger().Infof("Terraform installed detected and Vault chart %s still present in helmfile. Please migrate secrets as necessary and remove this chart from your helmfile", release.Chart)
 			}
 		}
@@ -915,15 +873,16 @@ func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
 		found := false
 		for i := range helmstate.Releases {
 			release := &helmstate.Releases[i]
-			if release.Chart == "jx3/local-external-secrets" {
+			if release.Chart == "jxgh/local-external-secrets" {
 				found = true
 				break
 			}
 		}
 		if !found {
 			release := state.ReleaseSpec{
-				Chart: "jx3/local-external-secrets",
+				Chart: "jxgh/local-external-secrets",
 			}
+			addedJxgh = true
 			o.updateVersionFromVersionStream(&release)
 			helmstate.Releases = append(helmstate.Releases, release)
 		}
@@ -935,9 +894,10 @@ func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
 		for i := range helmstate.Releases {
 			release := &helmstate.Releases[i]
 			if release.Chart == chartName {
-				release.Chart = "jx3/" + name
+				release.Chart = "jxgh/" + name
+				addedJxgh = true
 				if name == "jenkins-x-crds" {
-					release.Values = []interface{}{fmt.Sprintf("%s/charts/jx3/jenkins-x-crds/values.yaml.gotmpl", versionStreamPath)}
+					release.Values = []interface{}{fmt.Sprintf("%s/charts/jxgh/jenkins-x-crds/values.yaml.gotmpl", versionStreamPath)}
 				}
 				o.updateVersionFromVersionStream(release)
 				break
@@ -966,29 +926,57 @@ func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
 	found := false
 	for i := range helmstate.Releases {
 		release := &helmstate.Releases[i]
-		if release.Chart == "jx3/jx-build-controller" {
+		if release.Chart == "jxgh/jx-build-controller" {
 			found = true
 			break
 		}
 	}
 	if !found && helmstate.OverrideNamespace == "jx" {
 		helmstate.Releases = append(helmstate.Releases, state.ReleaseSpec{
-			Chart: "jx3/jx-build-controller",
+			Chart: "jxgh/jx-build-controller",
 		})
+		addedJxgh = true
+	}
 
-		// lets make sure we have a jx3 repository
-		found = false
+	if addedJxgh {
+		// lets make sure we have a jxgh repository
+		found := false
 		for _, repo := range helmstate.Repositories {
-			if repo.Name == "jx3" {
+			if repo.Name == "jxgh" {
 				found = true
 				break
 			}
 		}
 		if !found {
 			helmstate.Repositories = append(helmstate.Repositories, state.RepositorySpec{
-				Name: "jx3",
-				URL:  "https://storage.googleapis.com/jenkinsxio/charts",
+				Name: "jxgh",
+				URL:  "https://jenkins-x-charts.github.io/repo",
 			})
+		}
+	}
+
+	// lets remove any unused jx3 repo
+	for i := range helmstate.Repositories {
+		repo := &helmstate.Repositories[i]
+		if repo.Name == "jx3" {
+			// lets check if we have a jx3 release
+			found := false
+			for j := range helmstate.Releases {
+				release := &helmstate.Releases[j]
+				if strings.HasPrefix(release.Chart, "jx3/") {
+					found = true
+					break
+				}
+			}
+
+			if !found {
+				repos := helmstate.Repositories[0:i]
+				if i+1 < len(helmstate.Repositories) {
+					repos = append(repos, helmstate.Repositories[i+1:]...)
+				}
+				helmstate.Repositories = repos
+			}
+			break
 		}
 	}
 

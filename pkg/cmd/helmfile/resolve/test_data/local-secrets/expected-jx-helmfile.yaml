@@ -5,18 +5,15 @@ environments:
     - jx-values.yaml
 namespace: jx
 repositories:
-- name: jx3
-  url: https://storage.googleapis.com/jenkinsxio/charts
 - name: jxgh
   url: https://jenkins-x-charts.github.io/repo
 releases:
-- chart: jx3/lighthouse
+- chart: jxgh/lighthouse
   version: 0.0.628
   name: lighthouse
   values:
   - jx-values.yaml
-- chart: jx3/jxboot-helmfile-resources
-  version: 1.0.37
+- chart: jxgh/jxboot-helmfile-resources
   name: jxboot-helmfile-resources
   values:
   - jx-values.yaml
@@ -25,18 +22,16 @@ releases:
   values:
   - ../../jx-values.yaml
   - jx-values.yaml
-- chart: jx3/jenkins-x-crds
-  version: 1.0.7
+- chart: jxgh/jenkins-x-crds
   name: jenkins-x-crds
   values:
-  - ../../versionStream/charts/jx3/jenkins-x-crds/values.yaml.gotmpl
+  - ../../versionStream/charts/jxgh/jenkins-x-crds/values.yaml.gotmpl
   - jx-values.yaml
-- chart: jx3/local-external-secrets
-  version: 0.0.3
+- chart: jxgh/local-external-secrets
   name: local-external-secrets
   values:
   - jx-values.yaml
-- chart: jx3/jx-build-controller
+- chart: jxgh/jx-build-controller
   name: jx-build-controller
   values:
   - jx-values.yaml

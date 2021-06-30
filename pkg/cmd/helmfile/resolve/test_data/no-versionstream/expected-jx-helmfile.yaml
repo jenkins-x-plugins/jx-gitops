@@ -5,12 +5,12 @@ environments:
     - jx-values.yaml
 namespace: jx
 repositories:
-- name: jx3
-  url: https://storage.googleapis.com/jenkinsxio/charts
+- name: jxgh
+  url: https://jenkins-x-charts.github.io/repo
 - name: doesnotexist
   url: https://storage.googleapis.com/chartmuseum.jenkins-x.io
 releases:
-- chart: jx3/jxboot-helmfile-resources
+- chart: jxgh/jxboot-helmfile-resources
   name: jxboot-helmfile-resources
   values:
   - jx-values.yaml
@@ -18,7 +18,7 @@ releases:
   name: bucketrepo
   values:
   - jx-values.yaml
-- chart: jx3/jx-build-controller
+- chart: jxgh/jx-build-controller
   name: jx-build-controller
   values:
   - jx-values.yaml

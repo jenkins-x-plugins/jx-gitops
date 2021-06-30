@@ -7,8 +7,8 @@ namespace: jx
 repositories:
 - name: stable
   url: https://charts.helm.sh/stable
-- name: jx3
-  url: https://storage.googleapis.com/jenkinsxio/charts
+- name: jxgh
+  url: https://jenkins-x-charts.github.io/repo
 - name: doesnotexist
   url: https://storage.googleapis.com/chartmuseum.jenkins-x.io
 releases:
@@ -18,17 +18,16 @@ releases:
   values:
   - ../../versionStream/charts/stable/chartmuseum/values.yaml.gotmpl
   - jx-values.yaml
-- chart: jx3/jxboot-helmfile-resources
-  version: 1.0.37
+- chart: jxgh/jxboot-helmfile-resources
   name: jxboot-helmfile-resources
   values:
-  - ../../versionStream/charts/jx3/jxboot-helmfile-resources/values.yaml.gotmpl
+  - ../../versionStream/charts/jxgh/jxboot-helmfile-resources/values.yaml.gotmpl
   - jx-values.yaml
 - chart: doesnotexist/bucketrepo
   name: bucketrepo
   values:
   - jx-values.yaml
-- chart: jx3/jx-build-controller
+- chart: jxgh/jx-build-controller
   name: jx-build-controller
   values:
   - jx-values.yaml
