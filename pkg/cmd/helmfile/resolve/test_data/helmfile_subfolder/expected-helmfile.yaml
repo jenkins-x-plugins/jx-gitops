@@ -4,6 +4,7 @@ environments:
     values:
     - jx-values.yaml
 helmfiles:
+- path: jx/helmfile.yaml
 - path: secret-infra/helmfile.yaml
 templates: {}
 renderedvalues: {}
