@@ -99,7 +99,7 @@ func (o *Options) Run() error {
 	}
 
 	regen := true
-	if strings.HasPrefix(lastCommitMessage, "Merge pull request") {
+	if strings.HasPrefix(lastCommitMessage, "Merge pull request") || strings.HasPrefix(lastCommitMessage, "Merge branch") {
 		log.Logger().Infof("last commit was a merge pull request so not regenerating")
 		regen = false
 	}
