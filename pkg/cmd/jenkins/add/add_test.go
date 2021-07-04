@@ -8,6 +8,7 @@ import (
 
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/helmfile/resolve"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/jenkins/add"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/helmhelpers"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/sourceconfigs"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner/fakerunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
@@ -86,11 +87,11 @@ func assertValidHelmfile(t *testing.T, expectedFile string) {
 	err := yaml2s.LoadFile(expectedFile, helmState)
 	require.NoError(t, err, "failed to load %s", expectedFile)
 
-	AssertHemlfileChartCount(t, 1, helmState, "jx3/jenkins-resources", "file %s", expectedFile)
+	AssertHemlfileChartCount(t, 1, helmState, "jxgh/jenkins-resources", "file %s", expectedFile)
 	AssertHemlfileChartCount(t, 1, helmState, "jenkinsci/jenkins", "file %s", expectedFile)
 
 	AssertHemlfileRepository(t, helmState, "jenkinsci", "https://charts.jenkins.io", "file %s", expectedFile)
-	AssertHemlfileRepository(t, helmState, "jx3", "https://storage.googleapis.com/jenkinsxio/charts", "file %s", expectedFile)
+	AssertHemlfileRepository(t, helmState, "jxgh", helmhelpers.JX3HelmRepository, "file %s", expectedFile)
 }
 
 func AssertHemlfileChartCount(t *testing.T, expectedCount int, helmState *state.HelmState, chartName string, messageAndArgs ...interface{}) {

@@ -93,7 +93,7 @@ func (o *Options) Run() error {
 	log.Logger().Infof("added helmfile %s for jenkins server %s", info(o.Helmfile), info(o.Name))
 
 	// lets add the jenkins-resources chart too
-	o.Options.Chart = "jx3/jenkins-resources"
+	o.Options.Chart = "jxgh/jenkins-resources"
 	o.Options.ReleaseName = "jenkins-resources"
 	o.Options.Repository = helmhelpers.JX3HelmRepository
 	o.Options.Values = nil
