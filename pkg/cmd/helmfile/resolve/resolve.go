@@ -479,7 +479,16 @@ func (o *Options) resolveHelmfile(helmState *state.HelmState, helmfile helmfiles
 				}
 			}
 
-			if stringhelpers.StringArrayIndex(ignoreRepositories, repository) < 0 {
+			// lets look for an override version label
+			lockVersion := false
+			if release.Labels != nil {
+				lockVersionValue := strings.TrimSpace(strings.ToLower(release.Labels[helmhelpers.VersionLabel]))
+				if lockVersionValue == "override" || lockVersionValue == "lock" {
+					lockVersion = true
+				}
+			}
+
+			if stringhelpers.StringArrayIndex(ignoreRepositories, repository) < 0 && !lockVersion {
 				// first try and match using the prefix and release name as we might have a version stream folder that uses helm alias
 				versionProperties, err := o.Options.Resolver.StableVersion(versionstream.KindChart, prefix+"/"+release.Name)
 				if err != nil {

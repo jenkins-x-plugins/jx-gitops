@@ -1,0 +1,83 @@
+enabled: true
+
+engines:
+  tekton: true
+
+hmacToken: "{{ .Values.jx.secrets.hmacToken | default "123abc" }}"
+
+git:
+  kind: {{ .Values.jxRequirements.cluster.gitKind | default "github" }}
+  name: {{ .Values.jxRequirements.cluster.gitName | default "github" }}
+  server: {{ .Values.jxRequirements.cluster.gitServer | default "https://github.com" }}
+
+service:
+  name: hook
+  
+replicaCount: 2
+
+{{- if eq .Values.jxRequirements.cluster.provider "gke" }}
+logFormat: "stackdriver"
+{{- end }}
+
+tektoncontroller:
+  dashboardURL: "http://dashboard{{ .Values.jxRequirements.ingress.namespaceSubDomain }}{{ .Values.jxRequirements.ingress.domain }}"
+  dashboardTemplate: "namespaces/{{"{{"}} .Namespace {{"}}"}}/pipelineruns/{{"{{"}} .PipelineRun {{"}}"}}"
+
+env:
+  JX_DEFAULT_IMAGE: ghcr.io/jenkins-x/builder-maven:2.1.149-768
+  LIGHTHOUSE_DASHBOARD_TEMPLATE: "namespaces/{{"{{"}} .Namespace {{"}}"}}/pipelineruns/{{"{{"}} .PipelineRun {{"}}"}}"
+  DEFAULT_PIPELINE_RUN_SERVICE_ACCOUNT: tekton-bot
+  DEFAULT_PIPELINE_RUN_TIMEOUT: "2h0m0s"
+  FILE_BROWSER: "git"
+
+{{- if eq .Values.jxRequirements.cluster.gitKind "bitbucketserver" }}
+  GIT_CLONE_PATH_PREFIX: "scm"
+{{- end }}
+
+  # the pipeline catalog version streams:
+  LIGHTHOUSE_VERSIONSTREAM_JENKINS_X_JX3_PIPELINE_CATALOG: {{ readFile "../../../git/github.com/jenkins-x/jx3-pipeline-catalog.yml" | fromYaml | get "version" | quote }}
+
+keeper:
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+  env:
+    LIGHTHOUSE_TRIGGER_ON_MISSING: enable
+{{- if eq .Values.jxRequirements.cluster.gitKind "bitbucketserver" }}
+    GIT_CLONE_PATH_PREFIX: "scm"
+{{- end }}
+
+image:
+  repository: ghcr.io/jenkins-x/lighthouse
+
+vault:
+{{- if eq .Values.jxRequirements.secretStorage "vault" }}
+  enabled: true
+{{- else }}
+  enabled: false
+{{- end }}
+
+# bitbucket cloud doesn't support hmac token for webhooks which is crazy insecure but what can we do?
+{{- if and (hasKey .Values.jxRequirements.cluster "gitKind") (eq .Values.jxRequirements.cluster.gitKind "bitbucketcloud") }}
+hmacTokenEnabled: false
+{{- end }}
+
+{{- if hasKey .Values.jxRequirements.cluster "clusterName" }}
+clusterName: "{{ .Values.jxRequirements.cluster.clusterName }}"
+{{- end }}
+
+{{- if hasKey .Values.jxRequirements "pipelineUser" }}
+  {{- if hasKey .Values.jxRequirements.pipelineUser "username" }}
+user: "{{ .Values.jxRequirements.pipelineUser.username }}"
+  {{- end }}
+{{- end }}
+
+oauthToken: "{{ .Values.jx.secrets.pipelineUser.token }}"
+
+webhooks:
+  labels:
+    git.jenkins-x.io/sha: annotate
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "2112"
+  customDeploymentTriggerCommand: "jx"

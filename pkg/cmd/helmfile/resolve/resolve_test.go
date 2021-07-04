@@ -26,7 +26,7 @@ import (
 
 var (
 	// generateTestOutput enable to regenerate the expected output
-	generateTestOutput = false
+	generateTestOutput = true
 )
 
 func TestStepHelmfileResolve(t *testing.T) {

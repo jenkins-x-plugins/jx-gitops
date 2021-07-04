@@ -38,6 +38,8 @@ releases:
 - chart: jx3/lighthouse
   version: 1.1.10
   name: lighthouse
+  labels:
+    version.jenkins-x.io: override
   values:
   - ../../versionStream/charts/jx3/lighthouse/values.yaml.gotmpl
   - jx-values.yaml
