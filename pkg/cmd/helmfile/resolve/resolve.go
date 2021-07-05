@@ -480,15 +480,7 @@ func (o *Options) resolveHelmfile(helmState *state.HelmState, helmfile helmfiles
 			}
 
 			// lets look for an override version label
-			lockVersion := false
-			if release.Labels != nil {
-				lockVersionValue := strings.TrimSpace(strings.ToLower(release.Labels[helmhelpers.VersionLabel]))
-				if lockVersionValue == "override" || lockVersionValue == "lock" {
-					lockVersion = true
-				}
-			}
-
-			if stringhelpers.StringArrayIndex(ignoreRepositories, repository) < 0 && !lockVersion {
+			if stringhelpers.StringArrayIndex(ignoreRepositories, repository) < 0 && !IsLabelValue(release, helmhelpers.VersionLabel, helmhelpers.LockLabelValue) {
 				// first try and match using the prefix and release name as we might have a version stream folder that uses helm alias
 				versionProperties, err := o.Options.Resolver.StableVersion(versionstream.KindChart, prefix+"/"+release.Name)
 				if err != nil {
@@ -540,52 +532,54 @@ func (o *Options) resolveHelmfile(helmState *state.HelmState, helmfile helmfiles
 		}
 
 		// lets try resolve any values files in the version stream using the prefix and chart name first
-		found, err := o.addValues(helmfile, filepath.Join(prefix, release.Name), &release)
-		if err != nil {
-			return 0, errors.Wrapf(err, "failed to add values")
-		}
-		if !found {
-			// next try the full chart name
-			found, err = o.addValues(helmfile, fullChartName, &release)
+		if !IsLabelValue(release, helmhelpers.ValuesLabel, helmhelpers.LockLabelValue) {
+			found, err := o.addValues(helmfile, filepath.Join(prefix, release.Name), &release)
 			if err != nil {
 				return 0, errors.Wrapf(err, "failed to add values")
 			}
-		}
-
-		// lets try discover any local files
-		found = false
-		for _, releaseName := range releaseNames {
-			for _, valueFileName := range valueFileNames {
-				path := filepath.Join(helmfile.RelativePathToRoot, "values", releaseName, valueFileName)
-				appValuesFile := filepath.Join(o.Dir, path)
-				exists, err := files.FileExists(appValuesFile)
+			if !found {
+				// next try the full chart name
+				found, err = o.addValues(helmfile, fullChartName, &release)
 				if err != nil {
-					return 0, errors.Wrapf(err, "failed to check if release values file exists %s", appValuesFile)
-				}
-				if exists {
-					if !valuesContains(release.Values, path) {
-						release.Values = append(release.Values, path)
-					}
-					found = true
-					break
+					return 0, errors.Wrapf(err, "failed to add values")
 				}
 			}
-			if found {
-				break
-			}
-		}
 
-		if helmfile.RelativePathToRoot != "" {
-			foundValuesFile := false
-			for _, v := range release.Values {
-				s, ok := v.(string)
-				if ok && s == reqvalues.RequirementsValuesFileName {
-					foundValuesFile = true
+			// lets try discover any local files
+			found = false
+			for _, releaseName := range releaseNames {
+				for _, valueFileName := range valueFileNames {
+					path := filepath.Join(helmfile.RelativePathToRoot, "values", releaseName, valueFileName)
+					appValuesFile := filepath.Join(o.Dir, path)
+					exists, err := files.FileExists(appValuesFile)
+					if err != nil {
+						return 0, errors.Wrapf(err, "failed to check if release values file exists %s", appValuesFile)
+					}
+					if exists {
+						if !valuesContains(release.Values, path) {
+							release.Values = append(release.Values, path)
+						}
+						found = true
+						break
+					}
+				}
+				if found {
 					break
 				}
 			}
-			if !foundValuesFile {
-				release.Values = append(release.Values, reqvalues.RequirementsValuesFileName)
+
+			if helmfile.RelativePathToRoot != "" {
+				foundValuesFile := false
+				for _, v := range release.Values {
+					s, ok := v.(string)
+					if ok && s == reqvalues.RequirementsValuesFileName {
+						foundValuesFile = true
+						break
+					}
+				}
+				if !foundValuesFile {
+					release.Values = append(release.Values, reqvalues.RequirementsValuesFileName)
+				}
 			}
 		}
 		helmState.Releases[i] = release
@@ -593,6 +587,18 @@ func (o *Options) resolveHelmfile(helmState *state.HelmState, helmfile helmfiles
 
 	return count, nil
 
+}
+
+// IsLabelValue returns true if the release is labelled with the given label with a value
+func IsLabelValue(release state.ReleaseSpec, label, value string) bool {
+	answer := false
+	if release.Labels != nil {
+		lockVersionValue := strings.TrimSpace(release.Labels[label])
+		if lockVersionValue == value {
+			answer = true
+		}
+	}
+	return answer
 }
 
 func (o *Options) addValues(helmfile helmfiles.Helmfile, name string, release *state.ReleaseSpec) (bool, error) {

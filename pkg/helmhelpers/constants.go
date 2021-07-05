@@ -6,4 +6,10 @@ const (
 
 	// VersionLabel the label on helmfile releases to avoid overriding the version
 	VersionLabel = "version.jenkins-x.io"
+
+	// ValuesLabel the label on helmfile releases to avoid overriding the values YAML
+	ValuesLabel = "values.jenkins-x.io"
+
+	// LockLabelValue the value of the VersionLabel or ValuesLabel to lock the values and not apply version stream values
+	LockLabelValue = "lock"
 )
