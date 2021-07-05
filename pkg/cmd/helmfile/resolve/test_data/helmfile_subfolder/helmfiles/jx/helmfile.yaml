@@ -38,6 +38,8 @@ releases:
 - chart: jx3/lighthouse
   version: 1.1.10
   name: lighthouse
+  labels:
+    version.jenkins-x.io: lock
   values:
   - ../../versionStream/charts/jx3/lighthouse/values.yaml.gotmpl
   - jx-values.yaml
@@ -50,9 +52,8 @@ releases:
 - chart: jx3/jx-build-controller
   version: 0.3.1
   name: jx-build-controller
-  values:
-  - ../../versionStream/charts/jx3/jx-build-controller/values.yaml.gotmpl
-  - jx-values.yaml
+  labels:
+    values.jenkins-x.io: lock
 - chart: jx3/local-external-secrets
   version: 0.0.13
   name: local-external-secrets
