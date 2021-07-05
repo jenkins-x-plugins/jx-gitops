@@ -14,15 +14,15 @@ require (
 	github.com/jenkins-x-plugins/jx-charter v0.0.27
 	github.com/jenkins-x/go-scm v1.10.4
 	github.com/jenkins-x/jx-api/v4 v4.0.33
-	github.com/jenkins-x/jx-helpers/v3 v3.0.121
+	github.com/jenkins-x/jx-helpers/v3 v3.0.122
 	github.com/jenkins-x/jx-kube-client/v3 v3.0.2
 	github.com/jenkins-x/jx-logging/v3 v3.0.6
-	github.com/jenkins-x/lighthouse-client v0.0.184
+	github.com/jenkins-x/lighthouse-client v0.0.185
 	github.com/pborman/uuid v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/roboll/helmfile v0.139.0
 	github.com/rollout/rox-go v0.0.0-20181220111955-29ddae74a8c4
-	github.com/spf13/cobra v1.1.1
+	github.com/spf13/cobra v1.2.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
 	github.com/vrischmann/envconfig v1.3.0 // indirect
