@@ -26,7 +26,7 @@ import (
 
 var (
 	// generateTestOutput enable to regenerate the expected output
-	generateTestOutput = true
+	generateTestOutput = false
 )
 
 func TestStepHelmfileResolve(t *testing.T) {
@@ -35,6 +35,11 @@ func TestStepHelmfileResolve(t *testing.T) {
 		helmfile   string
 		namespaces []string
 	}{
+		{
+			folder:     "helmfile_subfolder",
+			helmfile:   filepath.Join("helmfiles", "helmfile.yaml"),
+			namespaces: []string{"jx", "secret-infra"},
+		},
 		{
 			folder:     "bucketrepo-svc",
 			namespaces: []string{"jx", "tekton-pipelines"},
@@ -62,11 +67,6 @@ func TestStepHelmfileResolve(t *testing.T) {
 		{
 			folder:     "input",
 			namespaces: []string{"foo", "jx", "secret-infra", "tekton-pipelines"},
-		},
-		{
-			folder:     "helmfile_subfolder",
-			helmfile:   filepath.Join("helmfiles", "helmfile.yaml"),
-			namespaces: []string{"jx", "secret-infra"},
 		},
 		{
 			folder:     "helmfile_multi_subfolder",
