@@ -22,5 +22,11 @@ releases:
   values:
   - ../../versionStream/charts/jx3/jx-kh-check/values.yaml.gotmpl
   - jx-values.yaml
+- chart: jxgh/kh-tls-check
+  version: 0.0.8
+  condition: jxRequirementsTLSCheck.enabled
+  name: kh-tls-check
+  values:
+  - jx-values.yaml
 templates: {}
 renderedvalues: {}

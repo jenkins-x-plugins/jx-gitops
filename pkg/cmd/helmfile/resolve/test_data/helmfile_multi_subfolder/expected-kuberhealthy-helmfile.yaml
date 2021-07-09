@@ -17,10 +17,16 @@ releases:
   - ../../versionStream/charts/kuberhealthy/kuberhealthy/values.yaml.gotmpl
   - jx-values.yaml
 - chart: jxgh/jx-kh-check
-  version: 0.0.68
+  version: 0.0.78
   name: jx-kh-check
   values:
   - ../../versionStream/charts/jxgh/jx-kh-check/values.yaml.gotmpl
+  - jx-values.yaml
+- chart: jxgh/kh-tls-check
+  version: 0.0.10
+  condition: jxRequirementsTLSCheck.enabled
+  name: kh-tls-check
+  values:
   - jx-values.yaml
 templates: {}
 renderedvalues: {}
