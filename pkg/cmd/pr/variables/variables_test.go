@@ -62,6 +62,9 @@ func TestPullRequestVariables(t *testing.T) {
 			{
 				Name: "env/staging",
 			},
+			{
+				Name: "some:label",
+			},
 		},
 	}
 

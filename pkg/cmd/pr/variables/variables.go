@@ -90,6 +90,7 @@ func (o *Options) displayPullRequest(pr *scm.PullRequest) error {
 
 	for _, label := range pr.Labels {
 		n := strings.ReplaceAll(label.Name, "/", "_")
+		n = strings.ReplaceAll(n, ":", "_")
 		n = strings.ReplaceAll(n, "-", "_")
 		n = "PR_LABEL_" + strings.ToUpper(n)
 		e[n] = "true"
