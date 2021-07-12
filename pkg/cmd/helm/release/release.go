@@ -6,7 +6,11 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
+
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/chart"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"
 
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/ghpages"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/plugins"
@@ -516,12 +520,38 @@ func (o *Options) BasicRegistry(repoURL, chartDir, name string) error {
 }
 
 func (o *Options) BuildAndPackage(chartDir string) error {
+	chartFile := filepath.Join(chartDir, "Chart.yaml")
+	exists, err := files.FileExists(chartFile)
+	if err != nil {
+		return errors.Wrapf(err, "failed to check file exists %s", chartFile)
+	}
+
+	chartDef := &chart.Chart{}
+	if exists {
+		err = yamls.LoadFile(chartFile, chartDef)
+		if err != nil {
+			errors.Wrapf(err, "failed to load Chart.yaml")
+		}
+
+		for i, dependency := range chartDef.Dependencies {
+			c := &cmdrunner.Command{
+				Dir:  chartDir,
+				Name: o.HelmBinary,
+				Args: []string{"repo", "add", strconv.Itoa(i), dependency.Repository},
+			}
+			_, err = o.CommandRunner(c)
+			if err != nil {
+				return errors.Wrapf(err, "failed to add repository")
+			}
+		}
+	}
+
 	c := &cmdrunner.Command{
 		Dir:  chartDir,
 		Name: o.HelmBinary,
 		Args: []string{"dependency", "build", "."},
 	}
-	_, err := o.CommandRunner(c)
+	_, err = o.CommandRunner(c)
 	if err != nil {
 		return errors.Wrapf(err, "failed to build dependencies")
 	}
