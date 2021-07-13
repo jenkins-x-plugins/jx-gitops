@@ -4,6 +4,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
+	"strconv"
+
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/chart"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"
 
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/plugins"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
@@ -112,6 +116,26 @@ func (o *Options) Run() error {
 		}
 		if !exists {
 			continue
+		}
+
+		chartDef := &chart.Chart{}
+		if exists {
+			err = yamls.LoadFile(chartFile, chartDef)
+			if err != nil {
+				errors.Wrapf(err, "failed to load Chart.yaml")
+			}
+
+			for i, dependency := range chartDef.Dependencies {
+				c := &cmdrunner.Command{
+					Dir:  chartDir,
+					Name: o.HelmBinary,
+					Args: []string{"repo", "add", strconv.Itoa(i), dependency.Repository},
+				}
+				_, err = o.CommandRunner(c)
+				if err != nil {
+					return errors.Wrapf(err, "failed to add repository")
+				}
+			}
 		}
 
 		log.Logger().Infof("building chart %s", info(name))
