@@ -285,7 +285,7 @@ func (o *Options) Validate() error {
 		{
 			Name: "REPO_NAME",
 			Function: func() (string, error) {
-				return o.Options.Repository, nil
+				return o.getRepoName(), nil
 			},
 		},
 		{
@@ -652,6 +652,11 @@ func (o *Options) GetDashboardURL() (string, error) {
 		}
 	}
 	return o.DashboardURL, nil
+}
+
+// ToLower is required because repos with capitals in their names are not allowed in chartmuseum and it will throw a 500 error.
+func (o *Options) getRepoName() string {
+	return strings.ToLower(o.Options.Repository)
 }
 
 func configMapKeyToEnvVar(k string) string {
