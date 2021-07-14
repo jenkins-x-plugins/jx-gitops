@@ -7,8 +7,8 @@ namespace: kuberhealthy
 repositories:
 - name: kuberhealthy
   url: https://kuberhealthy.github.io/kuberhealthy/helm-repos
-- name: jx3
-  url: https://storage.googleapis.com/jenkinsxio/charts
+- name: jxgh
+  url: https://jenkins-x-charts.github.io/repo
 releases:
 - chart: kuberhealthy/kuberhealthy
   version: "54"
@@ -16,11 +16,17 @@ releases:
   values:
   - ../../versionStream/charts/kuberhealthy/kuberhealthy/values.yaml.gotmpl
   - jx-values.yaml
-- chart: jx3/jx-kh-check
-  version: 0.0.68
+- chart: jxgh/jx-kh-check
+  version: 0.0.78
   name: jx-kh-check
   values:
-  - ../../versionStream/charts/jx3/jx-kh-check/values.yaml.gotmpl
+  - ../../versionStream/charts/jxgh/jx-kh-check/values.yaml.gotmpl
+  - jx-values.yaml
+- chart: jxgh/kh-tls-check
+  version: 0.0.10
+  condition: jxRequirementsTLSCheck.enabled
+  name: kh-tls-check
+  values:
   - jx-values.yaml
 templates: {}
 renderedvalues: {}

@@ -12,6 +12,7 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/cli"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/testhelpers"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -24,6 +25,7 @@ func TestGitMerge(t *testing.T) {
 
 	g := cli.NewCLIClient("", nil)
 
+	defaultBranch := testhelpers.GetDefaultBranch(t)
 	testCases := []struct {
 		name  string
 		init  func(*merge.Options)
@@ -33,7 +35,7 @@ func TestGitMerge(t *testing.T) {
 			name: "explicit-arguments",
 			init: func(o *merge.Options) {
 				o.SHAs = []string{branchBSha}
-				o.BaseBranch = "master"
+				o.BaseBranch = defaultBranch
 				o.BaseSHA = masterSha
 			},
 			check: func() {
@@ -81,13 +83,13 @@ func TestGitMerge(t *testing.T) {
 		requireGitAdd(t, g, dir)
 		branchBSha = requireCommit(t, g, dir, "b commit")
 
-		requireGit(t, g, dir, "checkout", "master")
+		requireGit(t, g, dir, "checkout", defaultBranch)
 		requireNewBranch(t, g, dir, "c")
 		requireWritefile(t, dir, "c.txt", "c")
 		requireGitAdd(t, g, dir)
 		branchCSha = requireCommit(t, g, dir, "c commit")
 
-		requireGit(t, g, dir, "checkout", "master")
+		requireGit(t, g, dir, "checkout", defaultBranch)
 		_, o := merge.NewCmdGitMerge()
 
 		assert.Equal(t, masterSha, readHeadSHA(t, dir), "should be on the right head SHA for %s", name)

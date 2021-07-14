@@ -31,7 +31,7 @@ import (
 	"github.com/roboll/helmfile/pkg/state"
 	"github.com/spf13/cobra"
 	"helm.sh/helm/v3/pkg/chart"
-	"k8s.io/api/extensions/v1beta1"
+	nv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
@@ -466,7 +466,7 @@ func (o *Options) discoverIngress(ci *releasereport.ReleaseInfo, ns string, rel 
 			continue
 		}
 
-		ing := &v1beta1.Ingress{}
+		ing := &nv1.Ingress{}
 		err = yaml.Unmarshal(data, ing)
 		if err != nil {
 			log.Logger().Warnf("failed to unmarshal YAML as Ingress in file %s: %s", path, err.Error())

@@ -24,12 +24,26 @@ import (
 	"k8s.io/client-go/rest"
 )
 
+var (
+	// generateTestOutput enable to regenerate the expected output
+	generateTestOutput = false
+)
+
 func TestStepHelmfileResolve(t *testing.T) {
 	tests := []struct {
 		folder     string
 		helmfile   string
 		namespaces []string
 	}{
+		{
+			folder:     "helmfile_subfolder",
+			helmfile:   filepath.Join("helmfiles", "helmfile.yaml"),
+			namespaces: []string{"jx", "secret-infra"},
+		},
+		{
+			folder:     "bucketrepo-svc",
+			namespaces: []string{"jx", "tekton-pipelines"},
+		},
 		{
 			folder:     "remote-cluster",
 			namespaces: []string{"nginx"},
@@ -47,21 +61,12 @@ func TestStepHelmfileResolve(t *testing.T) {
 			namespaces: []string{"jx", "external-secrets", "foo", "tekton-pipelines"},
 		},
 		{
-			folder:     "bucketrepo-svc",
-			namespaces: []string{"jx", "tekton-pipelines"},
-		},
-		{
 			folder:     "local-secrets",
 			namespaces: []string{"jx", "secret-infra", "tekton-pipelines"},
 		},
 		{
 			folder:     "input",
 			namespaces: []string{"foo", "jx", "secret-infra", "tekton-pipelines"},
-		},
-		{
-			folder:     "helmfile_subfolder",
-			helmfile:   filepath.Join("helmfiles", "helmfile.yaml"),
-			namespaces: []string{"secret-infra"},
 		},
 		{
 			folder:     "helmfile_multi_subfolder",
@@ -163,7 +168,21 @@ func TestStepHelmfileResolve(t *testing.T) {
 
 		for _, ns := range test.namespaces {
 			expectedHelmfile := fmt.Sprintf("expected-%s-helmfile.yaml", ns)
-			testhelpers.AssertTextFilesEqual(t, filepath.Join(tmpDir, expectedHelmfile), filepath.Join(tmpDir, "helmfiles", ns, "helmfile.yaml"), "generated file: "+name)
+
+			expectedPath := filepath.Join("test_data", name, expectedHelmfile)
+			generatedFile := filepath.Join(tmpDir, "helmfiles", ns, "helmfile.yaml")
+
+			if generateTestOutput {
+				data, err := ioutil.ReadFile(generatedFile)
+				require.NoError(t, err, "failed to load %s", generatedFile)
+
+				err = ioutil.WriteFile(expectedPath, data, 0666)
+				require.NoError(t, err, "failed to save file %s", expectedPath)
+
+				t.Logf("saved file %s\n", expectedPath)
+			} else {
+				testhelpers.AssertTextFilesEqual(t, expectedPath, generatedFile, "generated file: "+name)
+			}
 
 		}
 
