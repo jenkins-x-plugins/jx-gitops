@@ -783,14 +783,14 @@ github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869/go.mod h1:cJ6Cj
 github.com/jenkins-x-plugins/jx-charter v0.0.27 h1:e4JLqGRqi31w7qA2R3vHhA1JMmAR0HHhL0J9WOY/CtU=
 github.com/jenkins-x-plugins/jx-charter v0.0.27/go.mod h1:H/NycSuFNZh5J7rD2JdHreOn3ECcBKg68LhElDTwyUM=
 github.com/jenkins-x/gen-crd-api-reference-docs v0.1.6/go.mod h1:a4dzSf/nNLMMMqultm6IlV/04xq26uICEYPkSTOahWQ=
-github.com/jenkins-x/go-scm v1.10.8 h1:B9g8RbeqQL+ALG9WGT/mDn6ege45u3dYEnhup4yIeyc=
-github.com/jenkins-x/go-scm v1.10.8/go.mod h1:z7xTO9/VzqW3xEbEMH2z5cpOGrZ8+nOHOWfU1ngFGxs=
+github.com/jenkins-x/go-scm v1.10.9 h1:mMQdtrwAcl7vlOD8KFWtU5/8Cz3RLeyYjIeUr7Q9rVQ=
+github.com/jenkins-x/go-scm v1.10.9/go.mod h1:z7xTO9/VzqW3xEbEMH2z5cpOGrZ8+nOHOWfU1ngFGxs=
 github.com/jenkins-x/jx-api/v4 v4.0.33/go.mod h1:VRrNCBPQu9pP0tDXlRcPiGMuyeI6g8RTfWolNsX01+M=
 github.com/jenkins-x/jx-api/v4 v4.1.3 h1:V798GEGafqcaNn4+as3NYZmIomFV5JJj7qpZTHsItWw=
 github.com/jenkins-x/jx-api/v4 v4.1.3/go.mod h1:l11kHlFy40UGu9pdhCRxDiJcEgRubSVzybWB2jXjLcs=
 github.com/jenkins-x/jx-helpers/v3 v3.0.116/go.mod h1:4B+rwR9VCYvYoxVrb9CWiGpUpiT2OBDpnbORXJk+kRo=
-github.com/jenkins-x/jx-helpers/v3 v3.0.123 h1:N/d1PIm5wblCv6doQr92jq4H5av/T2AFfeeqR7g5p+w=
-github.com/jenkins-x/jx-helpers/v3 v3.0.123/go.mod h1:MEtoAq1Wj/9EPY3e9wkVplRYB5z4T5s/U+XTBU8ddL4=
+github.com/jenkins-x/jx-helpers/v3 v3.0.125 h1:AMNiKYIKmFEFLZJQ7Becy2fkRm+D7QHYV3alHea7z8E=
+github.com/jenkins-x/jx-helpers/v3 v3.0.125/go.mod h1:GymeC7iPxTr5DT22dcwJNOTZLOmi8hri3zvtvbN1CJc=
 github.com/jenkins-x/jx-kube-client/v3 v3.0.2 h1:sJs6FaIwycDYwE4UsA7j9tpdXOxXEta9KNUJp6s45VI=
 github.com/jenkins-x/jx-kube-client/v3 v3.0.2/go.mod h1:C/mKnCT5wvolX61eLKJVBNev9sqnkGNpi4skTQ1Gr3Q=
 github.com/jenkins-x/jx-logging/v3 v3.0.3/go.mod h1:Vp2ER2SYgGhAgEEHlLwfi2ZB54tz6ya1qExq0A4CKMI=
@@ -1167,6 +1167,7 @@ github.com/sergi/go-diff v1.0.0/go.mod h1:0CfEIISq7TuYL3j771MWULgwwjU+GofnZX9QAm
 github.com/sergi/go-diff v1.1.0 h1:we8PVUC3FE2uYfodKH/nBHMSetSfHDR6scGdBi+erh0=
 github.com/sergi/go-diff v1.1.0/go.mod h1:STckp+ISIX8hZLjrqAeVduY0gWCT9IjLuqbuNXdaHfM=
 github.com/sethvargo/go-envconfig v0.3.2/go.mod h1:XZ2JRR7vhlBEO5zMmOpLgUhgYltqYqq4d4tKagtPUv0=
+github.com/sethvargo/go-envconfig v0.3.5/go.mod h1:XZ2JRR7vhlBEO5zMmOpLgUhgYltqYqq4d4tKagtPUv0=
 github.com/shopspring/decimal v1.2.0 h1:abSATXmQEYyShuxI4/vyW3tV1MrKAJzCZ/0zLUXYbsQ=
 github.com/shopspring/decimal v1.2.0/go.mod h1:DKyhrW/HYNuLGql+MJL6WCR6knT2jwCFRcu2hWCYk4o=
 github.com/shurcooL/githubv4 v0.0.0-20190718010115-4ba037080260/go.mod h1:hAF0iLZy4td2EX+/8Tw+4nodhlMrwN3HupfaXj3zkGo=
