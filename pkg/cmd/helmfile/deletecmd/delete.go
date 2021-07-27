@@ -69,7 +69,7 @@ func NewCmdHelmfileDelete() (*cobra.Command, *Options) {
 
 	// chart flags
 	cmd.Flags().StringVarP(&o.Details.Chart, "chart", "c", "", "the name of the helm chart to remove")
-	cmd.Flags().StringVarP(&o.Details.Namespace, "namespace", "n", "jx", "the namespace to remove the chart from. If blank then remove from all namespaces")
+	cmd.Flags().StringVarP(&o.Details.Namespace, "namespace", "n", "", "the namespace to remove the chart from. If blank then remove from all namespaces")
 
 	// git commit stuff....
 	cmd.Flags().BoolVarP(&o.DoGitCommit, "git-commit", "", false, "if set then the template command will git commit the modified helmfile.yaml files")

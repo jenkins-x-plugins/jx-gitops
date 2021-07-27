@@ -32,20 +32,6 @@ Add one or more repositories to the SourceConfig
     help for delete
 
 .PP
-\fB\-\-invert\-selector\fP[=false]
-    inverts the effect of selector to exclude resources matched by selector
-
-.PP
-\fB\-k\fP, \fB\-\-kind\fP=[]
-    adds Kubernetes resource kinds to filter on. For kind expressions see: 
-\[la]https://github.com/jenkins-x/jx-helpers/v3/tree/master/docs/kind_filters.md\[ra]
-
-.PP
-\fB\-\-kind\-ignore\fP=[]
-    adds Kubernetes resource kinds to exclude. For kind expressions see: 
-\[la]https://github.com/jenkins-x/jx-helpers/v3/tree/master/docs/kind_filters.md\[ra]
-
-.PP
 \fB\-n\fP, \fB\-\-name\fP=""
     the name of the repository to remove
 
@@ -53,16 +39,15 @@ Add one or more repositories to the SourceConfig
 \fB\-o\fP, \fB\-\-owner\fP=""
     the owner of the repository to remove
 
-.PP
-\fB\-\-selector\fP=[]
-    adds Kubernetes label selector to filter on, e.g. \-s app=pusher\-wave,heritage=Helm
-
 
 .SH EXAMPLE
 .PP
-# creates any missing SourceConfig resources
-  jx\-gitops repository add 
-\[la]https://github.com/myorg/myrepo.git%!(EXTRA\[ra] string=jx\-gitops)
+# deletes a repository by name from the '.jx/gitops/source\-config.yaml' file
+  jx gitops repository delete \-\-name myrepo
+
+.PP
+# deletes a repository by name and owner from the '.jx/gitops/source\-config.yaml' file
+  jx gitops repository delete \-\-name myrepo \-\-owner myowner
 
 
 .SH SEE ALSO

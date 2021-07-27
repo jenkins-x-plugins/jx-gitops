@@ -36,7 +36,7 @@ Deletes a chart from the helmfiles in one or all namespaces
       --helmfile string         the helmfile to resolve. If not specified defaults to 'helmfile.yaml' in the dir
   -h, --help                    help for delete
       --log-level string        Sets the logging level. If not specified defaults to $JX_LOG_LEVEL
-  -n, --namespace string        the namespace to remove the chart from. If blank then remove from all namespaces (default "jx")
+  -n, --namespace string        the namespace to remove the chart from. If blank then remove from all namespaces
       --verbose                 Enables verbose output. The environment variable JX_LOG_LEVEL has precedence over this flag and allows setting the logging level to any value of: panic, fatal, error, warn, info, debug, trace
 ```
 
