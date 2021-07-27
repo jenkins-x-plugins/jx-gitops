@@ -16,7 +16,6 @@ jxRequirements:
   cluster: {}
   ingress:
     domain: ""
-    externalDNS: false
     namespaceSubDomain: ""
     tls:
       email: ""

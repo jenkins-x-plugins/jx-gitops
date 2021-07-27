@@ -26,7 +26,6 @@ spec:
   - key: production
   ingress:
     domain: foo.io
-    externalDNS: false
     kind: ingress
     namespaceSubDomain: -jx.
     tls:

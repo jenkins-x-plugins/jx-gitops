@@ -19,7 +19,6 @@ environments:
 - key: production
 ingress:
   domain: 34.105.246.143.xip.io
-  externalDNS: false
   kind: ingress
   namespaceSubDomain: -jx.
   tls:
