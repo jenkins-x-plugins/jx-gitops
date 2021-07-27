@@ -52,10 +52,10 @@ func NewCmdHelmfileDelete() (*cobra.Command, *Options) {
 
 	cmd := &cobra.Command{
 		Use:     "delete",
+		Aliases: []string{"remove", "rm", "del"},
 		Short:   "Deletes a chart from the helmfiles in one or all namespaces",
 		Long:    cmdLong,
 		Example: cmdExample,
-		Aliases: []string{"remove", "rm", "del"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return o.Run()
 		},

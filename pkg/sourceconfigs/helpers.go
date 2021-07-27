@@ -281,7 +281,7 @@ func DryConfig(config *v1alpha1.SourceConfig) {
 }
 
 // FindSettings finds the settings for the given owner and repository name
-func FindSettings(config *v1alpha1.SourceConfig, owner string, repoName string) *jxcore.SettingsConfig {
+func FindSettings(config *v1alpha1.SourceConfig, owner, repoName string) *jxcore.SettingsConfig {
 	if owner == "" {
 		owner = os.Getenv("REPO_OWNER")
 	}
@@ -311,4 +311,29 @@ func FindSettings(config *v1alpha1.SourceConfig, owner string, repoName string) 
 		}
 	}
 	return nil
+}
+
+// RemoveRepository removes the repositories with the given name optionally matching on the owner
+func RemoveRepository(config *v1alpha1.SourceConfig, owner, repoName string) bool {
+	modified := false
+	// lets try find the group for the repository name
+	for i := range config.Spec.Groups {
+		group := &config.Spec.Groups[i]
+		if owner != "" && group.Owner != owner {
+			continue
+		}
+		for j := range group.Repositories {
+			repo := &group.Repositories[j]
+			if repo.Name == repoName {
+				r2 := group.Repositories[0:j]
+				if j+1 < len(group.Repositories) {
+					r2 = append(r2, group.Repositories[j+1:]...)
+				}
+				group.Repositories = r2
+				modified = true
+				break
+			}
+		}
+	}
+	return modified
 }
