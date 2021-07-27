@@ -1,17 +1,14 @@
 package deletecmd
 
 import (
-	"fmt"
 	"path/filepath"
 
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/apis/gitops/v1alpha1"
-	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/sourceconfigs"
 	"github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/kyamls"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/options"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"
@@ -28,14 +25,16 @@ var (
 `)
 
 	cmdExample = templates.Examples(`
-		# creates any missing SourceConfig resources  
-		%s repository add https://github.com/myorg/myrepo.git
+		# deletes a repository by name from the '.jx/gitops/source-config.yaml' file
+		jx gitops repository delete --name myrepo
+
+		# deletes a repository by name and owner from the '.jx/gitops/source-config.yaml' file
+		jx gitops repository delete --name myrepo --owner myowner
 	`)
 )
 
 // LabelOptions the options for the command
 type Options struct {
-	kyamls.Filter
 	Owner        string
 	Name         string
 	Dir          string
@@ -54,7 +53,7 @@ func NewCmdDeleteRepository() (*cobra.Command, *Options) {
 		Aliases: []string{"remove", "rm", "del"},
 		Short:   "Deletes a repository from the source configuration",
 		Long:    cmdLong,
-		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName, rootcmd.BinaryName),
+		Example: cmdExample,
 		Run: func(cmd *cobra.Command, args []string) {
 			err := o.Run()
 			helper.CheckErr(err)
@@ -64,8 +63,6 @@ func NewCmdDeleteRepository() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.ConfigFile, "config", "c", "", "the configuration file to load for the repository configurations. If not specified we look in .jx/gitops/source-repositories.yaml")
 	cmd.Flags().StringVarP(&o.Name, "name", "n", "", "the name of the repository to remove")
 	cmd.Flags().StringVarP(&o.Owner, "owner", "o", "", "the owner of the repository to remove")
-
-	o.Filter.AddFlags(cmd)
 	return cmd, o
 }
 
