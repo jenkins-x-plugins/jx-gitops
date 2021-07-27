@@ -1,0 +1,7 @@
+filepath: ""
+helmfiles:
+- path: helmfiles/jx-production/helmfile.yaml
+- path: helmfiles/jx-staging/helmfile.yaml
+- path: helmfiles/nginx/helmfile.yaml
+templates: {}
+renderedvalues: {}

@@ -34,3 +34,39 @@ func TestSplitChartName(t *testing.T) {
 	}
 
 }
+
+func TestMatchesChartName(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		release  string
+		filter   string
+		expected bool
+	}{
+		{
+			release:  "jxgh/lighthouse2",
+			filter:   "lighthouse",
+			expected: false,
+		},
+		{
+			release:  "jxgh/lighthouse",
+			filter:   "lighthouse",
+			expected: true,
+		},
+		{
+			release:  "jxgh/lighthouse",
+			filter:   "jxgh/lighthouse",
+			expected: true,
+		},
+		{
+			release:  "jxgh/lighthouse",
+			filter:   "cheese/lighthouse",
+			expected: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		got := helmfiles.MatchesChartName(tc.release, tc.filter)
+		assert.Equal(t, tc.expected, got, "for release %s and filter %s", tc.release, tc.filter)
+	}
+}

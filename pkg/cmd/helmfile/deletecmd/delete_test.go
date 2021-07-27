@@ -1,11 +1,11 @@
-package add_test
+package deletecmd_test
 
 import (
 	"io/ioutil"
 	"path/filepath"
 	"testing"
 
-	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/helmfile/add"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/helmfile/deletecmd"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/fakekpt"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/helmfiles/testhelmfile"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner"
@@ -20,38 +20,41 @@ var (
 	generateTestOutput = false
 )
 
-func TestStepHelmfileAdd(t *testing.T) {
+func TestStepHelmfileDelete(t *testing.T) {
 	testCases := []struct {
-		chart       string
-		repository  string
-		namespace   string
-		version     string
-		releaseName string
+		chart     string
+		namespace string
+		dir       string
 	}{
 		{
-			chart:       "ingress-nginx/ingress-nginx",
-			namespace:   "nginx",
-			version:     "4.0",
-			releaseName: "nginx-ingress",
+			chart: "ingress-nginx",
+			dir:   "local",
 		},
 		{
-			chart:       "jenkins-x/new-cheese",
-			namespace:   "cheese",
-			releaseName: "mythingy",
+			chart: "ingress-nginx/ingress-nginx",
+			dir:   "fullname",
 		},
 		{
-			chart: "jenkins-x/jx-test-collector",
+			chart: "does-not-exist",
+			dir:   "nochange",
 		},
 		{
-			chart:      "jenkins/jenkins-operator",
-			repository: "https://raw.githubusercontent.com/jenkinsci/kubernetes-operator/master/chart",
+			chart: "cheese",
+			dir:   "all",
+		},
+		{
+			chart:     "cheese",
+			namespace: "jx-production",
+			dir:       "prod",
 		},
 	}
 
 	tmpDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err, "failed to create tmp dir")
 
-	srcDir := filepath.Join("test_data", "input")
+	t.Logf("generating files to %s\n", tmpDir)
+
+	srcDir := filepath.Join("test_data")
 	require.DirExists(t, srcDir)
 
 	err = files.CopyDirOverwrite(srcDir, tmpDir)
@@ -72,27 +75,20 @@ func TestStepHelmfileAdd(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		_, o := add.NewCmdHelmfileAdd()
-		o.Dir = tmpDir
-		o.Chart = tc.chart
-		if tc.namespace == "" {
-			tc.namespace = "jx"
-		}
-		o.Namespace = tc.namespace
-		o.ReleaseName = tc.releaseName
-		o.Repository = tc.repository
-		o.Version = tc.version
+		_, o := deletecmd.NewCmdHelmfileDelete()
+		o.Dir = filepath.Join(tmpDir, tc.dir, "input")
+		o.Details.Chart = tc.chart
+		o.Details.Namespace = tc.namespace
 
-		t.Logf("installing chart %s\n", o.Chart)
+		t.Logf("deleting chart %s\n", o.Details.Chart)
 
 		o.CommandRunner = runner.Run
 		o.Gitter = cli.NewCLIClient("", runner.Run)
 
 		err = o.Run()
 		require.NoError(t, err, "failed to run the command")
+
+		expectedDir := filepath.Join("test_data", tc.dir, "expected")
+		testhelmfile.AssertHelmfiles(t, expectedDir, o.Dir, generateTestOutput)
 	}
-
-	t.Logf("generated files to %s\n", tmpDir)
-
-	testhelmfile.AssertHelmfiles(t, filepath.Join("test_data", "expected"), tmpDir, generateTestOutput)
 }

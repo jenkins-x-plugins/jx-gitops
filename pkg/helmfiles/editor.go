@@ -60,7 +60,7 @@ func (e *Editor) getOrCreateState(path string) *state.HelmState {
 	return hf
 }
 
-// ChartDetails adds a chart to the right helmfile for the given namespace
+// AddChart adds a chart to the right helmfile for the given namespace
 func (e *Editor) AddChart(opts *ChartDetails) error {
 	ns := opts.Namespace
 	if ns == "" {
@@ -104,6 +104,31 @@ func (e *Editor) AddChart(opts *ChartDetails) error {
 	}
 	if modified {
 		e.modified[path] = true
+	}
+	return nil
+}
+
+// DeleteChart adds a chart to the right helmfile for the given namespace
+func (e *Editor) DeleteChart(opts *ChartDetails) error {
+	for ns, path := range e.namespaceToPath {
+		if path == "" {
+			continue
+		}
+		if opts.Namespace != "" && opts.Namespace != ns {
+			continue
+		}
+		hf := e.pathToState[path]
+		if hf == nil {
+			continue
+		}
+
+		modified, err := opts.Delete(hf)
+		if err != nil {
+			return errors.Wrapf(err, "failed to add chart")
+		}
+		if modified {
+			e.modified[path] = true
+		}
 	}
 	return nil
 }

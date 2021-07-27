@@ -1,0 +1,5 @@
+filepath: ""
+helmfiles:
+- path: helmfiles/nginx/helmfile.yaml
+templates: {}
+renderedvalues: {}
