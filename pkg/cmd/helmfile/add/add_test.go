@@ -55,7 +55,7 @@ func TestStepHelmfileAdd(t *testing.T) {
 	require.DirExists(t, srcDir)
 
 	err = files.CopyDirOverwrite(srcDir, tmpDir)
-	require.NoError(t, err, "failed to copy generated crds at %s to %s", srcDir, tmpDir)
+	require.NoError(t, err, "failed to copy generated data at %s to %s", srcDir, tmpDir)
 
 	runner := &fakerunner.FakeRunner{
 		CommandRunner: func(c *cmdrunner.Command) (string, error) {

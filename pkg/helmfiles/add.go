@@ -161,3 +161,30 @@ func (o *ChartDetails) Add(helmState *state.HelmState) (bool, error) {
 	}
 	return modified, nil
 }
+
+// Delete removes the releases for the given details from the given helm state
+func (o *ChartDetails) Delete(helmState *state.HelmState) (bool, error) {
+	modified := false
+	last := len(helmState.Releases) - 1
+	for i := last; i >= 0; i-- {
+		release := &helmState.Releases[i]
+		if MatchesChartName(release.Chart, o.Chart) && (o.ReleaseName == "" || release.Name == o.ReleaseName) {
+			r2 := helmState.Releases[0:i]
+			if i < last {
+				r2 = append(r2, helmState.Releases[i+1:]...)
+			}
+			helmState.Releases = r2
+			modified = true
+		}
+	}
+	return modified, nil
+}
+
+// MatchesChartName if name has a prefix then match on prefix and name otherwise just match on the local name only
+func MatchesChartName(releaseChart, name string) bool {
+	if strings.Contains(name, "/") {
+		return releaseChart == name
+	}
+	_, localName := SpitChartName(releaseChart)
+	return localName == name
+}
