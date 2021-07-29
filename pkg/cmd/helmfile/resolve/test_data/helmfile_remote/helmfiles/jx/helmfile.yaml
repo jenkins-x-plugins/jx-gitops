@@ -1,0 +1,17 @@
+filepath: ""
+environments:
+  default:
+    values:
+    - jx-values.yaml
+namespace: jx
+repositories:
+- name: dev
+  url: https://acme.com/something
+releases:
+- chart: dev/cheese
+  version: 0.0.1
+  name: cheese
+  values:
+  - jx-values.yaml
+templates: {}
+renderedvalues: {}

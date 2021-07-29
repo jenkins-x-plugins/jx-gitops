@@ -41,6 +41,11 @@ func TestStepHelmfileResolve(t *testing.T) {
 			namespaces: []string{"jx", "secret-infra"},
 		},
 		{
+			folder:     "helmfile_remote",
+			helmfile:   filepath.Join("helmfiles", "helmfile.yaml"),
+			namespaces: []string{"jx", "secret-infra"},
+		},
+		{
 			folder:     "bucketrepo-svc",
 			namespaces: []string{"jx", "tekton-pipelines"},
 		},
