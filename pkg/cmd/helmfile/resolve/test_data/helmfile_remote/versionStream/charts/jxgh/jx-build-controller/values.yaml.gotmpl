@@ -1,0 +1,30 @@
+serviceaccount:
+  dummy: value
+{{- if eq .Values.jxRequirements.cluster.provider "gke" }}
+  annotations:
+    iam.gke.io/gcp-service-account: {{ .Values.jxRequirements.cluster.clusterName }}-bc@{{ .Values.jxRequirements.cluster.project }}.iam.gserviceaccount.com
+{{- else if and (eq .Values.jxRequirements.cluster.provider "eks") (hasKey .Values.jxRequirements.cluster "project") }}
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::{{ .Values.jxRequirements.cluster.project }}:role/{{ .Values.jxRequirements.cluster.clusterName }}-build-ctrl
+{{- end }}
+
+
+{{- if eq .Values.jxRequirements.cluster.provider "gke" }}
+log:
+  # json or stackdriver are the common values
+  format: "stackdriver"
+{{- end }}
+
+env:
+{{- if and (eq .Values.jxRequirements.cluster.provider "eks") (hasKey .Values.jxRequirements.cluster "region") }}
+  AWS_REGION: {{ .Values.jxRequirements.cluster.region }}
+{{ else if eq .Values.jxRequirements.cluster.provider "aks" }}
+  {{ if hasKey .Values.jxRequirements.cluster.azure "storage" }}
+    {{ if hasKey .Values.jxRequirements.cluster.azure.storage "storageAccountName" }}
+  AZURE_STORAGE_ACCOUNT: {{ .Values.jxRequirements.cluster.azure.storage.storageAccountName }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+  GIT_SECRET_SERVER: {{ .Values.jxRequirements.cluster.gitServer }}
+  TRACES_EXPORTER_TYPE: "jaeger:http:thrift"
+  TRACES_EXPORTER_ENDPOINT: "tempo.jx-observability:14268"

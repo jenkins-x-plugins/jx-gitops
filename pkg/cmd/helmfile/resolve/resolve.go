@@ -957,19 +957,21 @@ func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
 	}
 
 	// lets ensure we have the jx-build-controller installed
-	found := false
-	for i := range helmstate.Releases {
-		release := &helmstate.Releases[i]
-		if release.Chart == "jxgh/jx-build-controller" {
-			found = true
-			break
+	if helmstate.OverrideNamespace == "jx" && isDevCluster(helmstate) {
+		found := false
+		for i := range helmstate.Releases {
+			release := &helmstate.Releases[i]
+			if release.Chart == "jxgh/jx-build-controller" {
+				found = true
+				break
+			}
 		}
-	}
-	if !found && helmstate.OverrideNamespace == "jx" {
-		helmstate.Releases = append(helmstate.Releases, state.ReleaseSpec{
-			Chart: "jxgh/jx-build-controller",
-		})
-		addedJxgh = true
+		if !found && helmstate.OverrideNamespace == "jx" {
+			helmstate.Releases = append(helmstate.Releases, state.ReleaseSpec{
+				Chart: "jxgh/jx-build-controller",
+			})
+			addedJxgh = true
+		}
 	}
 
 	if addedJxgh {
@@ -1085,6 +1087,16 @@ func (o *Options) migrateRequirementsToV4() error {
 	}
 
 	return nil
+}
+
+func isDevCluster(helmState *state.HelmState) bool {
+	for _, release := range helmState.Releases {
+		_, local := helmfiles.SpitChartName(release.Chart)
+		if local == "jxboot-helmfile-resources" || local == "lighthouse" {
+			return true
+		}
+	}
+	return false
 }
 
 func (o *Options) updateVersionFromVersionStream(release *state.ReleaseSpec) {
