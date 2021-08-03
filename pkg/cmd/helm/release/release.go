@@ -643,11 +643,21 @@ func (o *Options) findChartRepositoryUserPassword() (string, string, error) {
 			log.Logger().Warnf("Could not load Secret %s or %s in namespace %s: %s", secretName, kube.SecretBucketRepo, ns, err)
 		} else {
 			if secret != nil && secret.Data != nil {
-				if userName == "" {
-					userName = string(secret.Data["BASIC_AUTH_USER"])
-				}
 				if password == "" {
 					password = string(secret.Data["BASIC_AUTH_PASS"])
+					if password == "" {
+						password = string(secret.Data["password"])
+					}
+				}
+				if userName == "" {
+					userName = string(secret.Data["BASIC_AUTH_USER"])
+					if userName == "" {
+						userName = string(secret.Data["username"])
+						if userName == "" && password != "" {
+							// for easier integration with nexus lets default to admin
+							userName = "admin"
+						}
+					}
 				}
 			}
 		}
