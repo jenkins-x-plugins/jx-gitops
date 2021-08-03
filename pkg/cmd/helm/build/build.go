@@ -126,14 +126,19 @@ func (o *Options) Run() error {
 			}
 
 			for i, dependency := range chartDef.Dependencies {
-				c := &cmdrunner.Command{
-					Dir:  chartDir,
-					Name: o.HelmBinary,
-					Args: []string{"repo", "add", strconv.Itoa(i), dependency.Repository},
-				}
-				_, err = o.CommandRunner(c)
-				if err != nil {
-					return errors.Wrapf(err, "failed to add repository")
+				log.Logger().Infof("Adding repository for dependency %s", dependency.Name)
+				if dependency.Repository != "" {
+					c := &cmdrunner.Command{
+						Dir:  chartDir,
+						Name: o.HelmBinary,
+						Args: []string{"repo", "add", strconv.Itoa(i), dependency.Repository},
+					}
+					_, err = o.CommandRunner(c)
+					if err != nil {
+						return errors.Wrapf(err, "failed to add repository")
+					}
+				} else {
+					log.Logger().Infof("Skipping local dependency %s", dependency.Name)
 				}
 			}
 		}
