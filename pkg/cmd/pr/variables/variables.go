@@ -8,7 +8,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/go-scm/scm"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
@@ -29,8 +28,11 @@ var (
 `)
 
 	cmdExample = templates.Examples(`
-		# add Pull Request env vars to the .jx/variables.sh file
-		%s pr variables
+		# add variables from the Pull Request and labels to the .jx/variables.sh file
+		jx gitops pr variables
+
+		# add variables from the Pull Request, labels and comments of the form '/jx-var FOO=bar' to the .jx/variables.sh file
+		jx gitops pr variables --comments
 	`)
 )
 
@@ -55,7 +57,7 @@ func NewCmdPullRequestVariables() (*cobra.Command, *Options) {
 		Short:   "Adds Pull Request environment variables to the .jx/variables.sh file",
 		Long:    cmdLong,
 		Aliases: []string{"var", "variable"},
-		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
+		Example: cmdExample,
 		Run: func(cmd *cobra.Command, args []string) {
 			err := o.Run()
 			helper.CheckErr(err)
@@ -65,7 +67,7 @@ func NewCmdPullRequestVariables() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.File, "file", "f", filepath.Join(".jx", "variables.sh"), "the default variables file to lazily create or enrich")
 	cmd.Flags().StringVarP(&o.CommentPrefix, "comment-prefix", "", "/jx-var", "the comment prefix to specify environment variables")
 	cmd.Flags().StringVarP(&o.EnvVarNamePrefix, "env-prefix", "", "PR_COMMENT_", "the prefix added to any variable name defined via a comment. e.g. a comment of '/jx-var CHEESE=edam' would generate 'export PR_COMMENT_CHEESE=edam'")
-	cmd.Flags().BoolVarP(&o.UseComments, "comments", "", false, "should we query all the comments on the Pull Request and find any variables using special comments starting with the comment prefix")
+	cmd.Flags().BoolVarP(&o.UseComments, "comments", "", false, "if enabled query all the comments on the Pull Request and find any variables using special comments starting with the comment prefix")
 
 	return cmd, o
 }
