@@ -2,6 +2,7 @@ package rename
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -64,7 +65,12 @@ func (o *Options) Run() error {
 			return nil
 		}
 
-		node, err := yaml.ReadFile(path)
+		b, err := ioutil.ReadFile(path)
+		if err != nil {
+			return errors.Wrapf(err, "failed to load file %s", path)
+		}
+		safeYaml := RemoveGoTemplateLines(b)
+		node, err := yaml.Parse(safeYaml)
 		if err != nil {
 			return errors.Wrapf(err, "failed to load file %s", path)
 		}
@@ -104,6 +110,24 @@ func (o *Options) Run() error {
 		return errors.Wrapf(err, "failed to rename YAML files in dir %s", o.Dir)
 	}
 	return nil
+}
+
+// RemoveGoTemplateLines removes any lines which start with go templates so that we can parse as much of the
+// YAML as possible; such as resources with some templating inside the spec
+func RemoveGoTemplateLines(b []byte) string {
+	lines := strings.Split(string(b), "\n")
+
+	buf := &strings.Builder{}
+	for _, line := range lines {
+		t := strings.TrimSpace(line)
+		// ignore go templates
+		if strings.HasPrefix(t, "{{") {
+			continue
+		}
+		buf.WriteString(line)
+		buf.WriteString("\n")
+	}
+	return buf.String()
 }
 
 var (

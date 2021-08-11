@@ -35,6 +35,7 @@ func TestRenameYamlFiles(t *testing.T) {
 		"cheese-svc.yaml",
 		"cheese-ksvc.yaml",
 		"foo-bar-cm.yaml",
+		"feature-flags2-cm.yaml",
 	}
 
 	for _, f := range expectedFiles {
