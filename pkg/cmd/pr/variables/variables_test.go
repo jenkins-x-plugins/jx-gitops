@@ -116,6 +116,7 @@ func TestPullRequestVariables(t *testing.T) {
 		fakeData.PullRequests[prNumber] = fakePR
 
 		_, o := variables.NewCmdPullRequestVariables()
+
 		o.Dir = runDir
 		o.CommandRunner = runner.Run
 		o.JXClient = jxClient
@@ -131,6 +132,27 @@ func TestPullRequestVariables(t *testing.T) {
 		o.Number = prNumber
 		o.Branch = prBranch
 		o.ScmClient = scmClient
+
+		if name == "comments" {
+			o.UseComments = true
+
+			fakeData.PullRequestComments = map[int][]*scm.Comment{
+				prNumber: {
+					{
+						ID:   1,
+						Body: "some text\n/jx-var FOO=bar\n/jx-var CHEESE = edam\n\nsomething",
+					},
+					{
+						ID:   2,
+						Body: "/jx-var FOO=newValue",
+					},
+					{
+						ID:   3,
+						Body: ` /jx-var WITH_QUOTES = " some value " `,
+					},
+				},
+			}
+		}
 
 		err = o.Run()
 
