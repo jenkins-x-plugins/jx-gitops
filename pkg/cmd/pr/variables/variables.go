@@ -180,7 +180,7 @@ func (o *Options) loadPRComments(envVars map[string]string, pr *scm.PullRequest)
 	ctx := o.GetContext()
 	prNumber := pr.Number
 	opts := scm.ListOptions{}
-	comments, _, err := o.ScmClient.PullRequests.ListComments(ctx, o.Repository, prNumber, opts)
+	comments, _, err := o.ScmClient.PullRequests.ListComments(ctx, o.FullRepositoryName, prNumber, opts)
 	if err != nil {
 		return errors.Wrapf(err, "failed to list comments of PR %d", prNumber)
 	}
