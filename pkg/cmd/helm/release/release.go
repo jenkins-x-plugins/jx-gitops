@@ -391,7 +391,7 @@ func (o *Options) ChartPageRegistry(repoURL, chartDir, name string) error {
 				o.RepositoryPassword = discover.GitToken
 			}
 			if o.RepositoryUsername == "" {
-				o.RepositoryUsername = discover.Owner
+				o.RepositoryUsername = discover.ScmClient.Username
 			}
 			if o.GithubPagesURL == "" {
 				o.GithubPagesURL = fmt.Sprintf("https://%s.github.io/%s/", discover.Owner, discover.Repository)
