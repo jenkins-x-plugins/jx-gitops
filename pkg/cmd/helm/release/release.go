@@ -595,6 +595,15 @@ func (o *Options) createPublishCommand(repoURL, name, chartDir, username, passwo
 		}, nil
 	}
 
+	if strings.HasPrefix(repoURL, "s3:") {
+		// use s3 to push the chart
+		return &cmdrunner.Command{
+			Dir:  chartDir,
+			Name: o.HelmBinary,
+			Args: []string{"s3", "push", tarFile, o.RepositoryName},
+		}, nil
+	}
+
 	if o.Artifactory {
 		// lets try detect the git repository name
 		url := stringhelpers.UrlJoin(repoURL, tarFile)
