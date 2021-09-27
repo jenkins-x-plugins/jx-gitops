@@ -13,6 +13,8 @@ import (
 	"github.com/jenkins-x/lighthouse-client/pkg/apis/lighthouse/v1alpha1"
 	fakelh "github.com/jenkins-x/lighthouse-client/pkg/client/clientset/versioned/fake"
 	"github.com/stretchr/testify/assert"
+	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
+	faketekton "github.com/tektoncd/pipeline/pkg/client/clientset/versioned/fake"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -27,7 +29,7 @@ func TestGCPipelineActivities(t *testing.T) {
 	nowMinusOneDay := time.Now().AddDate(0, 0, -1)
 
 	pas := []*v1.PipelineActivity{
-		&v1.PipelineActivity{
+		{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "1",
 				Namespace: ns,
@@ -38,7 +40,7 @@ func TestGCPipelineActivities(t *testing.T) {
 				CompletedTimestamp: &metav1.Time{Time: nowMinusThreeDays},
 			},
 		},
-		&v1.PipelineActivity{
+		{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "2",
 				Namespace: ns,
@@ -49,7 +51,7 @@ func TestGCPipelineActivities(t *testing.T) {
 				// No completion time, to make sure this doesn't get deleted.
 			},
 		},
-		&v1.PipelineActivity{
+		{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "3",
 				Namespace: ns,
@@ -60,7 +62,7 @@ func TestGCPipelineActivities(t *testing.T) {
 				CompletedTimestamp: &metav1.Time{Time: nowMinusThreeDays},
 			},
 		},
-		&v1.PipelineActivity{
+		{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "4",
 				Namespace: ns,
@@ -74,7 +76,7 @@ func TestGCPipelineActivities(t *testing.T) {
 
 		// To handle potential weirdness around ordering, make sure that the oldest PR activity is in a random
 		// spot in the order.
-		&v1.PipelineActivity{
+		{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "0",
 				Namespace: ns,
@@ -85,7 +87,7 @@ func TestGCPipelineActivities(t *testing.T) {
 				CompletedTimestamp: &metav1.Time{Time: nowMinusThirtyOneDays},
 			},
 		},
-		&v1.PipelineActivity{
+		{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "5",
 				Namespace: ns,
@@ -96,7 +98,7 @@ func TestGCPipelineActivities(t *testing.T) {
 				CompletedTimestamp: &metav1.Time{Time: nowMinusThreeDays},
 			},
 		},
-		&v1.PipelineActivity{
+		{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "6",
 				Namespace: ns,
@@ -116,10 +118,15 @@ func TestGCPipelineActivities(t *testing.T) {
 	lhjRuntimes := LighthouseJobsToRuntimes(lhJobs)
 	lhClient := fakelh.NewSimpleClientset(lhjRuntimes...)
 
+	tknPipelineRuns:= ToPipelineRuns(pas)
+	tknRuntimes := PipelineRunsToRuntimes(tknPipelineRuns)
+	tknClient := faketekton.NewSimpleClientset(tknRuntimes...)
+
 	_, o := activities.NewCmdGCActivities()
 	o.Namespace = ns
 	o.JXClient = jxClient
 	o.LHClient = lhClient
+	o.TknClient = tknClient
 
 	lhjobs, err := lhClient.LighthouseV1alpha1().LighthouseJobs(ns).List(ctx, metav1.ListOptions{})
 	assert.NoError(t, err)
@@ -175,6 +182,25 @@ func ToLighthouseJobs(list []*v1.PipelineActivity) []*v1alpha1.LighthouseJob {
 	return answer
 }
 
+func ToPipelineRuns(list []*v1.PipelineActivity) []*v1beta1.PipelineRun {
+	var answer []*v1beta1.PipelineRun
+	for _, r := range list {
+		j := &v1beta1.PipelineRun{
+			ObjectMeta: r.ObjectMeta,
+		}
+		answer = append(answer, j)
+	}
+	return answer
+}
+
+func PipelineRunsToRuntimes(list []*v1beta1.PipelineRun) []runtime.Object {
+	var answer []runtime.Object
+	for _, r := range list {
+		answer = append(answer, r)
+	}
+	return answer
+}
+
 func createLabels(branch, buildNum string) map[string]string {
 	t := "postsubmit"
 	if branch != "master" && branch != "main" {
@@ -190,5 +216,6 @@ func createLabels(branch, buildNum string) map[string]string {
 		"lighthouse.jenkins-x.io/refs.org":      "org",
 		"lighthouse.jenkins-x.io/refs.repo":     "project",
 		"lighthouse.jenkins-x.io/type":          t,
+		activities.PrLabel:                      buildNum,
 	}
 }

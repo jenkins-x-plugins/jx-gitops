@@ -18,6 +18,7 @@ import (
 	lhclient "github.com/jenkins-x/lighthouse-client/pkg/client/clientset/versioned"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	tknC "github.com/tektoncd/pipeline/pkg/client/clientset/versioned"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -35,7 +36,10 @@ type Options struct {
 	Namespace               string
 	JXClient                jxc.Interface
 	LHClient                lhclient.Interface
+	TknClient               tknC.Interface
 }
+
+const PrLabel = "tekton.dev/pipeline"
 
 var (
 	info = termcolor.ColorInfo
@@ -164,6 +168,12 @@ func (o *Options) Run() error {
 				return err
 			}
 
+			prName := activity.Labels[PrLabel]
+			err = o.deletePipelineRun(ctx, currentNs, prName)
+			if err != nil {
+				return err
+			}
+
 			err = o.deleteActivity(ctx, activityInterface, &activity)
 			if err != nil {
 				return err
@@ -266,7 +276,19 @@ func (o *Options) deleteLighthouseJob(ctx context.Context, pa *v1.PipelineActivi
 	return nil
 }
 
-// LazyCreateLHClient lazy creates the jx client if its not defined
+func (o *Options) deletePipelineRun(ctx context.Context, ns, prName string) error {
+	prefix := ""
+	if o.DryRun {
+		prefix = "not "
+	}
+	log.Logger().Infof("%sdeleting PipelineRun %s", prefix, info(prName))
+	if o.DryRun {
+		return nil
+	}
+	return o.TknClient.TektonV1beta1().PipelineRuns(ns).Delete(ctx, prName, metav1.DeleteOptions{})
+}
+
+// LazyCreateLHClient lazy creates the lighthouse client if its not defined
 func LazyCreateLHClient(client lhclient.Interface) (lhclient.Interface, error) {
 	if client != nil {
 		return client, nil
@@ -279,6 +301,23 @@ func LazyCreateLHClient(client lhclient.Interface) (lhclient.Interface, error) {
 	client, err = lhclient.NewForConfig(cfg)
 	if err != nil {
 		return client, errors.Wrap(err, "error building lighthouse clientset")
+	}
+	return client, nil
+}
+
+// LazyCreateTknClient lazy creates the tekton client if its not defined
+func LazyCreateTknClient(client tknC.Interface) (tknC.Interface, error) {
+	if client != nil {
+		return client, nil
+	}
+	f := kubeclient.NewFactory()
+	cfg, err := f.CreateKubeConfig()
+	if err != nil {
+		return client, errors.Wrap(err, "failed to get kubernetes config")
+	}
+	client, err = tknC.NewForConfig(cfg)
+	if err != nil {
+		return client, errors.Wrap(err, "error building tekton clientset")
 	}
 	return client, nil
 }
