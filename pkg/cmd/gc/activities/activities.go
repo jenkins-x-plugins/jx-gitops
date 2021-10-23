@@ -18,6 +18,7 @@ import (
 	lhclient "github.com/jenkins-x/lighthouse-client/pkg/client/clientset/versioned"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
 	tknC "github.com/tektoncd/pipeline/pkg/client/clientset/versioned"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -122,6 +123,11 @@ func (o *Options) Run() error {
 		return errors.Wrapf(err, "failed to create the lighthouse client")
 	}
 
+	o.TknClient, err = LazyCreateTknClient(o.TknClient)
+	if err != nil {
+		return errors.Wrapf(err, "failed to create the tekton client")
+	}
+
 	client := o.JXClient
 	currentNs := o.Namespace
 	ctx := context.TODO()
@@ -169,9 +175,17 @@ func (o *Options) Run() error {
 			}
 
 			prName := activity.Labels[PrLabel]
-			err = o.deletePipelineRun(ctx, currentNs, prName)
+			pr, err := o.getPipelineRun(ctx, currentNs, prName)
 			if err != nil {
-				return err
+				log.Logger().Warnf("pipelinerun %s not found, skipping", prName)
+			}
+
+			// Delete only existing pipelineRuns
+			if pr != nil {
+				err = o.deletePipelineRun(ctx, currentNs, prName)
+				if err != nil {
+					return err
+				}
 			}
 
 			err = o.deleteActivity(ctx, activityInterface, &activity)
@@ -286,6 +300,10 @@ func (o *Options) deletePipelineRun(ctx context.Context, ns, prName string) erro
 		return nil
 	}
 	return o.TknClient.TektonV1beta1().PipelineRuns(ns).Delete(ctx, prName, metav1.DeleteOptions{})
+}
+
+func (o *Options) getPipelineRun(ctx context.Context, ns, prName string) (*v1beta1.PipelineRun, error) {
+	return o.TknClient.TektonV1beta1().PipelineRuns(ns).Get(ctx, prName, metav1.GetOptions{})
 }
 
 // LazyCreateLHClient lazy creates the lighthouse client if its not defined

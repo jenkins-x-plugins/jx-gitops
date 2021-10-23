@@ -118,7 +118,7 @@ func TestGCPipelineActivities(t *testing.T) {
 	lhjRuntimes := LighthouseJobsToRuntimes(lhJobs)
 	lhClient := fakelh.NewSimpleClientset(lhjRuntimes...)
 
-	tknPipelineRuns:= ToPipelineRuns(pas)
+	tknPipelineRuns := ToPipelineRuns(pas)
 	tknRuntimes := PipelineRunsToRuntimes(tknPipelineRuns)
 	tknClient := faketekton.NewSimpleClientset(tknRuntimes...)
 
@@ -131,6 +131,14 @@ func TestGCPipelineActivities(t *testing.T) {
 	lhjobs, err := lhClient.LighthouseV1alpha1().LighthouseJobs(ns).List(ctx, metav1.ListOptions{})
 	assert.NoError(t, err)
 	t.Logf("has %d LighthouseJobs\n", len(lhjobs.Items))
+
+	prRuns, err := tknClient.TektonV1beta1().PipelineRuns(ns).List(ctx, metav1.ListOptions{})
+	assert.NoError(t, err)
+	t.Logf("has %d PipelineRuns\n", len(prRuns.Items))
+
+	// Delete a pipeline run to ensure that gc activites don't try to delete something that does not exist.
+	err = tknClient.TektonV1beta1().PipelineRuns(ns).Delete(ctx, prRuns.Items[0].Name, metav1.DeleteOptions{})
+	assert.NoError(t, err)
 
 	err = o.Run()
 	assert.NoError(t, err)
