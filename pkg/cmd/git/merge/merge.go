@@ -37,7 +37,7 @@ var (
 `)
 
 	cmdExample = templates.Examples(`
-		%s git merge 
+		%s git merge
 	`)
 
 	info = termcolor.ColorInfo
@@ -109,13 +109,6 @@ func (o *Options) Run() error {
 		return errors.Wrapf(err, "failed to validate options")
 	}
 
-	if o.BaseBranch == "" {
-		o.BaseBranch = os.Getenv("PULL_BASE_REF")
-	}
-	if o.BaseSHA == "" {
-		o.BaseSHA = os.Getenv("PULL_BASE_SHA")
-	}
-
 	if len(o.SHAs) == 0 || o.BaseBranch == "" || o.BaseSHA == "" {
 		pullRefs := o.PullRefs
 		if pullRefs == "" {
@@ -141,6 +134,14 @@ func (o *Options) Run() error {
 				o.BaseSHA = pullRefs.BaseSha
 			}
 		}
+	}
+
+	if o.BaseBranch == "" {
+		o.BaseBranch = os.Getenv("PULL_BASE_REF")
+	}
+
+	if o.BaseSHA == "" {
+		o.BaseSHA = os.Getenv("PULL_BASE_SHA")
 	}
 
 	if o.BaseSHA != "" && o.Rebase {

@@ -25,6 +25,9 @@ func TestGitMerge(t *testing.T) {
 
 	g := cli.NewCLIClient("", nil)
 
+	// Set this for manual triggers
+	os.Setenv("PULL_BASE_REF", "HEAD")
+
 	defaultBranch := testhelpers.GetDefaultBranch(t)
 	testCases := []struct {
 		name  string
@@ -66,6 +69,7 @@ func TestGitMerge(t *testing.T) {
 
 	for _, tc := range testCases {
 		name := tc.name
+		t.Logf(name)
 		dir = filepath.Join(tmpDir, name)
 
 		err := os.MkdirAll(dir, files.DefaultDirWritePermissions)
