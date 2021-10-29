@@ -58,7 +58,7 @@ func TestJenkinsJobsForExistingJenkins(t *testing.T) {
 	AssertGenerateJobs(t, tmpDir, jenkinsName)
 }
 
-func AssertGenerateJobs(t *testing.T, tmpDir string, jenkinsName string) {
+func AssertGenerateJobs(t *testing.T, tmpDir, jenkinsName string) {
 	t.Logf("running test in dir %s\n", tmpDir)
 
 	_, o := jobs.NewCmdJenkinsJobs()

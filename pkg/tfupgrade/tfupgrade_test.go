@@ -39,7 +39,7 @@ func TestTerraformUpgrade(t *testing.T) {
 		err = o.Run()
 		require.NoError(t, err, "failed to run in dir %s for %s", srcDir, name)
 
-		testhelpers.AssertEqualFileText(t, filepath.Join(tmpDir, "expected.tf"), filepath.Join(tmpDir, "main.tf"))
+		_ = testhelpers.AssertEqualFileText(t, filepath.Join(tmpDir, "expected.tf"), filepath.Join(tmpDir, "main.tf"))
 	}
 }
 

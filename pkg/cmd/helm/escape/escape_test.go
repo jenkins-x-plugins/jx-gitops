@@ -31,5 +31,5 @@ func TestEscapeYAML(t *testing.T) {
 
 	srcFile := filepath.Join(tmpDir, "config-observability-cm.yaml")
 	expectedFile := filepath.Join("test_data", "expected", "config-observability-cm.yaml")
-	testhelpers.AssertEqualFileText(t, expectedFile, srcFile)
+	_ = testhelpers.AssertEqualFileText(t, expectedFile, srcFile)
 }

@@ -11,7 +11,6 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/jxenv"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/options"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -24,8 +23,6 @@ import (
 )
 
 var (
-	info = termcolor.ColorInfo
-
 	cmdLong = templates.LongDesc(`
 		Copies kubernetes resources (by default confimaps) from a namespace to the current namespace
 `)

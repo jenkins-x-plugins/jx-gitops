@@ -28,18 +28,14 @@ func NewTemplater(requirements *jxcore.RequirementsConfig, valuesFiles []string)
 	}
 }
 
-func (o *Templater) createFuncMap(requirements *jxcore.RequirementsConfig) (template.FuncMap, error) {
+func (o *Templater) createFuncMap() template.FuncMap {
 	funcMap := NewFunctionMap()
-	return funcMap, nil
+	return funcMap
 }
 
 // Generate generates the destination file from the given source template
-func (o *Templater) Generate(sourceFile string, destFile string) error {
-	requirements := o.Requirements
-	funcMap, err := o.createFuncMap(requirements)
-	if err != nil {
-		return err
-	}
+func (o *Templater) Generate(sourceFile, destFile string) error {
+	funcMap := o.createFuncMap()
 
 	data, err := o.renderTemplate(sourceFile, funcMap)
 	if err != nil {

@@ -1,3 +1,4 @@
+//nolint:dupl
 package plugins_test
 
 import (
@@ -60,8 +61,7 @@ func TestHelmfilePlugin(t *testing.T) {
 	for _, b := range plugin.Spec.Binaries {
 		switch b.Goarch {
 		case "arm64":
-			switch b.Goos {
-			case "Linux":
+			if b.Goos == "Linux" {
 				foundArm = true
 				assert.Equal(t, "https://github.com/roboll/helmfile/releases/download/v"+plugins.HelmfileVersion+"/helmfile_linux_arm64", b.URL, "URL for linux arm binary")
 				t.Logf("found linux binary URL %s", b.URL)

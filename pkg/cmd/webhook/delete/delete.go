@@ -105,7 +105,7 @@ func (o *Options) Validate() error {
 	if ns != "" {
 		o.Namespace = ns
 	}
-	if o.AllWebhooks == false && o.Filter == "" {
+	if !o.AllWebhooks && o.Filter == "" {
 		return errors.New("set either --filter or --all-webhooks to delete webhooks")
 	}
 
@@ -127,8 +127,8 @@ func (o *Options) Run() error {
 		return errors.Wrapf(err, "failed to find any SourceRepositories in namespace %s", ns)
 	}
 
-	for _, sr := range srList.Items {
-		sourceRepo := sr
+	for k := range srList.Items {
+		sourceRepo := srList.Items[k]
 
 		_, err2 := o.DeleteWebhookFromSourceRepository(&sourceRepo, err, o.Filter)
 		if err2 != nil {
@@ -139,11 +139,11 @@ func (o *Options) Run() error {
 }
 
 // DeleteWebhookFromSourceRepository updates the webhook for the given source repository
-func (o *Options) DeleteWebhookFromSourceRepository(sr *v1.SourceRepository, err error, filter string) (bool, error) {
+func (o *Options) DeleteWebhookFromSourceRepository(sr *v1.SourceRepository, err error, filter string) (bool, error) { //nolint:staticcheck
 	if !o.matchesRepository(sr) {
 		return false, nil
 	}
-	err = o.deleteWebhookIfItExists(sr, filter)
+	err = o.deleteWebhookIfItExists(sr, filter) //nolint:staticcheck
 	if err != nil {
 		if !o.WarnOnFail {
 			return false, err
@@ -175,7 +175,7 @@ func (o *Options) deleteWebhookIfItExists(repository *v1.SourceRepository, filte
 	return err
 }
 
-func (o *Options) removeRepositoryWebhook(scmClient *scm.Client, owner string, repoName string, filter string) error {
+func (o *Options) removeRepositoryWebhook(scmClient *scm.Client, owner, repoName, filter string) error {
 	fullName := scm.Join(owner, repoName)
 
 	log.Logger().Debugf("Checking hooks for repository %s", info(fullName))
@@ -211,7 +211,7 @@ func (o *Options) removeRepositoryWebhook(scmClient *scm.Client, owner string, r
 }
 
 func (o *Options) matchesFilter(webHookArgs *scm.Hook, filter string) bool {
-	if o.AllWebhooks == false {
+	if !o.AllWebhooks {
 		return strings.Contains(webHookArgs.Target, filter)
 	}
 	return true

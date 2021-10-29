@@ -144,48 +144,46 @@ func (o *Options) PopulateSourceConfig(srList []jenkinsv1.SourceRepository) erro
 }
 
 func (o *Options) populateConfig(config *v1alpha1.SourceConfig, srList []jenkinsv1.SourceRepository) error {
-	if srList != nil {
-		for i := range srList {
-			sr := &srList[i]
-			owner := sr.Spec.Org
-			if owner == "" {
-				log.Logger().Warnf("ignoring SourceRepository %s with no owner", sr.Name)
-				continue
-			}
-			repoName := sr.Spec.Repo
-			if repoName == "" {
-				log.Logger().Warnf("ignoring SourceRepository %s with no repo", sr.Name)
-				continue
-			}
-			gitKind := sr.Spec.ProviderKind
-			gitServerURL := sr.Spec.Provider
-			if gitKind == "" {
-				gitKind = giturl.SaasGitKind(gitServerURL)
-			}
-			group := sourceconfigs.GetOrCreateGroup(config, gitKind, gitServerURL, owner)
-			repo := sourceconfigs.GetOrCreateRepository(group, repoName)
+	for i := range srList {
+		sr := &srList[i]
+		owner := sr.Spec.Org
+		if owner == "" {
+			log.Logger().Warnf("ignoring SourceRepository %s with no owner", sr.Name)
+			continue
+		}
+		repoName := sr.Spec.Repo
+		if repoName == "" {
+			log.Logger().Warnf("ignoring SourceRepository %s with no repo", sr.Name)
+			continue
+		}
+		gitKind := sr.Spec.ProviderKind
+		gitServerURL := sr.Spec.Provider
+		if gitKind == "" {
+			gitKind = giturl.SaasGitKind(gitServerURL)
+		}
+		group := sourceconfigs.GetOrCreateGroup(config, gitKind, gitServerURL, owner)
+		repo := sourceconfigs.GetOrCreateRepository(group, repoName)
 
-			err := sourceconfigs.DefaultValues(config, group, repo)
-			if err != nil {
-				return errors.Wrapf(err, "failed to default values")
-			}
+		err := sourceconfigs.DefaultValues(config, group, repo)
+		if err != nil {
+			return errors.Wrapf(err, "failed to default values")
+		}
 
-			s := &sr.Spec
-			if repo.Description == "" {
-				repo.Description = s.Description
-			}
-			if s.URL != "" {
-				repo.URL = s.URL
-			}
-			if s.HTTPCloneURL != "" {
-				repo.HTTPCloneURL = s.HTTPCloneURL
-			}
-			if s.SSHCloneURL != "" {
-				repo.SSHCloneURL = s.SSHCloneURL
-			}
-			if s.Scheduler.Name != "" {
-				repo.Scheduler = s.Scheduler.Name
-			}
+		s := &sr.Spec
+		if repo.Description == "" {
+			repo.Description = s.Description
+		}
+		if s.URL != "" {
+			repo.URL = s.URL
+		}
+		if s.HTTPCloneURL != "" {
+			repo.HTTPCloneURL = s.HTTPCloneURL
+		}
+		if s.SSHCloneURL != "" {
+			repo.SSHCloneURL = s.SSHCloneURL
+		}
+		if s.Scheduler.Name != "" {
+			repo.Scheduler = s.Scheduler.Name
 		}
 	}
 	return nil

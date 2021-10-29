@@ -507,10 +507,7 @@ func (o *Options) BasicRegistry(repoURL, chartDir, name string) error {
 		return nil
 	}
 
-	c, err = o.createPublishCommand(repoURL, name, chartDir, username, password)
-	if err != nil {
-		return errors.Wrapf(err, "failed to create release command in dir %s", chartDir)
-	}
+	c = o.createPublishCommand(repoURL, name, chartDir, username, password)
 
 	_, err = o.CommandRunner(c)
 	if err != nil {
@@ -530,7 +527,7 @@ func (o *Options) BuildAndPackage(chartDir string) error {
 	if exists {
 		err = yamls.LoadFile(chartFile, chartDef)
 		if err != nil {
-			errors.Wrapf(err, "failed to load Chart.yaml")
+			return errors.Wrapf(err, "failed to load Chart.yaml")
 		}
 
 		for i, dependency := range chartDef.Dependencies {
@@ -583,7 +580,7 @@ func (o *Options) BuildAndPackage(chartDir string) error {
 	return nil
 }
 
-func (o *Options) createPublishCommand(repoURL, name, chartDir, username, password string) (*cmdrunner.Command, error) {
+func (o *Options) createPublishCommand(repoURL, name, chartDir, username, password string) *cmdrunner.Command {
 	tarFile := name + "-" + o.Version + ".tgz"
 
 	if strings.HasPrefix(repoURL, "gs:") {
@@ -592,7 +589,7 @@ func (o *Options) createPublishCommand(repoURL, name, chartDir, username, passwo
 			Dir:  chartDir,
 			Name: o.HelmBinary,
 			Args: []string{"gcs", "push", tarFile, o.RepositoryName},
-		}, nil
+		}
 	}
 
 	if strings.HasPrefix(repoURL, "s3:") {
@@ -601,7 +598,7 @@ func (o *Options) createPublishCommand(repoURL, name, chartDir, username, passwo
 			Dir:  chartDir,
 			Name: o.HelmBinary,
 			Args: []string{"s3", "push", tarFile, o.RepositoryName},
-		}, nil
+		}
 	}
 
 	if o.Artifactory {
@@ -620,7 +617,7 @@ func (o *Options) createPublishCommand(repoURL, name, chartDir, username, passwo
 			Name: "curl",
 			// lets hide progress bars (-s) and enable show errors (-S)
 			Args: []string{"--fail", "-sS", "-H", apiKey, "-T", tarFile, url},
-		}, nil
+		}
 	}
 	userSecret := username + ":" + password
 
@@ -631,7 +628,7 @@ func (o *Options) createPublishCommand(repoURL, name, chartDir, username, passwo
 		Name: "curl",
 		// lets hide progress bars (-s) and enable show errors (-S)
 		Args: []string{"--fail", "-sS", "-u", userSecret, "--data-binary", "@" + tarFile, url},
-	}, nil
+	}
 }
 
 func (o *Options) findChartRepositoryUserPassword() (string, string, error) {
@@ -655,32 +652,31 @@ func (o *Options) findChartRepositoryUserPassword() (string, string, error) {
 		}
 		if err != nil {
 			log.Logger().Warnf("Could not load Secret %s or %s in namespace %s: %s", secretName, kube.SecretBucketRepo, ns, err)
-		} else {
-			if secret != nil && secret.Data != nil {
+		} else if secret != nil && secret.Data != nil {
+			if password == "" {
+				password = string(secret.Data["BASIC_AUTH_PASS"])
 				if password == "" {
-					password = string(secret.Data["BASIC_AUTH_PASS"])
-					if password == "" {
-						password = string(secret.Data["password"])
-					}
+					password = string(secret.Data["password"])
 				}
+			}
+			if userName == "" {
+				userName = string(secret.Data["BASIC_AUTH_USER"])
 				if userName == "" {
-					userName = string(secret.Data["BASIC_AUTH_USER"])
-					if userName == "" {
-						userName = string(secret.Data["username"])
-						if userName == "" && password != "" {
-							// for easier integration with nexus lets default to admin
-							userName = "admin"
-						}
+					userName = string(secret.Data["username"])
+					if userName == "" && password != "" {
+						// for easier integration with nexus lets default to admin
+						userName = "admin"
 					}
 				}
 			}
+
 		}
 	}
 	if userName == "" {
-		return "", "", fmt.Errorf("No environment variable $JX_REPOSITORY_USERNAME defined")
+		return "", "", fmt.Errorf("no environment variable $JX_REPOSITORY_USERNAME defined")
 	}
 	if password == "" {
-		return "", "", fmt.Errorf("No environment variable $JX_REPOSITORY_PASSWORD defined")
+		return "", "", fmt.Errorf("no environment variable $JX_REPOSITORY_PASSWORD defined")
 	}
 	return userName, password, nil
 }

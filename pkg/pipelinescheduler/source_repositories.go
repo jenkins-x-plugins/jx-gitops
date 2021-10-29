@@ -43,12 +43,12 @@ func GetRepositoryGitURL(s *v1.SourceRepository) (string, error) {
 
 // FindSourceRepositoryWithoutProvider returns a SourceRepository for the given namespace, owner and repo name.
 // If no SourceRepository is found, return nil.
-func FindSourceRepositoryWithoutProvider(jxClient versioned.Interface, ns string, owner string, name string) (*v1.SourceRepository, error) {
+func FindSourceRepositoryWithoutProvider(jxClient versioned.Interface, ns, owner, name string) (*v1.SourceRepository, error) {
 	return FindSourceRepository(jxClient, ns, owner, name, "")
 }
 
 // findSourceRepositoryByLabels returns a SourceRepository matching the given label selector, if it exists.
-func findSourceRepositoryByLabels(jxClient versioned.Interface, ns string, labelSelector string) (*v1.SourceRepository, error) {
+func findSourceRepositoryByLabels(jxClient versioned.Interface, ns, labelSelector string) (*v1.SourceRepository, error) {
 	repos, err := jxClient.JenkinsV1().SourceRepositories(ns).List(context.TODO(), metav1.ListOptions{
 		LabelSelector: labelSelector,
 	})
@@ -63,7 +63,7 @@ func findSourceRepositoryByLabels(jxClient versioned.Interface, ns string, label
 
 // FindSourceRepository returns a SourceRepository for the given namespace, owner, repo name, and (optional) provider name.
 // If no SourceRepository is found, return nil.
-func FindSourceRepository(jxClient versioned.Interface, ns string, owner string, name string, providerName string) (*v1.SourceRepository, error) {
+func FindSourceRepository(jxClient versioned.Interface, ns, owner, name, providerName string) (*v1.SourceRepository, error) {
 	// Look up by resource name is retained for compatibility with SourceRepositorys created before they were always created with labels
 	resourceName := naming.ToValidName(owner + "-" + name)
 	repo, err := jxClient.JenkinsV1().SourceRepositories(ns).Get(context.TODO(), resourceName, metav1.GetOptions{})
@@ -83,7 +83,7 @@ func FindSourceRepository(jxClient versioned.Interface, ns string, owner string,
 
 // GetOrCreateSourceRepositoryCallback gets or creates the SourceRepository for the given repository name and
 // organisation invoking the given callback to modify the resource before create/udpate
-func GetOrCreateSourceRepositoryCallback(jxClient versioned.Interface, ns string, name, organisation, providerURL string, callback func(*v1.SourceRepository)) (*v1.SourceRepository, error) {
+func GetOrCreateSourceRepositoryCallback(jxClient versioned.Interface, ns, name, organisation, providerURL string, callback func(*v1.SourceRepository)) (*v1.SourceRepository, error) {
 	resourceName := naming.ToValidName(organisation + "-" + name)
 
 	repositories := jxClient.JenkinsV1().SourceRepositories(ns)
@@ -142,7 +142,7 @@ func GetOrCreateSourceRepositoryCallback(jxClient versioned.Interface, ns string
 }
 
 // GetOrCreateSourceRepository gets or creates the SourceRepository for the given repository name and organisation
-func GetOrCreateSourceRepository(jxClient versioned.Interface, ns string, name, organisation, providerURL string) (*v1.SourceRepository, error) {
+func GetOrCreateSourceRepository(jxClient versioned.Interface, ns, name, organisation, providerURL string) (*v1.SourceRepository, error) {
 	return GetOrCreateSourceRepositoryCallback(jxClient, ns, name, organisation, providerURL, nil)
 }
 
@@ -166,7 +166,7 @@ func ToProviderName(gitURL string) string {
 }
 
 // createSourceRepositoryCallback creates a repo, returning the created repo and an error if it couldn't be created
-func createSourceRepositoryCallback(client versioned.Interface, namespace string, name, organisation, providerURL string, callback func(*v1.SourceRepository)) (*v1.SourceRepository, error) {
+func createSourceRepositoryCallback(client versioned.Interface, namespace, name, organisation, providerURL string, callback func(*v1.SourceRepository)) (*v1.SourceRepository, error) {
 	resourceName := naming.ToValidName(organisation + "-" + name)
 
 	description := fmt.Sprintf("Imported application for %s/%s", organisation, name)

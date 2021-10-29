@@ -38,7 +38,10 @@ func LoadSourceConfig(dir string, applyDefaults bool) (*v1alpha1.SourceConfig, e
 	}
 
 	if applyDefaults {
-		DefaultConfigValues(config)
+		err = DefaultConfigValues(config)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return config, nil
 }
@@ -67,10 +70,16 @@ func SaveSourceConfig(config *v1alpha1.SourceConfig, dir string) error {
 
 // DefaultConfigValues defaults values from the given config, group and repository if they are missing
 func DefaultConfigValues(config *v1alpha1.SourceConfig) error {
-	DefaultGroupValues(config, config.Spec.Groups)
+	err := DefaultGroupValues(config, config.Spec.Groups)
+	if err != nil {
+		return err
+	}
 	for i := range config.Spec.JenkinsServers {
 		jenkinsServer := &config.Spec.JenkinsServers[i]
-		DefaultGroupValues(config, jenkinsServer.Groups)
+		err := DefaultGroupValues(config, jenkinsServer.Groups)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -81,7 +90,10 @@ func DefaultGroupValues(config *v1alpha1.SourceConfig, groups []v1alpha1.Reposit
 		group := &groups[i]
 		for j := range group.Repositories {
 			repo := &group.Repositories[j]
-			DefaultValues(config, group, repo)
+			err := DefaultValues(config, group, repo)
+			if err != nil {
+				return errors.Wrap(err, " Could not set default values from the config, group and repo")
+			}
 		}
 	}
 	return nil
@@ -124,24 +136,24 @@ func DefaultValues(config *v1alpha1.SourceConfig, group *v1alpha1.RepositoryGrou
 }
 
 // GetOrCreateGroup get or create the group for the given name
-func GetOrCreateGroup(config *v1alpha1.SourceConfig, gitKind string, gitServerURL string, owner string) *v1alpha1.RepositoryGroup {
+func GetOrCreateGroup(config *v1alpha1.SourceConfig, gitKind, gitServerURL, owner string) *v1alpha1.RepositoryGroup {
 	var group *v1alpha1.RepositoryGroup
 	config.Spec.Groups, group = getOrCreateGroup(config.Spec.Groups, gitKind, gitServerURL, owner)
 	return group
 }
 
 // GetOrCreateJenkinsServerGroup get or create the group for the given name
-func GetOrCreateJenkinsServerGroup(config *v1alpha1.JenkinsServer, gitKind string, gitServerURL string, owner string) *v1alpha1.RepositoryGroup {
+func GetOrCreateJenkinsServerGroup(config *v1alpha1.JenkinsServer, gitKind, gitServerURL, owner string) *v1alpha1.RepositoryGroup {
 	var group *v1alpha1.RepositoryGroup
 	config.Groups, group = getOrCreateGroup(config.Groups, gitKind, gitServerURL, owner)
 	return group
 }
 
 // getOrCreateGroup get or create the group for the given name
-func getOrCreateGroup(groups []v1alpha1.RepositoryGroup, gitKind string, gitServerURL string, owner string) ([]v1alpha1.RepositoryGroup, *v1alpha1.RepositoryGroup) {
+func getOrCreateGroup(groups []v1alpha1.RepositoryGroup, gitKind, gitServerURL, owner string) ([]v1alpha1.RepositoryGroup, *v1alpha1.RepositoryGroup) {
 	for i := range groups {
 		group := &groups[i]
-		if (group.ProviderKind == gitKind || gitKind == "") && (group.Provider == gitServerURL || gitServerURL == "") && strings.ToLower(group.Owner) == owner {
+		if (group.ProviderKind == gitKind || gitKind == "") && (group.Provider == gitServerURL || gitServerURL == "") && strings.EqualFold(group.Owner, owner) {
 			return groups, group
 		}
 	}

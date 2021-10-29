@@ -11,13 +11,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var (
-	// generateTestOutput enable to regenerate the expected output
-	generateTestOutput = false
-)
+// generateTestOutput enable to regenerate the expected output
+var generateTestOutput = false
 
 func TestYSet(t *testing.T) {
-
 	testCases := []struct {
 		dir   string
 		path  string
@@ -68,10 +65,10 @@ func TestYSet(t *testing.T) {
 			data, err := ioutil.ReadFile(outFile)
 			require.NoError(t, err, "failed to load %s", outFile)
 
-			err = ioutil.WriteFile(expectedFile, data, 0666)
+			err = ioutil.WriteFile(expectedFile, data, 0600)
 			require.NoError(t, err, "failed to save file %s", expectedFile)
 			continue
 		}
-		testhelpers.AssertEqualFileText(t, expectedFile, outFile)
+		_ = testhelpers.AssertEqualFileText(t, expectedFile, outFile)
 	}
 }

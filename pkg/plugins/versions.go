@@ -34,14 +34,12 @@ const (
 	KappVersion = "0.35.1-cmfork"
 )
 
-var (
-	// Plugins default plugins
-	Plugins = []jenkinsv1.Plugin{
-		CreateHelmPlugin(HelmVersion),
-		CreateHelmfilePlugin(HelmfileVersion),
-		// disable as no arm image yet
-		//CreateKptPlugin(KptVersion),
-		CreateKubectlPlugin(KubectlVersion),
-		CreateKappPlugin(KappVersion),
-	}
-)
+// Plugins default plugins
+var Plugins = []jenkinsv1.Plugin{
+	CreateHelmPlugin(HelmVersion),
+	CreateHelmfilePlugin(HelmfileVersion),
+	// disable as no arm image yet
+	// CreateKptPlugin(KptVersion),
+	CreateKubectlPlugin(KubectlVersion),
+	CreateKappPlugin(KappVersion),
+}

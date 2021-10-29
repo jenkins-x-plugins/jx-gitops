@@ -47,7 +47,7 @@ func AssertUpdateIngress(t *testing.T, rootDir string) {
 
 	// now lets compare files with expected
 	sourceConfigDir := filepath.Join(tmpDir, "config-root")
-	err = filepath.Walk(sourceConfigDir, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(sourceConfigDir, func(path string, info os.FileInfo, err error) error { //nolint:staticcheck
 		if info == nil || info.IsDir() {
 			return nil
 		}
@@ -55,7 +55,8 @@ func AssertUpdateIngress(t *testing.T, rootDir string) {
 			return nil
 		}
 
-		rel, err := filepath.Rel(sourceConfigDir, path)
+		rel, err := filepath.Rel(sourceConfigDir, path) //nolint:staticcheck
+		require.NoError(t, err)
 
 		expectedFile := filepath.Join(expectedData, rel)
 
@@ -72,7 +73,7 @@ func AssertUpdateIngress(t *testing.T, rootDir string) {
 		expectedText := strings.TrimSpace(string(expectData))
 
 		if generateTestOutput {
-			err = ioutil.WriteFile(expectedFile, []byte(result), 0666)
+			err = ioutil.WriteFile(expectedFile, []byte(result), 0600)
 			require.NoError(t, err, "failed to save file %s", expectedFile)
 			return nil
 		}

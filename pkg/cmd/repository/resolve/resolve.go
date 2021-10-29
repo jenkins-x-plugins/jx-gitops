@@ -180,7 +180,8 @@ func (o *Options) modifyRequirements() error {
 	log.Logger().Debugf("modifying jx-requirements.yml in dir %s to set the dev environment git repository to be %s/%s", dir, owner, repository)
 
 	modified := false
-	for i, env := range requirements.Environments {
+	for i := range requirements.Environments {
+		env := requirements.Environments[i]
 		if env.Key == "dev" {
 			requirements.Environments[i].Repository = repository
 			requirements.Environments[i].Owner = owner

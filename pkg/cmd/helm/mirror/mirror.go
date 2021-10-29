@@ -226,7 +226,7 @@ func (o *Options) DownloadIndex(idx *repo.IndexFile, u, dir string) error {
 	return nil
 }
 
-func downloadURLToFile(u string, path string) error {
+func downloadURLToFile(u, path string) error {
 	dir := filepath.Dir(path)
 	err := os.MkdirAll(dir, files.DefaultDirWritePermissions)
 	if err != nil {

@@ -35,8 +35,6 @@ var (
 		# performs a regeneration and apply
 		%s apply
 	`)
-
-	pathSeparator = string(os.PathSeparator)
 )
 
 // Options the options for the command

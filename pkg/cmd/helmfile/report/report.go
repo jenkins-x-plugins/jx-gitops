@@ -49,9 +49,6 @@ var (
 		# generates a report of the deployments
 		%s helmfile report
 	`)
-
-	valueFileNames = []string{"values.yaml.gotmpl", "values.yaml"}
-	pathSeparator  = string(os.PathSeparator)
 )
 
 // Options the options for the command
@@ -193,6 +190,9 @@ func (o *Options) Run() error {
 	log.Logger().Infof("saved %s", info(path))
 
 	md, err := ToMarkdown(o.NamespaceCharts)
+	if err != nil {
+		return errors.Wrap(err, "failed to convert charts to markdown")
+	}
 	path = filepath.Join(o.OutDir, "README.md")
 	err = ioutil.WriteFile(path, []byte(md), files.DefaultFileWritePermissions)
 	if err != nil {
@@ -420,7 +420,7 @@ func (o *Options) discoverResources(ci *releasereport.ReleaseInfo, ns string, re
 			if err != nil {
 				return errors.Wrapf(err, "failed to resolve relative path %s from %s", chartDir, o.Dir)
 			}
-			err = o.discoverIngress(ci, ns, rel, chartDir)
+			err = o.discoverIngress(ci, rel, chartDir)
 			if err != nil {
 				return errors.Wrapf(err, "failed to discover ingress")
 			}
@@ -430,7 +430,7 @@ func (o *Options) discoverResources(ci *releasereport.ReleaseInfo, ns string, re
 	return nil
 }
 
-func (o *Options) discoverIngress(ci *releasereport.ReleaseInfo, ns string, rel *state.ReleaseSpec, resourcesDir string) error {
+func (o *Options) discoverIngress(ci *releasereport.ReleaseInfo, rel *state.ReleaseSpec, resourcesDir string) error {
 	fs, err := ioutil.ReadDir(resourcesDir)
 	if err != nil {
 		return errors.Wrapf(err, "failed to read dir %s", resourcesDir)

@@ -561,10 +561,8 @@ func (o *Options) FindBuildNumber(buildID string) (string, error) {
 			i, err := strconv.Atoi(pa.Spec.Build)
 			if err != nil {
 				log.Logger().Warnf("PipelineActivity %s has an invalid spec.build number %s should be an integer: %s", pa.Name, pa.Spec.Build, err.Error())
-			} else {
-				if i > maxBuild {
-					maxBuild = i
-				}
+			} else if i > maxBuild {
+				maxBuild = i
 			}
 		}
 	}
@@ -621,7 +619,6 @@ func (o *Options) FindDockerfilePath() (string, error) {
 		}
 	}
 	return "Dockerfile", nil
-
 }
 
 // GetJenkinsXURL returns the Jenkins URL

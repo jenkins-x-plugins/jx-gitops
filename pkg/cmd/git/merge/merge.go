@@ -164,24 +164,12 @@ func (o *Options) Run() error {
 		return errors.Wrap(err, "error during merge")
 	}
 
-	/*
-		if o.Verbose {
-			commits, err := o.getMergedCommits()
-			if err != nil {
-				return errors.Wrap(err, "unable to write merge result")
-			}
-			o.logCommits(commits, o.BaseBranch)
-		}
-	*/
-
 	return nil
 }
 
 func (o *Options) RebaseToBaseSHA() error {
 	args := []string{"rebase"}
-	for _, a := range o.GitMergeArgs {
-		args = append(args, a)
-	}
+	args = append(args, o.GitMergeArgs...)
 	sha := o.BaseSHA
 	args = append(args, sha)
 
@@ -260,7 +248,7 @@ func (o *Options) FindCommitsToMerge() ([]string, error) {
 	return shas, nil
 }
 
-func filterCommits(commits []*gitlog.Commit, includeRE *regexp.Regexp, excludeRE *regexp.Regexp) []*gitlog.Commit {
+func filterCommits(commits []*gitlog.Commit, includeRE, excludeRE *regexp.Regexp) []*gitlog.Commit {
 	var answer []*gitlog.Commit
 	for _, commit := range commits {
 		comment := commit.Comment
