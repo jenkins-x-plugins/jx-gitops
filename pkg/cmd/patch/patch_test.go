@@ -17,7 +17,7 @@ import (
 
 func TestPatch(t *testing.T) {
 	scheme := runtime.NewScheme()
-	v1.AddToScheme(scheme)
+	_ = v1.AddToScheme(scheme)
 
 	ns := "jx"
 	_, o := patch.NewCmdPatch()
@@ -72,14 +72,14 @@ func TestPatch(t *testing.T) {
 	require.NoError(t, err, "failed to run the command")
 
 	ctx := context.TODO()
-	r := GetDeployment(t, ctx, o, d1.Name)
+	r := GetDeployment(ctx, t, o, d1.Name)
 	assert.Equal(t, "edam", r.Spec.Template.ObjectMeta.Annotations["cheese"], "d1 should have the cheese annotation")
 
-	r = GetDeployment(t, ctx, o, d2.Name)
+	r = GetDeployment(ctx, t, o, d2.Name)
 	assert.Equal(t, "", r.Spec.Template.ObjectMeta.Annotations["cheese"], "d2 should not have the cheese annotation")
 }
 
-func GetDeployment(t *testing.T, ctx context.Context, o *patch.Options, resourceName string) *v1.Deployment {
+func GetDeployment(ctx context.Context, t *testing.T, o *patch.Options, resourceName string) *v1.Deployment {
 	versionResource := o.GetGroupVersion()
 	r, err := o.DynamicClient.Resource(versionResource).Namespace(o.Namespace).Get(ctx, resourceName, metav1.GetOptions{})
 	require.NoError(t, err, "failed to find resource %s in namespace %s", resourceName, o.Namespace)

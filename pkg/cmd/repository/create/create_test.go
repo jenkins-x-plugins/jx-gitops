@@ -13,10 +13,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var (
-	// generateTestOutput enable to regenerate the expected output
-	generateTestOutput = false
-)
+// generateTestOutput enable to regenerate the expected output
+var generateTestOutput = false
 
 func TestCreateRepositorySourceDir(t *testing.T) {
 	sourceData := filepath.Join("test_data", "input")
@@ -48,7 +46,7 @@ func TestCreateRepositorySourceDir(t *testing.T) {
 			data, err := ioutil.ReadFile(generatedFile)
 			require.NoError(t, err, "failed to load %s", generatedFile)
 
-			err = ioutil.WriteFile(expectedPath, data, 0666)
+			err = ioutil.WriteFile(expectedPath, data, 0600)
 			require.NoError(t, err, "failed to save file %s", expectedPath)
 
 			t.Logf("saved file %s\n", expectedPath)

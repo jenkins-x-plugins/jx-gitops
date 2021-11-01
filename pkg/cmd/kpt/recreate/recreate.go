@@ -93,7 +93,7 @@ func (o *Options) Run() error {
 	}
 	dir = o.OutDir
 
-	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error { //nolint:staticcheck
 		if info == nil || info.IsDir() {
 			return nil
 		}
@@ -101,13 +101,12 @@ func (o *Options) Run() error {
 		if name != "Kptfile" {
 			return nil
 		}
-		rel, err := filepath.Rel(dir, kptDir)
+		rel, err := filepath.Rel(dir, kptDir) //nolint:staticcheck
 		if err != nil {
 			return errors.Wrapf(err, "failed to calculate the relative directory of %s", kptDir)
 		}
 		kptDir = strings.TrimSuffix(kptDir, pathSeparator)
-		parentDir, kptDirName := filepath.Split(kptDir)
-		parentDir = strings.TrimSuffix(parentDir, pathSeparator)
+		_, kptDirName := filepath.Split(kptDir)
 
 		u := &unstructured.Unstructured{}
 		data, err := ioutil.ReadFile(path)

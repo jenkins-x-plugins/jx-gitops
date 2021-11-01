@@ -25,7 +25,7 @@ func TestKustomize(t *testing.T) {
 	assert.NotEmpty(t, outDir, "no output dir")
 	t.Logf("overlay files generated in %s\n", outDir)
 
-	expected := filepath.Join("test_data", "expected", "godemo48")
+	expected := filepath.Join("test_data", "expected", "godemo48") //nolint:ineffassign,staticcheck
 	actual := filepath.Join(outDir, "godemo48")
 	testhelpers.AssertFileNotExists(t, filepath.Join(actual, "deployment.yaml"))
 	testhelpers.AssertFileNotExists(t, filepath.Join(actual, "service.yaml"))

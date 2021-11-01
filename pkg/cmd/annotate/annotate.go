@@ -22,7 +22,7 @@ var (
 	annotateExample = templates.Examples(`
 		# updates recursively annotates all resources in the current directory 
 		%s annotate myannotate=cheese another=thing
-		# updates recursively all resources 
+		# updates recursively all resources
 		%s annotate --dir myresource-dir foo=bar
 	`)
 )
@@ -56,7 +56,7 @@ func NewCmdUpdateAnnotate() (*cobra.Command, *Options) {
 }
 
 // UpdateAnnotateInYamlFiles updates the annotations in yaml files
-func UpdateAnnotateInYamlFiles(dir string, annotations []string, filter kyamls.Filter, podSpec bool) error {
+func UpdateAnnotateInYamlFiles(dir string, annotations []string, filter kyamls.Filter, podSpec bool) error { //nolint:gocritic
 	modifyFn := func(node *yaml.RNode, path string) (bool, error) {
 		sort.Strings(annotations)
 

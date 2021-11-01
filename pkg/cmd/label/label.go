@@ -22,7 +22,7 @@ var (
 	cmdExample = templates.Examples(`
 		# updates recursively labels all resources in the current directory 
 		%s label mylabel=cheese another=thing
-		# updates recursively all resources 
+		# updates recursively all resources
 		%s label --dir myresource-dir foo=bar
 	`)
 )
@@ -54,7 +54,7 @@ func NewCmdUpdateLabel() (*cobra.Command, *Options) {
 }
 
 // UpdateLabelInYamlFiles updates the labels in yaml files
-func UpdateLabelInYamlFiles(dir string, labels []string, filter kyamls.Filter) error {
+func UpdateLabelInYamlFiles(dir string, labels []string, filter kyamls.Filter) error { //nolint:gocritic
 	modifyFn := func(node *yaml.RNode, path string) (bool, error) {
 		sort.Strings(labels)
 

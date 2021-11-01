@@ -18,7 +18,7 @@ func TestParsePullRefs(t *testing.T) {
 	expected := &merge.PullRefs{
 		BaseBranch: "master",
 		BaseSha:    "ef08a6cd194c2687d4bc12df6bb8a86f53c348ba",
-		ToMerge: []merge.MergePair{
+		ToMerge: []merge.Pair{
 			{
 				Key: "2739",
 				SHA: "5b351f4eae3c4afbb90dd7787f8bf2f8c454723f",
@@ -40,7 +40,7 @@ func TestParsePullRefWithAdditionalRefExpression(t *testing.T) {
 	expected := &merge.PullRefs{
 		BaseBranch: "master",
 		BaseSha:    "0ec6b33a1bf37b3f06ecea6687763df4a528da9c",
-		ToMerge: []merge.MergePair{
+		ToMerge: []merge.Pair{
 			{
 				Key: "18",
 				SHA: "ee1ddf30f6508546b5570508ffeda303b2b794d9",

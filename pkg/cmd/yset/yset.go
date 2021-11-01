@@ -20,7 +20,7 @@ var (
 `)
 
 	annotateExample = templates.Examples(`
-		# sets the foo.bar=abc in the files *.yaml 
+		# sets the foo.bar=abc in the files *.yaml
 		jx gitops yset --path foo.bar --value abc *.yaml
 
 		# sets the foo.bar=abc in the file foo.yaml

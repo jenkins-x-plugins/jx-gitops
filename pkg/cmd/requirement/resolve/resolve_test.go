@@ -25,10 +25,6 @@ const (
 	expectedLocation      = "europe-west1-e"
 )
 
-var mockHeaders = map[string]string{
-	"Metadata-Flavor": "Google",
-}
-
 func TestRequirementsResolveGKE(t *testing.T) {
 	// lets mock the http requests...
 	client := httphelpers.GetClient()
@@ -64,7 +60,7 @@ func TestRequirementsResolveGKE(t *testing.T) {
 			Get("/computeMetadata/v1/" + r.path).
 			Reply(200).
 			Type("text/plain").
-			//SetHeaders(mockHeaders).
+			// SetHeaders(mockHeaders).
 			BodyString(r.body)
 	}
 

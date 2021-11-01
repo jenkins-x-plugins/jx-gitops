@@ -11,21 +11,18 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/cli"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/options"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
 var (
-	info = termcolor.ColorInfo
-
 	cmdLong = templates.LongDesc(`
 		Adds a chart to the local 'helmfile.yaml' file
 `)
 
 	cmdExample = templates.Examples(`
-		# adds a chart using the currently known repositories in the verison stream or helmfile.yaml
+		# adds a chart using the currently known repositories in the version stream or helmfile.yaml
 		%s helmfile add --chart somerepo/mychart
 
 		# adds a chart using a new repository URL with a custom version and namespace
@@ -159,7 +156,7 @@ func (o *Options) Git() gitclient.Interface {
 	return o.Gitter
 }
 
-func (o *Options) GitCommit(outDir string, commitMessage string) error {
+func (o *Options) GitCommit(outDir, commitMessage string) error {
 	gitter := o.Git()
 	err := gitclient.CommitIfChanges(gitter, outDir, commitMessage)
 	if err != nil {

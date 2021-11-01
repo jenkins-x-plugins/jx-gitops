@@ -52,15 +52,3 @@ func (i *ReleaseInfo) String() string {
 	}
 	return answer
 }
-
-func (i *ReleaseInfo) handleChartMetadata(manifest *chart.Metadata) {
-	if i.Description == "" {
-		i.Description = manifest.Description
-	}
-	if i.Home == "" {
-		i.Home = manifest.Home
-	}
-	if i.Icon == "" {
-		i.Icon = manifest.Icon
-	}
-}

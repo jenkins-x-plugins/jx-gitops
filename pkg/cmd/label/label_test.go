@@ -36,23 +36,26 @@ func TestUpdateLabelsInYamlFiles(t *testing.T) {
 
 		var testCases []testCase
 		for _, f := range fileNames {
-			if f.IsDir() {
-				name := f.Name()
-				srcFile := filepath.Join(sourceData, name, "source.yaml")
-				expectedFile := filepath.Join(sourceData, name, "expected.yaml")
-				require.FileExists(t, srcFile)
-				require.FileExists(t, expectedFile)
-
-				outFile := filepath.Join(tmpDir, name+".yaml")
-				err = files.CopyFile(srcFile, outFile)
-				require.NoError(t, err, "failed to copy %s to %s", srcFile, outFile)
-
-				testCases = append(testCases, testCase{
-					SourceFile:   srcFile,
-					ResultFile:   outFile,
-					ExpectedFile: expectedFile,
-				})
+			if !f.IsDir() {
+				continue
 			}
+
+			name := f.Name()
+			srcFile := filepath.Join(sourceData, name, "source.yaml")
+			expectedFile := filepath.Join(sourceData, name, "expected.yaml")
+			require.FileExists(t, srcFile)
+			require.FileExists(t, expectedFile)
+
+			outFile := filepath.Join(tmpDir, name+".yaml")
+			err = files.CopyFile(srcFile, outFile)
+			require.NoError(t, err, "failed to copy %s to %s", srcFile, outFile)
+
+			testCases = append(testCases, testCase{
+				SourceFile:   srcFile,
+				ResultFile:   outFile,
+				ExpectedFile: expectedFile,
+			})
+
 		}
 		err = label.UpdateLabelInYamlFiles(tmpDir, args, kyamls.Filter{})
 		require.NoError(t, err, "failed to update namespace in dir %s for args %#v", tmpDir, args)

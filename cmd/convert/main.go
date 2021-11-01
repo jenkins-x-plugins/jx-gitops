@@ -40,13 +40,16 @@ func convert(dir string) error {
 		return errors.Errorf("no directory %s", chartsDir)
 	}
 
-	err = filepath.Walk(chartsDir, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(chartsDir, func(path string, info os.FileInfo, err error) error { //nolint:staticcheck
 		if info.IsDir() || !strings.HasSuffix(path, ".yml") {
 			return nil
 		}
 
 		chartDir := strings.TrimSuffix(path, ".yml")
-		rel, err := filepath.Rel(chartsDir, chartDir)
+		rel, err := filepath.Rel(chartsDir, chartDir) //nolint:staticcheck
+		if err != nil {
+			return err
+		}
 
 		versions, err := versionstream.LoadStableVersionFile(path)
 		if err != nil {

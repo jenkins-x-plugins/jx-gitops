@@ -7,7 +7,6 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/cli"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/options"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -28,8 +27,6 @@ type Options struct {
 }
 
 var (
-	info = termcolor.ColorInfo
-
 	cmdLong = templates.LongDesc(`
 		Deletes a chart from the helmfiles in one or all namespaces
 
@@ -144,7 +141,7 @@ func (o *Options) Git() gitclient.Interface {
 	return o.Gitter
 }
 
-func (o *Options) GitCommit(outDir string, commitMessage string) error {
+func (o *Options) GitCommit(outDir, commitMessage string) error {
 	gitter := o.Git()
 	err := gitclient.CommitIfChanges(gitter, outDir, commitMessage)
 	if err != nil {

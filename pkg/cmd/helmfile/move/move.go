@@ -218,15 +218,15 @@ func (o *Options) lazyCreateNamespaceResource(ns string) error {
 	return nil
 }
 
-func (o *Options) moveFilesToClusterOrNamespacesFolder(dir string, ns string, releaseName string, chartName string) error {
-	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+func (o *Options) moveFilesToClusterOrNamespacesFolder(dir, ns, releaseName, chartName string) error {
+	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error { //nolint:staticcheck
 		if info == nil || info.IsDir() {
 			return nil
 		}
 		if !strings.HasSuffix(path, ".yaml") && !strings.HasSuffix(path, ".yml") {
 			return nil
 		}
-		rel, err := filepath.Rel(dir, path)
+		rel, err := filepath.Rel(dir, path) //nolint:staticcheck
 		if err != nil {
 			return errors.Wrapf(err, "failed to calculate relative path of %s from %s", path, dir)
 		}

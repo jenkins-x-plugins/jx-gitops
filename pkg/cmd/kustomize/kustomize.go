@@ -105,7 +105,7 @@ func (o *Options) Run() error {
 	}
 	o.Kustomization.Resources = append(o.Kustomization.Resources, relBase)
 
-	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error { //nolint:staticcheck
 		if info == nil || info.IsDir() {
 			return nil
 		}
@@ -113,7 +113,7 @@ func (o *Options) Run() error {
 			return nil
 		}
 
-		rel, err := filepath.Rel(dir, path)
+		rel, err := filepath.Rel(dir, path) //nolint:staticcheck
 		if err != nil {
 			return errors.Wrapf(err, "failed to calculate the relative directory of %s", path)
 		}
@@ -177,11 +177,11 @@ func (o *Options) Run() error {
 	return kustomizes.SaveKustomization(o.Kustomization, o.OutputDir)
 }
 
-func (o *Options) createOverlay(srcNode *yaml.RNode, targetNode *yaml.RNode, path string) (*yaml.RNode, error) {
+func (o *Options) createOverlay(srcNode, targetNode *yaml.RNode, path string) (*yaml.RNode, error) {
 	src := srcNode.YNode()
 	target := targetNode.YNode()
 
-	overlay, err := o.removeEqualLeaves(src, target, path, "")
+	overlay, err := o.removeEqualLeaves(src, target, "")
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to add overlays to path %s", path)
 	}
@@ -234,7 +234,7 @@ func walkMappingNodes(node *yaml.Node, jsonPath string, fn func(node *yaml.Node,
 	return nil
 }
 
-func (o *Options) removeEqualLeaves(src *yaml.Node, target *yaml.Node, path string, jsonPath string) (*yaml.Node, error) {
+func (o *Options) removeEqualLeaves(src, target *yaml.Node, jsonPath string) (*yaml.Node, error) {
 	srcContent := src.Content
 	targetContent := target.Content
 	if src.Kind != target.Kind {
@@ -269,7 +269,7 @@ func (o *Options) removeEqualLeaves(src *yaml.Node, target *yaml.Node, path stri
 			if stringhelpers.StringArrayIndex(mandatoryFields, childPath) >= 0 {
 				continue
 			}
-			newTValue, err := o.removeEqualLeaves(sValue, tValue, path, childPath)
+			newTValue, err := o.removeEqualLeaves(sValue, tValue, childPath)
 			if err != nil {
 				return nil, errors.Wrapf(err, "failed to process node %s", childPath)
 			}
@@ -309,7 +309,7 @@ func (o *Options) removeEqualLeaves(src *yaml.Node, target *yaml.Node, path stri
 				if jsonPath != "" {
 					childPath = jsonPath + "." + childPath
 				}
-				newTValue, err := o.removeEqualLeaves(s, t, path, childPath)
+				newTValue, err := o.removeEqualLeaves(s, t, childPath)
 				if err != nil {
 					return nil, errors.Wrapf(err, "failed to process node %s", childPath)
 				}
@@ -355,6 +355,6 @@ func findMapEntry(key *yaml.Node, content []*yaml.Node) int {
 	return -1
 }
 
-func scalarsEqual(n1 *yaml.Node, n2 *yaml.Node) bool {
+func scalarsEqual(n1, n2 *yaml.Node) bool {
 	return n1.Kind == yaml.ScalarNode && n2.Kind == yaml.ScalarNode && n1.Value == n2.Value
 }

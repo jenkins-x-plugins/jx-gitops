@@ -12,7 +12,7 @@ import (
 )
 
 // FindRequirements finds the requirements from the dev Environment CRD
-func FindRequirements(g gitclient.Interface, jxClient jxc.Interface, ns string, dir, owner, repo string) (*jxcore.RequirementsConfig, error) {
+func FindRequirements(g gitclient.Interface, jxClient jxc.Interface, ns, dir, owner, repo string) (*jxcore.RequirementsConfig, error) {
 	settings, err := requirements.LoadSettings(dir, true)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to load settings")
@@ -46,6 +46,9 @@ func FindRequirements(g gitclient.Interface, jxClient jxc.Interface, ns string, 
 	// now lets merge the local requirements with the dev environment so that we can locally override things
 	// while inheriting common stuff
 	req, clusterDir, err := requirements.GetRequirementsAndGit(g, gitURL)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get requirements from cluster git repo")
+	}
 	if req == nil {
 		r := jxcore.NewRequirementsConfig()
 		req = &r.Spec

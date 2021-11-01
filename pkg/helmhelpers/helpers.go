@@ -25,7 +25,7 @@ func IsWhitespaceOrComments(text string) bool {
 }
 
 // RunCommandAndLogOutput runs the command and outputs info or debug level logging
-func RunCommandAndLogOutput(commandRunner cmdrunner.CommandRunner, c *cmdrunner.Command, debugPrefixes []string, infoPrefixes []string) error {
+func RunCommandAndLogOutput(commandRunner cmdrunner.CommandRunner, c *cmdrunner.Command, debugPrefixes, infoPrefixes []string) error {
 	if commandRunner == nil {
 		commandRunner = cmdrunner.QuietCommandRunner
 	}
@@ -54,7 +54,8 @@ func RunCommandAndLogOutput(commandRunner cmdrunner.CommandRunner, c *cmdrunner.
 // FindClusterLocalRepositoryURLs finds any cluster local repositories such as http://bucketrepo/bucketrepo/charts/
 func FindClusterLocalRepositoryURLs(repos []state.RepositorySpec) ([]string, error) {
 	var answer []string
-	for _, repo := range repos {
+	for k := range repos {
+		repo := repos[k]
 		if repo.URL == "" {
 			continue
 		}

@@ -183,7 +183,10 @@ func (o *Options) Run() error {
 			group := &server.Groups[j]
 			for k := range group.Repositories {
 				repo := &group.Repositories[k]
-				sourceconfigs.DefaultValues(config, group, repo)
+				err = sourceconfigs.DefaultValues(config, group, repo)
+				if err != nil {
+					return errors.Wrap(err, "failed to set default values for jenkins")
+				}
 				jobTemplate := firstNonBlankValue(repo.JenkinsJobTemplate, group.JenkinsJobTemplate, server.JobTemplate, config.Spec.JenkinsJobTemplate)
 				err = o.processJenkinsJobConfigForRepository(group, repo, serverName, jobTemplate)
 				if err != nil {
@@ -214,12 +217,12 @@ func (o *Options) Run() error {
 		buf.WriteString(jobValuesHeader)
 
 		for _, jcfg := range configs {
-			path := jcfg.TemplateFile
-			output, err := templater.Evaluate(funcMap, jcfg.TemplateData, jcfg.TemplateText, path, "Jenkins Server "+server)
+			tmplpath := jcfg.TemplateFile
+			output, err := templater.Evaluate(funcMap, jcfg.TemplateData, jcfg.TemplateText, tmplpath, "Jenkins Server "+server)
 			if err != nil {
-				return errors.Wrapf(err, "failed to evaluate template %s", path)
+				return errors.Wrapf(err, "failed to evaluate template %s", tmplpath)
 			}
-			buf.WriteString(indent + "// from template: " + path + "\n")
+			buf.WriteString(indent + "// from template: " + tmplpath + "\n")
 			buf.WriteString(indentText(output, indent))
 			buf.WriteString(indent + "\n")
 		}
@@ -232,7 +235,7 @@ func (o *Options) Run() error {
 	return nil
 }
 
-func indentText(text string, indent string) string {
+func indentText(text, indent string) string {
 	lines := strings.Split(text, "\n")
 	return indent + strings.Join(lines, "\n"+indent)
 }
@@ -291,7 +294,7 @@ func (o *Options) processJenkinsJobConfigForRepository(group *v1alpha1.Repositor
 	return o.processJenkinsServerJobTemplate(server, fullName, jobTemplatePath, templateData)
 }
 
-func (o *Options) processJenkinsServerJobTemplate(server string, key string, jobTemplatePath string, templateData map[string]interface{}) error {
+func (o *Options) processJenkinsServerJobTemplate(server, key, jobTemplatePath string, templateData map[string]interface{}) error {
 	jobTemplate := filepath.Join(o.Dir, jobTemplatePath)
 	exists, err := files.FileExists(jobTemplate)
 	if err != nil {

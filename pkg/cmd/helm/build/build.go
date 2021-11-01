@@ -122,7 +122,7 @@ func (o *Options) Run() error {
 		if exists {
 			err = yamls.LoadFile(chartFile, chartDef)
 			if err != nil {
-				errors.Wrapf(err, "failed to load Chart.yaml")
+				return errors.Wrapf(err, "failed to load Chart.yaml")
 			}
 
 			for i, dependency := range chartDef.Dependencies {

@@ -181,7 +181,7 @@ func (o *Options) lazyCreateNamespaceResource(ns string) error {
 }
 
 // UpdateNamespaceInYamlFiles updates the namespace in yaml files
-func UpdateNamespaceInYamlFiles(dir string, ns string, filter kyamls.Filter) error {
+func UpdateNamespaceInYamlFiles(dir string, ns string, filter kyamls.Filter) error { //nolint:gocritic
 	modifyFn := func(node *yaml.RNode, path string) (bool, error) {
 		kind := kyamls.GetKind(node, path)
 

@@ -12,7 +12,7 @@ const (
 	// SourceConfigFileName default name of the source repository configuration
 	SourceConfigFileName = "source-config.yaml"
 
-	//DefaultSlackChannel
+	// DefaultSlackChannel
 	DefaultSlackChannel = "#jenkins-x-pipelines"
 )
 
@@ -21,7 +21,7 @@ type BooleanFlag string
 
 var (
 	// BooleanFlagNone indicates no value
-	BooleanFlagNone BooleanFlag = ""
+	BooleanFlagNone BooleanFlag
 
 	// BooleanFlagYes BooleanFlagYes indicates yes
 	BooleanFlagYes BooleanFlag = "yes"
@@ -35,7 +35,7 @@ type PipelineKind string
 
 var (
 	// PipelineKindNone indicates all pipelines
-	PipelineKindNone PipelineKind = ""
+	PipelineKindNone PipelineKind
 
 	// PipelineKindAll indicates all pipelines
 	PipelineKindAll PipelineKind = "all"
@@ -52,7 +52,7 @@ type NotifyKind string
 
 var (
 	// NotifyKindNone indicates no notification
-	NotifyKindNone NotifyKind = ""
+	NotifyKindNone NotifyKind
 
 	// NotifyKindNever never notify
 	NotifyKindNever NotifyKind = "never"
@@ -277,7 +277,7 @@ func (p *Pattern) Inherit(group *Pattern) *Pattern {
 // ToBool converts the flag to a boolean such that it is only true if the
 // value is "yes"
 func (f BooleanFlag) ToBool() bool {
-	return strings.ToLower(string(f)) == "yes"
+	return strings.EqualFold(string(f), "yes")
 }
 
 // Inherit if the current flag is blank lets use the group value

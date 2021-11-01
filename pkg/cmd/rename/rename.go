@@ -26,9 +26,6 @@ var (
 		# renames files to use a canonical file name
 		%s rename --dir .
 	`)
-
-	// resourcesSeparator is used to separate multiple objects stored in the same YAML file
-	resourcesSeparator = "---\n"
 )
 
 // Options the options for the command
@@ -57,7 +54,7 @@ func NewCmdRename() (*cobra.Command, *Options) {
 
 // Run implements the command
 func (o *Options) Run() error {
-	err := filepath.Walk(o.Dir, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(o.Dir, func(path string, info os.FileInfo, err error) error { //nolint:staticcheck
 		if info == nil || info.IsDir() {
 			return nil
 		}
@@ -65,7 +62,7 @@ func (o *Options) Run() error {
 			return nil
 		}
 
-		b, err := ioutil.ReadFile(path)
+		b, err := ioutil.ReadFile(path) //nolint:staticcheck
 		if err != nil {
 			return errors.Wrapf(err, "failed to load file %s", path)
 		}
@@ -130,20 +127,18 @@ func RemoveGoTemplateLines(b []byte) string {
 	return buf.String()
 }
 
-var (
-	kindSuffixes = map[string]string{
-		"clusterrolebinding":             "crb",
-		"configmap":                      "cm",
-		"customresourcedefinition":       "crd",
-		"deployment":                     "deploy",
-		"mutatingwebhookconfiguration":   "mutwebhookcfg",
-		"namespace":                      "ns",
-		"rolebinding":                    "rb",
-		"service":                        "svc",
-		"serviceaccount":                 "sa",
-		"validatingwebhookconfiguration": "valwebhookcfg",
-	}
-)
+var kindSuffixes = map[string]string{
+	"clusterrolebinding":             "crb",
+	"configmap":                      "cm",
+	"customresourcedefinition":       "crd",
+	"deployment":                     "deploy",
+	"mutatingwebhookconfiguration":   "mutwebhookcfg",
+	"namespace":                      "ns",
+	"rolebinding":                    "rb",
+	"service":                        "svc",
+	"serviceaccount":                 "sa",
+	"validatingwebhookconfiguration": "valwebhookcfg",
+}
 
 func (o *Options) canonicalName(apiVersion, kind, name string) string {
 	lk := strings.ToLower(kind)

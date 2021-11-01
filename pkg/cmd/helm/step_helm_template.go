@@ -278,7 +278,7 @@ func (o *TemplateOptions) Run() error {
 	return o.GitCommit(outDir, o.GitCommitMessage)
 }
 
-func (o *TemplateOptions) GitCommit(outDir string, commitMessage string) error {
+func (o *TemplateOptions) GitCommit(outDir, commitMessage string) error {
 	gitter := o.Git()
 	_, err := gitter.Command(outDir, "add", "*")
 	if err != nil {

@@ -16,10 +16,8 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 )
 
-var (
-	// generateTestOutput enable to regenerate the expected output
-	generateTestOutput = false
-)
+// generateTestOutput enable to regenerate the expected output
+var generateTestOutput = false
 
 func TestRequirementsMergeFile(t *testing.T) {
 	// setup the disk
@@ -30,38 +28,40 @@ func TestRequirementsMergeFile(t *testing.T) {
 	assert.NoError(t, err)
 
 	for _, f := range fileNames {
-		if f.IsDir() {
-			name := f.Name()
-			srcDir := filepath.Join("test_data", name)
-			require.DirExists(t, srcDir)
-
-			tmpDir := filepath.Join(rootTmpDir, name)
-			err = files.CopyDirOverwrite(srcDir, tmpDir)
-			require.NoError(t, err, "failed to copy %s to %s", srcDir, tmpDir)
-
-			// now lets run the command
-			_, o := merge.NewCmdRequirementsMerge()
-			o.Dir = tmpDir
-			o.File = filepath.Join(tmpDir, "changes.yml")
-
-			t.Logf("merging requirements in dir %s\n", tmpDir)
-
-			err = o.Run()
-			require.NoError(t, err, "failed to run merge")
-
-			expectedPath := filepath.Join(srcDir, "expected.yml")
-			generatedFile := filepath.Join(tmpDir, jxcore.RequirementsConfigFileName)
-
-			if generateTestOutput {
-				data, err := ioutil.ReadFile(generatedFile)
-				require.NoError(t, err, "failed to load %s", generatedFile)
-
-				err = ioutil.WriteFile(expectedPath, data, 0666)
-				require.NoError(t, err, "failed to save file %s", expectedPath)
-				continue
-			}
-			testhelpers.AssertTextFilesEqual(t, expectedPath, generatedFile, "merged file for test "+name)
+		if !f.IsDir() {
+			continue
 		}
+		name := f.Name()
+		srcDir := filepath.Join("test_data", name)
+		require.DirExists(t, srcDir)
+
+		tmpDir := filepath.Join(rootTmpDir, name)
+		err = files.CopyDirOverwrite(srcDir, tmpDir)
+		require.NoError(t, err, "failed to copy %s to %s", srcDir, tmpDir)
+
+		// now lets run the command
+		_, o := merge.NewCmdRequirementsMerge()
+		o.Dir = tmpDir
+		o.File = filepath.Join(tmpDir, "changes.yml")
+
+		t.Logf("merging requirements in dir %s\n", tmpDir)
+
+		err = o.Run()
+		require.NoError(t, err, "failed to run merge")
+
+		expectedPath := filepath.Join(srcDir, "expected.yml")
+		generatedFile := filepath.Join(tmpDir, jxcore.RequirementsConfigFileName)
+
+		if generateTestOutput {
+			data, err := ioutil.ReadFile(generatedFile)
+			require.NoError(t, err, "failed to load %s", generatedFile)
+
+			err = ioutil.WriteFile(expectedPath, data, 0600)
+			require.NoError(t, err, "failed to save file %s", expectedPath)
+			continue
+		}
+		testhelpers.AssertTextFilesEqual(t, expectedPath, generatedFile, "merged file for test "+name)
+
 	}
 }
 

@@ -32,12 +32,4 @@ func TestRequirementsPublish(t *testing.T) {
 	env := &v1.Environment{}
 	err = yamls.LoadFile(expectedEnvFile, env)
 	require.NoError(t, err, "failed to load Environment from %s", expectedEnvFile)
-
-	/*
-		requirements, err := jxcore.GetRequirementsConfigFromTeamSettings(&env.Spec.TeamSettings)
-		require.NoError(t, err, "failed to get requirements from team settings")
-		require.NotNil(t, requirements, "no requirements in team settings")
-
-		assert.Equal(t, "myproject", requirements.Cluster.ProjectID, "requirements.Cluster.Provider")
-	*/
 }

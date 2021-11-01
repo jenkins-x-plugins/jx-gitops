@@ -1,10 +1,10 @@
 package chart
 
 type Chart struct {
-	Dependencies []*ChartDependencies `json:"dependencies"`
+	Dependencies []*Dependencies `json:"dependencies"`
 }
 
-type ChartDependencies struct {
+type Dependencies struct {
 	Name       string `json:"name"`
 	Version    string `json:"version"`
 	Repository string `json:"repository"`

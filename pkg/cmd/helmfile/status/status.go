@@ -97,7 +97,8 @@ func (o *Options) Run() error {
 	if o.EnvironmentURLs == nil {
 		o.EnvironmentURLs = map[string]string{}
 	}
-	for _, e := range o.Requirements.Spec.Environments {
+	for k := range o.Requirements.Spec.Environments {
+		e := o.Requirements.Spec.Environments[k]
 		ns := e.Namespace
 		if ns == "" {
 			ns = "jx"

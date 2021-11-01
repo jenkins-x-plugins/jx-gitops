@@ -36,7 +36,8 @@ func NewChartDetails(helmState *state.HelmState, rel *state.ReleaseSpec, prefixe
 	}
 	prefix, _ := SpitChartName(a.Chart)
 	if a.Repository == "" && prefix != "" {
-		for _, r := range helmState.Repositories {
+		for k := range helmState.Repositories {
+			r := helmState.Repositories[k]
 			if r.Name == prefix {
 				a.Repository = r.URL
 			}
@@ -76,7 +77,8 @@ func (o *ChartDetails) Add(helmState *state.HelmState) (bool, error) {
 	// lets resolve the chart prefix from a local repository from the file or from a
 	// prefix in the versions stream
 	if repository == "" && prefix != "" {
-		for _, r := range helmState.Repositories {
+		for k := range helmState.Repositories {
+			r := helmState.Repositories[k]
 			if r.Name == prefix {
 				repository = r.URL
 			}
@@ -93,8 +95,9 @@ func (o *ChartDetails) Add(helmState *state.HelmState) (bool, error) {
 	}
 	if repository != "" && prefix != "" {
 		// lets ensure we've got a repository for this URL in the apps file
-		found := false
-		for _, r := range helmState.Repositories {
+		found = false
+		for k := range helmState.Repositories {
+			r := helmState.Repositories[k]
 			if r.Name == prefix {
 				if r.URL != repository {
 					return false, errors.Errorf("release %s has prefix %s for repository URL %s which is also mapped to prefix %s", o.Chart, prefix, r.URL, r.Name)

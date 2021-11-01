@@ -115,7 +115,7 @@ func (o *Options) Run() error {
 						Name: fileName,
 						Args: []string{"plugin", "update", "x"},
 					}
-					out, err = o.CommandRunner(updateHelmX)
+					_, err = o.CommandRunner(updateHelmX)
 					if err != nil {
 						return errors.Wrapf(err, "failed to update plugin helm-x")
 					}

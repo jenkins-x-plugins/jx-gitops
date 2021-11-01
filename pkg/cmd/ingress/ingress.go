@@ -23,7 +23,7 @@ import (
 
 var (
 	ingressLong = templates.LongDesc(`
-		Updates Ingress resources with the current ingress domain 
+		Updates Ingress resources with the current ingress domain
 `)
 
 	ingressExample = templates.Examples(`
@@ -81,10 +81,7 @@ func (o *Options) Run() error {
 		s := &ing.Spec
 		for i, r := range s.Rules {
 			currentHost := r.Host
-			host, err := o.modifyHost(currentHost, newDomain)
-			if err != nil {
-				return modified, err
-			}
+			host := o.modifyHost(currentHost, newDomain)
 			if host != "" && host != currentHost {
 				modified = true
 				s.Rules[i].Host = host
@@ -96,10 +93,7 @@ func (o *Options) Run() error {
 		for i, tls := range s.TLS {
 			hosts := tls.Hosts
 			for j, currentHost := range hosts {
-				host, err := o.modifyHost(currentHost, newDomain)
-				if err != nil {
-					return modified, err
-				}
+				host := o.modifyHost(currentHost, newDomain)
 				if host != "" && host != currentHost {
 					modified = true
 					if !tlsEnabled {
@@ -121,15 +115,15 @@ func (o *Options) Run() error {
 }
 
 // modifyHost modifies the host name if it matches the predicate otherwise return an empty string
-func (o *Options) modifyHost(host string, newDomain string) (string, error) {
+func (o *Options) modifyHost(host, newDomain string) string {
 	if strings.HasSuffix(host, o.ReplaceDomain) {
-		return strings.TrimSuffix(host, o.ReplaceDomain) + newDomain, nil
+		return strings.TrimSuffix(host, o.ReplaceDomain) + newDomain
 	}
-	return "", nil
+	return ""
 }
 
 func (o *Options) updateIngresses(dir string, fn func(ing *nv1.Ingress, path string) (bool, error)) error {
-	return filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+	return filepath.Walk(dir, func(path string, info os.FileInfo, err error) error { //nolint:staticcheck
 		if info == nil || info.IsDir() {
 			return nil
 		}
@@ -144,7 +138,7 @@ func (o *Options) updateIngresses(dir string, fn func(ing *nv1.Ingress, path str
 			return nil
 		}
 
-		data, err := ioutil.ReadFile(path)
+		data, err := ioutil.ReadFile(path) //nolint:staticcheck
 		if err != nil {
 			return errors.Wrapf(err, "failed to load file %s", path)
 		}
@@ -180,6 +174,9 @@ func (o *Options) updateIngresses(dir string, fn func(ing *nv1.Ingress, path str
 			return nil
 		}
 		data, err = yaml.Marshal(ing)
+		if err != nil {
+			return errors.Wrap(err, "failed to marshal ingress onject to yaml")
+		}
 		err = ioutil.WriteFile(path, data, files.DefaultFileWritePermissions)
 		if err != nil {
 			return errors.Wrapf(err, "failed to save %s", path)

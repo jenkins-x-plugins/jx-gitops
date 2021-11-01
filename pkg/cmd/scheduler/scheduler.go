@@ -244,7 +244,8 @@ func (o *Options) Run() error {
 
 	// lets check for in repo config
 	flag := true
-	for _, sr := range repoList.Items {
+	for k := range repoList.Items {
+		sr := repoList.Items[k]
 		schedulerName := sr.Spec.Scheduler.Name
 		inRepo := schedulerName == "in-repo"
 		if schedulerName != "" {
@@ -322,7 +323,7 @@ func (o *Options) createTemplater() (func(string) (string, error), error) {
 	}, nil
 }
 
-func createConfigMap(resource interface{}, ns string, name string, key string) (*corev1.ConfigMap, error) {
+func createConfigMap(resource interface{}, ns, name, key string) (*corev1.ConfigMap, error) {
 	data, err := gyaml.Marshal(resource)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to marshal resource to YAML")

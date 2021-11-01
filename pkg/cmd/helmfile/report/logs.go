@@ -5,7 +5,7 @@ import (
 	"github.com/jenkins-x/jx-api/v4/pkg/cloud"
 )
 
-func getLogURL(requirements *jxcore.RequirementsConfig, ns string, containerName string) string {
+func getLogURL(requirements *jxcore.RequirementsConfig, ns, containerName string) string {
 	c := &requirements.Cluster
 	if c.Provider == cloud.GKE {
 		return logsURLForGCP(c.ProjectID, c.ClusterName, ns, containerName)

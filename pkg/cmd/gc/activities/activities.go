@@ -150,7 +150,8 @@ func (o *Options) Run() error {
 	var completedActivities []v1.PipelineActivity
 
 	// Filter out running activities
-	for _, a := range activities.Items {
+	for k := range activities.Items {
+		a := activities.Items[k]
 		if a.Spec.CompletedTimestamp != nil {
 			completedActivities = append(completedActivities, a)
 		}
@@ -162,9 +163,9 @@ func (o *Options) Run() error {
 	})
 
 	//
-	for _, a := range completedActivities {
-		activity := a
-		branchName := a.BranchName()
+	for k := range completedActivities {
+		activity := completedActivities[k]
+		branchName := activity.BranchName()
 		isPR, isBatch := o.isPullRequestOrBatchBranch(branchName)
 		maxAge, revisionHistory := o.ageAndHistoryLimits(isPR, isBatch)
 		// lets remove activities that are too old
@@ -197,7 +198,7 @@ func (o *Options) Run() error {
 
 		repoBranchAndContext := activity.RepositoryOwner() + "/" + activity.RepositoryName() + "/" + activity.BranchName() + "/" + activity.Spec.Context
 		c := counters.AddBuild(repoBranchAndContext, isPR)
-		if c > revisionHistory && a.Spec.CompletedTimestamp != nil {
+		if c > revisionHistory && activity.Spec.CompletedTimestamp != nil {
 			err = o.deleteActivity(ctx, activityInterface, &activity)
 			if err != nil {
 				return err
@@ -205,14 +206,6 @@ func (o *Options) Run() error {
 			continue
 		}
 	}
-
-	// Clean up completed PipelineRuns
-	/*
-		err = o.gcPipelineRuns(currentNs)
-		if err != nil {
-			return err
-		}
-	*/
 
 	return nil
 }

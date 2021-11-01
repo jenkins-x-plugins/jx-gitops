@@ -84,8 +84,8 @@ func (o *Options) Run() error {
 
 	deleteOptions := metav1.DeleteOptions{}
 	errors := []error{}
-	for _, p := range podList.Items {
-		pod := p
+	for k := range podList.Items {
+		pod := podList.Items[k]
 		matches, age := o.MatchesPod(&pod)
 		if matches {
 			err := podInterface.Delete(ctx, pod.Name, deleteOptions)
@@ -107,8 +107,8 @@ func (o *Options) MatchesPod(pod *corev1.Pod) (bool, time.Duration) {
 	now := time.Now()
 
 	finished := now.Add(-1000 * time.Hour)
-	for _, s := range pod.Status.ContainerStatuses {
-		terminated := s.State.Terminated
+	for k := range pod.Status.ContainerStatuses {
+		terminated := pod.Status.ContainerStatuses[k].State.Terminated
 		if terminated != nil {
 			if terminated.FinishedAt.After(finished) {
 				finished = terminated.FinishedAt.Time

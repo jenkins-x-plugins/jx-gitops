@@ -14,8 +14,6 @@ import (
 )
 
 func TestUpdateNamespaceInYamlFiles(t *testing.T) {
-
-	// testDirs := []string{"chart_name_only", "release_name_and_chart_name"}
 	tests := []struct {
 		folder                  string
 		hasReleaseName          bool

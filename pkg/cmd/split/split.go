@@ -63,14 +63,14 @@ func (o *Options) Run() error {
 
 // ProcessYamlFiles splits any files with multiple resources into separate files
 func ProcessYamlFiles(dir string) error {
-	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error { //nolint:staticcheck
 		if info == nil || info.IsDir() {
 			return nil
 		}
 		if !strings.HasSuffix(path, ".yaml") && !strings.HasSuffix(path, ".yml") {
 			return nil
 		}
-		data, err := ioutil.ReadFile(path)
+		data, err := ioutil.ReadFile(path) //nolint:staticcheck
 		if err != nil {
 			return errors.Wrapf(err, "failed to load file %s", path)
 		}

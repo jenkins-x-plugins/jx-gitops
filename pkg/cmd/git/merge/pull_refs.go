@@ -9,10 +9,10 @@ import (
 type PullRefs struct {
 	BaseBranch string
 	BaseSha    string
-	ToMerge    []MergePair
+	ToMerge    []Pair
 }
 
-type MergePair struct {
+type Pair struct {
 	Key string
 	SHA string
 }
@@ -30,7 +30,7 @@ func ParsePullRefs(pullRefs string) (*PullRefs, error) {
 			answer.BaseBranch = s[0]
 			answer.BaseSha = s[1]
 		} else {
-			answer.ToMerge = append(answer.ToMerge, MergePair{Key: s[0], SHA: s[1]})
+			answer.ToMerge = append(answer.ToMerge, Pair{Key: s[0], SHA: s[1]})
 		}
 	}
 	return &answer, nil

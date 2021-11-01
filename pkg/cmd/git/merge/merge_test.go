@@ -111,7 +111,7 @@ func TestGitMerge(t *testing.T) {
 	}
 }
 
-func requireWritefile(t *testing.T, dir string, name string, contents string) {
+func requireWritefile(t *testing.T, dir, name, contents string) {
 	path := filepath.Join(dir, name)
 	err := ioutil.WriteFile(path, []byte(contents), files.DefaultFileWritePermissions)
 	require.NoError(t, err, "failed to write file %s", path)
@@ -122,13 +122,13 @@ func requireGitAdd(t *testing.T, g gitclient.Interface, dir string) {
 	require.NoError(t, err, "failed to git add in dir %s, dir")
 }
 
-func requireCommit(t *testing.T, g gitclient.Interface, dir string, message string) string {
+func requireCommit(t *testing.T, g gitclient.Interface, dir, message string) string {
 	_, err := g.Command(dir, "commit", "-m", message, "--no-gpg-sign")
 	require.NoError(t, err, "failed to git commit")
 	return readHeadSHA(t, dir)
 }
 
-func requireNewBranch(t *testing.T, g gitclient.Interface, dir string, branch string) {
+func requireNewBranch(t *testing.T, g gitclient.Interface, dir, branch string) {
 	_, err := g.Command(dir, "checkout", "-b", branch)
 	require.NoError(t, err, "failed to create branch %s", branch)
 }
@@ -156,7 +156,7 @@ func readHeadSHA(t *testing.T, dir string) string {
 }
 
 // readRef reads the commit SHA of the specified ref. Needs to be of the form /refs/heads/<name>.
-func readRef(t *testing.T, repoDir string, name string) string {
+func readRef(t *testing.T, repoDir, name string) string {
 	path := filepath.Join(repoDir, ".git", name)
 	data, err := ioutil.ReadFile(path)
 	require.NoError(t, err, "failed to read path %s", path)
