@@ -181,8 +181,8 @@ func (o *Options) Run() error {
 				log.Logger().Warnf("pipelinerun %s not found, skipping", prName)
 			}
 
-			// Delete only existing pipelineRuns
-			if pr != nil {
+			// Delete only existing pipelineRuns, need to check for error, as we dont return err in the step before
+			if pr != nil && err == nil {
 				err = o.deletePipelineRun(ctx, currentNs, prName)
 				if err != nil {
 					return err
