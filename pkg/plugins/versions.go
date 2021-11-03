@@ -35,7 +35,7 @@ const (
 )
 
 type HelmPlugin struct {
-	Url  string
+	URL  string
 	Name string
 }
 
@@ -45,7 +45,7 @@ var (
 		CreateHelmPlugin(HelmVersion),
 		CreateHelmfilePlugin(HelmfileVersion),
 		// disable as no arm image yet
-		//CreateKptPlugin(KptVersion),
+		// CreateKptPlugin(KptVersion),
 		CreateKubectlPlugin(KubectlVersion),
 		CreateKappPlugin(KappVersion),
 	}

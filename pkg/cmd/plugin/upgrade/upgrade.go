@@ -107,7 +107,7 @@ func (o *Options) Run() error {
 			for _, h := range plugins.HelmPlugins {
 				installHelmPlugin := &cmdrunner.Command{
 					Name: fileName,
-					Args: []string{"plugin", "install", h.Url},
+					Args: []string{"plugin", "install", h.URL},
 				}
 				out, err := o.CommandRunner(installHelmPlugin)
 				if err != nil {
@@ -116,7 +116,7 @@ func (o *Options) Run() error {
 							Name: fileName,
 							Args: []string{"plugin", "update", h.Name},
 						}
-						out, err = o.CommandRunner(updateHelmPlugin)
+						_, err = o.CommandRunner(updateHelmPlugin)
 						if err != nil {
 							return errors.Wrapf(err, "failed to update helm plugin %s", h.Name)
 						}
