@@ -170,26 +170,7 @@ func (o *Options) Run() error {
 		maxAge, revisionHistory := o.ageAndHistoryLimits(isPR, isBatch)
 		// lets remove activities that are too old
 		if activity.Spec.CompletedTimestamp != nil && activity.Spec.CompletedTimestamp.Add(maxAge).Before(now) {
-			err = o.deleteLighthouseJob(ctx, &activity)
-			if err != nil {
-				return err
-			}
-
-			prName := activity.Labels[PrLabel]
-			pr, err := o.getPipelineRun(ctx, currentNs, prName)
-			if err != nil {
-				log.Logger().Warnf("pipelinerun %s not found, skipping", prName)
-			}
-
-			// Delete only existing pipelineRuns, need to check for error, as we dont return err in the step before
-			if pr != nil && err == nil {
-				err = o.deletePipelineRun(ctx, currentNs, prName)
-				if err != nil {
-					return err
-				}
-			}
-
-			err = o.deleteActivity(ctx, activityInterface, &activity)
+			err = o.deleteResources(ctx, activityInterface, &activity, currentNs)
 			if err != nil {
 				return err
 			}
@@ -199,7 +180,7 @@ func (o *Options) Run() error {
 		repoBranchAndContext := activity.RepositoryOwner() + "/" + activity.RepositoryName() + "/" + activity.BranchName() + "/" + activity.Spec.Context
 		c := counters.AddBuild(repoBranchAndContext, isPR)
 		if c > revisionHistory && activity.Spec.CompletedTimestamp != nil {
-			err = o.deleteActivity(ctx, activityInterface, &activity)
+			err = o.deleteResources(ctx, activityInterface, &activity, currentNs)
 			if err != nil {
 				return err
 			}
@@ -207,6 +188,32 @@ func (o *Options) Run() error {
 		}
 	}
 
+	return nil
+}
+
+func (o *Options) deleteResources(ctx context.Context, activityInterface jv1.PipelineActivityInterface, a *v1.PipelineActivity, currentNs string) error {
+	err := o.deleteLighthouseJob(ctx, a)
+	if err != nil {
+		return err
+	}
+
+	prName := a.Labels[PrLabel]
+	pr, err := o.getPipelineRun(ctx, currentNs, prName)
+	if err != nil {
+		log.Logger().Warnf("pipelinerun %s not found, skipping", prName)
+	}
+
+	// Delete only existing pipelineRuns, need to check for error, as we dont return err in the step before
+	if pr != nil && err == nil {
+		err = o.deletePipelineRun(ctx, currentNs, prName)
+		if err != nil {
+			return err
+		}
+	}
+	err = o.deleteActivity(ctx, activityInterface, a)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
