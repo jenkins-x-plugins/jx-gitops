@@ -207,7 +207,7 @@ func (o *Options) deleteResources(ctx context.Context, activityInterface jv1.Pip
 	if pr != nil && err == nil {
 		err = o.deletePipelineRun(ctx, currentNs, prName)
 		if err != nil {
-			return err
+			log.Logger().Warn(err.Error())
 		}
 	}
 	err = o.deleteActivity(ctx, activityInterface, a)
