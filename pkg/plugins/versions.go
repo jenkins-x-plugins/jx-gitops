@@ -34,12 +34,25 @@ const (
 	KappVersion = "0.35.1-cmfork"
 )
 
-// Plugins default plugins
-var Plugins = []jenkinsv1.Plugin{
-	CreateHelmPlugin(HelmVersion),
-	CreateHelmfilePlugin(HelmfileVersion),
-	// disable as no arm image yet
-	// CreateKptPlugin(KptVersion),
-	CreateKubectlPlugin(KubectlVersion),
-	CreateKappPlugin(KappVersion),
+type HelmPlugin struct {
+	URL  string
+	Name string
 }
+
+var (
+	// Plugins default plugins
+	Plugins = []jenkinsv1.Plugin{
+		CreateHelmPlugin(HelmVersion),
+		CreateHelmfilePlugin(HelmfileVersion),
+		// disable as no arm image yet
+		// CreateKptPlugin(KptVersion),
+		CreateKubectlPlugin(KubectlVersion),
+		CreateKappPlugin(KappVersion),
+	}
+
+	// HelmPlugins to install and upgrade
+	HelmPlugins = []HelmPlugin{
+		{"https://github.com/mumoshu/helm-x", "x"},
+		{"https://github.com/hypnoglow/helm-s3", "s3"},
+	}
+)
