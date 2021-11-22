@@ -13,61 +13,21 @@ import (
 
 // FindRequirements finds the requirements from the dev Environment CRD
 func FindRequirements(g gitclient.Interface, jxClient jxc.Interface, ns, dir, owner, repo string) (*jxcore.RequirementsConfig, error) {
-	settings, err := requirements.LoadSettings(dir, true)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to load settings")
-	}
-	if settings == nil {
-		// lets use an empty settings file
-		settings = &jxcore.Settings{}
-	}
-
-	gitURL := ""
-	if settings != nil {
-		gitURL = settings.Spec.GitURL
-	}
-	if gitURL == "" {
-		if ns == "" {
-			ns = jxcore.DefaultNamespace
-		}
-		env, err := jxenv.GetDevEnvironment(jxClient, ns)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to get dev environment")
-		}
-		if env == nil {
-			return nil, errors.Errorf("failed to find a dev environment source url as there is no 'dev' Environment resource in namespace %s", ns)
-		}
-		gitURL = env.Spec.Source.URL
-		if gitURL == "" {
-			return nil, errors.New("failed to find a dev environment source url on development environment resource")
-		}
-	}
-
 	// now lets merge the local requirements with the dev environment so that we can locally override things
 	// while inheriting common stuff
-	req, clusterDir, err := requirements.GetRequirementsAndGit(g, gitURL)
+
+	settings, clusterDir, err := GetSettings(g, jxClient, ns, dir, owner, repo)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get requirements from cluster git repo")
+		return nil, errors.Wrapf(err, "failed to get settings")
 	}
-	if req == nil {
+
+	requirementsConfig, _, err := jxcore.LoadRequirementsConfig(clusterDir, false)
+	var req *jxcore.RequirementsConfig
+	if err != nil || requirementsConfig == nil {
 		r := jxcore.NewRequirementsConfig()
 		req = &r.Spec
-	}
-
-	// lets see if we have organisation settings
-	srcConfig, err := sourceconfigs.LoadSourceConfig(clusterDir, true)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to load source configs")
-	}
-	groupSettings := sourceconfigs.FindSettings(srcConfig, owner, repo)
-
-	settings, err = mergeSettings(settings, groupSettings)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to merge settings")
-	}
-
-	if settings == nil {
-		settings = &jxcore.Settings{}
+	} else {
+		req = &requirementsConfig.Spec
 	}
 
 	ss := &settings.Spec
@@ -103,6 +63,55 @@ func FindRequirements(g gitclient.Interface, jxClient jxc.Interface, ns, dir, ow
 		}
 	}
 	return req, nil
+}
+
+// GetSettings mergers and returns the settings from .jx/gitops/source-config.yaml in the cluster repo and .jx/settings.yaml in the current directory
+func GetSettings(g gitclient.Interface, jxClient jxc.Interface, ns, dir, owner, repo string) (*jxcore.Settings, string, error) {
+	settings, err := requirements.LoadSettings(dir, true)
+	if err != nil {
+		return nil, "", errors.Wrapf(err, "failed to load settings")
+	}
+	if settings == nil {
+		// lets use an empty settings file
+		settings = &jxcore.Settings{}
+	}
+	gitURL := ""
+	if settings != nil {
+		gitURL = settings.Spec.GitURL
+	}
+	if gitURL == "" {
+		if ns == "" {
+			ns = jxcore.DefaultNamespace
+		}
+		env, err := jxenv.GetDevEnvironment(jxClient, ns)
+		if err != nil {
+			return nil, "", errors.Wrap(err, "failed to get dev environment")
+		}
+		if env == nil {
+			return nil, "", errors.Errorf("failed to find a dev environment source url as there is no 'dev' Environment resource in namespace %s", ns)
+		}
+		gitURL = env.Spec.Source.URL
+		if gitURL == "" {
+			return nil, "", errors.New("failed to find a dev environment source url on development environment resource")
+		}
+	}
+	clusterDir, err := requirements.CloneClusterRepo(g, gitURL)
+	if err != nil {
+		return nil, "", err
+	}
+
+	// lets see if we have organisation settings
+	srcConfig, err := sourceconfigs.LoadSourceConfig(clusterDir, true)
+	if err != nil {
+		return nil, clusterDir, errors.Wrapf(err, "failed to load source configs")
+	}
+	groupSettings := sourceconfigs.FindSettings(srcConfig, owner, repo)
+
+	settings, err = mergeSettings(settings, groupSettings)
+	if err != nil {
+		return nil, clusterDir, errors.Wrapf(err, "failed to merge settings")
+	}
+	return settings, clusterDir, nil
 }
 
 // mergeSettings merges the local and group settings
