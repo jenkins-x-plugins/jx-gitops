@@ -14,10 +14,9 @@ require (
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.12
 	github.com/jenkins-x-plugins/jx-charter v0.0.28
-	github.com/jenkins-x/gen-crd-api-reference-docs v0.1.6 // indirect
-	github.com/jenkins-x/go-scm v1.10.10
+	github.com/jenkins-x/go-scm v1.10.11
 	github.com/jenkins-x/jx-api/v4 v4.3.0
-	github.com/jenkins-x/jx-helpers/v3 v3.1.0
+	github.com/jenkins-x/jx-helpers/v3 v3.1.1
 	github.com/jenkins-x/jx-kube-client/v3 v3.0.2
 	github.com/jenkins-x/jx-logging/v3 v3.0.6
 	github.com/jenkins-x/lighthouse-client v0.0.233
@@ -50,7 +49,7 @@ replace (
 	//knative.dev/pkg => knative.dev/pkg v0.0.0-20210730172132-bb4aaf09c430
 
 	// override the go-scm from tekton
-	github.com/jenkins-x/go-scm => github.com/jenkins-x/go-scm v1.10.10
+	github.com/jenkins-x/go-scm => github.com/jenkins-x/go-scm v1.10.11
 
 	// for the PipelineRun debug fix see: https://github.com/tektoncd/pipeline/pull/4145
 	github.com/tektoncd/pipeline => github.com/jstrachan/pipeline v0.21.1-0.20210811150720-45a86a5488af

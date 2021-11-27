@@ -85,7 +85,6 @@ func (o *Options) Run(args []string) error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to parse git URL: %s", o.gitURL)
 	}
-
 	err = o.modifyRequirements()
 	if err != nil {
 		return errors.Wrapf(err, "failed to modify 'jx-requirements.yml'")
