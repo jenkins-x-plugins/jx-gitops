@@ -87,6 +87,7 @@ type Options struct {
 	RepositoryURL        string
 	RepositoryUsername   string
 	RepositoryPassword   string
+	RepositoryNested     string
 	GithubPagesBranch    string
 	GithubPagesURL       string
 	Version              string
@@ -123,6 +124,7 @@ func NewCmdHelmRelease() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.RepositoryURL, "repo-url", "u", "", "the URL to release to")
 	cmd.Flags().StringVarP(&o.RepositoryUsername, "repo-username", "", "", "the username to access the chart repository. If not specified defaults to the environment variable $JX_REPOSITORY_USERNAME")
 	cmd.Flags().StringVarP(&o.RepositoryPassword, "repo-password", "", "", "the password to access the chart repository. If not specified defaults to the environment variable $JX_REPOSITORY_PASSWORD")
+	cmd.Flags().StringVarP(&o.RepositoryNested, "repo-nested", "", "", "the nested repository inside the repository. If not specified defaults to empty (not nested repo)")
 	cmd.Flags().StringVarP(&o.Version, "version", "", "", "specify the version to release")
 	cmd.Flags().StringVarP(&o.VersionFile, "version-file", "", "VERSION", "the file to load the version from if not specified directly or via a $VERSION environment variable")
 	cmd.Flags().StringVarP(&o.Namespace, "namespace", "", "", "the namespace to look for the dev Environment. Defaults to the current namespace")
@@ -622,6 +624,10 @@ func (o *Options) createPublishCommand(repoURL, name, chartDir, username, passwo
 	userSecret := username + ":" + password
 
 	url := stringhelpers.UrlJoin(repoURL, "/api/charts")
+
+	if o.RepositoryNested != "" {
+		url = stringhelpers.UrlJoin(repoURL, "/api/", o.RepositoryNested, "/charts")
+	}
 
 	return &cmdrunner.Command{
 		Dir:  chartDir,
