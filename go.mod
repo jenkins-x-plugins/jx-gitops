@@ -14,6 +14,7 @@ require (
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.12
 	github.com/jenkins-x-plugins/jx-charter v0.0.28
+	github.com/jenkins-x/gen-crd-api-reference-docs v0.1.6 // indirect
 	github.com/jenkins-x/go-scm v1.10.10
 	github.com/jenkins-x/jx-api/v4 v4.3.0
 	github.com/jenkins-x/jx-helpers/v3 v3.1.0
