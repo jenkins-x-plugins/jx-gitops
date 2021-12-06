@@ -86,7 +86,7 @@ func (o *Options) Run() error {
 	errors := []error{}
 	for k := range jobList.Items {
 		job := jobList.Items[k]
-		matches, age := o.MatchesJob(&job)
+		matches, age := o.matchesJob(&job)
 		if matches {
 			err := jobInterface.Delete(ctx, job.Name, deleteOptions)
 			if err != nil {
@@ -101,8 +101,8 @@ func (o *Options) Run() error {
 	return errorutil.CombineErrors(errors...)
 }
 
-// MatchesJob returns true if this job can be garbage collected
-func (o *Options) MatchesJob(job *v1.Job) (bool, time.Duration) {
+// matchesJob returns true if this job can be garbage collected
+func (o *Options) matchesJob(job *v1.Job) (bool, time.Duration) {
 	now := time.Now()
 	var age time.Duration
 	if job.Status.StartTime != nil {
