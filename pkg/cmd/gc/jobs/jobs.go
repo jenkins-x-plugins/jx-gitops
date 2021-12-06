@@ -2,7 +2,6 @@ package jobs
 
 import (
 	"context"
-	v1 "k8s.io/api/batch/v1"
 	"strings"
 	"time"
 
@@ -13,6 +12,7 @@ import (
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	batchv1 "k8s.io/api/batch/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -102,7 +102,7 @@ func (o *Options) Run() error {
 }
 
 // matchesJob returns true if this job can be garbage collected
-func (o *Options) matchesJob(job *v1.Job) (bool, time.Duration) {
+func (o *Options) matchesJob(job *batchv1.Job) (bool, time.Duration) {
 	now := time.Now()
 	var age time.Duration
 	if job.Status.StartTime != nil {
