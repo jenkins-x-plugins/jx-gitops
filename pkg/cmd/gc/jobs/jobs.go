@@ -19,6 +19,7 @@ import (
 
 // Options containers the CLI options
 type Options struct {
+	DryRun     bool
 	Selector   string
 	Namespace  string
 	Age        time.Duration
@@ -36,6 +37,9 @@ var (
 
 		# garbage collect jobs older than 10 minutes
 		jx gitops gc jobs -a 10m
+		
+		# dry run mode
+		jx gitops gc jobs --dry-run
 
 `)
 )
@@ -55,6 +59,7 @@ func NewCmdGCJobs() (*cobra.Command, *Options) {
 			helper.CheckErr(err)
 		},
 	}
+	cmd.Flags().BoolVarP(&o.DryRun, "dry-run", "d", false, "Dry run mode. If enabled just list the jobs that would be removed")
 	cmd.Flags().StringVarP(&o.Selector, "selector", "s", "", "The selector to use to filter the jobs")
 	cmd.Flags().StringVarP(&o.Namespace, "namespace", "n", "", "The namespace to look for the jobs. Defaults to the current namespace")
 	cmd.Flags().DurationVarP(&o.Age, "age", "a", time.Hour, "The minimum age of jobs to garbage collect. Any newer jobs will be kept")
@@ -87,14 +92,18 @@ func (o *Options) Run() error {
 	for k := range jobList.Items {
 		job := jobList.Items[k]
 		matches, age := o.matchesJob(&job)
+		ageText := strings.TrimSuffix(age.Round(time.Minute).String(), "0s")
 		if matches {
-			err := jobInterface.Delete(ctx, job.Name, deleteOptions)
-			if err != nil {
-				log.Logger().Warnf("Failed to delete job %s in namespace %s: %s", job.Name, ns, err.Error())
-				errors = append(errors, err)
+			if !o.DryRun {
+				err := jobInterface.Delete(ctx, job.Name, deleteOptions)
+				if err != nil {
+					log.Logger().Warnf("Failed to delete job %s in namespace %s: %s", job.Name, ns, err.Error())
+					errors = append(errors, err)
+				} else {
+					log.Logger().Infof("Deleted job %s in namespace %s as its age is: %s", job.Name, ns, ageText)
+				}
 			} else {
-				ageText := strings.TrimSuffix(age.Round(time.Minute).String(), "0s")
-				log.Logger().Infof("Deleted job %s in namespace %s as its age is: %s", job.Name, ns, ageText)
+				log.Logger().Infof("Not deleting job %s in namespace %s. It's age is: %s", job.Name, ns, ageText)
 			}
 		}
 	}

@@ -24,6 +24,10 @@ Garbage collect old Jobs that have completed or failed
     The minimum age of jobs to garbage collect. Any newer jobs will be kept
 
 .PP
+\fB\-d\fP, \fB\-\-dry\-run\fP[=false]
+    Dry run mode. If enabled just list the jobs that would be removed
+
+.PP
 \fB\-h\fP, \fB\-\-help\fP[=false]
     help for jobs
 
@@ -44,6 +48,10 @@ Garbage collect old Jobs that have completed or failed
 .PP
 # garbage collect jobs older than 10 minutes
   jx gitops gc jobs \-a 10m
+
+.PP
+# dry run mode
+  jx gitops gc jobs \-\-dry\-run
 
 
 .SH SEE ALSO
