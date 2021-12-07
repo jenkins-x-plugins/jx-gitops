@@ -100,6 +100,27 @@ func CreateHelmfilePlugin(version string) jenkinsv1.Plugin {
 	return plugin
 }
 
+// CreateKustomizePlugin creates the kustomize plugin
+func CreateKustomizePlugin(version string) jenkinsv1.Plugin {
+	binaries := extensions.CreateBinaries(func(p extensions.Platform) string {
+		return fmt.Sprintf("https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%%2Fv%s/kustomize_v%s_%s_%s.tar.gz", version, version, strings.ToLower(p.Goos), strings.ToLower(p.Goarch))
+	})
+
+	plugin := jenkinsv1.Plugin{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: KustomizePluginName,
+		},
+		Spec: jenkinsv1.PluginSpec{
+			SubCommand:  "kustomize",
+			Binaries:    binaries,
+			Description: "kustomize binary",
+			Name:        KustomizePluginName,
+			Version:     version,
+		},
+	}
+	return plugin
+}
+
 // GetKptBinary returns the path to the locally installed kpt 3 extension
 func GetKptBinary(version string) (string, error) {
 	if version == "" {

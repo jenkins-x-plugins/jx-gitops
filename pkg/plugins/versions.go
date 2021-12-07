@@ -18,6 +18,9 @@ const (
 	// KappPluginName the default name of the kapp plugin
 	KappPluginName = "kapp"
 
+	// KustomizePluginName the default name of the kustomize plugin
+	KustomizePluginName = "kustomize"
+
 	// HelmVersion the default version of helm to use
 	HelmVersion = "3.6.2"
 
@@ -27,11 +30,14 @@ const (
 	// KptVersion the default version of kpt to use
 	KptVersion = "0.37.0"
 
-	// KubectlVersion the default version of kpt to use
+	// KubectlVersion the default version of kubectl to use
 	KubectlVersion = "1.16.15"
 
 	// KappVersion the default version of kapp to use
 	KappVersion = "0.35.1-cmfork"
+
+	// KustomizeVersion the default version of kustomize to use
+	KustomizeVersion = "4.4.1"
 )
 
 type HelmPlugin struct {
@@ -48,6 +54,7 @@ var (
 		// CreateKptPlugin(KptVersion),
 		CreateKubectlPlugin(KubectlVersion),
 		CreateKappPlugin(KappVersion),
+		CreateKustomizePlugin(KustomizeVersion),
 	}
 
 	// HelmPlugins to install and upgrade
