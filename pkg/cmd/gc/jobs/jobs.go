@@ -90,7 +90,7 @@ func (o *Options) Run() error {
 		if matches {
 			err := jobInterface.Delete(ctx, job.Name, deleteOptions)
 			if err != nil {
-				log.Logger().Warnf("Failed to delete job %s in namespace %s: %s", job.Name, ns, err)
+				log.Logger().Warnf("Failed to delete job %s in namespace %s: %s", job.Name, ns, err.Error())
 				errors = append(errors, err)
 			} else {
 				ageText := strings.TrimSuffix(age.Round(time.Minute).String(), "0s")
