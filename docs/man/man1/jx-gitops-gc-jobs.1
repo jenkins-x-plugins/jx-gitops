@@ -32,6 +32,10 @@ Garbage collect old Jobs that have completed or failed
     help for jobs
 
 .PP
+\fB\-k\fP, \fB\-\-keep\fP=1
+    The minimum jobs to keep. Jobs to keep even if they are older than the age parameter
+
+.PP
 \fB\-n\fP, \fB\-\-namespace\fP=""
     The namespace to look for the jobs. Defaults to the current namespace
 
@@ -42,12 +46,16 @@ Garbage collect old Jobs that have completed or failed
 
 .SH EXAMPLE
 .PP
-# garbage collect old jobs of the default age
+# garbage collect old jobs of the default age keeping 1
   jx gitops gc jobs
 
 .PP
-# garbage collect jobs older than 10 minutes
-  jx gitops gc jobs \-a 10m
+# garbage collect jobs older than 10 minutes and keeping 10
+  jx gitops gc jobs \-a 10m \-k 10
+
+.PP
+# garbage collect jobs older than 10 (don't keep any job)
+  jx gitops gc jobs \-a 10m \-k 0
 
 .PP
 # dry run mode
