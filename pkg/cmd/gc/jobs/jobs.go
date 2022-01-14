@@ -2,6 +2,7 @@ package jobs
 
 import (
 	"context"
+	"sort"
 	"strings"
 	"time"
 
@@ -23,6 +24,7 @@ type Options struct {
 	Selector   string
 	Namespace  string
 	Age        time.Duration
+	Keep       int
 	KubeClient kubernetes.Interface
 }
 
@@ -32,11 +34,14 @@ var (
 `)
 
 	cmdExample = templates.Examples(`
-		# garbage collect old jobs of the default age
+		# garbage collect old jobs of the default age keeping 1
 		jx gitops gc jobs
 
-		# garbage collect jobs older than 10 minutes
-		jx gitops gc jobs -a 10m
+		# garbage collect jobs older than 10 minutes and keeping 10
+		jx gitops gc jobs -a 10m -k 10
+		
+		# garbage collect jobs older than 10 (don't keep any job)
+		jx gitops gc jobs -a 10m -k 0
 		
 		# dry run mode
 		jx gitops gc jobs --dry-run
@@ -63,6 +68,7 @@ func NewCmdGCJobs() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.Selector, "selector", "s", "", "The selector to use to filter the jobs")
 	cmd.Flags().StringVarP(&o.Namespace, "namespace", "n", "", "The namespace to look for the jobs. Defaults to the current namespace")
 	cmd.Flags().DurationVarP(&o.Age, "age", "a", time.Hour, "The minimum age of jobs to garbage collect. Any newer jobs will be kept")
+	cmd.Flags().IntVarP(&o.Keep, "keep", "k", 1, "The minimum jobs to keep. Jobs to keep even if they are older than the age parameter")
 	return cmd, o
 }
 
@@ -89,6 +95,24 @@ func (o *Options) Run() error {
 
 	deleteOptions := metav1.DeleteOptions{}
 	errors := []error{}
+
+	// we need to keep all jobs, don't waste time sorting or iterating
+	if o.Keep >= len(jobList.Items) {
+		log.Logger().Infof("Not deleting any job. You want to keep %d jobs and we have %d jobs in the list.", o.Keep, len(jobList.Items))
+		return errorutil.CombineErrors(errors...)
+	}
+
+	// if you don't want keep any job don't waste time sorting
+	if o.Keep != 0 {
+		// sort list by creationTimestamp
+		sort.Slice(jobList.Items, func(i, j int) bool {
+			return jobList.Items[j].Status.StartTime.Before(jobList.Items[i].Status.StartTime)
+		})
+
+		// shrink jobList by keep
+		jobList.Items = jobList.Items[o.Keep:]
+	}
+
 	for k := range jobList.Items {
 		job := jobList.Items[k]
 		matches, age := o.matchesJob(&job)
