@@ -485,14 +485,19 @@ func (o *Options) GitCloneGitHubPages(repoURL, branch string) (string, error) {
 
 func (o *Options) BasicRegistry(repoURL, chartDir, name string) error {
 	username, password, err := o.findChartRepositoryUserPassword()
+
+	var args []string
 	if err != nil {
-		return errors.Wrapf(err, "failed to find chart repository user and password")
+		log.Logger().Warnf("Failed to find chart repository user and password. Will try without. %s", err)
+		args = []string{"repo", "add", o.RepositoryName, repoURL}
+	} else {
+		args = []string{"repo", "add", "--username", username, "--password", password, o.RepositoryName, repoURL}
 	}
 
 	c := &cmdrunner.Command{
 		Dir:  chartDir,
 		Name: o.HelmBinary,
-		Args: []string{"repo", "add", "--username", username, "--password", password, o.RepositoryName, repoURL},
+		Args: args,
 	}
 	_, err = o.CommandRunner(c)
 	if err != nil {
@@ -509,8 +514,10 @@ func (o *Options) BasicRegistry(repoURL, chartDir, name string) error {
 		return nil
 	}
 
-	c = o.createPublishCommand(repoURL, name, chartDir, username, password)
-
+	c, err = o.createPublishCommand(repoURL, name, chartDir, username, password)
+	if err != nil {
+		return errors.Wrapf(err, "failed to publish")
+	}
 	_, err = o.CommandRunner(c)
 	if err != nil {
 		return errors.Wrapf(err, "failed to publish")
@@ -582,7 +589,7 @@ func (o *Options) BuildAndPackage(chartDir string) error {
 	return nil
 }
 
-func (o *Options) createPublishCommand(repoURL, name, chartDir, username, password string) *cmdrunner.Command {
+func (o *Options) createPublishCommand(repoURL, name, chartDir, username, password string) (*cmdrunner.Command, error) {
 	tarFile := name + "-" + o.Version + ".tgz"
 
 	if strings.HasPrefix(repoURL, "gs:") {
@@ -591,7 +598,7 @@ func (o *Options) createPublishCommand(repoURL, name, chartDir, username, passwo
 			Dir:  chartDir,
 			Name: o.HelmBinary,
 			Args: []string{"gcs", "push", tarFile, o.RepositoryName},
-		}
+		}, nil
 	}
 
 	if strings.HasPrefix(repoURL, "s3:") {
@@ -600,7 +607,7 @@ func (o *Options) createPublishCommand(repoURL, name, chartDir, username, passwo
 			Dir:  chartDir,
 			Name: o.HelmBinary,
 			Args: []string{"s3", "push", tarFile, o.RepositoryName},
-		}
+		}, nil
 	}
 
 	if o.Artifactory {
@@ -612,6 +619,9 @@ func (o *Options) createPublishCommand(repoURL, name, chartDir, username, passwo
 			url = stringhelpers.UrlJoin(repoURL, repoName, tarFile)
 		}
 
+		if password == "" {
+			return nil, fmt.Errorf("password missing for %s", repoURL)
+		}
 		apiKey := "X-JFrog-Art-Api:" + password
 
 		return &cmdrunner.Command{
@@ -619,7 +629,10 @@ func (o *Options) createPublishCommand(repoURL, name, chartDir, username, passwo
 			Name: "curl",
 			// lets hide progress bars (-s) and enable show errors (-S)
 			Args: []string{"--fail", "-sS", "-H", apiKey, "-T", tarFile, url},
-		}
+		}, nil
+	}
+	if username == "" || password == "" {
+		return nil, fmt.Errorf("user name or password missing for %s", repoURL)
 	}
 	userSecret := username + ":" + password
 
@@ -634,7 +647,7 @@ func (o *Options) createPublishCommand(repoURL, name, chartDir, username, passwo
 		Name: "curl",
 		// lets hide progress bars (-s) and enable show errors (-S)
 		Args: []string{"--fail", "-sS", "-u", userSecret, "--data-binary", "@" + tarFile, url},
-	}
+	}, nil
 }
 
 func (o *Options) findChartRepositoryUserPassword() (string, string, error) {
@@ -678,11 +691,12 @@ func (o *Options) findChartRepositoryUserPassword() (string, string, error) {
 
 		}
 	}
+	var err error
 	if userName == "" {
-		return "", "", fmt.Errorf("no environment variable $JX_REPOSITORY_USERNAME defined")
+		err = fmt.Errorf("no environment variable $JX_REPOSITORY_USERNAME defined")
 	}
 	if password == "" {
-		return "", "", fmt.Errorf("no environment variable $JX_REPOSITORY_PASSWORD defined")
+		err = fmt.Errorf("no environment variable $JX_REPOSITORY_PASSWORD defined")
 	}
-	return userName, password, nil
+	return userName, password, err
 }
