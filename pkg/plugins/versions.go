@@ -28,7 +28,7 @@ const (
 	KptVersion = "0.37.0"
 
 	// KubectlVersion the default version of kpt to use
-	KubectlVersion = "1.16.15"
+	KubectlVersion = "1.21.0"
 
 	// KappVersion the default version of kapp to use
 	KappVersion = "0.35.1-cmfork"
