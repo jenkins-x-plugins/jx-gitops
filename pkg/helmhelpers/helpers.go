@@ -5,42 +5,12 @@ import (
 	"strings"
 
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/helmer"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/stringhelpers"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/pkg/errors"
 	"github.com/roboll/helmfile/pkg/state"
 	"k8s.io/client-go/rest"
 )
-
-// AddHelmRepositories ensures the repositories in the helmfile are added to helm
-// so that we can use helm templating etc
-func AddHelmRepositories(helmBin string, helmState state.HelmState, runner cmdrunner.CommandRunner, ignoreRepositories []string) error {
-	if helmBin == "" {
-		helmBin = "helm"
-	}
-	repoMap := map[string]string{
-		"jx": "http://chartmuseum.jenkins-x.io",
-	}
-	for _, repo := range helmState.Repositories {
-		repoMap[repo.Name] = repo.URL
-	}
-
-	helmClient := helmer.NewHelmCLIWithRunner(runner, helmBin, "", false)
-
-	for repoName, repoURL := range repoMap {
-		if stringhelpers.StringArrayIndex(ignoreRepositories, repoURL) >= 0 {
-			continue
-		}
-
-		_, err := helmer.AddHelmRepoIfMissing(helmClient, repoURL, repoName, "", "")
-		if err != nil {
-			return errors.Wrapf(err, "failed to add helm repository %s %s", repoName, repoURL)
-		}
-		log.Logger().Debugf("added helm repository %s %s", repoName, repoURL)
-	}
-	return nil
-}
 
 // IsWhitespaceOrComments returns true if the text is empty, whitespace or comments only
 func IsWhitespaceOrComments(text string) bool {
@@ -55,7 +25,7 @@ func IsWhitespaceOrComments(text string) bool {
 }
 
 // RunCommandAndLogOutput runs the command and outputs info or debug level logging
-func RunCommandAndLogOutput(commandRunner cmdrunner.CommandRunner, c *cmdrunner.Command, debugPrefixes []string, infoPrefixes []string) error {
+func RunCommandAndLogOutput(commandRunner cmdrunner.CommandRunner, c *cmdrunner.Command, debugPrefixes, infoPrefixes []string) error {
 	if commandRunner == nil {
 		commandRunner = cmdrunner.QuietCommandRunner
 	}
@@ -84,7 +54,8 @@ func RunCommandAndLogOutput(commandRunner cmdrunner.CommandRunner, c *cmdrunner.
 // FindClusterLocalRepositoryURLs finds any cluster local repositories such as http://bucketrepo/bucketrepo/charts/
 func FindClusterLocalRepositoryURLs(repos []state.RepositorySpec) ([]string, error) {
 	var answer []string
-	for _, repo := range repos {
+	for k := range repos {
+		repo := repos[k]
 		if repo.URL == "" {
 			continue
 		}
@@ -112,4 +83,24 @@ func FindClusterLocalRepositoryURLs(repos []state.RepositorySpec) ([]string, err
 func IsInCluster() bool {
 	_, err := rest.InClusterConfig()
 	return err == nil
+}
+
+// IsChartRemote returns true if the chart name is a remote chart such as "git::https://foo.com/cheese"
+func IsChartRemote(chartName string) bool {
+	return strings.Contains(chartName, "::")
+}
+
+// IsChartNameRelative returns true if the chart name is a relative folder
+func IsChartNameRelative(chartName string) bool {
+	parts := strings.Split(chartName, "/")
+	if len(parts) > 1 {
+		prefix := parts[0]
+		switch prefix {
+		case ".", "..":
+			return true
+		default:
+			return false
+		}
+	}
+	return false
 }

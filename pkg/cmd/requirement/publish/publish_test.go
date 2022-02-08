@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/requirement/publish"
 	v1 "github.com/jenkins-x/jx-api/v4/pkg/apis/jenkins.io/v1"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/requirement/publish"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"
 	"github.com/stretchr/testify/require"
@@ -32,12 +32,4 @@ func TestRequirementsPublish(t *testing.T) {
 	env := &v1.Environment{}
 	err = yamls.LoadFile(expectedEnvFile, env)
 	require.NoError(t, err, "failed to load Environment from %s", expectedEnvFile)
-
-	/*
-		requirements, err := jxcore.GetRequirementsConfigFromTeamSettings(&env.Spec.TeamSettings)
-		require.NoError(t, err, "failed to get requirements from team settings")
-		require.NotNil(t, requirements, "no requirements in team settings")
-
-		assert.Equal(t, "myproject", requirements.Cluster.ProjectID, "requirements.Cluster.Provider")
-	*/
 }

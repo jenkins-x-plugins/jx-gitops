@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/jenkins-x/jx-gitops/pkg/filters"
-	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/filters"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
@@ -26,17 +26,15 @@ var (
 		# runs a command if the last commit messsage has a given prefix
 		%s condition --last-commit-msg-prefix 'Merge pull request' -- make all commit push
 
-you can use ! in front of a filter to be the equivalant of not matching the condition. e.g.
+you can use ! in front of a filter to be the equivalent of not matching the condition. e.g.
 
 		# runs a command if the last commit message does not have a given prefix
 		%s condition --last-commit-msg-prefix '!Merge pull request' -- make all commit push
 
 	`)
-
-	pathSeparator = string(os.PathSeparator)
 )
 
-// KptOptions the options for the command
+// Options the options for the command
 type Options struct {
 	Dir                     string
 	Args                    []string

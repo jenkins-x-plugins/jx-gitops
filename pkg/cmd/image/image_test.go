@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/image"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/image"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/testhelpers"
 	"github.com/pkg/errors"
@@ -36,12 +36,12 @@ func TestUpdateImages(t *testing.T) {
 	require.NoError(t, err, "failed to convert images")
 
 	// lets assert the files match the expected
-	err = filepath.Walk(expectedDir, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(expectedDir, func(path string, info os.FileInfo, err error) error { //nolint:staticcheck
 		if info == nil || info.IsDir() {
 			return nil
 		}
 
-		relPath, err := filepath.Rel(expectedDir, path)
+		relPath, err := filepath.Rel(expectedDir, path) //nolint:staticcheck
 		if err != nil {
 			return errors.Wrapf(err, "failed to find relative path of %s", path)
 		}
@@ -51,5 +51,4 @@ func TestUpdateImages(t *testing.T) {
 		return nil
 	})
 	require.NoError(t, err, "failed to walk expected files")
-
 }

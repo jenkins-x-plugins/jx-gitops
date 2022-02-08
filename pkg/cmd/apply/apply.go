@@ -3,18 +3,21 @@ package apply
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
-	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/cli"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 var (
@@ -32,11 +35,9 @@ var (
 		# performs a regeneration and apply
 		%s apply
 	`)
-
-	pathSeparator = string(os.PathSeparator)
 )
 
-// KptOptions the options for the command
+// Options the options for the command
 type Options struct {
 	Dir              string
 	PullRequest      bool
@@ -99,9 +100,17 @@ func (o *Options) Run() error {
 	}
 
 	regen := true
-	if strings.HasPrefix(lastCommitMessage, "Merge pull request") {
-		log.Logger().Infof("last commit was a merge pull request so not regenerating")
-		regen = false
+	if strings.HasPrefix(lastCommitMessage, "Merge pull request") || strings.HasPrefix(lastCommitMessage, "Merge branch") {
+		changedExternalSecret, err := o.CheckLastCommitChangedExternalSecret(o.GitClient, o.Dir)
+		if err != nil {
+			return errors.Wrapf(err, "failed to check if last commit changed external secret")
+		}
+		if changedExternalSecret {
+			log.Logger().Infof("last commit changed an ExternalSecret so still performing a full regenerate")
+		} else {
+			log.Logger().Infof("last commit was a merge pull request without changing an ExternalSecret so not regenerating")
+			regen = false
+		}
 	}
 
 	if regen {
@@ -199,4 +208,34 @@ func (o *Options) pullRequest() error {
 		return errors.Wrapf(err, "failed to regen pr")
 	}
 	return nil
+}
+
+func (o *Options) CheckLastCommitChangedExternalSecret(gitter gitclient.Interface, dir string) (bool, error) {
+	text, err := gitter.Command(dir, "log", "-m", "-1", "--name-only", "--pretty=format:")
+	if err != nil {
+		return false, errors.Wrapf(err, "failed to get file changes")
+	}
+	text = strings.TrimSpace(text)
+	lines := strings.Split(text, "\n")
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" || !strings.HasSuffix(line, ".yaml") || !strings.HasPrefix(line, "config-root") {
+			continue
+		}
+
+		u := unstructured.Unstructured{}
+		path := filepath.Join(dir, line)
+		err := yamls.LoadFile(path, &u)
+		if err != nil {
+			log.Logger().Warnf("failed to read YAML file %s", path)
+			continue
+		}
+		kind := u.GetKind()
+		if kind == "ExternalSecret" {
+			log.Logger().Infof("last commit included an ExternalSecret at %s so lets regenerate", path)
+			return true, nil
+		}
+		log.Logger().Debugf("ignoring kind %s in file %s", kind, path)
+	}
+	return false, nil
 }

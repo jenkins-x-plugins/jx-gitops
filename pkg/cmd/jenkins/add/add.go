@@ -7,10 +7,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
-	helmfileadd "github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/add"
-	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
-	"github.com/jenkins-x/jx-gitops/pkg/sourceconfigs"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/apis/gitops/v1alpha1"
+	helmfileadd "github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/helmfile/add"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/helmhelpers"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/sourceconfigs"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
@@ -78,8 +79,7 @@ func (o *Options) Run() error {
 	}
 	o.Name = naming.ToValidName(o.Name)
 	o.Namespace = o.Name
-	o.ReleaseName = "jenkins"
-	o.Helmfile = filepath.Join(o.Dir, "helmfiles", o.Namespace, "helmfile.yaml")
+	o.Options.ReleaseName = "jenkins"
 
 	err := o.verifyValuesExists()
 	if err != nil {
@@ -93,9 +93,10 @@ func (o *Options) Run() error {
 	log.Logger().Infof("added helmfile %s for jenkins server %s", info(o.Helmfile), info(o.Name))
 
 	// lets add the jenkins-resources chart too
-	o.Chart = "jx3/jenkins-resources"
-	o.ReleaseName = "jenkins-resources"
-	o.Values = nil
+	o.Options.Chart = "jxgh/jenkins-resources"
+	o.Options.ReleaseName = "jenkins-resources"
+	o.Options.Repository = helmhelpers.JX3HelmRepository
+	o.Options.Values = nil
 	err = o.Options.Run()
 	if err != nil {
 		return errors.Wrapf(err, "failed to add jenkins resources helm chart for %s", o.Name)

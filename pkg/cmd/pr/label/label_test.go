@@ -4,9 +4,9 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/pr/label"
 	"github.com/jenkins-x/go-scm/scm"
 	"github.com/jenkins-x/go-scm/scm/driver/fake"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/pr/label"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner/fakerunner"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -23,7 +23,9 @@ func TestPullRequestLabel(t *testing.T) {
 			name: "already has label",
 			init: func(o *label.Options, pr *scm.PullRequest, fakeData *fake.Data) {
 				o.Label = "mylabel"
-				fakeData.IssueLabelsExisting = []string{AddPullRequestLabel(pr, "mylabel")}
+				pr.Labels = append(pr.Labels, &scm.Label{
+					Name: "mylabel",
+				})
 			},
 			verify: func(o *label.Options, pr *scm.PullRequest) {
 				assert.False(t, o.LabelAdded)
@@ -43,7 +45,9 @@ func TestPullRequestLabel(t *testing.T) {
 			init: func(o *label.Options, pr *scm.PullRequest, fakeData *fake.Data) {
 				o.Label = "mylabel"
 				o.Regex = "env/.*"
-				fakeData.IssueLabelsExisting = []string{AddPullRequestLabel(pr, "env/staging")}
+				pr.Labels = append(pr.Labels, &scm.Label{
+					Name: "env/staging",
+				})
 			},
 			verify: func(o *label.Options, pr *scm.PullRequest) {
 				assert.True(t, o.LabelAdded)
@@ -54,7 +58,9 @@ func TestPullRequestLabel(t *testing.T) {
 			init: func(o *label.Options, pr *scm.PullRequest, fakeData *fake.Data) {
 				o.Label = "mylabel"
 				o.Regex = "env/.*"
-				fakeData.IssueLabelsExisting = []string{AddPullRequestLabel(pr, "somethingElse")}
+				pr.Labels = append(pr.Labels, &scm.Label{
+					Name: "somethingElse",
+				})
 			},
 			verify: func(o *label.Options, pr *scm.PullRequest) {
 				assert.False(t, o.LabelAdded)
@@ -119,10 +125,4 @@ func TestPullRequestLabel(t *testing.T) {
 			tc.verify(o, pr)
 		}
 	}
-}
-
-func AddPullRequestLabel(pr *scm.PullRequest, labelName string) string {
-	repo := pr.Repository()
-	label := repo.FullName + "#" + strconv.Itoa(pr.Number) + ":" + labelName
-	return label
 }

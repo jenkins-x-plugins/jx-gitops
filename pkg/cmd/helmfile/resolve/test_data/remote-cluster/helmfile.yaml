@@ -1,0 +1,10 @@
+releases:
+  - chart: stable/nginx-ingress
+    version: 1.39.1
+    name: nginx-ingress
+    namespace: nginx
+    values:
+      - versionStream/charts/stable/nginx-ingress/values.yaml.gotmpl
+repositories:
+  - name: doesnotexist
+    url: https://storage.googleapis.com/chartmuseum.jenkins-x.io

@@ -23,15 +23,30 @@ The output of 'helmfile template' ignores the namespace specified in the 'helmfi
 .PP
 So this command applies the namespace to all the generated resources and then moves the namespaced resources into the config\-root/namespaces/$ns/$releaseName directory and then moves any CRDs or cluster level resources into 'config\-root/cluster/$releaseName'
 
+.PP
+If supplied with \-\-dir\-includes\-release\-name then by default we will annotate the resources with the annotation 'meta.helm.sh/release\-name' to preserve the helm release name
+
 
 .SH OPTIONS
+.PP
+\fB\-\-annotate\-release\-name\fP[=true]
+    if using \-\-dir\-includes\-release\-name layout then lets add the 'meta.helm.sh/release\-name' annotation to record the helm release name
+
 .PP
 \fB\-\-dir\fP=""
     the directory containing the generated resources
 
 .PP
+\fB\-\-dir\-includes\-release\-name\fP[=false]
+    the directory containing the generated resources has a path segment that is the release name
+
+.PP
 \fB\-h\fP, \fB\-\-help\fP[=false]
     help for move
+
+.PP
+\fB\-\-invert\-selector\fP[=false]
+    inverts the effect of selector to exclude resources matched by selector
 
 .PP
 \fB\-k\fP, \fB\-\-kind\fP=[]
@@ -46,6 +61,10 @@ So this command applies the namespace to all the generated resources and then mo
 .PP
 \fB\-o\fP, \fB\-\-output\-dir\fP="config\-root"
     the output directory
+
+.PP
+\fB\-\-selector\fP=[]
+    adds Kubernetes label selector to filter on, e.g. \-s app=pusher\-wave,heritage=Helm
 
 
 .SH EXAMPLE

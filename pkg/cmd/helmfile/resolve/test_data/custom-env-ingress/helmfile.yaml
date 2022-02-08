@@ -6,6 +6,8 @@ releases:
     - versionStream/charts/jenknis-x/chartmuseum/values.yaml.gotmpl
   - chart: jenkins-x/tekton
   - chart: jenkins-x/jxboot-helmfile-resources
+    values:
+    - versionStream/charts/jenkins-x/jxboot-helmfile-resources/values.yaml.gotmpl
   - chart: doesnotexist/myapp
     namespace: jx-staging
   - chart: doesnotexist/myapp

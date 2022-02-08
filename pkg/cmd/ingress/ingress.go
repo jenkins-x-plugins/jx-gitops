@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
-	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
@@ -16,14 +16,14 @@ import (
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"k8s.io/api/extensions/v1beta1"
+	nv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/yaml"
 )
 
 var (
 	ingressLong = templates.LongDesc(`
-		Updates Ingress resources with the current ingress domain 
+		Updates Ingress resources with the current ingress domain
 `)
 
 	ingressExample = templates.Examples(`
@@ -76,15 +76,12 @@ func (o *Options) Run() error {
 
 	log.Logger().Infof("replacing ingress domain %s to %s with TLS: %v", termcolor.ColorInfo(o.ReplaceDomain), termcolor.ColorInfo(newDomain), tlsEnabled)
 
-	fn := func(ing *v1beta1.Ingress, path string) (bool, error) {
+	fn := func(ing *nv1.Ingress, path string) (bool, error) {
 		modified := false
 		s := &ing.Spec
 		for i, r := range s.Rules {
 			currentHost := r.Host
-			host, err := o.modifyHost(currentHost, newDomain)
-			if err != nil {
-				return modified, err
-			}
+			host := o.modifyHost(currentHost, newDomain)
 			if host != "" && host != currentHost {
 				modified = true
 				s.Rules[i].Host = host
@@ -96,10 +93,7 @@ func (o *Options) Run() error {
 		for i, tls := range s.TLS {
 			hosts := tls.Hosts
 			for j, currentHost := range hosts {
-				host, err := o.modifyHost(currentHost, newDomain)
-				if err != nil {
-					return modified, err
-				}
+				host := o.modifyHost(currentHost, newDomain)
 				if host != "" && host != currentHost {
 					modified = true
 					if !tlsEnabled {
@@ -121,15 +115,15 @@ func (o *Options) Run() error {
 }
 
 // modifyHost modifies the host name if it matches the predicate otherwise return an empty string
-func (o *Options) modifyHost(host string, newDomain string) (string, error) {
+func (o *Options) modifyHost(host, newDomain string) string {
 	if strings.HasSuffix(host, o.ReplaceDomain) {
-		return strings.TrimSuffix(host, o.ReplaceDomain) + newDomain, nil
+		return strings.TrimSuffix(host, o.ReplaceDomain) + newDomain
 	}
-	return "", nil
+	return ""
 }
 
-func (o *Options) updateIngresses(dir string, fn func(ing *v1beta1.Ingress, path string) (bool, error)) error {
-	return filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+func (o *Options) updateIngresses(dir string, fn func(ing *nv1.Ingress, path string) (bool, error)) error {
+	return filepath.Walk(dir, func(path string, info os.FileInfo, err error) error { //nolint:staticcheck
 		if info == nil || info.IsDir() {
 			return nil
 		}
@@ -144,7 +138,7 @@ func (o *Options) updateIngresses(dir string, fn func(ing *v1beta1.Ingress, path
 			return nil
 		}
 
-		data, err := ioutil.ReadFile(path)
+		data, err := ioutil.ReadFile(path) //nolint:staticcheck
 		if err != nil {
 			return errors.Wrapf(err, "failed to load file %s", path)
 		}
@@ -162,11 +156,11 @@ func (o *Options) updateIngresses(dir string, fn func(ing *v1beta1.Ingress, path
 			return nil
 		}
 		apiVersion := obj.GetAPIVersion()
-		if apiVersion != "networking.k8s.io/v1beta1" && apiVersion != "extensions/v1beta1" {
+		if apiVersion != "networking.k8s.io/v1" && apiVersion != "networking.k8s.io/v1beta1" && apiVersion != "extensions/v1beta1" {
 			return nil
 		}
 
-		ing := &v1beta1.Ingress{}
+		ing := &nv1.Ingress{}
 		err = yaml.Unmarshal(data, ing)
 		if err != nil {
 			return errors.Wrapf(err, "failed to unmarshal YAML as Ingress in file %s", path)
@@ -180,6 +174,9 @@ func (o *Options) updateIngresses(dir string, fn func(ing *v1beta1.Ingress, path
 			return nil
 		}
 		data, err = yaml.Marshal(ing)
+		if err != nil {
+			return errors.Wrap(err, "failed to marshal ingress onject to yaml")
+		}
 		err = ioutil.WriteFile(path, data, files.DefaultFileWritePermissions)
 		if err != nil {
 			return errors.Wrapf(err, "failed to save %s", path)

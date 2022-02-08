@@ -10,11 +10,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/variablefinders"
 	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	v1 "github.com/jenkins-x/jx-api/v4/pkg/apis/jenkins.io/v1"
 	jxc "github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned"
-	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
-	"github.com/jenkins-x/jx-gitops/pkg/variablefinders"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
@@ -25,6 +25,7 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/activities"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/jxclient"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/naming"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/services"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/scmhelpers"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/stringhelpers"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
@@ -52,21 +53,25 @@ var (
 // Options the options for the command
 type Options struct {
 	scmhelpers.Options
-	File           string
-	RepositoryName string
-	RepositoryURL  string
-	ConfigMapName  string
-	Namespace      string
-	VersionFile    string
-	Commit         bool
-	BuildNumber    string
-	BuildID        string
-	KubeClient     kubernetes.Interface
-	JXClient       jxc.Interface
-	Requirements   *jxcore.RequirementsConfig
-	ConfigMapData  map[string]string
-	entries        map[string]*Entry
-	factories      []Factory
+	File               string
+	RepositoryName     string
+	RepositoryURL      string
+	ConfigMapName      string
+	Namespace          string
+	VersionFile        string
+	BuildNumber        string
+	BuildID            string
+	GitCommitUsername  string
+	GitCommitUserEmail string
+	GitBranch          string
+	DashboardURL       string
+	Commit             bool
+	KubeClient         kubernetes.Interface
+	JXClient           jxc.Interface
+	Requirements       *jxcore.RequirementsConfig
+	ConfigMapData      map[string]string
+	entries            map[string]*Entry
+	factories          []Factory
 }
 
 // Entry a variable entry in the file on load
@@ -97,9 +102,12 @@ func NewCmdVariables() (*cobra.Command, *Options) {
 			helper.CheckErr(err)
 		},
 	}
+	o.DiscoverFromGit = true
 	cmd.Flags().StringVarP(&o.File, "file", "f", filepath.Join(".jx", "variables.sh"), "the default variables file to lazily create or enrich")
 	cmd.Flags().StringVarP(&o.RepositoryName, "repo-name", "n", "release-repo", "the name of the helm chart to release to. If not specified uses JX_CHART_REPOSITORY environment variable")
 	cmd.Flags().StringVarP(&o.RepositoryURL, "repo-url", "u", "", "the URL to release to")
+	cmd.Flags().StringVarP(&o.GitCommitUsername, "git-user-name", "", "", "the user name to git commit")
+	cmd.Flags().StringVarP(&o.GitCommitUserEmail, "git-user-email", "", "", "the user email to git commit")
 	cmd.Flags().StringVarP(&o.Namespace, "namespace", "", "", "the namespace to look for the dev Environment. Defaults to the current namespace")
 	cmd.Flags().StringVarP(&o.BuildNumber, "build-number", "", "", "the build number to use. If not specified defaults to $BUILD_NUMBER")
 	cmd.Flags().StringVarP(&o.ConfigMapName, "configmap", "", "jenkins-x-docker-registry", "the ConfigMap used to load environment variables")
@@ -133,9 +141,11 @@ func (o *Options) Validate() error {
 	if o.GitClient == nil {
 		o.GitClient = cli.NewCLIClient("", o.CommandRunner)
 	}
-	o.Requirements, err = variablefinders.FindRequirements(o.JXClient, o.Namespace, o.GitClient)
-	if err != nil {
-		return errors.Wrapf(err, "failed to load requirements")
+	if o.Requirements == nil {
+		o.Requirements, err = variablefinders.FindRequirements(o.GitClient, o.JXClient, o.Namespace, o.Dir, o.Owner, o.Repository)
+		if err != nil {
+			return errors.Wrapf(err, "failed to load requirements")
+		}
 	}
 
 	if o.ConfigMapData == nil {
@@ -160,7 +170,12 @@ func (o *Options) Validate() error {
 	}
 
 	if o.RepositoryURL == "" {
-		o.RepositoryURL, err = variablefinders.FindRepositoryURL(o.JXClient, o.Namespace, o.Requirements)
+		registryOrg, err := o.dockerRegistryOrg()
+		if err != nil {
+			return errors.Wrapf(err, "failed to find container registry org")
+		}
+
+		o.RepositoryURL, err = variablefinders.FindRepositoryURL(o.Requirements, registryOrg, o.Repository)
 		if err != nil {
 			return errors.Wrapf(err, "failed to find chart repository URL")
 		}
@@ -216,9 +231,31 @@ func (o *Options) Validate() error {
 			},
 		},
 		{
+			Name: "DOMAIN",
+			Function: func() (string, error) {
+				return o.Requirements.Ingress.Domain, nil
+			},
+		},
+		{
+			Name: "GIT_BRANCH",
+			Function: func() (string, error) {
+				return o.GetGitBranch()
+			},
+		},
+		{
+			Name: "JENKINS_X_URL",
+			Function: func() (string, error) {
+				return o.GetJenkinsXURL()
+			},
+		},
+		{
 			Name: "JX_CHART_REPOSITORY",
 			Function: func() (string, error) {
-				return variablefinders.FindRepositoryURL(o.JXClient, o.Namespace, o.Requirements)
+				registryOrg, err := o.dockerRegistryOrg()
+				if err != nil {
+					return "", errors.Wrapf(err, "failed to find container registry org")
+				}
+				return variablefinders.FindRepositoryURL(o.Requirements, registryOrg, o.Options.Repository)
 			},
 		},
 		{
@@ -228,15 +265,27 @@ func (o *Options) Validate() error {
 			},
 		},
 		{
+			Name: "NAMESPACE_SUB_DOMAIN",
+			Function: func() (string, error) {
+				return o.Requirements.Ingress.NamespaceSubDomain, nil
+			},
+		},
+		{
 			Name: "PIPELINE_KIND",
 			Function: func() (string, error) {
 				return variablefinders.FindPipelineKind(o.Branch)
 			},
 		},
 		{
+			Name: "PUSH_CONTAINER_REGISTRY",
+			Function: func() (string, error) {
+				return o.pushContainerRegistry()
+			},
+		},
+		{
 			Name: "REPO_NAME",
 			Function: func() (string, error) {
-				return o.Options.Repository, nil
+				return o.getRepoName(), nil
 			},
 		},
 		{
@@ -343,9 +392,9 @@ func (o *Options) Run() error {
 				}
 			}
 			if value != "" {
-				log.Logger().Infof("export %s=\"%s\"", name, value)
+				log.Logger().Infof("export %s='%s'", name, value)
 
-				line := fmt.Sprintf("export %s=\"%s\"", name, value)
+				line := fmt.Sprintf("export %s='%s'", name, value)
 				buf.WriteString(line)
 				buf.WriteString("\n")
 			}
@@ -369,6 +418,11 @@ func (o *Options) Run() error {
 	log.Logger().Infof("added variables to file: %s", info(file))
 
 	if o.Commit {
+		_, _, err = gitclient.EnsureUserAndEmailSetup(o.GitClient, o.Dir, o.GitCommitUsername, o.GitCommitUserEmail)
+		if err != nil {
+			return errors.Wrapf(err, "failed to setup git user and email")
+		}
+
 		_, err = gitclient.AddAndCommitFiles(o.GitClient, o.Dir, "chore: add variables")
 		if err != nil {
 			return errors.Wrapf(err, "failed to commit changes")
@@ -385,6 +439,14 @@ func (o *Options) dockerRegistry() (string, error) {
 	if answer == "" {
 		answer = o.ConfigMapData["DOCKER_REGISTRY"]
 	}
+	return strings.ToLower(answer), nil
+}
+
+func (o *Options) pushContainerRegistry() (string, error) {
+	answer := o.ConfigMapData["PUSH_CONTAINER_REGISTRY"]
+	if answer == "" {
+		return o.dockerRegistry()
+	}
 	return answer, nil
 }
 
@@ -393,18 +455,22 @@ func (o *Options) dockerRegistryOrg() (string, error) {
 	if answer == "" {
 		answer = o.ConfigMapData["DOCKER_REGISTRY_ORG"]
 	}
-	if answer == "" {
-		if o.Requirements != nil {
-			answer = o.Requirements.Cluster.DockerRegistryOrg
-			if answer == "" && o.Requirements.Cluster.Provider == "gke" {
-				answer = o.Requirements.Cluster.ProjectID
-			}
+	if answer != "" {
+		return answer, nil
+	}
+	return variablefinders.DockerRegistryOrg(o.Requirements, o.Options.Owner)
+}
+
+func (o *Options) GetGitBranch() (string, error) {
+	if o.GitBranch == "" {
+		var err error
+		o.GitBranch, err = gitclient.Branch(o.GitClient, o.Dir)
+		if err != nil {
+			log.Logger().Warnf("failed to get the current git branch as probably not in a git clone directory, so cannot create the GIT_BRANCH. (%s)", err.Error())
+			o.GitBranch = ""
 		}
 	}
-	if answer == "" {
-		answer = naming.ToValidName(o.Options.Owner)
-	}
-	return answer, nil
+	return o.GitBranch, nil
 }
 
 func (o *Options) minkImage() (string, error) {
@@ -495,10 +561,8 @@ func (o *Options) FindBuildNumber(buildID string) (string, error) {
 			i, err := strconv.Atoi(pa.Spec.Build)
 			if err != nil {
 				log.Logger().Warnf("PipelineActivity %s has an invalid spec.build number %s should be an integer: %s", pa.Name, pa.Spec.Build, err.Error())
-			} else {
-				if i > maxBuild {
-					maxBuild = i
-				}
+			} else if i > maxBuild {
+				maxBuild = i
 			}
 		}
 	}
@@ -555,7 +619,41 @@ func (o *Options) FindDockerfilePath() (string, error) {
 		}
 	}
 	return "Dockerfile", nil
+}
 
+// GetJenkinsXURL returns the Jenkins URL
+func (o *Options) GetJenkinsXURL() (string, error) {
+	dash, err := o.GetDashboardURL()
+	if dash == "" || err != nil {
+		return "", err
+	}
+	owner := o.Options.Owner
+	repo := o.Options.Repository
+	branch := o.Options.Branch
+	build := o.BuildNumber
+
+	if owner == "" || repo == "" || branch == "" || build == "" {
+		return "", nil
+	}
+	return stringhelpers.UrlJoin(dash, owner, repo, branch, build), nil
+}
+
+// GetDashboardURL
+func (o *Options) GetDashboardURL() (string, error) {
+	if o.DashboardURL == "" {
+		var err error
+		name := "jx-pipelines-visualizer"
+		o.DashboardURL, err = services.GetServiceURLFromName(o.KubeClient, name, o.Namespace)
+		if err != nil {
+			log.Logger().Warnf("cannot discover the URL of service %s in namespace %s due to %v", name, o.Namespace, err)
+		}
+	}
+	return o.DashboardURL, nil
+}
+
+// ToLower is required because repos with capitals in their names are not allowed in chartmuseum and it will throw a 500 error.
+func (o *Options) getRepoName() string {
+	return strings.ToLower(o.Options.Repository)
 }
 
 func configMapKeyToEnvVar(k string) string {

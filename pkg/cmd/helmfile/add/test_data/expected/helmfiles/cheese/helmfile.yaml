@@ -1,0 +1,10 @@
+filepath: ""
+namespace: cheese
+repositories:
+- name: jenkins-x
+  url: https://storage.googleapis.com/chartmuseum.jenkins-x.io
+releases:
+- chart: jenkins-x/new-cheese
+  name: mythingy
+templates: {}
+renderedvalues: {}

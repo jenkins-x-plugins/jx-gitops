@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/namespace"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/namespace"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kyamls"
 	"github.com/pkg/errors"
@@ -33,23 +33,25 @@ func TestUpdateNamespaceInYamlFiles(t *testing.T) {
 
 	var testCases []testCase
 	for _, f := range fileNames {
-		if f.IsDir() {
-			name := f.Name()
-			srcFile := filepath.Join(sourceData, name, "source.yaml")
-			expectedFile := filepath.Join(sourceData, name, "expected.yaml")
-			require.FileExists(t, srcFile)
-			require.FileExists(t, expectedFile)
-
-			outFile := filepath.Join(tmpDir, name+".yaml")
-			err = files.CopyFile(srcFile, outFile)
-			require.NoError(t, err, "failed to copy %s to %s", srcFile, outFile)
-
-			testCases = append(testCases, testCase{
-				SourceFile:   srcFile,
-				ResultFile:   outFile,
-				ExpectedFile: expectedFile,
-			})
+		if !f.IsDir() {
+			continue
 		}
+		name := f.Name()
+		srcFile := filepath.Join(sourceData, name, "source.yaml")
+		expectedFile := filepath.Join(sourceData, name, "expected.yaml")
+		require.FileExists(t, srcFile)
+		require.FileExists(t, expectedFile)
+
+		outFile := filepath.Join(tmpDir, name+".yaml")
+		err = files.CopyFile(srcFile, outFile)
+		require.NoError(t, err, "failed to copy %s to %s", srcFile, outFile)
+
+		testCases = append(testCases, testCase{
+			SourceFile:   srcFile,
+			ResultFile:   outFile,
+			ExpectedFile: expectedFile,
+		})
+
 	}
 
 	err = namespace.UpdateNamespaceInYamlFiles(tmpDir, "something", kyamls.Filter{})
@@ -96,7 +98,7 @@ func TestNamespaceDirMode(t *testing.T) {
 	t.Logf("replaced namespaces in dir %s\n", tmpDir)
 
 	found := map[string][]string{}
-	err = filepath.Walk(tmpDir, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(tmpDir, func(path string, info os.FileInfo, err error) error { //nolint:staticcheck
 		if info == nil || info.IsDir() {
 			return nil
 		}
@@ -104,7 +106,7 @@ func TestNamespaceDirMode(t *testing.T) {
 			return nil
 		}
 
-		relPath, err := filepath.Rel(tmpDir, path)
+		relPath, err := filepath.Rel(tmpDir, path) //nolint:staticcheck
 		if err != nil {
 			return errors.Wrapf(err, "failed to find relative path of %s", path)
 		}

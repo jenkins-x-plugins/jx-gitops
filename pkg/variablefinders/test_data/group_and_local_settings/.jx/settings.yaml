@@ -1,0 +1,8 @@
+apiVersion: core.jenkins-x.io/v4beta1
+kind: Settings
+spec:
+  # lets override the destination configuration
+  destination:
+    chartRepository: https://github.com/myorg/mycharts.git
+    chartKind: pages
+    registry: my.harbor.com

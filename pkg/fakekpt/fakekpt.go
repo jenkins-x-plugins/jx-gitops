@@ -12,7 +12,7 @@ import (
 )
 
 // FakeKpt a simple command to simulate kpt using local files for use in a fake cmdrunner
-func FakeKpt(t *testing.T, c *cmdrunner.Command, versionStreamDir string, targetDir string) (string, error) {
+func FakeKpt(t *testing.T, c *cmdrunner.Command, versionStreamDir, targetDir string) (string, error) {
 	if len(c.Args) < 4 {
 		return "", errors.Errorf("unsupported kpt command %s", c.CLI())
 	}

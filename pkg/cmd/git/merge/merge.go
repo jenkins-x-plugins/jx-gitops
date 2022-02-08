@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 
-	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
@@ -20,11 +21,23 @@ import (
 
 var (
 	cmdLong = templates.LongDesc(`
-		Merge a number of SHAs into the HEAD of the main branch
+		Merge a number of SHAs into the HEAD of the main branch.
+
+		This command merges a list of commits into a specified branch. If the branch does not exist among local branches, then
+		it is first created.
+
+		If both --pull-refs and --sha flags are specified then only those commits specified by --sha are merged into the
+		base branch.
+
+		If --include-comment or --exclude-comment flags are specified, then --pull-number flag needs to be set as well.
+		If only one of --include-comment or --exclude-comment, then only that one is used to filter commits while other is
+		ignored. If both are specified, then only those commits which satisfy --include-comment and do not satisfy the
+		--exclude-comment regex are added. Only those commits which are reachable by from pull request and are not reachable
+		by base branch are included to be merged into the base branch.
 `)
 
 	cmdExample = templates.Examples(`
-		%s git merge 
+		%s git merge
 	`)
 
 	info = termcolor.ColorInfo
@@ -35,6 +48,7 @@ type Options struct {
 	UserName             string
 	UserEmail            string
 	SHAs                 []string
+	GitMergeArgs         []string
 	Remote               string
 	Dir                  string
 	BaseBranch           string
@@ -43,6 +57,7 @@ type Options struct {
 	PullNumber           string
 	IncludeCommitComment string
 	ExcludeCommitComment string
+	Rebase               bool
 	DisableInClusterTest bool
 
 	CommandRunner cmdrunner.CommandRunner
@@ -78,6 +93,9 @@ func NewCmdGitMerge() (*cobra.Command, *Options) {
 
 	cmd.Flags().StringVarP(&o.IncludeCommitComment, "include-comment", "", "", "the regular expression to filter commit comment to include in the merge")
 	cmd.Flags().StringVarP(&o.ExcludeCommitComment, "exclude-comment", "", "", "the regular expression to filter commit comment to exclude in the merge")
+	cmd.Flags().StringArrayVarP(&o.GitMergeArgs, "merge-arg", "", nil, "the extra arguments to pass to the 'git merge $sha' command to perform the merge")
+
+	cmd.Flags().BoolVarP(&o.Rebase, "rebase", "r", false, "use git rebase instead of merge")
 
 	cmd.Flags().BoolVarP(&o.DisableInClusterTest, "fake-in-cluster", "", false, "for testing: lets you fake running this command inside a kubernetes cluster so that it can create the file: $XDG_CONFIG_HOME/git/credentials or $HOME/git/credentials")
 
@@ -89,13 +107,6 @@ func (o *Options) Run() error {
 	err := o.Validate()
 	if err != nil {
 		return errors.Wrapf(err, "failed to validate options")
-	}
-
-	if o.BaseBranch == "" {
-		o.BaseBranch = os.Getenv("PULL_BASE_REF")
-	}
-	if o.BaseSHA == "" {
-		o.BaseSHA = os.Getenv("PULL_BASE_SHA")
 	}
 
 	if len(o.SHAs) == 0 || o.BaseBranch == "" || o.BaseSHA == "" {
@@ -124,6 +135,18 @@ func (o *Options) Run() error {
 			}
 		}
 	}
+
+	if o.BaseBranch == "" {
+		o.BaseBranch = os.Getenv("PULL_BASE_REF")
+	}
+
+	if o.BaseSHA == "" {
+		o.BaseSHA = os.Getenv("PULL_BASE_SHA")
+	}
+
+	if o.BaseSHA != "" && o.Rebase {
+		return o.RebaseToBaseSHA()
+	}
 	if o.IncludeCommitComment != "" || o.ExcludeCommitComment != "" {
 		o.SHAs, err = o.FindCommitsToMerge()
 		if err != nil {
@@ -136,21 +159,28 @@ func (o *Options) Run() error {
 		return nil
 	}
 
-	err = FetchAndMergeSHAs(o.GitClient, o.SHAs, o.BaseBranch, o.BaseSHA, o.Remote, o.Dir)
+	err = FetchAndMergeSHAs(o.GitClient, o.SHAs, o.BaseBranch, o.BaseSHA, o.Remote, o.Dir, o.GitMergeArgs)
 	if err != nil {
 		return errors.Wrap(err, "error during merge")
 	}
 
-	/*
-		if o.Verbose {
-			commits, err := o.getMergedCommits()
-			if err != nil {
-				return errors.Wrap(err, "unable to write merge result")
-			}
-			o.logCommits(commits, o.BaseBranch)
-		}
-	*/
+	return nil
+}
 
+func (o *Options) RebaseToBaseSHA() error {
+	args := []string{"rebase"}
+	args = append(args, o.GitMergeArgs...)
+	sha := o.BaseSHA
+	args = append(args, sha)
+
+	dir := o.Dir
+	log.Logger().Infof("running: git %s", strings.Join(args, " "))
+	_, err := o.GitClient.Command(dir, args...)
+	if err != nil {
+		return errors.Wrapf(err, "rebasing %s into master", sha)
+	}
+	log.Logger().Infof("rebased git to %s", sha)
+	log.Logger().Debugf("ran: git rebase %s", strings.Join(args, " "))
 	return nil
 }
 
@@ -218,7 +248,7 @@ func (o *Options) FindCommitsToMerge() ([]string, error) {
 	return shas, nil
 }
 
-func filterCommits(commits []*gitlog.Commit, includeRE *regexp.Regexp, excludeRE *regexp.Regexp) []*gitlog.Commit {
+func filterCommits(commits []*gitlog.Commit, includeRE, excludeRE *regexp.Regexp) []*gitlog.Commit {
 	var answer []*gitlog.Commit
 	for _, commit := range commits {
 		comment := commit.Comment

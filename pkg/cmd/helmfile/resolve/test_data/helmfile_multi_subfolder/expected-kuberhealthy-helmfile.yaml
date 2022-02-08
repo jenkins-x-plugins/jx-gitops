@@ -1,0 +1,32 @@
+filepath: ""
+environments:
+  default:
+    values:
+    - jx-values.yaml
+namespace: kuberhealthy
+repositories:
+- name: kuberhealthy
+  url: https://kuberhealthy.github.io/kuberhealthy/helm-repos
+- name: jxgh
+  url: https://jenkins-x-charts.github.io/repo
+releases:
+- chart: kuberhealthy/kuberhealthy
+  version: "54"
+  name: kuberhealthy
+  values:
+  - ../../versionStream/charts/kuberhealthy/kuberhealthy/values.yaml.gotmpl
+  - jx-values.yaml
+- chart: jxgh/jx-kh-check
+  version: 0.0.78
+  name: jx-kh-check
+  values:
+  - ../../versionStream/charts/jxgh/jx-kh-check/values.yaml.gotmpl
+  - jx-values.yaml
+- chart: jxgh/kh-tls-check
+  version: 0.0.10
+  condition: jxRequirementsTLSCheck.enabled
+  name: kh-tls-check
+  values:
+  - jx-values.yaml
+templates: {}
+renderedvalues: {}

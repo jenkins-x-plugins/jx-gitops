@@ -1,4 +1,4 @@
-FROM gcr.io/jenkinsxio/jx-cli-base:latest
+FROM ghcr.io/jenkins-x/jx-boot:latest
 
 ENTRYPOINT ["jx-gitops"]
 

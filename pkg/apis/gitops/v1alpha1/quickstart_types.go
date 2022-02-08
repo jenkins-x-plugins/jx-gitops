@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/jenkins-x/jx-gitops/pkg/matcher"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/matcher"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"
 	"github.com/pkg/errors"
@@ -14,6 +14,8 @@ import (
 const (
 	// QuickstartsFileName default name of the source repository configuration
 	QuickstartsFileName = "quickstarts.yaml"
+	// MLProjectSetsFileName default name of the source repository configuration for machine learning projectsets
+	MLProjectSetsFileName = "mlprojectsets.yaml"
 )
 
 // +genclient

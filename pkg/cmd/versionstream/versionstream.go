@@ -9,7 +9,7 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/cli"
 
-	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 
 	"sigs.k8s.io/kustomize/kyaml/yaml"
 
@@ -72,7 +72,7 @@ func NewCmdVersionstream() (*cobra.Command, *Options) {
 		Use:     "versionstream",
 		Short:   "Administer the cluster version stream settings",
 		Long:    createLong,
-		Example: fmt.Sprintf(createExample, rootcmd.BinaryName),
+		Example: fmt.Sprintf(createExample, rootcmd.BinaryName, rootcmd.BinaryName, rootcmd.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
 			o.Cmd = cmd
 			o.Args = args
@@ -94,7 +94,6 @@ func NewCmdVersionstream() (*cobra.Command, *Options) {
 
 // Run implements the command
 func (o *Options) Run() error {
-
 	err := o.switchVersionStream()
 	if err != nil {
 		return errors.Wrapf(err, "failed to switch versionstream")
@@ -168,11 +167,10 @@ func (o *Options) switchVersionStream() error {
 }
 
 func (o *Options) modifyFn(node *yaml.RNode, path string) (bool, error) {
-
 	repo := ""
 	ref := ""
 	directory := ""
-	switch true {
+	switch {
 	case o.LTS:
 		repo = ltsVersionStreamURL
 		ref = "main"
@@ -213,7 +211,7 @@ func (o *Options) atLeastOneFlagSet() bool {
 func (o *Options) GitCommit() error {
 	// git add / commit the kptfile change
 	message := "chore: switch verionsstream to %s"
-	switch true {
+	switch {
 	case o.LTS:
 		message = fmt.Sprintf(message, ltsVersionStreamURL)
 	case o.Latest:

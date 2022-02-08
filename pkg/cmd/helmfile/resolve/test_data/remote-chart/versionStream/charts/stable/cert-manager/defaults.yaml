@@ -1,0 +1,3 @@
+component: cert-manager
+gitUrl: https://github.com/helm/charts/tree/master/stable/cert-manager
+version: v0.6.7

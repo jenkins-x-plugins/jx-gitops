@@ -1,0 +1,22 @@
+filepath: ""
+environments:
+  default:
+    values:
+    - jx-values.yaml
+namespace: jx-staging
+repositories:
+- name: dev
+  url: http://chartmuseum-jx.35.242.181.72.nip.io/
+releases:
+- chart: dev/cheese
+  version: 0.0.73
+  name: cheese
+  values:
+  - jx-values.yaml
+- chart: dev/another
+  version: 0.0.1
+  name: another
+  values:
+  - jx-values.yaml
+templates: {}
+renderedvalues: {}

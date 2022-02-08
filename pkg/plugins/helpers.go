@@ -17,12 +17,28 @@ func GetHelmBinary(version string) (string, error) {
 	if version == "" {
 		version = HelmVersion
 	}
-	pluginBinDir, err := homedir.PluginBinDir(os.Getenv("JX_GITOPS_HOME"), ".jx-gitops")
+	pluginBinDir, err := PluginBinDir()
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to find plugin home dir")
 	}
 	plugin := CreateHelmPlugin(version)
 	return extensions.EnsurePluginInstalled(plugin, pluginBinDir)
+}
+
+// PluginBinDir returns the plugin dir
+func PluginBinDir() (string, error) {
+	return PluginBinDirFunc(os.Getenv)
+}
+
+// PluginBinDirFunc uses a function for looking up env vars for easier testing
+func PluginBinDirFunc(fn func(string) string) (string, error) {
+	for _, e := range []string{"JX_GITOPS_HOME", "JX3_HOME", "JX_HOME"} {
+		v := fn(e)
+		if v != "" {
+			return homedir.PluginBinDir(v, ".jx")
+		}
+	}
+	return homedir.PluginBinDir("", ".jx")
 }
 
 // CreateHelmPlugin creates the helm 3 plugin
@@ -51,7 +67,7 @@ func GetHelmfileBinary(version string) (string, error) {
 	if version == "" {
 		version = HelmfileVersion
 	}
-	pluginBinDir, err := homedir.PluginBinDir(os.Getenv("JX_GITOPS_HOME"), ".jx-gitops")
+	pluginBinDir, err := PluginBinDir()
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to find plugin home dir")
 	}
@@ -62,12 +78,6 @@ func GetHelmfileBinary(version string) (string, error) {
 // CreateHelmfilePlugin creates the helmfile plugin
 func CreateHelmfilePlugin(version string) jenkinsv1.Plugin {
 	binaries := extensions.CreateBinaries(func(p extensions.Platform) string {
-
-		// workaround until this PR is merged and released it can hopefully be removed:
-		//   https://github.com/roboll/helmfile/pull/1612
-		if p.Goarch == "arm64" {
-			return "https://github.com/docularxu/helmfile/releases/download/v0.135.0.arm64/helmfile-0.135.0"
-		}
 		ext := ""
 		if p.IsWindows() {
 			ext = ".exe"

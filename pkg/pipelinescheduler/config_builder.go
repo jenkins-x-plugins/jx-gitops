@@ -5,12 +5,12 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"github.com/jenkins-x/jx-gitops/pkg/schedulerapi"
-	"github.com/jenkins-x/lighthouse/pkg/config"
-	"github.com/jenkins-x/lighthouse/pkg/config/branchprotection"
-	"github.com/jenkins-x/lighthouse/pkg/config/job"
-	"github.com/jenkins-x/lighthouse/pkg/config/keeper"
-	"github.com/jenkins-x/lighthouse/pkg/plugins"
+	schedulerapi "github.com/jenkins-x-plugins/jx-gitops/pkg/apis/scheduler/v1alpha1"
+	"github.com/jenkins-x/lighthouse-client/pkg/config"
+	"github.com/jenkins-x/lighthouse-client/pkg/config/branchprotection"
+	"github.com/jenkins-x/lighthouse-client/pkg/config/job"
+	"github.com/jenkins-x/lighthouse-client/pkg/config/keeper"
+	"github.com/jenkins-x/lighthouse-client/pkg/plugins"
 	"github.com/pkg/errors"
 	"github.com/rollout/rox-go/core/utils"
 )
@@ -24,24 +24,18 @@ func BuildProwConfig(schedulers []*SchedulerLeaf) (*config.Config, *plugins.Conf
 	}
 	pluginsResult := plugins.Configuration{}
 	for _, scheduler := range schedulers {
-		err := buildJobConfig(&configResult.JobConfig, &configResult.ProwConfig, scheduler.SchedulerSpec, scheduler.Org, scheduler.Repo)
-		if err != nil {
-			return nil, nil, errors.Wrapf(err, "building JobConfig for %v", scheduler)
-		}
-		err = buildProwConfig(&configResult.ProwConfig, scheduler.SchedulerSpec, scheduler.Org, scheduler.Repo)
+		buildJobConfig(&configResult.JobConfig, &configResult.ProwConfig, scheduler.SchedulerSpec, scheduler.Org, scheduler.Repo)
+		err := buildProwConfig(&configResult.ProwConfig, scheduler.SchedulerSpec, scheduler.Org, scheduler.Repo)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "building ProwConfig for %v", scheduler)
 		}
-		err = buildPlugins(&pluginsResult, scheduler.SchedulerSpec, scheduler.Org, scheduler.Repo)
-		if err != nil {
-			return nil, nil, errors.Wrapf(err, "building Plugins for %v", scheduler)
-		}
+		buildPlugins(&pluginsResult, scheduler.SchedulerSpec, scheduler.Org, scheduler.Repo)
 	}
 	return &configResult, &pluginsResult, nil
 }
 
-func buildPlugins(answer *plugins.Configuration, scheduler *schedulerapi.SchedulerSpec, orgName string,
-	repoName string) error {
+func buildPlugins(answer *plugins.Configuration, scheduler *schedulerapi.SchedulerSpec, orgName,
+	repoName string) {
 	if scheduler.Plugins != nil {
 		if answer.Plugins == nil {
 			answer.Plugins = make(map[string][]string)
@@ -59,10 +53,7 @@ func buildPlugins(answer *plugins.Configuration, scheduler *schedulerapi.Schedul
 				res = make([]plugins.ExternalPlugin, 0)
 			}
 			externalPlugin := plugins.ExternalPlugin{}
-			err := buildExternalPlugin(&externalPlugin, src)
-			if err != nil {
-				return errors.Wrapf(err, "building ExternalPlugin for %v", src)
-			}
+			buildExternalPlugin(&externalPlugin, src)
 			res = append(res, externalPlugin)
 		}
 		answer.ExternalPlugins[orgSlashRepo(orgName, repoName)] = res
@@ -72,10 +63,7 @@ func buildPlugins(answer *plugins.Configuration, scheduler *schedulerapi.Schedul
 	}
 	if scheduler.Approve != nil {
 		approve := plugins.Approve{}
-		err := buildApprove(&approve, scheduler.Approve, orgName, repoName)
-		if err != nil {
-			return errors.Wrapf(err, "building Approve for %v", scheduler.Approve)
-		}
+		buildApprove(&approve, scheduler.Approve, orgName, repoName)
 		answer.Approve = append(answer.Approve, approve)
 	}
 	if scheduler.Welcome != nil {
@@ -123,10 +111,7 @@ func buildPlugins(answer *plugins.Configuration, scheduler *schedulerapi.Schedul
 	}
 	if scheduler.LGTM != nil {
 		lgtm := plugins.Lgtm{}
-		err := buildLgtm(&lgtm, scheduler.LGTM, orgName, repoName)
-		if err != nil {
-			return errors.Wrapf(err, "building LGTM for %v", scheduler.LGTM)
-		}
+		buildLgtm(&lgtm, scheduler.LGTM, orgName, repoName)
 		answer.Lgtm = append(answer.Lgtm, lgtm)
 	}
 	if answer.Triggers == nil {
@@ -134,16 +119,12 @@ func buildPlugins(answer *plugins.Configuration, scheduler *schedulerapi.Schedul
 	}
 	if scheduler.Trigger != nil {
 		trigger := plugins.Trigger{}
-		err := buildTrigger(&trigger, scheduler.Trigger, orgName, repoName)
-		if err != nil {
-			return errors.Wrapf(err, "building Triggers for %v", scheduler.Trigger)
-		}
+		buildTrigger(&trigger, scheduler.Trigger, orgName, repoName)
 		answer.Triggers = append(answer.Triggers, trigger)
 	}
-	return nil
 }
 
-func buildTrigger(answer *plugins.Trigger, trigger *schedulerapi.Trigger, orgName string, repoName string) error {
+func buildTrigger(answer *plugins.Trigger, trigger *schedulerapi.Trigger, orgName, repoName string) {
 	if trigger.TrustedOrg != nil {
 		answer.TrustedOrg = *trigger.TrustedOrg
 	} else {
@@ -161,10 +142,9 @@ func buildTrigger(answer *plugins.Trigger, trigger *schedulerapi.Trigger, orgNam
 	answer.Repos = []string{
 		orgSlashRepo(orgName, repoName),
 	}
-	return nil
 }
 
-func buildLgtm(answer *plugins.Lgtm, lgtm *schedulerapi.Lgtm, orgName string, repoName string) error {
+func buildLgtm(answer *plugins.Lgtm, lgtm *schedulerapi.Lgtm, orgName, repoName string) {
 	if lgtm.StickyLgtmTeam != nil {
 		answer.StickyLgtmTeam = *lgtm.StickyLgtmTeam
 	}
@@ -177,10 +157,9 @@ func buildLgtm(answer *plugins.Lgtm, lgtm *schedulerapi.Lgtm, orgName string, re
 	answer.Repos = []string{
 		orgSlashRepo(orgName, repoName),
 	}
-	return nil
 }
 
-func buildApprove(answer *plugins.Approve, approve *schedulerapi.Approve, orgName string, repoName string) error {
+func buildApprove(answer *plugins.Approve, approve *schedulerapi.Approve, orgName, repoName string) {
 	answer.IgnoreReviewState = approve.IgnoreReviewState
 	answer.RequireSelfApproval = approve.RequireSelfApproval
 	if approve.IssueRequired != nil {
@@ -192,10 +171,9 @@ func buildApprove(answer *plugins.Approve, approve *schedulerapi.Approve, orgNam
 	answer.Repos = []string{
 		orgSlashRepo(orgName, repoName),
 	}
-	return nil
 }
 
-func buildExternalPlugin(answer *plugins.ExternalPlugin, plugin *schedulerapi.ExternalPlugin) error {
+func buildExternalPlugin(answer *plugins.ExternalPlugin, plugin *schedulerapi.ExternalPlugin) {
 	if plugin.Name != nil {
 		answer.Name = *plugin.Name
 	}
@@ -205,15 +183,12 @@ func buildExternalPlugin(answer *plugins.ExternalPlugin, plugin *schedulerapi.Ex
 	if plugin.Events != nil {
 		answer.Events = plugin.Events.Items
 	}
-	return nil
 }
 
-func buildProwConfig(prowConfig *config.ProwConfig, scheduler *schedulerapi.SchedulerSpec, org string, repo string) error {
+func buildProwConfig(prowConfig *config.ProwConfig, scheduler *schedulerapi.SchedulerSpec, org, repo string) error {
+	prowConfig.PushGateway.ServeMetrics = true
 	if scheduler.Policy != nil {
-		err := buildGlobalBranchProtection(&prowConfig.BranchProtection, scheduler.Policy)
-		if err != nil {
-			return errors.Wrapf(err, "building BranchProtection for %v", scheduler)
-		}
+		buildGlobalBranchProtection(&prowConfig.BranchProtection, scheduler.Policy)
 	}
 	if scheduler.Merger != nil {
 		err := buildMerger(&prowConfig.Keeper, scheduler.Merger, org, repo)
@@ -224,7 +199,7 @@ func buildProwConfig(prowConfig *config.ProwConfig, scheduler *schedulerapi.Sche
 	return nil
 }
 
-func buildPolicy(answer *branchprotection.Policy, policy *schedulerapi.ProtectionPolicy) error {
+func buildPolicy(answer *branchprotection.Policy, policy *schedulerapi.ProtectionPolicy) {
 	if policy.Protect != nil {
 		answer.Protect = policy.Protect
 	}
@@ -235,34 +210,24 @@ func buildPolicy(answer *branchprotection.Policy, policy *schedulerapi.Protectio
 		if answer.RequiredStatusChecks == nil {
 			answer.RequiredStatusChecks = &branchprotection.ContextPolicy{}
 		}
-		err := buildBranchProtectionContextPolicy(answer.RequiredStatusChecks, policy.RequiredStatusChecks)
-		if err != nil {
-			return errors.Wrapf(err, "building ContextPolicy from %v", policy)
-		}
+		buildBranchProtectionContextPolicy(answer.RequiredStatusChecks, policy.RequiredStatusChecks)
 	}
 	if policy.RequiredPullRequestReviews != nil {
 		if answer.RequiredPullRequestReviews == nil {
 			answer.RequiredPullRequestReviews = &branchprotection.ReviewPolicy{}
 		}
-		err := buildRequiredPullRequestReviews(answer.RequiredPullRequestReviews, policy.RequiredPullRequestReviews)
-		if err != nil {
-			return errors.Wrapf(err, "building RequiredPullRequestReviews from %v", policy)
-		}
+		buildRequiredPullRequestReviews(answer.RequiredPullRequestReviews, policy.RequiredPullRequestReviews)
 	}
 	if policy.Restrictions != nil {
 		if answer.Restrictions == nil {
 			answer.Restrictions = &branchprotection.Restrictions{}
 		}
-		err := buildRestrictions(answer.Restrictions, policy.Restrictions)
-		if err != nil {
-			return errors.Wrapf(err, "building Restrictions from %v", policy)
-		}
+		buildRestrictions(answer.Restrictions, policy.Restrictions)
 	}
-	return nil
 }
 
 func buildBranchProtectionContextPolicy(answer *branchprotection.ContextPolicy,
-	policy *schedulerapi.BranchProtectionContextPolicy) error {
+	policy *schedulerapi.BranchProtectionContextPolicy) {
 	if policy.Contexts != nil {
 		if answer.Contexts == nil {
 			answer.Contexts = make([]string, 0)
@@ -283,10 +248,9 @@ func buildBranchProtectionContextPolicy(answer *branchprotection.ContextPolicy,
 	if policy.Strict != nil {
 		answer.Strict = policy.Strict
 	}
-	return nil
 }
 
-func buildRequiredPullRequestReviews(answer *branchprotection.ReviewPolicy, policy *schedulerapi.ReviewPolicy) error {
+func buildRequiredPullRequestReviews(answer *branchprotection.ReviewPolicy, policy *schedulerapi.ReviewPolicy) {
 	if policy.Approvals != nil {
 		answer.Approvals = policy.Approvals
 	}
@@ -300,67 +264,45 @@ func buildRequiredPullRequestReviews(answer *branchprotection.ReviewPolicy, poli
 		if answer.DismissalRestrictions == nil {
 			answer.DismissalRestrictions = &branchprotection.Restrictions{}
 		}
-		err := buildRestrictions(answer.DismissalRestrictions, policy.DismissalRestrictions)
-		if err != nil {
-			return errors.Wrapf(err, "building DismissalRestrictions from %v", policy)
-		}
+		buildRestrictions(answer.DismissalRestrictions, policy.DismissalRestrictions)
 	}
-	return nil
 }
 
-func buildRestrictions(answer *branchprotection.Restrictions, restrictions *schedulerapi.Restrictions) error {
+func buildRestrictions(answer *branchprotection.Restrictions, restrictions *schedulerapi.Restrictions) {
 	if restrictions.Users != nil {
 		if answer.Users == nil {
 			answer.Users = make([]string, 0)
 		}
-		for _, i := range restrictions.Users.Items {
-			answer.Users = append(answer.Users, i)
-		}
+		answer.Users = append(answer.Users, restrictions.Users.Items...)
 	}
 	if restrictions.Teams != nil {
 		if answer.Teams == nil {
 			answer.Teams = make([]string, 0)
 		}
-		for _, i := range restrictions.Teams.Items {
-			answer.Teams = append(answer.Teams, i)
-		}
+		answer.Teams = append(answer.Teams, restrictions.Teams.Items...)
 	}
-	return nil
 }
 
 func buildJobConfig(jobConfig *config.JobConfig, prowConfig *config.ProwConfig,
-	scheduler *schedulerapi.SchedulerSpec, org string, repo string) error {
+	scheduler *schedulerapi.SchedulerSpec, org, repo string) {
 	if scheduler.Postsubmits != nil && scheduler.Postsubmits.Items != nil {
-		err := buildPostsubmits(jobConfig, scheduler.Postsubmits.Items, org, repo)
-		if err != nil {
-			return errors.Wrapf(err, "building Postsubmits from %v", scheduler)
-		}
+		buildPostsubmits(jobConfig, scheduler.Postsubmits.Items, org, repo)
 	}
 	if scheduler.Presubmits != nil && scheduler.Presubmits.Items != nil {
-		err := buildPresubmits(jobConfig, scheduler.Presubmits.Items, org, repo)
-		if err != nil {
-			return errors.Wrapf(err, "building Presubmits from %v", scheduler)
-		}
+		buildPresubmits(jobConfig, scheduler.Presubmits.Items, org, repo)
 	}
 	if scheduler.Periodics != nil && len(scheduler.Periodics.Items) > 0 {
-		err := buildPeriodics(jobConfig, scheduler.Periodics)
-		if err != nil {
-			return errors.Wrapf(err, "building periodics for %v", scheduler)
-		}
+		buildPeriodics(jobConfig, scheduler.Periodics)
 	}
 
-	err := buildKeeperConfig(prowConfig, scheduler.Queries, scheduler.MergeMethod, scheduler.ProtectionPolicy, scheduler.ContextOptions, org, repo)
-	if err != nil {
-		return errors.Wrapf(err, "building KeeperConfig from %v", scheduler)
-	}
+	buildKeeperConfig(prowConfig, scheduler.Queries, scheduler.MergeMethod, scheduler.ProtectionPolicy, scheduler.ContextOptions, org, repo)
 
 	if scheduler.Attachments != nil && len(scheduler.Attachments) > 0 {
 		buildPlank(prowConfig, scheduler.Attachments)
 	}
-	return nil
 }
 
-func buildPostsubmits(jobConfig *config.JobConfig, items []*job.Postsubmit, orgName string, repoName string) error {
+func buildPostsubmits(jobConfig *config.JobConfig, items []*job.Postsubmit, orgName, repoName string) {
 	if jobConfig.Postsubmits == nil {
 		jobConfig.Postsubmits = make(map[string][]job.Postsubmit)
 	}
@@ -371,17 +313,13 @@ func buildPostsubmits(jobConfig *config.JobConfig, items []*job.Postsubmit, orgN
 		}
 		jobConfig.Postsubmits[orgSlashRepo] = append(jobConfig.Postsubmits[orgSlashRepo], *r)
 	}
-	return nil
 }
 
-func buildKeeperConfig(prowConfig *config.ProwConfig, queries []*schedulerapi.Query, mergeMethod *string, protectionPolicy *schedulerapi.ProtectionPolicies, contextOptions *schedulerapi.RepoContextPolicy, orgName string, repoName string) error {
+func buildKeeperConfig(prowConfig *config.ProwConfig, queries []*schedulerapi.Query, mergeMethod *string, protectionPolicy *schedulerapi.ProtectionPolicies, contextOptions *schedulerapi.RepoContextPolicy, orgName, repoName string) {
 	orgSlashRepo := orgSlashRepo(orgName, repoName)
 
-	if queries != nil && len(queries) > 0 {
-		err := buildQuery(&prowConfig.Keeper, queries, orgName, repoName)
-		if err != nil {
-			return errors.Wrapf(err, "building Query for %s from %v", orgSlashRepo, queries)
-		}
+	if len(queries) > 0 {
+		buildQuery(&prowConfig.Keeper, queries, orgName, repoName)
 	}
 
 	if mergeMethod != nil {
@@ -395,26 +333,17 @@ func buildKeeperConfig(prowConfig *config.ProwConfig, queries []*schedulerapi.Qu
 	}
 	if protectionPolicy != nil {
 		if protectionPolicy.ProtectionPolicy != nil {
-			err := buildBranchProtection(&prowConfig.BranchProtection, protectionPolicy.ProtectionPolicy,
+			buildBranchProtection(&prowConfig.BranchProtection, protectionPolicy.ProtectionPolicy,
 				orgName, repoName, "")
-			if err != nil {
-				return errors.WithStack(err)
-			}
 		}
 		for k, v := range protectionPolicy.Items {
-			err := buildBranchProtection(&prowConfig.BranchProtection, v, orgName, repoName, k)
-			if err != nil {
-				return errors.WithStack(err)
-			}
+			buildBranchProtection(&prowConfig.BranchProtection, v, orgName, repoName, k)
 		}
 
 	}
 	if contextOptions != nil {
 		policy := keeper.RepoContextPolicy{}
-		err := buildRepoContextPolicy(&policy, contextOptions)
-		if err != nil {
-			return errors.Wrapf(err, "building RepoContextPolicy from %s", orgSlashRepo)
-		}
+		buildRepoContextPolicy(&policy, contextOptions)
 		if prowConfig.Keeper.ContextOptions.Orgs == nil {
 			prowConfig.Keeper.ContextOptions.Orgs = make(map[string]keeper.OrgContextPolicy)
 		}
@@ -425,10 +354,9 @@ func buildKeeperConfig(prowConfig *config.ProwConfig, queries []*schedulerapi.Qu
 		}
 		prowConfig.Keeper.ContextOptions.Orgs[orgName].Repos[repoName] = policy
 	}
-	return nil
 }
 
-func buildPresubmits(jobConfig *config.JobConfig, items []*job.Presubmit, orgName string, repoName string) error {
+func buildPresubmits(jobConfig *config.JobConfig, items []*job.Presubmit, orgName, repoName string) {
 	if jobConfig.Presubmits == nil {
 		jobConfig.Presubmits = make(map[string][]job.Presubmit)
 	}
@@ -440,25 +368,20 @@ func buildPresubmits(jobConfig *config.JobConfig, items []*job.Presubmit, orgNam
 		}
 		jobConfig.Presubmits[orgSlashRepo] = append(jobConfig.Presubmits[orgSlashRepo], *r)
 	}
-	return nil
 }
 
 func buildGlobalBranchProtection(answer *branchprotection.Config,
-	globalProtectionPolicy *schedulerapi.GlobalProtectionPolicy) error {
+	globalProtectionPolicy *schedulerapi.GlobalProtectionPolicy) {
 	if globalProtectionPolicy.ProtectTested != nil {
 		answer.ProtectTested = *globalProtectionPolicy.ProtectTested
 	}
 	if globalProtectionPolicy.ProtectionPolicy != nil {
-		err := buildBranchProtection(answer, globalProtectionPolicy.ProtectionPolicy, "", "", "")
-		if err != nil {
-			return errors.WithStack(err)
-		}
+		buildBranchProtection(answer, globalProtectionPolicy.ProtectionPolicy, "", "", "")
 	}
-	return nil
 }
 
 func buildBranchProtection(answer *branchprotection.Config,
-	protectionPolicy *schedulerapi.ProtectionPolicy, orgName string, repoName string, branchName string) error {
+	protectionPolicy *schedulerapi.ProtectionPolicy, orgName, repoName, branchName string) {
 	if orgName != "" {
 		if answer.Orgs == nil {
 			answer.Orgs = make(map[string]branchprotection.Org)
@@ -483,41 +406,29 @@ func buildBranchProtection(answer *branchprotection.Config,
 					repo.Branches[branchName] = branchprotection.Branch{}
 				}
 				branch := repo.Branches[branchName]
-				err := buildPolicy(&branch.Policy, protectionPolicy)
-				if err != nil {
-					return errors.Wrapf(err, "building ProtectionPolicy from %v", protectionPolicy)
-				}
+				buildPolicy(&branch.Policy, protectionPolicy)
+
 			} else {
-				err := buildPolicy(&repo.Policy, protectionPolicy)
-				if err != nil {
-					return errors.Wrapf(err, "building ProtectionPolicy from %v", protectionPolicy)
-				}
+				buildPolicy(&repo.Policy, protectionPolicy)
 			}
 			org.Repos[repoName] = repo
 		} else {
-			err := buildPolicy(&org.Policy, protectionPolicy)
-			if err != nil {
-				return errors.Wrapf(err, "building ProtectionPolicy from %v", protectionPolicy)
-			}
+			buildPolicy(&org.Policy, protectionPolicy)
 		}
 		answer.Orgs[orgName] = org
 	} else {
-		err := buildPolicy(&answer.Policy, protectionPolicy)
-		if err != nil {
-			return errors.Wrapf(err, "building ProtectionPolicy from %v", protectionPolicy)
-		}
+		buildPolicy(&answer.Policy, protectionPolicy)
 	}
-	return nil
 }
 
-func orgSlashRepo(org string, repo string) string {
+func orgSlashRepo(org, repo string) string {
 	if repo == "" {
 		return org
 	}
 	return fmt.Sprintf("%s/%s", org, repo)
 }
 
-func buildBase(answer *job.Base, jobBase *job.Base) error {
+func buildBase(answer, jobBase *job.Base) {
 	if jobBase.Agent != "" {
 		answer.Agent = jobBase.Agent
 	}
@@ -539,25 +450,6 @@ func buildBase(answer *job.Base, jobBase *job.Base) error {
 	if jobBase.Spec != nil {
 		answer.Spec = jobBase.Spec
 	}
-	return nil
-}
-
-func buildBrancher(answer *job.Brancher, brancher *job.Brancher) error {
-	if len(brancher.SkipBranches) > 0 {
-		answer.SkipBranches = brancher.SkipBranches
-	}
-	if len(brancher.Branches) > 0 {
-		answer.Branches = brancher.Branches
-	}
-	return nil
-}
-
-func buildRegexChangeMatacher(answer *job.RegexpChangeMatcher,
-	matcher *job.RegexpChangeMatcher) error {
-	if len(matcher.RunIfChanged) > 0 {
-		answer.RunIfChanged = matcher.RunIfChanged
-	}
-	return nil
 }
 
 func buildPlank(answer *config.ProwConfig, attachments []*schedulerapi.Attachment) {
@@ -566,18 +458,10 @@ func buildPlank(answer *config.ProwConfig, attachments []*schedulerapi.Attachmen
 		if attachment.Name == "reportTemplate" {
 			answer.Plank.ReportTemplateString = attachment.URLs[0]
 		}
-		/*
-			if attachment.Name == "jobURLPrefix" {
-				answer.Plank.JobURLPrefix = attachment.URLs[0]
-			}
-			if attachment.Name == "jobURLTemplate" {
-				answer.Plank.JobURLTemplateString = attachment.URLs[0]
-			}
-		*/
 	}
 }
 
-func buildPeriodics(answer *config.JobConfig, periodics *schedulerapi.Periodics) error {
+func buildPeriodics(answer *config.JobConfig, periodics *schedulerapi.Periodics) {
 	if answer.Periodics == nil {
 		answer.Periodics = make([]job.Periodic, 0)
 	}
@@ -596,23 +480,31 @@ func buildPeriodics(answer *config.JobConfig, periodics *schedulerapi.Periodics)
 			if len(schedulerPeriodic.Tags) > 0 {
 				periodic.Tags = schedulerPeriodic.Tags
 			}
-			err := buildBase(&periodic.Base, &schedulerPeriodic.Base)
-			if err != nil {
-				return errors.Wrapf(err, "building periodic for %v", periodic)
-			}
+			buildBase(&periodic.Base, &schedulerPeriodic.Base)
 			answer.Periodics = append(answer.Periodics, periodic)
 		}
 	}
-	return nil
 }
 
-func buildMerger(answer *keeper.Config, merger *schedulerapi.Merger, org string, repo string) error {
-	if merger.SyncPeriod != nil {
-		answer.SyncPeriod = *merger.SyncPeriod
+func buildMerger(answer *keeper.Config, merger *schedulerapi.Merger, org, repo string) error {
+	syncPeriod, err := merger.GetSyncPeriod()
+	if err != nil {
+		return errors.Wrapf(err, "failed to parse sync period")
 	}
+	if syncPeriod != nil {
+		answer.SyncPeriod = *syncPeriod
+	}
+	if answer.SyncPeriod.Milliseconds() != 0 {
+		answer.SyncPeriodString = answer.SyncPeriod.String()
+	}
+
 	if merger.StatusUpdatePeriod != nil {
 		answer.StatusUpdatePeriod = *merger.StatusUpdatePeriod
 	}
+	if answer.StatusUpdatePeriod.Milliseconds() != 0 {
+		answer.StatusUpdatePeriodString = answer.StatusUpdatePeriod.String()
+	}
+
 	if merger.TargetURL != nil {
 		answer.TargetURL = *merger.TargetURL
 	}
@@ -635,38 +527,28 @@ func buildMerger(answer *keeper.Config, merger *schedulerapi.Merger, org string,
 		answer.MergeType[fmt.Sprintf("%s/%s", org, repo)] = keeper.PullRequestMergeType(*merger.MergeType)
 	}
 	if merger.ContextPolicy != nil {
-		err := buildContextPolicy(&answer.ContextOptions.ContextPolicy, merger.ContextPolicy)
-		if err != nil {
-			return errors.Wrapf(err, "building ContextPolicy for %v", merger.ContextPolicy)
-		}
+		buildContextPolicy(&answer.ContextOptions.ContextPolicy, merger.ContextPolicy)
 	}
 	return nil
 }
 
 func buildRepoContextPolicy(answer *keeper.RepoContextPolicy,
-	repoContextPolicy *schedulerapi.RepoContextPolicy) error {
-	err := buildContextPolicy(&answer.ContextPolicy, repoContextPolicy.ContextPolicy)
-	if err != nil {
-		return errors.Wrapf(err, "building ContextPolicy for %v", repoContextPolicy)
-	}
+	repoContextPolicy *schedulerapi.RepoContextPolicy) {
+	buildContextPolicy(&answer.ContextPolicy, repoContextPolicy.ContextPolicy)
 	if repoContextPolicy.Branches != nil {
 		for branch, policy := range repoContextPolicy.Branches.Items {
 			if answer.Branches == nil {
 				answer.Branches = make(map[string]keeper.ContextPolicy)
 			}
 			tidePolicy := keeper.ContextPolicy{}
-			err := buildContextPolicy(&tidePolicy, policy)
-			if err != nil {
-				return errors.Wrapf(err, "building ContextPolicy for %v", policy)
-			}
+			buildContextPolicy(&tidePolicy, policy)
 			answer.Branches[branch] = tidePolicy
 		}
 	}
-	return nil
 }
 
 func buildContextPolicy(answer *keeper.ContextPolicy,
-	contextOptions *schedulerapi.ContextPolicy) error {
+	contextOptions *schedulerapi.ContextPolicy) {
 	if contextOptions != nil {
 		if contextOptions.SkipUnknownContexts != nil {
 			answer.SkipUnknownContexts = contextOptions.SkipUnknownContexts
@@ -684,10 +566,9 @@ func buildContextPolicy(answer *keeper.ContextPolicy,
 			answer.OptionalContexts = contextOptions.OptionalContexts.Items
 		}
 	}
-	return nil
 }
 
-func buildQuery(answer *keeper.Config, queries []*schedulerapi.Query, org string, repo string) error {
+func buildQuery(answer *keeper.Config, queries []*schedulerapi.Query, org, repo string) {
 	if answer.Queries == nil {
 		answer.Queries = keeper.Queries{}
 	}
@@ -729,5 +610,4 @@ func buildQuery(answer *keeper.Config, queries []*schedulerapi.Query, org string
 			answer.Queries = append(answer.Queries, *tideQuery)
 		}
 	}
-	return nil
 }

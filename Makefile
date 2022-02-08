@@ -8,7 +8,7 @@ MAIN_SRC_FILE=cmd/main.go
 GO := GO111MODULE=on go
 GO_NOMOD :=GO111MODULE=off go
 REV := $(shell git rev-parse --short HEAD 2> /dev/null || echo 'unknown')
-ORG := jenkins-x
+ORG := jenkins-x-plugins
 ORG_REPO := $(ORG)/$(NAME)
 RELEASE_ORG_REPO := $(ORG_REPO)
 ROOT_PACKAGE := github.com/$(ORG_REPO)
@@ -32,7 +32,7 @@ VERSION ?= $(shell echo "$$(git for-each-ref refs/tags/ --count=1 --sort=-versio
 # Full build flags used when building binaries. Not used for test compilation/execution.
 BUILDFLAGS :=  -ldflags \
   " -X $(ROOT_PACKAGE)/pkg/cmd/version.Version=$(VERSION)\
-		-X github.com/jenkins-x/jx-gitops/pkg/cmd/version.Version=$(VERSION)\
+		-X github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/version.Version=$(VERSION)\
 		-X $(ROOT_PACKAGE)/pkg/cmd/version.Revision='$(REV)'\
 		-X $(ROOT_PACKAGE)/pkg/cmd/version.Branch='$(BRANCH)'\
 		-X $(ROOT_PACKAGE)/pkg/cmd/version.BuildDate='$(BUILD_DATE)'\
@@ -83,9 +83,6 @@ print-version: ## Print version
 build: $(GO_DEPENDENCIES) clean ## Build jx-labs binary for current OS
 	go mod download
 	CGO_ENABLED=$(CGO_ENABLED) $(GO) $(BUILD_TARGET) $(BUILDFLAGS) -o build/$(NAME) $(MAIN_SRC_FILE)
-
-label: $(GO_DEPENDENCIES) 
-	CGO_ENABLED=$(CGO_ENABLED) $(GO) $(BUILD_TARGET) $(BUILDFLAGS) -o build/jx-label fns/label/main.go
 
 build-all: $(GO_DEPENDENCIES) build make-reports-dir ## Build all files - runtime, all tests etc.
 	CGO_ENABLED=$(CGO_ENABLED) $(GOTEST) -run=nope -tags=integration -failfast -short ./... $(BUILDFLAGS)
@@ -181,11 +178,17 @@ generate-refdocs: install-refdocs
     -api-dir "./pkg/apis/gitops/v1alpha1" \
     -out-file docs/config.md
 
+generate-scheduler-refdocs: install-refdocs
+	gen-crd-api-reference-docs -config "hack/configdocs/config.json" \
+	-template-dir hack/configdocs/templates \
+    -api-dir "./pkg/apis/scheduler/v1alpha1" \
+    -out-file docs/scheduler-config.md
+
 bin/docs:
 	go build $(LDFLAGS) -v -o bin/docs cmd/docs/*.go
 
 .PHONY: docs
-docs: bin/docs generate-refdocs ## update docs
+docs: bin/docs generate-refdocs generate-scheduler-refdocs ## update docs
 	@echo "Generating docs"
 	@./bin/docs --target=./docs/cmd
 	@./bin/docs --target=./docs/man/man1 --kind=man

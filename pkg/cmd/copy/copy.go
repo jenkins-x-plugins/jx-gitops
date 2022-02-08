@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/jxenv"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/options"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -24,8 +23,6 @@ import (
 )
 
 var (
-	info = termcolor.ColorInfo
-
 	cmdLong = templates.LongDesc(`
 		Copies kubernetes resources (by default confimaps) from a namespace to the current namespace
 `)
@@ -66,7 +63,7 @@ func NewCmdCopy() (*cobra.Command, *Options) {
 		Use:     "copy",
 		Short:   "Copies resources (by default confimaps) with the given selector or name from a source namespace to a destination namespace",
 		Long:    cmdLong,
-		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
+		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName, rootcmd.BinaryName, rootcmd.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
 			err := o.Run()
 			helper.CheckErr(err)

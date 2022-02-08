@@ -4,10 +4,10 @@ import (
 	"context"
 	"strings"
 
-	"github.com/jenkins-x/jx-gitops/pkg/schedulerapi"
+	schedulerapi "github.com/jenkins-x-plugins/jx-gitops/pkg/apis/scheduler/v1alpha1"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
-	"github.com/jenkins-x/lighthouse/pkg/config"
-	"github.com/jenkins-x/lighthouse/pkg/plugins"
+	"github.com/jenkins-x/lighthouse-client/pkg/config"
+	"github.com/jenkins-x/lighthouse-client/pkg/plugins"
 	v1 "k8s.io/api/core/v1"
 	kubeerrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/kubernetes"
@@ -21,7 +21,7 @@ import (
 )
 
 // GenerateProw will generate the prow config for the namespace
-func GenerateProw(gitOps bool, autoApplyConfigUpdater bool, jxClient versioned.Interface, namespace string, teamSchedulerName string, devEnv *jenkinsv1.Environment, loadSchedulerResourcesFunc func(versioned.Interface, string) (map[string]*schedulerapi.Scheduler, *jenkinsv1.SourceRepositoryList, error)) (*config.Config,
+func GenerateProw(gitOps, autoApplyConfigUpdater bool, jxClient versioned.Interface, namespace, teamSchedulerName string, devEnv *jenkinsv1.Environment, loadSchedulerResourcesFunc func(versioned.Interface, string) (map[string]*schedulerapi.Scheduler, *jenkinsv1.SourceRepositoryList, error)) (*config.Config,
 	*plugins.Configuration, error) {
 	schedulers, sourceRepos, err := loadSchedulerResourcesFunc(jxClient, namespace)
 	if err != nil {
@@ -32,12 +32,13 @@ func GenerateProw(gitOps bool, autoApplyConfigUpdater bool, jxClient versioned.I
 	}
 	defaultScheduler := schedulers[teamSchedulerName]
 	leaves := make([]*SchedulerLeaf, 0)
-	for _, sourceRepo := range sourceRepos.Items {
+	for k := range sourceRepos.Items {
+		sourceRepo := sourceRepos.Items[k]
 		applicableSchedulers := []*schedulerapi.SchedulerSpec{}
 		// Apply config-updater to devEnv
 		applicableSchedulers = addConfigUpdaterToDevEnv(gitOps, autoApplyConfigUpdater, applicableSchedulers, devEnv, &sourceRepo.Spec)
 		// Apply repo scheduler
-		applicableSchedulers = addRepositoryScheduler(sourceRepo, schedulers, applicableSchedulers)
+		applicableSchedulers = addRepositoryScheduler(&sourceRepo, schedulers, applicableSchedulers)
 		// Apply team scheduler
 		applicableSchedulers = addTeamScheduler(teamSchedulerName, defaultScheduler, applicableSchedulers)
 		if len(applicableSchedulers) < 1 {
@@ -70,15 +71,13 @@ func GenerateProw(gitOps bool, autoApplyConfigUpdater bool, jxClient versioned.I
 func addTeamScheduler(defaultSchedulerName string, defaultScheduler *schedulerapi.Scheduler, applicableSchedulers []*schedulerapi.SchedulerSpec) []*schedulerapi.SchedulerSpec {
 	if defaultScheduler != nil && len(applicableSchedulers) == 0 {
 		applicableSchedulers = append([]*schedulerapi.SchedulerSpec{&defaultScheduler.Spec}, applicableSchedulers...)
-	} else {
-		if defaultSchedulerName != "" {
-			log.Logger().Warnf("A team pipeline scheduler named %s was configured but could not be found", defaultSchedulerName)
-		}
+	} else if defaultSchedulerName != "" {
+		log.Logger().Debugf("A team pipeline scheduler named %s was configured but could not be found", defaultSchedulerName)
 	}
 	return applicableSchedulers
 }
 
-func addRepositoryScheduler(sourceRepo jenkinsv1.SourceRepository, lookup map[string]*schedulerapi.Scheduler, applicableSchedulers []*schedulerapi.SchedulerSpec) []*schedulerapi.SchedulerSpec {
+func addRepositoryScheduler(sourceRepo *jenkinsv1.SourceRepository, lookup map[string]*schedulerapi.Scheduler, applicableSchedulers []*schedulerapi.SchedulerSpec) []*schedulerapi.SchedulerSpec {
 	if sourceRepo.Spec.Scheduler.Name != "" {
 		scheduler := lookup[sourceRepo.Spec.Scheduler.Name]
 		if scheduler != nil {
@@ -90,7 +89,7 @@ func addRepositoryScheduler(sourceRepo jenkinsv1.SourceRepository, lookup map[st
 	return applicableSchedulers
 }
 
-func addConfigUpdaterToDevEnv(gitOps bool, autoApplyConfigUpdater bool, applicableSchedulers []*schedulerapi.SchedulerSpec, devEnv *jenkinsv1.Environment, sourceRepo *jenkinsv1.SourceRepositorySpec) []*schedulerapi.SchedulerSpec {
+func addConfigUpdaterToDevEnv(gitOps, autoApplyConfigUpdater bool, applicableSchedulers []*schedulerapi.SchedulerSpec, devEnv *jenkinsv1.Environment, sourceRepo *jenkinsv1.SourceRepositorySpec) []*schedulerapi.SchedulerSpec {
 	if gitOps && autoApplyConfigUpdater && strings.Contains(devEnv.Spec.Source.URL, sourceRepo.Org+"/"+sourceRepo.Repo) {
 		maps := make(map[string]schedulerapi.ConfigMapSpec)
 		maps["env/prow/job.yaml"] = schedulerapi.ConfigMapSpec{
@@ -112,7 +111,7 @@ func addConfigUpdaterToDevEnv(gitOps bool, autoApplyConfigUpdater bool, applicab
 	return applicableSchedulers
 }
 
-//ApplyDirectly directly applies the prow config to the cluster
+// ApplyDirectly directly applies the prow config to the cluster
 func ApplyDirectly(kubeClient kubernetes.Interface, namespace string, cfg *config.Config,
 	plugs *plugins.Configuration) error {
 	cfgYaml, err := yaml.Marshal(cfg)

@@ -4,9 +4,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
+	"strconv"
 
-	"github.com/jenkins-x/jx-gitops/pkg/plugins"
-	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/chart"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"
+
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/plugins"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
@@ -112,6 +116,31 @@ func (o *Options) Run() error {
 		}
 		if !exists {
 			continue
+		}
+
+		chartDef := &chart.Chart{}
+		if exists {
+			err = yamls.LoadFile(chartFile, chartDef)
+			if err != nil {
+				return errors.Wrapf(err, "failed to load Chart.yaml")
+			}
+
+			for i, dependency := range chartDef.Dependencies {
+				log.Logger().Infof("Adding repository for dependency %s", dependency.Name)
+				if dependency.Repository != "" {
+					c := &cmdrunner.Command{
+						Dir:  chartDir,
+						Name: o.HelmBinary,
+						Args: []string{"repo", "add", strconv.Itoa(i), dependency.Repository},
+					}
+					_, err = o.CommandRunner(c)
+					if err != nil {
+						return errors.Wrapf(err, "failed to add repository")
+					}
+				} else {
+					log.Logger().Infof("Skipping local dependency %s", dependency.Name)
+				}
+			}
 		}
 
 		log.Logger().Infof("building chart %s", info(name))

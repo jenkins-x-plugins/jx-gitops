@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
@@ -86,10 +86,7 @@ func (o *Options) Run() error {
 
 	namespaceReleases := gatherNamespaceReleases(parentHelmState)
 
-	err = configureHelmStatePaths(namespaceReleases)
-	if err != nil {
-		return errors.Wrapf(err, "unable to configure paths in helmfile structure")
-	}
+	configureHelmStatePaths(namespaceReleases)
 
 	parentHelmState = configureParentHelmState(*parentHelmState, namespaceReleases)
 
@@ -113,12 +110,11 @@ func getHelmfileRelative(namespace string) string {
 	return filepath.Join(HelmfileFolder, namespace, helmfileName)
 }
 
-func getHelmfileAbsolute(workingDirectory string, namespace string) string {
+func getHelmfileAbsolute(workingDirectory, namespace string) string {
 	return filepath.Join(workingDirectory, getHelmfileRelative(namespace))
 }
 
-func configureParentHelmState(helmState state.HelmState, nestedStates map[string]*state.HelmState) *state.HelmState {
-
+func configureParentHelmState(helmState state.HelmState, nestedStates map[string]*state.HelmState) *state.HelmState { //nolint:gocritic
 	hs := state.HelmState{
 		FilePath:       helmState.FilePath,
 		ReleaseSetSpec: helmState.ReleaseSetSpec,
@@ -163,12 +159,13 @@ func saveHelmState(filename string, helmState *state.HelmState, overwrite bool) 
 	return nil
 }
 
-func configureHelmStatePaths(releases map[string]*state.HelmState) error {
-
-	for _, hs := range releases {
-		for _, r := range hs.Releases {
+func configureHelmStatePaths(releases map[string]*state.HelmState) {
+	for j := range releases {
+		hs := releases[j]
+		for k := range hs.Releases {
+			r := hs.Releases[k]
 			for i, v := range r.Values {
-				switch m := v.(type) {
+				switch m := v.(type) { //nolint:gocritic
 				// Explicit value strings are considered paths that need rewriting
 				case string:
 					r.Values[i] = filepath.Join("..", "..", m)
@@ -177,7 +174,7 @@ func configureHelmStatePaths(releases map[string]*state.HelmState) error {
 		}
 		for _, env := range hs.Environments {
 			for i, v := range env.Values {
-				switch m := v.(type) {
+				switch m := v.(type) { //nolint:gocritic
 				// Explicit value strings are considered paths that need rewriting
 				case string:
 					env.Values[i] = filepath.Join("..", "..", m)
@@ -185,7 +182,6 @@ func configureHelmStatePaths(releases map[string]*state.HelmState) error {
 			}
 		}
 	}
-	return nil
 }
 
 func loadHelmfile(file string) (*state.HelmState, error) {
@@ -199,7 +195,8 @@ func loadHelmfile(file string) (*state.HelmState, error) {
 
 func gatherNamespaceReleases(helmstate *state.HelmState) map[string]*state.HelmState {
 	repositories := map[string]state.RepositorySpec{}
-	for _, repo := range helmstate.Repositories {
+	for k := range helmstate.Repositories {
+		repo := helmstate.Repositories[k]
 		if _, ok := repositories[repo.Name]; !ok {
 			repositories[repo.Name] = repo
 		}
@@ -208,7 +205,8 @@ func gatherNamespaceReleases(helmstate *state.HelmState) map[string]*state.HelmS
 	addedRepos := map[string]map[string]bool{}
 
 	helmStates := map[string]*state.HelmState{}
-	for _, r := range helmstate.Releases {
+	for k := range helmstate.Releases {
+		r := helmstate.Releases[k]
 		ns := r.Namespace
 		r.Namespace = ""
 		if _, ok := helmStates[ns]; !ok {
@@ -238,13 +236,11 @@ func gatherNamespaceReleases(helmstate *state.HelmState) map[string]*state.HelmS
 		}
 	}
 
-	for ns, _ := range helmStates {
+	for ns := range helmStates {
 		envSpecMap := map[string]state.EnvironmentSpec{}
 		for key, env := range helmstate.Environments {
 			var vals []interface{}
-			for _, val := range env.Values {
-				vals = append(vals, val)
-			}
+			vals = append(vals, env.Values...)
 
 			envSpecMap[key] = state.EnvironmentSpec{
 				Values: vals,

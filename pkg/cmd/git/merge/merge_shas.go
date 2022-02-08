@@ -14,11 +14,11 @@ import (
 // if the remote repo supports it - see https://github.
 // com/git/git/commit/68ee628932c2196742b77d2961c5e16360734a62) otherwise it uses git remote update to pull down the
 // whole repo.
-func FetchAndMergeSHAs(gitter gitclient.Interface, SHAs []string, baseBranch string, baseSha string, remote string, dir string) error {
+func FetchAndMergeSHAs(gitter gitclient.Interface, shas []string, baseBranch, baseSha, remote, dir string, extraMergeArgs []string) error {
 	log.Logger().Infof("using base branch %s and base sha %s", info(baseBranch), info(baseSha))
 
 	refspecs := make([]string, 0)
-	for _, sha := range SHAs {
+	for _, sha := range shas {
 		refspecs = append(refspecs, fmt.Sprintf("%s:", sha))
 	}
 	refspecs = append(refspecs, fmt.Sprintf("%s:", baseSha))
@@ -28,28 +28,6 @@ func FetchAndMergeSHAs(gitter gitclient.Interface, SHAs []string, baseBranch str
 	_, err := gitter.Command(dir, args...)
 	if err != nil {
 		log.Logger().Warnf("failed to run git %s got %s", strings.Join(args, " "), err.Error())
-		//return errors.Wrapf(err, "failed to fetch shas")
-		/*
-			// Unshallow fetch failed, so do a full unshallow
-			// First ensure we actually have the branch refs
-			args := append([]string{"fetch", remote}, refspecs...)
-			_, err = gitter.Command(dir, args...)
-			if err != nil {
-
-				err = gitter.RemoteUpdate(dir)
-				if err != nil {
-					return errors.Wrapf(err, "updating remote %s", remote)
-				}
-				log.Logger().Debugf("ran %s in %s", util.ColorInfo("git remote update"), dir)
-			}
-			log.Logger().Debugf("ran git fetch %s %s in %s", remote, strings.Join(refspecs, " "), dir)
-
-			err = Unshallow(dir, gitter)
-			if err != nil {
-				return errors.WithStack(err)
-			}
-			log.Logger().Debugf("Unshallowed git repo in %s", dir)
-		*/
 	}
 
 	branches, err := LocalBranches(gitter, dir)
@@ -87,12 +65,16 @@ func FetchAndMergeSHAs(gitter gitclient.Interface, SHAs []string, baseBranch str
 	}
 	log.Logger().Debugf("ran clean -fd . in %s", dir)
 	// Now do the merges
-	for _, sha := range SHAs {
+	for _, sha := range shas {
 		log.Logger().Infof("merging sha: %s", info(sha))
-		_, err = gitter.Command(dir, "merge", sha)
+		args := []string{"merge"}
+		args = append(args, extraMergeArgs...)
+		args = append(args, sha)
+		_, err = gitter.Command(dir, args...)
 		if err != nil {
 			return errors.Wrapf(err, "merging %s into master", sha)
 		}
+		log.Logger().Debugf("ran: git merge %s", strings.Join(args, " "))
 	}
 	return nil
 }

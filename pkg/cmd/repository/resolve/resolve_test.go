@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/repository/resolve"
 	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/repository/resolve"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -32,23 +32,25 @@ func TestResolveRepositorySourceDir(t *testing.T) {
 
 	var testCases []testCase
 	for _, f := range fileNames {
-		if f.IsDir() {
-			name := f.Name()
-			srcFile := filepath.Join(sourceData, name, "source.yaml")
-			expectedFile := filepath.Join(sourceData, name, "expected.yaml")
-			require.FileExists(t, srcFile)
-			require.FileExists(t, expectedFile)
-
-			outFile := filepath.Join(tmpDir, name+".yaml")
-			err = files.CopyFile(srcFile, outFile)
-			require.NoError(t, err, "failed to copy %s to %s", srcFile, outFile)
-
-			testCases = append(testCases, testCase{
-				SourceFile:   srcFile,
-				ResultFile:   outFile,
-				ExpectedFile: expectedFile,
-			})
+		if !f.IsDir() {
+			continue
 		}
+		name := f.Name()
+		srcFile := filepath.Join(sourceData, name, "source.yaml")
+		expectedFile := filepath.Join(sourceData, name, "expected.yaml")
+		require.FileExists(t, srcFile)
+		require.FileExists(t, expectedFile)
+
+		outFile := filepath.Join(tmpDir, name+".yaml")
+		err = files.CopyFile(srcFile, outFile)
+		require.NoError(t, err, "failed to copy %s to %s", srcFile, outFile)
+
+		testCases = append(testCases, testCase{
+			SourceFile:   srcFile,
+			ResultFile:   outFile,
+			ExpectedFile: expectedFile,
+		})
+
 	}
 
 	_, o := resolve.NewCmdResolveRepository()
@@ -88,12 +90,6 @@ func TestResolveRepositoryInRequirements(t *testing.T) {
 
 	t.Logf("modifying requirements file  to %s\n", outFile)
 
-	type testCase struct {
-		SourceFile   string
-		ResultFile   string
-		ExpectedFile string
-	}
-
 	_, o := resolve.NewCmdResolveRepository()
 	o.Dir = tmpDir
 	o.SourceDir = tmpDir
@@ -116,5 +112,4 @@ func TestResolveRepositoryInRequirements(t *testing.T) {
 		}
 	}
 	assert.True(t, found, "not found a 'dev' environment in the requirement file %s", outFile)
-
 }

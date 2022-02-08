@@ -1,0 +1,52 @@
+autoUpdate:
+  enabled: false
+  schedule: ""
+cluster:
+  clusterName: "my_cluster_name"
+  environmentGitOwner: "my_git_owner_requirement_repos"
+  project: "my_gcp_project"
+  provider: gke
+  zone: "my_zone"
+gitops: true
+environments:
+  - key: dev
+  - key: staging
+  - key: production
+ingress:
+  domain: "my_subdomain.my_apex_domain"
+  externalDNS: true
+  tls:
+    email: "my_tls_email"
+    enabled: true
+    production: true
+kaniko: true
+storage:
+  backup:
+    enabled: true
+    url: gs://mybackup-bucket
+  logs:
+    enabled: true
+    url: gs://logs-bucket
+  reports:
+    enabled: true
+    url: gs://reports-bucket
+  repository:
+    enabled: true
+    url: gs://repo-bucket
+secretStorage: vault
+vault:
+  url: my_vault_url
+  name: my_vault_name
+  bucket: my_vault_bucket
+  key: my_vault_key
+  keyring: my_vault_keyring
+  serviceAccount: my_vault_sa
+velero:
+  namespace: my_velero_namespace
+  schedule: "my_velero_schedule"
+  serviceAccount: my_velero_sa
+  ttl: "1h"
+versionStream:
+  ref: my_version_stream_ref
+  url: my_version_stream_url
+webhook: "my_webhook"

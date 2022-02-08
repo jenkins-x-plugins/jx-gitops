@@ -9,17 +9,18 @@ import (
 
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/cli"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/options"
 	"sigs.k8s.io/yaml"
 
 	kyaml "sigs.k8s.io/kustomize/kyaml/yaml"
 
-	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/apis/gitops/v1alpha1"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
 
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 
-	"github.com/jenkins-x/jx-gitops/pkg/plugins"
-	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/plugins"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
@@ -46,13 +47,12 @@ var (
 		%s kpt --dir .
 	`)
 
-	pathSeparator = string(os.PathSeparator)
-
 	info = termcolor.ColorInfo
 )
 
-// KptOptions the options for the command
+// Options the options for the command
 type Options struct {
+	options.BaseOptions
 	Dir                    string
 	Version                string
 	RepositoryURL          string
@@ -85,6 +85,8 @@ func NewCmdKptUpdate() (*cobra.Command, *Options) {
 
 // AddFlags adds CLI flags
 func (o *Options) AddFlags(cmd *cobra.Command) {
+	o.BaseOptions.AddBaseFlags(cmd)
+
 	cmd.Flags().StringVarP(&o.Dir, "dir", "", ".", "the directory to recursively look for the *.yaml or *.yml files")
 	cmd.Flags().StringVarP(&o.Version, "version", "v", "", "the git version of the kpt package to upgrade to")
 	cmd.Flags().StringVarP(&o.RepositoryURL, "url", "u", "", "filter on the Kptfile repository URL for which packages to update")
@@ -107,7 +109,7 @@ func (o *Options) Run() error {
 	}
 
 	if o.CommandRunner == nil {
-		o.CommandRunner = cmdrunner.DefaultCommandRunner
+		o.CommandRunner = cmdrunner.QuietCommandRunner
 	}
 	if o.GitClient == nil {
 		o.GitClient = cli.NewCLIClient("", o.CommandRunner)
@@ -139,7 +141,7 @@ func (o *Options) Run() error {
 		return errors.Errorf("cannot upgrade files via kpt until you have commit the pending git changes. See 'git status' for more details")
 	}
 
-	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error { //nolint:staticcheck
 		if info == nil || info.IsDir() {
 			return nil
 		}
@@ -147,7 +149,7 @@ func (o *Options) Run() error {
 		if name != "Kptfile" {
 			return nil
 		}
-		flag, err := o.Matches(path)
+		flag, err := o.Matches(path) //nolint:staticcheck
 		if err != nil {
 			return errors.Wrapf(err, "failed to check if path matches %s", path)
 		}
@@ -158,9 +160,6 @@ func (o *Options) Run() error {
 		if err != nil {
 			return errors.Wrapf(err, "failed to calculate the relative directory of %s", kptDir)
 		}
-		kptDir = strings.TrimSuffix(kptDir, pathSeparator)
-		parentDir, _ := filepath.Split(kptDir)
-		parentDir = strings.TrimSuffix(parentDir, pathSeparator)
 
 		// clear the kpt repo cache everytime else we run into issues
 		err = os.RemoveAll(filepath.Join(homedir, ".kpt", "repos"))
@@ -169,10 +168,11 @@ func (o *Options) Run() error {
 		}
 
 		strategy := o.Strategy
-		log.Logger().Infof("looking at dir %s in %v", rel, strategies)
 		if strategies[rel] != "" {
 			strategy = strategies[rel]
 		}
+
+		log.Logger().Infof("processing kpt directory: %s wth strategy: %s", termcolor.ColorInfo(rel), termcolor.ColorInfo(strategy))
 
 		folderExpression := rel
 		if o.Version != "" {
@@ -311,8 +311,11 @@ func (o *Options) LoadOverrideStrategies() (map[string]string, error) {
 	kptStrategyFilename := filepath.Join(o.Dir, ".jx", "gitops", v1alpha1.KptStragegyFileName)
 
 	exists, err := files.FileExists(kptStrategyFilename)
+	if err != nil {
+		return strategies, errors.Wrap(err, "could not check if path exists and is a file")
+	}
 	if !exists {
-		log.Logger().Infof("no local strategy file %s found so using default merge strategies", info(kptStrategyFilename))
+		log.Logger().Infof("no strategy configuration file %s found so using default merge strategies", info(kptStrategyFilename))
 		return strategies, nil
 	}
 	data, err := ioutil.ReadFile(kptStrategyFilename)

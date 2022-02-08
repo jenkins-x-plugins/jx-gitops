@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/pr/comment"
 	"github.com/jenkins-x/go-scm/scm"
 	"github.com/jenkins-x/go-scm/scm/driver/fake"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/pr/comment"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner/fakerunner"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

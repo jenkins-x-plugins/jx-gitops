@@ -1,0 +1,4 @@
+repositories:
+- prefix: cdf
+  urls:
+  - https://cdfoundation.github.io/tekton-helm-chart

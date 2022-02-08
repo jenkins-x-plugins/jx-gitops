@@ -3,9 +3,9 @@ package push_test
 import (
 	"testing"
 
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/pr/push"
 	"github.com/jenkins-x/go-scm/scm"
 	"github.com/jenkins-x/go-scm/scm/driver/fake"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/pr/push"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner/fakerunner"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -41,10 +41,10 @@ func TestPullRequestPush(t *testing.T) {
 
 	runner.ExpectResults(t,
 		fakerunner.FakeResult{
-			CLI: "git checkout -b " + prBranch,
+			CLI: "git rev-parse --abbrev-ref HEAD",
 		},
 		fakerunner.FakeResult{
-			CLI: "git push origin " + prBranch,
+			CLI: "git push origin main:" + prBranch,
 		},
 	)
 }

@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
@@ -181,7 +181,7 @@ func (o *Options) lazyCreateNamespaceResource(ns string) error {
 }
 
 // UpdateNamespaceInYamlFiles updates the namespace in yaml files
-func UpdateNamespaceInYamlFiles(dir string, ns string, filter kyamls.Filter) error {
+func UpdateNamespaceInYamlFiles(dir string, ns string, filter kyamls.Filter) error { //nolint:gocritic
 	modifyFn := func(node *yaml.RNode, path string) (bool, error) {
 		kind := kyamls.GetKind(node, path)
 

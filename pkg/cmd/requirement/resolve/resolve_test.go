@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/h2non/gock"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/requirement/resolve"
 	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/requirement/resolve"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner/fakerunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/httphelpers"
@@ -24,10 +24,6 @@ const (
 	expectedClusterName   = "cluster-something"
 	expectedLocation      = "europe-west1-e"
 )
-
-var mockHeaders = map[string]string{
-	"Metadata-Flavor": "Google",
-}
 
 func TestRequirementsResolveGKE(t *testing.T) {
 	// lets mock the http requests...
@@ -64,7 +60,7 @@ func TestRequirementsResolveGKE(t *testing.T) {
 			Get("/computeMetadata/v1/" + r.path).
 			Reply(200).
 			Type("text/plain").
-			//SetHeaders(mockHeaders).
+			// SetHeaders(mockHeaders).
 			BodyString(r.body)
 	}
 

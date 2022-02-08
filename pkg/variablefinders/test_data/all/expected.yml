@@ -1,0 +1,33 @@
+autoUpdate:
+  enabled: false
+  schedule: ""
+cluster:
+  chartKind: pages
+  chartRepository: https://github.com/myorg/mycharts.git
+  clusterName: mycluster
+  environmentGitOwner: myowner
+  gitKind: github
+  gitName: github
+  gitServer: https://github.com
+  project: myproject
+  provider: gke
+  registry: gcr.io
+  zone: europe-west2-b
+environments:
+- key: staging
+  owner: jstrachan
+  repository: my-staging-repo
+ingress:
+  domain: 34.105.246.143.xip.io
+  kind: ingress
+  namespaceSubDomain: -jx.
+  tls:
+    email: ""
+    enabled: false
+    production: true
+pipelineUser:
+  username: jstrachan
+repository: nexus
+secretStorage: gsm
+vault: {}
+webhook: lighthouse

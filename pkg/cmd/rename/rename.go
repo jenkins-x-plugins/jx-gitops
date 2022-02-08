@@ -2,11 +2,12 @@ package rename
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kyamls"
@@ -25,9 +26,6 @@ var (
 		# renames files to use a canonical file name
 		%s rename --dir .
 	`)
-
-	// resourcesSeparator is used to separate multiple objects stored in the same YAML file
-	resourcesSeparator = "---\n"
 )
 
 // Options the options for the command
@@ -56,7 +54,7 @@ func NewCmdRename() (*cobra.Command, *Options) {
 
 // Run implements the command
 func (o *Options) Run() error {
-	err := filepath.Walk(o.Dir, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(o.Dir, func(path string, info os.FileInfo, err error) error { //nolint:staticcheck
 		if info == nil || info.IsDir() {
 			return nil
 		}
@@ -64,7 +62,12 @@ func (o *Options) Run() error {
 			return nil
 		}
 
-		node, err := yaml.ReadFile(path)
+		b, err := ioutil.ReadFile(path) //nolint:staticcheck
+		if err != nil {
+			return errors.Wrapf(err, "failed to load file %s", path)
+		}
+		safeYaml := RemoveGoTemplateLines(b)
+		node, err := yaml.Parse(safeYaml)
 		if err != nil {
 			return errors.Wrapf(err, "failed to load file %s", path)
 		}
@@ -106,20 +109,36 @@ func (o *Options) Run() error {
 	return nil
 }
 
-var (
-	kindSuffixes = map[string]string{
-		"clusterrolebinding":             "crb",
-		"configmap":                      "cm",
-		"customresourcedefinition":       "crd",
-		"deployment":                     "deploy",
-		"mutatingwebhookconfiguration":   "mutwebhookcfg",
-		"namespace":                      "ns",
-		"rolebinding":                    "rb",
-		"service":                        "svc",
-		"serviceaccount":                 "sa",
-		"validatingwebhookconfiguration": "valwebhookcfg",
+// RemoveGoTemplateLines removes any lines which start with go templates so that we can parse as much of the
+// YAML as possible; such as resources with some templating inside the spec
+func RemoveGoTemplateLines(b []byte) string {
+	lines := strings.Split(string(b), "\n")
+
+	buf := &strings.Builder{}
+	for _, line := range lines {
+		t := strings.TrimSpace(line)
+		// ignore go templates
+		if strings.HasPrefix(t, "{{") {
+			continue
+		}
+		buf.WriteString(line)
+		buf.WriteString("\n")
 	}
-)
+	return buf.String()
+}
+
+var kindSuffixes = map[string]string{
+	"clusterrolebinding":             "crb",
+	"configmap":                      "cm",
+	"customresourcedefinition":       "crd",
+	"deployment":                     "deploy",
+	"mutatingwebhookconfiguration":   "mutwebhookcfg",
+	"namespace":                      "ns",
+	"rolebinding":                    "rb",
+	"service":                        "svc",
+	"serviceaccount":                 "sa",
+	"validatingwebhookconfiguration": "valwebhookcfg",
+}
 
 func (o *Options) canonicalName(apiVersion, kind, name string) string {
 	lk := strings.ToLower(kind)
@@ -130,6 +149,9 @@ func (o *Options) canonicalName(apiVersion, kind, name string) string {
 	if suffix == "" {
 		suffix = lk
 	}
+	// lets replace any odd characters
+	name = strings.ReplaceAll(name, ":", "-")
+	name = strings.ReplaceAll(name, string(os.PathSeparator), "-")
 	if kind == "" {
 		return name
 	}

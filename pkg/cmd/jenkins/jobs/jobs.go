@@ -8,11 +8,11 @@ import (
 	"strings"
 
 	"github.com/Masterminds/sprig"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/apis/gitops/v1alpha1"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/jenkins/add"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/sourceconfigs"
 	"github.com/jenkins-x/go-scm/scm"
-	"github.com/jenkins-x/jx-gitops/pkg/apis/gitops/v1alpha1"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/jenkins/add"
-	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
-	"github.com/jenkins-x/jx-gitops/pkg/sourceconfigs"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
@@ -183,7 +183,10 @@ func (o *Options) Run() error {
 			group := &server.Groups[j]
 			for k := range group.Repositories {
 				repo := &group.Repositories[k]
-				sourceconfigs.DefaultValues(config, group, repo)
+				err = sourceconfigs.DefaultValues(config, group, repo)
+				if err != nil {
+					return errors.Wrap(err, "failed to set default values for jenkins")
+				}
 				jobTemplate := firstNonBlankValue(repo.JenkinsJobTemplate, group.JenkinsJobTemplate, server.JobTemplate, config.Spec.JenkinsJobTemplate)
 				err = o.processJenkinsJobConfigForRepository(group, repo, serverName, jobTemplate)
 				if err != nil {
@@ -200,7 +203,7 @@ func (o *Options) Run() error {
 			return errors.Wrapf(err, "failed to create dir %s", dir)
 		}
 
-		err = o.verifyServerHelmfileExists(dir, server)
+		err = o.verifyServerHelmfileExists(server)
 		if err != nil {
 			return errors.Wrapf(err, "failed to verify the jenkins helmfile exists for %s", server)
 		}
@@ -214,12 +217,12 @@ func (o *Options) Run() error {
 		buf.WriteString(jobValuesHeader)
 
 		for _, jcfg := range configs {
-			path := jcfg.TemplateFile
-			output, err := templater.Evaluate(funcMap, jcfg.TemplateData, jcfg.TemplateText, path, "Jenkins Server "+server)
+			tmplpath := jcfg.TemplateFile
+			output, err := templater.Evaluate(funcMap, jcfg.TemplateData, jcfg.TemplateText, tmplpath, "Jenkins Server "+server)
 			if err != nil {
-				return errors.Wrapf(err, "failed to evaluate template %s", path)
+				return errors.Wrapf(err, "failed to evaluate template %s", tmplpath)
 			}
-			buf.WriteString(indent + "// from template: " + path + "\n")
+			buf.WriteString(indent + "// from template: " + tmplpath + "\n")
 			buf.WriteString(indentText(output, indent))
 			buf.WriteString(indent + "\n")
 		}
@@ -232,7 +235,7 @@ func (o *Options) Run() error {
 	return nil
 }
 
-func indentText(text string, indent string) string {
+func indentText(text, indent string) string {
 	lines := strings.Split(text, "\n")
 	return indent + strings.Join(lines, "\n"+indent)
 }
@@ -291,7 +294,7 @@ func (o *Options) processJenkinsJobConfigForRepository(group *v1alpha1.Repositor
 	return o.processJenkinsServerJobTemplate(server, fullName, jobTemplatePath, templateData)
 }
 
-func (o *Options) processJenkinsServerJobTemplate(server string, key string, jobTemplatePath string, templateData map[string]interface{}) error {
+func (o *Options) processJenkinsServerJobTemplate(server, key, jobTemplatePath string, templateData map[string]interface{}) error {
 	jobTemplate := filepath.Join(o.Dir, jobTemplatePath)
 	exists, err := files.FileExists(jobTemplate)
 	if err != nil {
@@ -315,22 +318,13 @@ func (o *Options) processJenkinsServerJobTemplate(server string, key string, job
 	return nil
 }
 
-func (o *Options) verifyServerHelmfileExists(dir string, server string) error {
-	path := filepath.Join(dir, "helmfile.yaml")
-	exists, err := files.FileExists(path)
-	if err != nil {
-		return errors.Wrapf(err, "failed to check if file exists %s", path)
-	}
-	if exists {
-		return nil
-	}
-
+func (o *Options) verifyServerHelmfileExists(server string) error {
 	_, ao := add.NewCmdJenkinsAdd()
 	ao.Name = server
 	ao.Dir = o.Dir
 	ao.Values = []string{"job-values.yaml", "values.yaml"}
 
-	err = ao.Run()
+	err := ao.Run()
 	if err != nil {
 		return errors.Wrapf(err, "failed to add jenkins server")
 	}

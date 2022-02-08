@@ -3,7 +3,7 @@ package filters_test
 import (
 	"testing"
 
-	"github.com/jenkins-x/jx-gitops/pkg/filters"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/filters"
 	"github.com/stretchr/testify/assert"
 )
 

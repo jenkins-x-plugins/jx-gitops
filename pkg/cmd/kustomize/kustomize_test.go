@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/kustomize"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/kustomize"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/testhelpers"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -25,7 +25,7 @@ func TestKustomize(t *testing.T) {
 	assert.NotEmpty(t, outDir, "no output dir")
 	t.Logf("overlay files generated in %s\n", outDir)
 
-	expected := filepath.Join("test_data", "expected", "godemo48")
+	expected := filepath.Join("test_data", "expected", "godemo48") //nolint:ineffassign,staticcheck
 	actual := filepath.Join(outDir, "godemo48")
 	testhelpers.AssertFileNotExists(t, filepath.Join(actual, "deployment.yaml"))
 	testhelpers.AssertFileNotExists(t, filepath.Join(actual, "service.yaml"))

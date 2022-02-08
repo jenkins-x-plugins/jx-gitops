@@ -19,10 +19,10 @@ const (
 	KappPluginName = "kapp"
 
 	// HelmVersion the default version of helm to use
-	HelmVersion = "3.4.0"
+	HelmVersion = "3.7.2"
 
 	// HelmfileVersion the default version of helmfile to use
-	HelmfileVersion = "0.135.0"
+	HelmfileVersion = "0.143.0"
 
 	// KptVersion the default version of kpt to use
 	KptVersion = "0.37.0"
@@ -34,14 +34,25 @@ const (
 	KappVersion = "0.35.1-cmfork"
 )
 
+type HelmPlugin struct {
+	URL  string
+	Name string
+}
+
 var (
 	// Plugins default plugins
 	Plugins = []jenkinsv1.Plugin{
 		CreateHelmPlugin(HelmVersion),
 		CreateHelmfilePlugin(HelmfileVersion),
 		// disable as no arm image yet
-		//CreateKptPlugin(KptVersion),
+		// CreateKptPlugin(KptVersion),
 		CreateKubectlPlugin(KubectlVersion),
 		CreateKappPlugin(KappVersion),
+	}
+
+	// HelmPlugins to install and upgrade
+	HelmPlugins = []HelmPlugin{
+		{"https://github.com/mumoshu/helm-x", "x"},
+		{"https://github.com/hypnoglow/helm-s3", "s3"},
 	}
 )

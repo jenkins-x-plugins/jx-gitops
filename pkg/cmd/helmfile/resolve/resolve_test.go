@@ -6,11 +6,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/helmfile/resolve"
-	"github.com/jenkins-x/jx-gitops/pkg/fakekpt"
-	"github.com/jenkins-x/jx-gitops/pkg/pipelinecatalogs"
-	"github.com/jenkins-x/jx-gitops/pkg/plugins"
-	"github.com/jenkins-x/jx-gitops/pkg/quickstarthelpers"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/helmfile/resolve"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/fakekpt"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/pipelinecatalogs"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/plugins"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/quickstarthelpers"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner/fakerunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
@@ -24,11 +24,39 @@ import (
 	"k8s.io/client-go/rest"
 )
 
+var (
+	// generateTestOutput enable to regenerate the expected output
+	generateTestOutput = false
+)
+
 func TestStepHelmfileResolve(t *testing.T) {
 	tests := []struct {
 		folder     string
+		helmfile   string
 		namespaces []string
 	}{
+		{
+			folder:     "helmfile_subfolder",
+			helmfile:   filepath.Join("helmfiles", "helmfile.yaml"),
+			namespaces: []string{"jx", "secret-infra"},
+		},
+		{
+			folder:     "helmfile_remote",
+			helmfile:   filepath.Join("helmfiles", "helmfile.yaml"),
+			namespaces: []string{"jx", "secret-infra"},
+		},
+		{
+			folder:     "bucketrepo-svc",
+			namespaces: []string{"jx", "tekton-pipelines"},
+		},
+		{
+			folder:     "remote-cluster",
+			namespaces: []string{"nginx"},
+		},
+		{
+			folder:     "remote-chart",
+			namespaces: []string{"foo", "jx", "secret-infra", "tekton-pipelines"},
+		},
 		{
 			folder:     "custom-env-ingress",
 			namespaces: []string{"foo", "jx", "jx-staging", "secret-infra", "tekton-pipelines"},
@@ -38,16 +66,16 @@ func TestStepHelmfileResolve(t *testing.T) {
 			namespaces: []string{"jx", "external-secrets", "foo", "tekton-pipelines"},
 		},
 		{
-			folder:     "bucketrepo-svc",
-			namespaces: []string{"jx", "tekton-pipelines"},
-		},
-		{
 			folder:     "local-secrets",
 			namespaces: []string{"jx", "secret-infra", "tekton-pipelines"},
 		},
 		{
 			folder:     "input",
 			namespaces: []string{"foo", "jx", "secret-infra", "tekton-pipelines"},
+		},
+		{
+			folder:     "helmfile_multi_subfolder",
+			namespaces: []string{"kuberhealthy", "secret-infra"},
 		},
 	}
 
@@ -67,7 +95,6 @@ func TestStepHelmfileResolve(t *testing.T) {
 	}
 
 	for _, test := range tests {
-
 		name := test.folder
 
 		t.Logf("running test %s\n", name)
@@ -85,10 +112,14 @@ func TestStepHelmfileResolve(t *testing.T) {
 
 		o.Dir = tmpDir
 		o.HelmBinary = helmBin
+		o.HelmfileBinary = "helmfile"
 		o.TestOutOfCluster = true
 
 		runner := &fakerunner.FakeRunner{
 			CommandRunner: func(c *cmdrunner.Command) (string, error) {
+				if c.Name == "helmfile" {
+					return "", nil
+				}
 				if c.Name == "clone" && len(c.Args) > 0 {
 					// lets really git clone but then fake out all other commands
 					return cmdrunner.DefaultCommandRunner(c)
@@ -101,8 +132,13 @@ func TestStepHelmfileResolve(t *testing.T) {
 			},
 		}
 		o.CommandRunner = runner.Run
+		o.QuietCommandRunner = runner.Run
 		o.Gitter = cli.NewCLIClient("", runner.Run)
 		o.UpdateMode = true
+		if test.helmfile != "" {
+			o.Helmfile = test.helmfile
+		}
+
 		err = o.Run()
 		require.NoError(t, err, "failed to run the command")
 
@@ -129,11 +165,29 @@ func TestStepHelmfileResolve(t *testing.T) {
 			}
 		}
 
-		testhelpers.AssertTextFilesEqual(t, filepath.Join(tmpDir, "expected-helmfile.yaml"), filepath.Join(tmpDir, "helmfile.yaml"), "generated file: "+name)
+		if test.helmfile != "" {
+			testhelpers.AssertTextFilesEqual(t, filepath.Join(tmpDir, "expected-helmfile.yaml"), filepath.Join(tmpDir, test.helmfile), "generated file: "+name)
+		} else {
+			testhelpers.AssertTextFilesEqual(t, filepath.Join(tmpDir, "expected-helmfile.yaml"), filepath.Join(tmpDir, "helmfile.yaml"), "generated file: "+name)
+		}
 
 		for _, ns := range test.namespaces {
 			expectedHelmfile := fmt.Sprintf("expected-%s-helmfile.yaml", ns)
-			testhelpers.AssertTextFilesEqual(t, filepath.Join(tmpDir, expectedHelmfile), filepath.Join(tmpDir, "helmfiles", ns, "helmfile.yaml"), "generated file: "+name)
+
+			expectedPath := filepath.Join("test_data", name, expectedHelmfile)
+			generatedFile := filepath.Join(tmpDir, "helmfiles", ns, "helmfile.yaml")
+
+			if generateTestOutput {
+				data, err := ioutil.ReadFile(generatedFile)
+				require.NoError(t, err, "failed to load %s", generatedFile)
+
+				err = ioutil.WriteFile(expectedPath, data, 0600)
+				require.NoError(t, err, "failed to save file %s", expectedPath)
+
+				t.Logf("saved file %s\n", expectedPath)
+			} else {
+				testhelpers.AssertTextFilesEqual(t, expectedPath, generatedFile, "generated file: "+name)
+			}
 
 		}
 
@@ -149,8 +203,6 @@ func TestStepHelmfileResolve(t *testing.T) {
 		for _, c := range runner.OrderedCommands {
 			t.Logf("fake command: %s\n", c.CLI())
 		}
-
-		require.FileExists(t, filepath.Join(o.Dir, ".jx", "git-operator", "filename.txt"), "should have generated the git operator job file name")
 
 		switch name {
 		case "input":

@@ -2,13 +2,13 @@ package pipelinescheduler
 
 import (
 	"github.com/davecgh/go-spew/spew"
-	"github.com/jenkins-x/jx-gitops/pkg/schedulerapi"
+	schedulerapi "github.com/jenkins-x-plugins/jx-gitops/pkg/apis/scheduler/v1alpha1"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/stringhelpers"
-	"github.com/jenkins-x/lighthouse/pkg/config/job"
+	"github.com/jenkins-x/lighthouse-client/pkg/config/job"
 	"github.com/pkg/errors"
 )
 
-//Build combines the slice of schedulers into one, with the most specific schedule config defined last
+// Build combines the slice of schedulers into one, with the most specific schedule config defined last
 func Build(schedulers []*schedulerapi.SchedulerSpec) (*schedulerapi.SchedulerSpec, error) {
 	var answer *schedulerapi.SchedulerSpec
 	for i := len(schedulers) - 1; i >= 0; i-- {
@@ -63,7 +63,7 @@ func Build(schedulers []*schedulerapi.SchedulerSpec) (*schedulerapi.SchedulerSpe
 				applyToRepoContextPolicy(parent.ContextOptions, answer.ContextOptions)
 			}
 
-			//TODO: This should probably be an array of triggers, because the plugins yaml is expecting an array
+			// TODO: This should probably be an array of triggers, because the plugins yaml is expecting an array
 			if answer.Trigger == nil {
 				answer.Trigger = parent.Trigger
 			} else if parent.Trigger != nil {
@@ -105,7 +105,7 @@ func Build(schedulers []*schedulerapi.SchedulerSpec) (*schedulerapi.SchedulerSpe
 	return answer, nil
 }
 
-func applyToTrigger(parent *schedulerapi.Trigger, child *schedulerapi.Trigger) {
+func applyToTrigger(parent, child *schedulerapi.Trigger) {
 	if child.IgnoreOkToTest != nil {
 		child.IgnoreOkToTest = parent.IgnoreOkToTest
 	}
@@ -120,57 +120,13 @@ func applyToTrigger(parent *schedulerapi.Trigger, child *schedulerapi.Trigger) {
 	}
 }
 
-func applyToSchedulerAgent(parent *schedulerapi.SchedulerAgent, child *schedulerapi.SchedulerAgent) {
+func applyToSchedulerAgent(parent, child *schedulerapi.SchedulerAgent) {
 	if child.Agent == nil {
 		child.Agent = parent.Agent
 	}
 }
 
-func applyToBrancher(parent *job.Brancher, child *job.Brancher) {
-	if child.Branches == nil || len(parent.Branches) > 0 {
-		child.Branches = parent.Branches
-	}
-	if child.SkipBranches == nil || len(parent.SkipBranches) > 0 {
-		child.SkipBranches = parent.SkipBranches
-	}
-}
-
-func applyToRegexpChangeMatcher(parent *job.RegexpChangeMatcher, child *job.RegexpChangeMatcher) {
-	child.RunIfChanged = parent.RunIfChanged
-}
-
-func applyToBase(parent *job.Base, child *job.Base) {
-	if child.Name == "" {
-		child.Name = parent.Name
-	}
-	if child.Namespace == nil {
-		child.Namespace = parent.Namespace
-	}
-	if child.Agent == "" {
-		child.Agent = parent.Agent
-	}
-	if child.Cluster == "" {
-		child.Cluster = parent.Cluster
-	}
-	if child.MaxConcurrency <= 0 {
-		child.MaxConcurrency = parent.MaxConcurrency
-	}
-	if child.Labels == nil {
-		child.Labels = parent.Labels
-	} else if parent.Labels != nil {
-		if child.Labels == nil {
-			child.Labels = make(map[string]string)
-		}
-		// Add any labels that are missing
-		for pk, pv := range parent.Labels {
-			if _, ok := child.Labels[pk]; !ok {
-				child.Labels[pk] = pv
-			}
-		}
-	}
-}
-
-func applyToMerger(parent *schedulerapi.Merger, child *schedulerapi.Merger) {
+func applyToMerger(parent, child *schedulerapi.Merger) {
 	if child.ContextPolicy == nil {
 		child.ContextPolicy = parent.ContextPolicy
 	} else if parent.ContextPolicy != nil {
@@ -194,7 +150,8 @@ func applyToMerger(parent *schedulerapi.Merger, child *schedulerapi.Merger) {
 	if child.TargetURL == nil {
 		child.TargetURL = parent.TargetURL
 	}
-	if child.SyncPeriod == nil {
+	syncPeriod, err := child.GetSyncPeriod()
+	if err != nil || syncPeriod == nil {
 		child.SyncPeriod = parent.SyncPeriod
 	}
 	if child.StatusUpdatePeriod == nil {
@@ -202,7 +159,7 @@ func applyToMerger(parent *schedulerapi.Merger, child *schedulerapi.Merger) {
 	}
 }
 
-func applyToRepoContextPolicy(parent *schedulerapi.RepoContextPolicy, child *schedulerapi.RepoContextPolicy) {
+func applyToRepoContextPolicy(parent, child *schedulerapi.RepoContextPolicy) {
 	if child.ContextPolicy == nil {
 		child.ContextPolicy = parent.ContextPolicy
 	} else if parent.ContextPolicy != nil {
@@ -224,7 +181,7 @@ func applyToRepoContextPolicy(parent *schedulerapi.RepoContextPolicy, child *sch
 	}
 }
 
-func applyToContextPolicy(parent *schedulerapi.ContextPolicy, child *schedulerapi.ContextPolicy) {
+func applyToContextPolicy(parent, child *schedulerapi.ContextPolicy) {
 	if child.FromBranchProtection == nil {
 		child.FromBranchProtection = parent.FromBranchProtection
 	}
@@ -248,7 +205,7 @@ func applyToContextPolicy(parent *schedulerapi.ContextPolicy, child *schedulerap
 	}
 }
 
-func applyToReplaceableSliceOfStrings(parent *schedulerapi.ReplaceableSliceOfStrings, child *schedulerapi.ReplaceableSliceOfStrings) {
+func applyToReplaceableSliceOfStrings(parent, child *schedulerapi.ReplaceableSliceOfStrings) {
 	if !child.Replace && parent != nil {
 		if child.Items == nil {
 			child.Items = make([]string, 0)
@@ -261,7 +218,7 @@ func applyToReplaceableSliceOfStrings(parent *schedulerapi.ReplaceableSliceOfStr
 	}
 }
 
-func applyToLgtm(parent *schedulerapi.Lgtm, child *schedulerapi.Lgtm) {
+func applyToLgtm(parent, child *schedulerapi.Lgtm) {
 	if child.StickyLgtmTeam == nil {
 		child.StickyLgtmTeam = parent.StickyLgtmTeam
 	}
@@ -273,7 +230,7 @@ func applyToLgtm(parent *schedulerapi.Lgtm, child *schedulerapi.Lgtm) {
 	}
 }
 
-func applyToExternalPlugins(parent *schedulerapi.ReplaceableSliceOfExternalPlugins, child *schedulerapi.ReplaceableSliceOfExternalPlugins) {
+func applyToExternalPlugins(parent, child *schedulerapi.ReplaceableSliceOfExternalPlugins) {
 	if child.Items == nil {
 		child.Items = parent.Items
 	} else if !child.Replace {
@@ -282,7 +239,7 @@ func applyToExternalPlugins(parent *schedulerapi.ReplaceableSliceOfExternalPlugi
 }
 
 // TODO use this
-//func applyToExternalPlugin(parent *schedulerapi.ExternalPlugin, child *schedulerapi.ExternalPlugin) {
+// func applyToExternalPlugin(parent *schedulerapi.ExternalPlugin, child *schedulerapi.ExternalPlugin) {
 //	if child.Name == nil {
 //		child.Name = parent.Name
 //	}
@@ -296,7 +253,7 @@ func applyToExternalPlugins(parent *schedulerapi.ReplaceableSliceOfExternalPlugi
 //	}
 //}
 
-func applyToApprove(parent *schedulerapi.Approve, child *schedulerapi.Approve) {
+func applyToApprove(parent, child *schedulerapi.Approve) {
 	if child.IgnoreReviewState == nil {
 		child.IgnoreReviewState = parent.IgnoreReviewState
 	}
@@ -311,7 +268,7 @@ func applyToApprove(parent *schedulerapi.Approve, child *schedulerapi.Approve) {
 	}
 }
 
-func applyToGlobalProtectionPolicy(parent *schedulerapi.GlobalProtectionPolicy, child *schedulerapi.GlobalProtectionPolicy) {
+func applyToGlobalProtectionPolicy(parent, child *schedulerapi.GlobalProtectionPolicy) {
 	if child.ProtectionPolicy == nil {
 		child.ProtectionPolicy = parent.ProtectionPolicy
 	} else if parent.ProtectionPolicy != nil {
@@ -322,7 +279,7 @@ func applyToGlobalProtectionPolicy(parent *schedulerapi.GlobalProtectionPolicy, 
 	}
 }
 
-func applyToProtectionPolicy(parent *schedulerapi.ProtectionPolicy, child *schedulerapi.ProtectionPolicy) {
+func applyToProtectionPolicy(parent, child *schedulerapi.ProtectionPolicy) {
 	if child.Protect == nil {
 		child.Protect = parent.Protect
 	}
@@ -341,7 +298,7 @@ func applyToProtectionPolicy(parent *schedulerapi.ProtectionPolicy, child *sched
 	}
 }
 
-func applyToRequiredPullRequestReviews(parent *schedulerapi.ReviewPolicy, child *schedulerapi.ReviewPolicy) {
+func applyToRequiredPullRequestReviews(parent, child *schedulerapi.ReviewPolicy) {
 	if child.Approvals == nil {
 		child.Approvals = parent.Approvals
 	}
@@ -358,7 +315,7 @@ func applyToRequiredPullRequestReviews(parent *schedulerapi.ReviewPolicy, child 
 	}
 }
 
-func applyToRestrictions(parent *schedulerapi.Restrictions, child *schedulerapi.Restrictions) {
+func applyToRestrictions(parent, child *schedulerapi.Restrictions) {
 	if child.Teams == nil {
 		child.Teams = parent.Teams
 	} else if parent.Teams != nil {
@@ -371,7 +328,7 @@ func applyToRestrictions(parent *schedulerapi.Restrictions, child *schedulerapi.
 	}
 }
 
-func applyToPostSubmits(parentPostsubmits *schedulerapi.Postsubmits, childPostsubmits *schedulerapi.Postsubmits) error {
+func applyToPostSubmits(parentPostsubmits, childPostsubmits *schedulerapi.Postsubmits) error {
 	if childPostsubmits.Items == nil {
 		childPostsubmits.Items = make([]*job.Postsubmit, 0)
 	}
@@ -396,7 +353,7 @@ func applyToPostSubmits(parentPostsubmits *schedulerapi.Postsubmits, childPostsu
 	return nil
 }
 
-func applyToPreSubmits(parentPresubmits *schedulerapi.Presubmits, childPresubmits *schedulerapi.Presubmits) error {
+func applyToPreSubmits(parentPresubmits, childPresubmits *schedulerapi.Presubmits) error {
 	if childPresubmits.Items == nil {
 		childPresubmits.Items = make([]*job.Presubmit, 0)
 	}
@@ -421,7 +378,7 @@ func applyToPreSubmits(parentPresubmits *schedulerapi.Presubmits, childPresubmit
 	return nil
 }
 
-func applyToProtectionPolicies(parent *schedulerapi.ProtectionPolicies,
+func applyToProtectionPolicies(parent,
 	child *schedulerapi.ProtectionPolicies) {
 	if child.ProtectionPolicy == nil {
 		child.ProtectionPolicy = parent.ProtectionPolicy
@@ -439,8 +396,6 @@ func applyToProtectionPolicies(parent *schedulerapi.ProtectionPolicies,
 	}
 }
 
-func applyToQueries(parents []*schedulerapi.Query, children []*schedulerapi.Query) {
-	for _, v := range parents {
-		children = append(children, v)
-	}
+func applyToQueries(parents, children []*schedulerapi.Query) {
+	children = append(children, parents...) //nolint:ineffassign,staticcheck
 }

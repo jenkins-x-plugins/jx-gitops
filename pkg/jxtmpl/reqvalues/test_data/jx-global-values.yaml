@@ -1,0 +1,7 @@
+condition:
+  enabled: true
+foo:
+  bar: cheese
+jx:
+  foo:
+    bar: wine

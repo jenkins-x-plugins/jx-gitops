@@ -3,7 +3,7 @@ package push
 import (
 	"fmt"
 
-	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
@@ -27,13 +27,18 @@ var (
 	`)
 )
 
-// KptOptions the options for the command
+const (
+	defaultBranch = "main"
+)
+
+// Options the options for the command
 type Options struct {
 	scmhelpers.PullRequestOptions
 	UserName          string
 	UserEmail         string
 	PullRequestBranch string
 
+	Force          bool
 	BatchMode      bool
 	DisableGitInit bool
 	gitClient      gitclient.Interface
@@ -57,6 +62,7 @@ func NewCmdPullRequestPush() (*cobra.Command, *Options) {
 	o.PullRequestOptions.AddFlags(cmd)
 	cmd.Flags().StringVarP(&o.UserName, "name", "", "", "the git user name to use if one is not setup")
 	cmd.Flags().StringVarP(&o.UserEmail, "email", "", "", "the git user email to use if one is not setup")
+	cmd.Flags().BoolVarP(&o.Force, "force", "f", false, "force pushes to the branch")
 	cmd.Flags().BoolVarP(&o.IgnoreMissingPullRequest, "ignore-no-pr", "", false, "if an error is returned finding the Pull Request (maybe due to missing environment variables to find the PULL_NUMBER) just push to the current branch instead")
 	return cmd, o
 }
@@ -95,25 +101,27 @@ func (o *Options) Run() error {
 }
 
 func (o *Options) pushToPullRequestBranch(branch string) error {
-	argSlices := [][]string{
-		{
-			"checkout", "-b", branch,
-		},
-		{
-			"push", "origin", branch,
-		},
+	localBranch, err := gitclient.Branch(o.GitClient(), o.Dir)
+	if err != nil {
+		return errors.Wrapf(err, "failed to determine git branch in dir %s", o.Dir)
+	}
+	if localBranch == "" {
+		localBranch = defaultBranch
 	}
 
-	for _, args := range argSlices {
-		c := &cmdrunner.Command{
-			Dir:  o.Dir,
-			Name: "git",
-			Args: args,
-		}
-		_, err := o.CommandRunner(c)
-		if err != nil {
-			return errors.Wrapf(err, "failed to run command %s", c.CLI())
-		}
+	args := []string{"push"}
+	if o.Force {
+		args = append(args, "--force")
+	}
+	args = append(args, "origin", localBranch+":"+branch)
+	c := &cmdrunner.Command{
+		Dir:  o.Dir,
+		Name: "git",
+		Args: args,
+	}
+	_, err = o.CommandRunner(c)
+	if err != nil {
+		return errors.Wrapf(err, "failed to run command %s", c.CLI())
 	}
 	return nil
 }
@@ -124,7 +132,7 @@ func (o *Options) pushToCurrentBranch() error {
 		return errors.Wrapf(err, "failed to determine git branch in dir %s", o.Dir)
 	}
 	if branch == "" {
-		branch = "master"
+		branch = defaultBranch
 	}
 
 	c := &cmdrunner.Command{

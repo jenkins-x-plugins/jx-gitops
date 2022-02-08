@@ -11,9 +11,9 @@ import (
 	"github.com/jenkins-x/go-scm/scm"
 	v1 "github.com/jenkins-x/jx-api/v4/pkg/apis/jenkins.io/v1"
 
+	schedulerapi "github.com/jenkins-x-plugins/jx-gitops/pkg/apis/scheduler/v1alpha1"
 	"github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned"
 	"github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned/fake"
-	"github.com/jenkins-x/jx-gitops/pkg/schedulerapi"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"
@@ -22,8 +22,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	"github.com/jenkins-x/jx-gitops/pkg/pipelinescheduler"
-	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/pipelinescheduler"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kyamls"
@@ -169,7 +169,7 @@ func (o *Options) Run() error {
 			log.Logger().Infof("ignored %s name %s in namespace %s", kind, name, namespace)
 		}
 		if loaded {
-			log.Logger().Infof("loaded %s name %s in namespace %s", kind, name, namespace)
+			log.Logger().Debugf("loaded %s name %s in namespace %s", kind, name, namespace)
 		}
 		return false, nil
 	}
@@ -178,7 +178,7 @@ func (o *Options) Run() error {
 		return errors.Wrapf(err, "failed to load resources from dir %s", o.SourceRepoDir)
 	}
 
-	log.Logger().Infof("loaded %d SourceRepository resources from %s", len(repoList.Items), o.SourceRepoDir)
+	log.Logger().Debugf("loaded %d SourceRepository resources from %s", len(repoList.Items), o.SourceRepoDir)
 
 	schedulerModifyFn := func(node *yaml.RNode, path string) (bool, error) {
 		namespace := kyamls.GetNamespace(node, path)
@@ -193,7 +193,7 @@ func (o *Options) Run() error {
 		schedulerMap[name] = scheduler
 		loaded = true
 		if loaded {
-			log.Logger().Infof("loaded %s name %s in namespace %s", kind, name, namespace)
+			log.Logger().Debugf("loaded %s name %s in namespace %s", kind, name, namespace)
 		}
 		return false, nil
 	}
@@ -203,7 +203,7 @@ func (o *Options) Run() error {
 			return errors.Wrapf(err, "failed to load resources from dir %s", scheduleDir)
 		}
 	}
-	log.Logger().Infof("loaded %d Scheduler resources from dirs %s", len(schedulerMap), strings.Join(o.SchedulerDir, ", "))
+	log.Logger().Debugf("loaded %d Scheduler resources from dirs %s", len(schedulerMap), strings.Join(o.SchedulerDir, ", "))
 
 	if devEnv == nil {
 		devEnv = &v1.Environment{
@@ -244,7 +244,8 @@ func (o *Options) Run() error {
 
 	// lets check for in repo config
 	flag := true
-	for _, sr := range repoList.Items {
+	for k := range repoList.Items {
+		sr := repoList.Items[k]
 		schedulerName := sr.Spec.Scheduler.Name
 		inRepo := schedulerName == "in-repo"
 		if schedulerName != "" {
@@ -261,6 +262,14 @@ func (o *Options) Run() error {
 			}
 			fullName := scm.Join(sr.Spec.Org, sr.Spec.Repo)
 			config.ProwConfig.InRepoConfig.Enabled[fullName] = &flag
+
+			// handle the upper case organisation names of bitbucket server
+			if sr.Spec.ProviderKind == "bitbucketserver" {
+				upperFullName := scm.Join(strings.ToUpper(sr.Spec.Org), sr.Spec.Repo)
+				if upperFullName != fullName {
+					config.ProwConfig.InRepoConfig.Enabled[upperFullName] = &flag
+				}
+			}
 		}
 	}
 
@@ -299,7 +308,7 @@ func (o *Options) Run() error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to save file %s", pluginsFileName)
 	}
-	log.Logger().Infof("generated config ConfigMap %s and plugins ConfigMap %s", termcolor.ColorInfo(configFileName), termcolor.ColorInfo(pluginsFileName))
+	log.Logger().Debugf("generated config ConfigMap %s and plugins ConfigMap %s", termcolor.ColorInfo(configFileName), termcolor.ColorInfo(pluginsFileName))
 	return nil
 }
 
@@ -314,7 +323,7 @@ func (o *Options) createTemplater() (func(string) (string, error), error) {
 	}, nil
 }
 
-func createConfigMap(resource interface{}, ns string, name string, key string) (*corev1.ConfigMap, error) {
+func createConfigMap(resource interface{}, ns, name, key string) (*corev1.ConfigMap, error) {
 	data, err := gyaml.Marshal(resource)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to marshal resource to YAML")

@@ -15,13 +15,16 @@ jx\-gitops\-git\-clone \- Clones the cluster git repository using the URL, git u
 
 .SH DESCRIPTION
 .PP
-Clones the cluster git repository using the URL, git user and token from the Secret
+Clones the cluster git repository from the URL provided to the jx\-git\-operator watching the said repository, and authenticating as git user with token provided by jx\-boot secret, also provided by jx\-git\-operator installation.
+
+.PP
+Effectively this command runs jx gitops git setup before proceeding to simply clone the repository into either the folder passed in via \-\-clone\-dir or into the ./setup directory.
 
 
 .SH OPTIONS
 .PP
 \fB\-\-clone\-dir\fP=""
-    the directory to clone the repository to
+    the directory to clone the repository to. Default value used is ./source relative to the directory in which the command is running
 
 .PP
 \fB\-\-credentials\-file\fP=""
@@ -33,11 +36,16 @@ Clones the cluster git repository using the URL, git user and token from the Sec
 
 .PP
 \fB\-e\fP, \fB\-\-email\fP=""
-    the git user email to use if one is not setup
+    the git user email to use if one is not setup. Default value is jenkins\-x@googlegroups.com, if none other is provided
 
 .PP
 \fB\-\-fake\-in\-cluster\fP[=false]
     for testing: lets you fake running this command inside a kubernetes cluster so that it can create the file: $XDG\_CONFIG\_HOME/git/credentials or $HOME/git/credentials
+
+.PP
+\fB\-\-git\-provider\fP=""
+    the git provider URL. If not specified its detected from the git operator jx\-boot Secret or defaults to 
+\[la]https://github.com\[ra]
 
 .PP
 \fB\-h\fP, \fB\-\-help\fP[=false]
@@ -54,6 +62,10 @@ Clones the cluster git repository using the URL, git user and token from the Sec
 .PP
 \fB\-\-operator\-namespace\fP="jx\-git\-operator"
     the namespace used by the git operator to find the secret for the git repository if running in cluster
+
+.PP
+\fB\-\-password\fP=""
+    the git password/token to use. if not specified it is detected from the git operator Secret
 
 .PP
 \fB\-\-secret\fP="jx\-boot"

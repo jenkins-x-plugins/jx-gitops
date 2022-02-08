@@ -1,0 +1,5 @@
+filepath: ""
+helmfiles:
+- path: helmfiles/helmfile.yaml
+templates: {}
+renderedvalues: {}

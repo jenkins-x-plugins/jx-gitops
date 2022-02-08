@@ -5,13 +5,13 @@ import (
 	"io/ioutil"
 	"text/template"
 
+	"github.com/Masterminds/sprig"
 	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/pkg/errors"
-	"k8s.io/helm/pkg/chartutil"
-	"k8s.io/helm/pkg/engine"
+	"helm.sh/helm/v3/pkg/chartutil"
 )
 
 // Templater a templater of values yaml
@@ -28,18 +28,14 @@ func NewTemplater(requirements *jxcore.RequirementsConfig, valuesFiles []string)
 	}
 }
 
-func (o *Templater) createFuncMap(requirements *jxcore.RequirementsConfig) (template.FuncMap, error) {
+func (o *Templater) createFuncMap() template.FuncMap {
 	funcMap := NewFunctionMap()
-	return funcMap, nil
+	return funcMap
 }
 
 // Generate generates the destination file from the given source template
-func (o *Templater) Generate(sourceFile string, destFile string) error {
-	requirements := o.Requirements
-	funcMap, err := o.createFuncMap(requirements)
-	if err != nil {
-		return err
-	}
+func (o *Templater) Generate(sourceFile, destFile string) error {
+	funcMap := o.createFuncMap()
 
 	data, err := o.renderTemplate(sourceFile, funcMap)
 	if err != nil {
@@ -55,7 +51,7 @@ func (o *Templater) Generate(sourceFile string, destFile string) error {
 
 // NewFunctionMap creates a new function map for values.tmpl.yaml templating
 func NewFunctionMap() template.FuncMap {
-	funcMap := engine.FuncMap()
+	funcMap := sprig.TxtFuncMap()
 	funcMap["basicAuth"] = BasicAuth
 	funcMap["hashPassword"] = HashPassword
 	funcMap["removeScheme"] = RemoveScheme

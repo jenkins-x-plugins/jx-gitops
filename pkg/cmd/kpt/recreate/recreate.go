@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jenkins-x/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
@@ -32,7 +32,7 @@ var (
 	pathSeparator = string(os.PathSeparator)
 )
 
-// KptOptions the options for the command
+// Options the options for the command
 type Options struct {
 	Dir           string
 	OutDir        string
@@ -93,7 +93,7 @@ func (o *Options) Run() error {
 	}
 	dir = o.OutDir
 
-	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error { //nolint:staticcheck
 		if info == nil || info.IsDir() {
 			return nil
 		}
@@ -101,13 +101,12 @@ func (o *Options) Run() error {
 		if name != "Kptfile" {
 			return nil
 		}
-		rel, err := filepath.Rel(dir, kptDir)
+		rel, err := filepath.Rel(dir, kptDir) //nolint:staticcheck
 		if err != nil {
 			return errors.Wrapf(err, "failed to calculate the relative directory of %s", kptDir)
 		}
 		kptDir = strings.TrimSuffix(kptDir, pathSeparator)
-		parentDir, kptDirName := filepath.Split(kptDir)
-		parentDir = strings.TrimSuffix(parentDir, pathSeparator)
+		_, kptDirName := filepath.Split(kptDir)
 
 		u := &unstructured.Unstructured{}
 		data, err := ioutil.ReadFile(path)

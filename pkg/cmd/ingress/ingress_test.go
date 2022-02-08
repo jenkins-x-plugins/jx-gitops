@@ -8,9 +8,14 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/jenkins-x/jx-gitops/pkg/cmd/ingress"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/ingress"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/stretchr/testify/require"
+)
+
+var (
+	// generateTestOutput enable to regenerate the expected output
+	generateTestOutput = false
 )
 
 func TestUpdateIngressNoTLS(t *testing.T) {
@@ -42,7 +47,7 @@ func AssertUpdateIngress(t *testing.T, rootDir string) {
 
 	// now lets compare files with expected
 	sourceConfigDir := filepath.Join(tmpDir, "config-root")
-	err = filepath.Walk(sourceConfigDir, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(sourceConfigDir, func(path string, info os.FileInfo, err error) error { //nolint:staticcheck
 		if info == nil || info.IsDir() {
 			return nil
 		}
@@ -50,7 +55,8 @@ func AssertUpdateIngress(t *testing.T, rootDir string) {
 			return nil
 		}
 
-		rel, err := filepath.Rel(sourceConfigDir, path)
+		rel, err := filepath.Rel(sourceConfigDir, path) //nolint:staticcheck
+		require.NoError(t, err)
 
 		expectedFile := filepath.Join(expectedData, rel)
 
@@ -65,6 +71,12 @@ func AssertUpdateIngress(t *testing.T, rootDir string) {
 
 		result := strings.TrimSpace(string(resultData))
 		expectedText := strings.TrimSpace(string(expectData))
+
+		if generateTestOutput {
+			err = ioutil.WriteFile(expectedFile, []byte(result), 0600)
+			require.NoError(t, err, "failed to save file %s", expectedFile)
+			return nil
+		}
 		if d := cmp.Diff(result, expectedText); d != "" {
 			t.Errorf("modified file %s match expected: %s", path, d)
 		}
