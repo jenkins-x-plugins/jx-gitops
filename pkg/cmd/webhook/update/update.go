@@ -42,7 +42,7 @@ type Options struct {
 	Endpoint         string
 	DryRun           bool
 	WarnOnFail       bool
-	Namespace        string `env:"JX_NAMESPACE"`
+	Namespace        string
 	EnforceNamespace string
 	KubeClient       kubernetes.Interface
 	JXClient         jxc.Interface
