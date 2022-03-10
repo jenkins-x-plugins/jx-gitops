@@ -2,6 +2,7 @@ package pods
 
 import (
 	"context"
+	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"strings"
 	"time"
 
@@ -24,6 +25,11 @@ type Options struct {
 	Age        time.Duration
 	KubeClient kubernetes.Interface
 }
+
+const (
+	JXEnvironmentLabel = "env"
+	JXGitOpsLabel      = "gitops.jenkins-x.io/pipeline"
+)
 
 var (
 	cmdLong = templates.LongDesc(`
@@ -56,7 +62,7 @@ func NewCmdGCPods() (*cobra.Command, *Options) {
 		},
 	}
 	cmd.Flags().StringVarP(&o.Selector, "selector", "s", "", "The selector to use to filter the pods")
-	cmd.Flags().StringVarP(&o.Namespace, "namespace", "n", "", "The namespace to look for the pods. Defaults to the current namespace")
+	cmd.Flags().StringVarP(&o.Namespace, "namespace", "n", "", "The namespace to look for the pods. If empty will work in namespaces labelled by 'env' and 'gitops.jenkins-x.io/pipeline', also will include `'jx-git-operator' namespace")
 	cmd.Flags().DurationVarP(&o.Age, "age", "a", time.Hour, "The minimum age of pods to garbage collect. Any newer pods will be kept")
 	return cmd, o
 }
@@ -64,41 +70,70 @@ func NewCmdGCPods() (*cobra.Command, *Options) {
 // Run implements this command
 func (o *Options) Run() error {
 	var err error
-	o.KubeClient, o.Namespace, err = kube.LazyCreateKubeClientAndNamespace(o.KubeClient, o.Namespace)
+	o.KubeClient, _, err = kube.LazyCreateKubeClientAndNamespace(o.KubeClient, o.Namespace)
 	if err != nil {
 		return errors.Wrapf(err, "failed to create kube client")
 	}
 
 	kubeClient := o.KubeClient
-	ns := o.Namespace
 	ctx := context.TODO()
 
-	opts := metav1.ListOptions{
-		LabelSelector: o.Selector,
+	var namespaces []string
+	if o.Namespace != "" {
+		log.Logger().Infof("Using a fixed namespace '%s'", o.Namespace)
+
+		// run in single, selected namespace
+		namespaces = []string{o.Namespace}
+	} else {
+		log.Logger().Info("Looking for JX namespaces")
+
+		// run in all namespaces that are owned by Jenkins X
+		namespaces, err = o.findJXNamespaces(ctx)
+		if err != nil {
+			return errors.Wrap(err, "cannot perform garbage collection of pods")
+		}
 	}
-	podInterface := kubeClient.CoreV1().Pods(ns)
+
+	selector := o.Selector
+	var collectedErrors []error
+
+	for _, ns := range namespaces {
+		podInterface := kubeClient.CoreV1().Pods(ns)
+		collectedErrors = append(collectedErrors, o.runInNamespace(ctx, ns, podInterface, selector)...)
+	}
+
+	return errorutil.CombineErrors(collectedErrors...)
+}
+
+// runInNamespace runs a garbage collection in context of a given namespace
+func (o *Options) runInNamespace(ctx context.Context, namespace string, podInterface v1.PodInterface, selector string) []error {
+	opts := metav1.ListOptions{
+		LabelSelector: selector,
+	}
+
 	podList, err := podInterface.List(ctx, opts)
 	if err != nil {
-		return err
+		return []error{err}
 	}
 
 	deleteOptions := metav1.DeleteOptions{}
-	errors := []error{}
+	var collectedErrors []error
+
 	for k := range podList.Items {
 		pod := podList.Items[k]
 		matches, age := o.MatchesPod(&pod)
 		if matches {
 			err := podInterface.Delete(ctx, pod.Name, deleteOptions)
 			if err != nil {
-				log.Logger().Warnf("Failed to delete pod %s in namespace %s: %s", pod.Name, ns, err)
-				errors = append(errors, err)
+				log.Logger().Warnf("Failed to delete pod %s in namespace %s: %s", pod.Name, namespace, err)
+				collectedErrors = append(collectedErrors, err)
 			} else {
 				ageText := strings.TrimSuffix(age.Round(time.Minute).String(), "0s")
-				log.Logger().Infof("Deleted pod %s in namespace %s with phase %s as its age is: %s", pod.Name, ns, string(pod.Status.Phase), ageText)
+				log.Logger().Infof("Deleted pod %s in namespace %s with phase %s as its age is: %s", pod.Name, namespace, string(pod.Status.Phase), ageText)
 			}
 		}
 	}
-	return errorutil.CombineErrors(errors...)
+	return collectedErrors
 }
 
 // MatchesPod returns true if this pod can be garbage collected
@@ -120,4 +155,29 @@ func (o *Options) MatchesPod(pod *corev1.Pod) (bool, time.Duration) {
 		return false, age
 	}
 	return age > o.Age, age
+}
+
+// findJXNamespaces looks for namespace names that are owned by Jenkins X
+func (o *Options) findJXNamespaces(ctx context.Context) ([]string, error) {
+	var matched []string
+	namespaces, err := o.KubeClient.CoreV1().Namespaces().List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return []string{}, errors.Wrap(err, "cannot list namespaces to look for pods")
+	}
+	for _, n := range namespaces.Items {
+		labels := n.GetLabels()
+
+		if _, okEnv := labels[JXEnvironmentLabel]; okEnv {
+			if _, okGitOps := labels[JXGitOpsLabel]; okGitOps {
+				log.Logger().Infof("Found Jenkins X namespace '%s' by environment labels", n.Name)
+				matched = append(matched, n.Name)
+			}
+		}
+
+		if n.Name == "jx-git-operator" {
+			log.Logger().Infof("Found Jenkins X git operator namespace '%s'", n.Name)
+			matched = append(matched, n.Name)
+		}
+	}
+	return matched, nil
 }
