@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: cheese
-  namespace: blah
+  namespace: some-other-namespace
   labels:
     chart: cheese
 spec:

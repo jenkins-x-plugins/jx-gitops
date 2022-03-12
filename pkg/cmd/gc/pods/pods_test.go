@@ -1,11 +1,15 @@
-package pods
+package pods_test
 
 import (
+	"testing"
+	"time"
+
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/gc/pods"
+	"k8s.io/client-go/kubernetes/fake"
+
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"testing"
-	"time"
 )
 
 // covers MatchesPod phase check
@@ -13,7 +17,7 @@ func TestOptions_MatchesPodDoesNotMatchForNonFinishedPhase(t *testing.T) {
 	for _, phaseName := range []corev1.PodPhase{corev1.PodRunning, corev1.PodUnknown, corev1.PodPending} {
 		testPod := corev1.Pod{Status: corev1.PodStatus{Phase: phaseName}}
 
-		o := Options{}
+		o := pods.Options{}
 		result, _ := o.MatchesPod(&testPod)
 		assert.False(t, result)
 	}
@@ -53,8 +57,44 @@ func TestOptions_MatchesPodDoesNotMatchForTooYoungPods(t *testing.T) {
 			},
 		}}
 
-		o := Options{Age: variant.maxAge}
+		o := pods.Options{Age: variant.maxAge}
 		result, _ := o.MatchesPod(&testPod)
-		assert.Equal(t, variant.shouldMatchPod, result, variant)
+		assert.Equal(t, variant.shouldMatchPod, result, variant.name)
 	}
+}
+
+func TestCleansUpPodsInProperlyLabelledNamespaces(t *testing.T) {
+	expiredStatuses := []corev1.ContainerStatus{
+		{State: corev1.ContainerState{
+			Terminated: &corev1.ContainerStateTerminated{FinishedAt: metav1.NewTime(time.Now().Add(time.Hour * 24 * -1))},
+		}},
+	}
+
+	client := fake.NewSimpleClientset(
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "other-ns"}},
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{
+			Name: "jx-test2",
+			Labels: map[string]string{
+				"gitops.jenkins-x.io/pipeline": "namespaced",
+				"env":                          "dev",
+			},
+		}},
+
+		// and pods belonging to jx-test2, other-ns
+		&corev1.Pod{
+			ObjectMeta: metav1.ObjectMeta{Name: "not-to-be-touched", Namespace: "other-ns"},
+			Status:     corev1.PodStatus{Phase: corev1.PodFailed, ContainerStatuses: expiredStatuses},
+		},
+		&corev1.Pod{ // ONLY this pod should be deleted, as it belongs to namespace that has proper labels
+			ObjectMeta: metav1.ObjectMeta{Name: "to-clean-up", Namespace: "jx-test2"},
+			Status:     corev1.PodStatus{Phase: corev1.PodFailed, ContainerStatuses: expiredStatuses},
+		},
+	)
+
+	o := &pods.Options{}
+	o.KubeClient = client
+	deletedPods, err := o.Run()
+
+	assert.Nil(t, err)
+	assert.Equal(t, []string{"jx-test2/to-clean-up"}, deletedPods)
 }

@@ -177,7 +177,7 @@ func (o *Options) Run() error {
 		maxAge, revisionHistory := o.ageAndHistoryLimits(isPR, isBatch)
 		// lets remove activities that are too old
 		if activity.Spec.CompletedTimestamp != nil && activity.Spec.CompletedTimestamp.Add(maxAge).Before(now) {
-			err = o.deleteResources(ctx, o.JXClient, &activity, activity.Namespace)
+			err = o.deleteResources(ctx, o.JXClient, &activity)
 			if err != nil {
 				return err
 			}
@@ -187,7 +187,7 @@ func (o *Options) Run() error {
 		repoBranchAndContext := activity.RepositoryOwner() + "/" + activity.RepositoryName() + "/" + activity.BranchName() + "/" + activity.Spec.Context
 		c := counters.AddBuild(repoBranchAndContext, isPR)
 		if c > revisionHistory && activity.Spec.CompletedTimestamp != nil {
-			err = o.deleteResources(ctx, client, &activity, activity.Namespace)
+			err = o.deleteResources(ctx, client, &activity)
 			if err != nil {
 				return err
 			}
@@ -198,7 +198,7 @@ func (o *Options) Run() error {
 	return nil
 }
 
-func (o *Options) deleteResources(ctx context.Context, client jxc.Interface, a *v1.PipelineActivity, currentNs string) error {
+func (o *Options) deleteResources(ctx context.Context, client jxc.Interface, a *v1.PipelineActivity) error {
 	err := o.deleteLighthouseJob(ctx, a)
 	if err != nil {
 		return err

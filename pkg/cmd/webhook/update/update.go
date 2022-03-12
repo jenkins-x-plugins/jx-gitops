@@ -43,7 +43,7 @@ type Options struct {
 	DryRun           bool
 	WarnOnFail       bool
 	Namespace        string
-	EnforceNamespace string
+	DevNamespace     string
 	KubeClient       kubernetes.Interface
 	JXClient         jxc.Interface
 }
@@ -89,7 +89,7 @@ func NewCmdWebHookVerify() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.HMAC, "hmac", "", "", "Don't use the HMAC token from the cluster, use the provided token")
 	cmd.Flags().StringVarP(&o.Endpoint, "endpoint", "", "", "Don't use the endpoint from the cluster, use the provided endpoint")
 	cmd.Flags().BoolVarP(&o.WarnOnFail, "warn-on-fail", "", false, "If enabled lets just log a warning that we could not update the webhook")
-	cmd.Flags().StringVarP(&o.EnforceNamespace, "enforce-namespace", "", "", "Disable namespace auto detection, instead use specified namespace")
+	cmd.Flags().StringVarP(&o.DevNamespace, "dev-ns", "", "", "Disable development namespace auto detection, instead use specified namespace")
 
 	o.ScmClientFactory.AddFlags(cmd)
 	o.BaseOptions.AddBaseFlags(cmd)
@@ -109,7 +109,7 @@ func (o *Options) Validate() error {
 		return errors.Wrapf(err, "failed to create jx client")
 	}
 	log.Logger().Debugf("Initially using namespace=%v", o.Namespace)
-	if o.EnforceNamespace == "" {
+	if o.DevNamespace == "" {
 		log.Logger().Debugln("Auto detecting development namespace in `kind: Environment` .spec.name=dev")
 		ns, _, err := jxenv.GetDevNamespace(o.KubeClient, o.Namespace)
 		if err != nil {
@@ -120,8 +120,8 @@ func (o *Options) Validate() error {
 			log.Logger().Debugf("[GetDevNamespace] Setting namespace=%v", o.Namespace)
 		}
 	} else {
-		log.Logger().Debugf("Enforced usage of namespace=%v", o.EnforceNamespace)
-		o.Namespace = o.EnforceNamespace
+		log.Logger().Debugf("Enforced usage of namespace=%v", o.DevNamespace)
+		o.Namespace = o.DevNamespace
 	}
 
 	log.Logger().Debugf("Finally using namespace=%v", o.Namespace)
