@@ -5,12 +5,14 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
+
+	"github.com/jenkins-x/jx-helpers/v3/pkg/kyamls"
 
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/kyamls"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/options"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/stringhelpers"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
@@ -37,10 +39,13 @@ var (
 		# e.g. so that the files 'config-root/namespaces/cheese/*.yaml' get set to namespace 'cheese' 
 		# and 'config-root/namespaces/wine/*.yaml' are set to 'wine'
 		%s namespace --dir-mode --dir config-root/namespaces
+
+		# In --dir-mode when a resource HAS DEFINED NAMESPACE already, but is in wrong directory
+		# then it will be moved to a directory corresponding it's defined namespace
 	`)
 )
 
-// NamespaceOptions the options for the command
+// Options the options for the command
 type Options struct {
 	kyamls.Filter
 	Dir        string
@@ -49,7 +54,7 @@ type Options struct {
 	DirMode    bool
 }
 
-// NewCmdUpdate creates a command object for the command
+// NewCmdUpdateNamespace creates a command object for the command
 func NewCmdUpdateNamespace() (*cobra.Command, *Options) {
 	o := &Options{}
 
@@ -87,7 +92,8 @@ func (o *Options) Run() error {
 		if ns == "" {
 			return options.MissingOption("namespace")
 		}
-		return UpdateNamespaceInYamlFiles(o.Dir, ns, o.Filter)
+		_, err := UpdateNamespaceInYamlFiles(o.Dir, o.Dir, ns, &o.Filter, false)
+		return err
 	}
 
 	return o.RunDirMode()
@@ -102,6 +108,7 @@ func (o *Options) RunDirMode() error {
 		return errors.Wrapf(err, "failed to read dir %s", o.Dir)
 	}
 
+	var foundNamespacesInResources []string
 	namespaces := []string{}
 	for _, f := range flieList {
 		if !f.IsDir() {
@@ -110,13 +117,16 @@ func (o *Options) RunDirMode() error {
 		name := f.Name()
 
 		dir := filepath.Join(o.Dir, name)
-		err = UpdateNamespaceInYamlFiles(dir, name, o.Filter)
+		foundNamespacesInResources, err = UpdateNamespaceInYamlFiles(o.Dir, dir, name, &o.Filter, true)
 		if err != nil {
 			return err
 		}
 
 		if stringhelpers.StringArrayIndex(namespaces, name) < 0 {
 			namespaces = append(namespaces, name)
+		}
+		if len(foundNamespacesInResources) > 0 {
+			namespaces = append(namespaces, foundNamespacesInResources...)
 		}
 	}
 
@@ -181,13 +191,32 @@ func (o *Options) lazyCreateNamespaceResource(ns string) error {
 }
 
 // UpdateNamespaceInYamlFiles updates the namespace in yaml files
-func UpdateNamespaceInYamlFiles(dir string, ns string, filter kyamls.Filter) error { //nolint:gocritic
-	modifyFn := func(node *yaml.RNode, path string) (bool, error) {
+func UpdateNamespaceInYamlFiles(rootDir, dir, ns string, filter *kyamls.Filter, shouldMoveFiles bool) ([]string, error) { //nolint:gocritic
+	type docToMoveToOtherNs struct {
+		path         string
+		namespace    string
+		oldNamespace string
+	}
+	var toMoveToNsDirectory []docToMoveToOtherNs
+	var extraNamespacesFoundInResources []string
+
+	modifyContentFn := func(node *yaml.RNode, path string) (bool, error) {
 		kind := kyamls.GetKind(node, path)
 
 		// ignore common cluster based resources
 		if kyamls.IsClusterKind(kind) {
 			return false, nil
+		}
+
+		// keep a namespace, and allow to move this file to a directory named with that namespace
+		preserveOriginalNamespace := ShouldPreserveNamespace(node, path)
+		if preserveOriginalNamespace {
+			newNs := GetNamespaceToPreserveIfShouldKeepIt(node, path)
+			if newNs != ns {
+				toMoveToNsDirectory = append(toMoveToNsDirectory, docToMoveToOtherNs{path: path, namespace: newNs, oldNamespace: ns})
+				extraNamespacesFoundInResources = append(extraNamespacesFoundInResources, newNs)
+				return false, nil
+			}
 		}
 
 		err := node.PipeE(yaml.LookupCreate(yaml.ScalarNode, "metadata", "namespace"), yaml.FieldSetter{StringValue: ns})
@@ -197,9 +226,70 @@ func UpdateNamespaceInYamlFiles(dir string, ns string, filter kyamls.Filter) err
 		return true, nil
 	}
 
-	err := kyamls.ModifyFiles(dir, modifyFn, filter)
+	err := kyamls.ModifyFiles(dir, modifyContentFn, *filter)
 	if err != nil {
-		return errors.Wrapf(err, "failed to modify namespace to %s in dir %s", ns, dir)
+		return []string{}, errors.Wrapf(err, "failed to modify namespace to %s in dir %s", ns, dir)
 	}
+
+	if shouldMoveFiles {
+		// files marked to keep their originally defined namespace will be moved to a directory
+		// named same as .metadata.namespace
+		for _, element := range toMoveToNsDirectory {
+			if err := MoveToTargetNamespace(rootDir, element.path, element.namespace, element.oldNamespace, &osToolsImpl{}); err != nil {
+				return []string{}, err
+			}
+		}
+	}
+
+	return extraNamespacesFoundInResources, nil
+}
+
+func MoveToTargetNamespace(rootDir, originalPath, namespace, oldNamespace string, osUtils osTools) error {
+	// normalize to absolute paths
+	rootDir, _ = filepath.Abs(rootDir)
+	originalPath, _ = filepath.Abs(originalPath)
+	rootDir = strings.TrimSuffix(rootDir, "/") // normalize
+
+	// extract subdirectory structure in existing namespace
+	relativePath := originalPath[len(rootDir+"/"+oldNamespace):]
+
+	newNamespacedDirPath := rootDir + "/" + namespace
+	newNamespacedFilePath := newNamespacedDirPath + relativePath
+
+	if err := osUtils.MkdirAll(filepath.Dir(newNamespacedFilePath), 0755); err != nil {
+		return errors.Wrapf(err, "cannot create a directory for target namespace '%s'", namespace)
+	}
+
+	log.Logger().Infof("Moving '%s' to '%s' as it had defined .metadata.namespace", originalPath, newNamespacedFilePath)
+	if err := osUtils.Rename(originalPath, newNamespacedFilePath); err != nil {
+		return errors.Wrap(err, "cannot move YAML file to target namespace directory")
+	}
+
 	return nil
+}
+
+func ShouldPreserveNamespace(node *yaml.RNode, path string) bool {
+	return GetNamespaceToPreserveIfShouldKeepIt(node, path) != ""
+}
+
+func GetNamespaceToPreserveIfShouldKeepIt(node *yaml.RNode, path string) string {
+	existingNs := kyamls.GetNamespace(node, path)
+	if existingNs != "" {
+		return existingNs
+	}
+	return ""
+}
+
+type osTools interface {
+	MkdirAll(path string, perm os.FileMode) error
+	Rename(oldpath, newpath string) error
+}
+type osToolsImpl struct{}
+
+func (o *osToolsImpl) MkdirAll(path string, perm os.FileMode) error {
+	return os.MkdirAll(path, perm)
+}
+
+func (o *osToolsImpl) Rename(oldpath, newpath string) error {
+	return os.Rename(oldpath, newpath)
 }
