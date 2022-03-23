@@ -286,15 +286,11 @@ func (o *Options) moveFilesToClusterOrNamespacesFolder(dir, ns, releaseName, cha
 		if kyamls.IsCustomResourceDefinition(kind) {
 			outDir = filepath.Join(o.CustomResourceDefinitionsDir, ns, pathName)
 		} else if !kyamls.IsClusterKind(kind) {
-			outDir = o.buildOutputDirPath(node, path, ns, pathName)
-
-			// overwrite .metadata.namespace
-			if shouldSetResourceNamespaceMetadata(node, path) {
-				err := node.PipeE(yaml.LookupCreate(yaml.ScalarNode, "metadata", "namespace"), yaml.FieldSetter{StringValue: ns})
-				if err != nil {
-					return errors.Wrapf(err, "failed to set metadata.namespace to %s for path %s", ns, path)
-				}
+			err := node.PipeE(yaml.LookupCreate(yaml.ScalarNode, "metadata", "namespace"), yaml.FieldSetter{StringValue: ns})
+			if err != nil {
+				return errors.Wrapf(err, "failed to set metadata.namespace to %s for path %s", ns, path)
 			}
+			outDir = filepath.Join(o.NamespacesDir, ns, pathName)
 		}
 
 		outFile := filepath.Join(outDir, rel)
@@ -314,22 +310,4 @@ func (o *Options) moveFilesToClusterOrNamespacesFolder(dir, ns, releaseName, cha
 		return errors.Wrapf(err, "failed to modify namespace to %s for release %s in dir %s", ns, releaseName, dir)
 	}
 	return nil
-}
-
-// buildOutputDirPath Builds output directory path. Returns: directory path where file should be placed
-func (o *Options) buildOutputDirPath(node *yaml.RNode, path, ns, pathName string) string {
-	return filepath.Join(o.NamespacesDir, getTargetNamespace(node, path, ns), pathName)
-}
-
-func getTargetNamespace(node *yaml.RNode, path, ns string) string {
-	if shouldSetResourceNamespaceMetadata(node, path) {
-		return ns
-	}
-
-	return kyamls.GetNamespace(node, path)
-}
-
-func shouldSetResourceNamespaceMetadata(node *yaml.RNode, path string) bool {
-	existingNs := kyamls.GetNamespace(node, path)
-	return existingNs == ""
 }
