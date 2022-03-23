@@ -1,4 +1,3 @@
-//go:build unit
 // +build unit
 
 package edit_test

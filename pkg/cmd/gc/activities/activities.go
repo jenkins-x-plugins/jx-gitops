@@ -8,6 +8,7 @@ import (
 
 	v1 "github.com/jenkins-x/jx-api/v4/pkg/apis/jenkins.io/v1"
 	jxc "github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned"
+	jv1 "github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned/typed/jenkins.io/v1"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/jxclient"
@@ -34,7 +35,6 @@ type Options struct {
 	PipelineRunAgeLimit     time.Duration
 	ProwJobAgeLimit         time.Duration
 	Namespace               string
-	AllNamespaces           bool
 	JXClient                jxc.Interface
 	LHClient                lhclient.Interface
 	TknClient               tknC.Interface
@@ -108,8 +108,6 @@ func NewCmdGCActivities() (*cobra.Command, *Options) {
 	cmd.Flags().DurationVarP(&o.ReleaseAgeLimit, "release-age", "r", time.Hour*24*30, "Maximum age to keep PipelineActivities for Releases")
 	cmd.Flags().DurationVarP(&o.PipelineRunAgeLimit, "pipelinerun-age", "", time.Hour*12, "Maximum age to keep completed PipelineRuns for all pipelines")
 	cmd.Flags().DurationVarP(&o.ProwJobAgeLimit, "prowjob-age", "", time.Hour*24*7, "Maximum age to keep completed ProwJobs for all pipelines")
-	cmd.Flags().BoolVarP(&o.AllNamespaces, "all-namespaces", "", false, "Work in all namespaces (requires a ClusterRole)")
-
 	return cmd, o
 }
 
@@ -128,11 +126,6 @@ func (o *Options) Run() error {
 	o.TknClient, err = LazyCreateTknClient(o.TknClient)
 	if err != nil {
 		return errors.Wrapf(err, "failed to create the tekton client")
-	}
-
-	if o.AllNamespaces {
-		log.Logger().Debug("selected to clean up activities in all namespaces")
-		o.Namespace = ""
 	}
 
 	client := o.JXClient
@@ -177,7 +170,7 @@ func (o *Options) Run() error {
 		maxAge, revisionHistory := o.ageAndHistoryLimits(isPR, isBatch)
 		// lets remove activities that are too old
 		if activity.Spec.CompletedTimestamp != nil && activity.Spec.CompletedTimestamp.Add(maxAge).Before(now) {
-			err = o.deleteResources(ctx, o.JXClient, &activity)
+			err = o.deleteResources(ctx, activityInterface, &activity, currentNs)
 			if err != nil {
 				return err
 			}
@@ -187,7 +180,7 @@ func (o *Options) Run() error {
 		repoBranchAndContext := activity.RepositoryOwner() + "/" + activity.RepositoryName() + "/" + activity.BranchName() + "/" + activity.Spec.Context
 		c := counters.AddBuild(repoBranchAndContext, isPR)
 		if c > revisionHistory && activity.Spec.CompletedTimestamp != nil {
-			err = o.deleteResources(ctx, client, &activity)
+			err = o.deleteResources(ctx, activityInterface, &activity, currentNs)
 			if err != nil {
 				return err
 			}
@@ -198,33 +191,33 @@ func (o *Options) Run() error {
 	return nil
 }
 
-func (o *Options) deleteResources(ctx context.Context, client jxc.Interface, a *v1.PipelineActivity) error {
+func (o *Options) deleteResources(ctx context.Context, activityInterface jv1.PipelineActivityInterface, a *v1.PipelineActivity, currentNs string) error {
 	err := o.deleteLighthouseJob(ctx, a)
 	if err != nil {
 		return err
 	}
 
 	prName := a.Labels[PrLabel]
-	pr, err := o.getPipelineRun(ctx, a.Namespace, prName)
+	pr, err := o.getPipelineRun(ctx, currentNs, prName)
 	if err != nil {
 		log.Logger().Warnf("pipelinerun %s not found, skipping", prName)
 	}
 
 	// Delete only existing pipelineRuns, need to check for error, as we dont return err in the step before
 	if pr != nil && err == nil {
-		err = o.deletePipelineRun(ctx, a.Namespace, prName)
+		err = o.deletePipelineRun(ctx, currentNs, prName)
 		if err != nil {
 			log.Logger().Warn(err.Error())
 		}
 	}
-	err = o.deleteActivity(ctx, client, a)
+	err = o.deleteActivity(ctx, activityInterface, a)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (o *Options) deleteActivity(ctx context.Context, client jxc.Interface, a *v1.PipelineActivity) error {
+func (o *Options) deleteActivity(ctx context.Context, activityInterface jv1.PipelineActivityInterface, a *v1.PipelineActivity) error {
 	prefix := ""
 	if o.DryRun {
 		prefix = "not "
@@ -233,7 +226,7 @@ func (o *Options) deleteActivity(ctx context.Context, client jxc.Interface, a *v
 	if o.DryRun {
 		return nil
 	}
-	return client.JenkinsV1().PipelineActivities(a.Namespace).Delete(ctx, a.Name, *metav1.NewDeleteOptions(0))
+	return activityInterface.Delete(ctx, a.Name, *metav1.NewDeleteOptions(0))
 }
 
 func (o *Options) ageAndHistoryLimits(isPR, isBatch bool) (time.Duration, int) {
@@ -265,7 +258,8 @@ func (o *Options) deleteLighthouseJob(ctx context.Context, pa *v1.PipelineActivi
 		return nil
 	}
 	selector := labels.SelectorFromSet(labelMap).String()
-	list, err := o.LHClient.LighthouseV1alpha1().LighthouseJobs(o.Namespace).List(ctx, metav1.ListOptions{
+	lighthouseJobInterface := o.LHClient.LighthouseV1alpha1().LighthouseJobs(o.Namespace)
+	list, err := lighthouseJobInterface.List(ctx, metav1.ListOptions{
 		LabelSelector: selector,
 	})
 	if err != nil {
@@ -288,9 +282,9 @@ func (o *Options) deleteLighthouseJob(ctx context.Context, pa *v1.PipelineActivi
 			continue
 		}
 
-		err = o.LHClient.LighthouseV1alpha1().LighthouseJobs(r.Namespace).Delete(ctx, r.Name, metav1.DeleteOptions{})
+		err = lighthouseJobInterface.Delete(ctx, r.Name, metav1.DeleteOptions{})
 		if err != nil {
-			return errors.Wrapf(err, "failed to delete LighthouseJob %s from %s", r.Name, r.Namespace)
+			return errors.Wrapf(err, "failed to delete LighthouseJob %s", r.Name)
 		}
 	}
 	return nil

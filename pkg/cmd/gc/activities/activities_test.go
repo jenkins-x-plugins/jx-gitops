@@ -1,4 +1,3 @@
-//go:build unit
 // +build unit
 
 package activities_test

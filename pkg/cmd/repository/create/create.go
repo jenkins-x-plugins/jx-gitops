@@ -38,7 +38,6 @@ type Options struct {
 	Dir        string
 	SourceDir  string
 	ConfigFile string
-	Namespace  string
 }
 
 // NewCmdCreateRepository creates a command object for the command
@@ -58,8 +57,6 @@ func NewCmdCreateRepository() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the directory look for the 'jx-requirements.yml` file")
 	cmd.Flags().StringVarP(&o.SourceDir, "source-dir", "s", "", "the directory to look for and generate the SourceConfig files")
 	cmd.Flags().StringVarP(&o.ConfigFile, "config", "c", "", "the configuration file to load for the repository configurations. If not specified we look in ./.jx/gitops/source-config.yaml")
-	cmd.Flags().StringVarP(&o.Namespace, "namespace", "n", "jx", "namespace to use, defaults to 'jx'")
-
 	o.Filter.AddFlags(cmd)
 	return cmd, o
 }
@@ -67,7 +64,7 @@ func NewCmdCreateRepository() (*cobra.Command, *Options) {
 // Run transforms the YAML files
 func (o *Options) Run() error {
 	if o.SourceDir == "" {
-		o.SourceDir = filepath.Join(o.Dir, "config-root", "namespaces", o.Namespace, "source-repositories")
+		o.SourceDir = filepath.Join(o.Dir, "config-root", "namespaces", "jx", "source-repositories")
 	}
 
 	if o.ConfigFile == "" {

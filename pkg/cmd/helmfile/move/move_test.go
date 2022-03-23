@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/helmfile/move"
-
 	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -40,8 +39,6 @@ func TestUpdateNamespaceInYamlFiles(t *testing.T) {
 				"customresourcedefinitions/jx/lighthouse-2/lighthousejobs.lighthouse.jenkins.io-crd.yaml",
 				"cluster/resources/nginx/nginx-ingress-2/nginx-ingress-clusterrole.yaml",
 				"namespaces/jx/lighthouse-2/lighthouse-foghorn-deploy.yaml",
-				"namespaces/jx-team2/lighthouse/gcjob-jx-team2-rb.yaml",
-				"namespaces/jx-test1/lighthouse/gcjob-jx-test1-rb.yaml",
 				"namespaces/jx/chart-release/example.yaml",
 			},
 
