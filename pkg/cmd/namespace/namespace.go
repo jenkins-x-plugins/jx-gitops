@@ -141,14 +141,6 @@ func (o *Options) RunDirMode() error {
 }
 
 func (o *Options) lazyCreateNamespaceResource(ns string) error {
-	// this namespace is created by `jx admin` and there is a possibly a difference in e.g. labels, so kubectl --prune can harm
-	// temporary fix: https://kubernetes.slack.com/archives/C9MBGQJRH/p1647955769010979
-	// before everybody will have https://github.com/jenkins-x/jx3-versions/pull/2963
-	// todo: Find a better solution
-	if ns == "jx-git-operator" {
-		return nil
-	}
-
 	dir := filepath.Dir(o.ClusterDir)
 
 	found := false
