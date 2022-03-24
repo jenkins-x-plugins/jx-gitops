@@ -80,6 +80,7 @@ type Options struct {
 	ChartPages           bool
 	NoOCILogin           bool
 	Artifactory          bool
+	Nexus                bool
 	HelmBinary           string
 	Dir                  string
 	ChartsDir            string
@@ -134,6 +135,7 @@ func NewCmdHelmRelease() (*cobra.Command, *Options) {
 	cmd.Flags().BoolVarP(&o.ChartPages, "pages", "", false, "use github pages to release charts")
 	cmd.Flags().BoolVarP(&o.ChartOCI, "oci", "", false, "treat the repository as an OCI container registry. If not specified its defaulted from the cluster.chartOCI flag on the 'jx-requirements.yml' file")
 	cmd.Flags().BoolVarP(&o.Artifactory, "artifactory", "", false, "use artifactory mode for publishing the chart which involves using an artifactory header and -T for pushing the chart")
+	cmd.Flags().BoolVarP(&o.Nexus, "nexus", "", false, "use nexus mode for publishing the chart which involves omitting the /api/charts endpoint for pushing the chart")
 	cmd.Flags().BoolVarP(&o.NoOCILogin, "no-oci-login", "", false, "disables using the 'helm registry login' command when using OCI")
 	cmd.Flags().BoolVarP(&o.NoRelease, "no-release", "", false, "disables publishing the release. Useful for a Pull Request pipeline")
 	cmd.Flags().BoolVarP(&o.UseHelmPlugin, "use-helm-plugin", "", false, "uses the jx binary plugin for helm rather than whatever helm is on the $PATH")
@@ -635,6 +637,17 @@ func (o *Options) createPublishCommand(repoURL, name, chartDir, username, passwo
 		return nil, fmt.Errorf("user name or password missing for %s", repoURL)
 	}
 	userSecret := username + ":" + password
+
+	if o.Nexus {
+		url := repoURL
+
+		return &cmdrunner.Command{
+			Dir:  chartDir,
+			Name: "curl",
+			// lets hide progress bars (-s) and enable show errors (-S)
+			Args: []string{"--fail", "-sS", "-u", userSecret, "--data-binary", "@" + tarFile, url},
+		}, nil
+	}
 
 	url := stringhelpers.UrlJoin(repoURL, "/api/charts")
 
