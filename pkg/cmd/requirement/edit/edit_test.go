@@ -4,7 +4,6 @@ package edit_test
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -60,9 +59,7 @@ func TestCmdRequirementsEdit(t *testing.T) {
 		},
 	}
 
-	tmpDir, err := ioutil.TempDir("", "jx-cmd-req-")
-	require.NoError(t, err, "failed to create temp dir")
-	require.DirExists(t, tmpDir, "could not create temp dir for running tests")
+	tmpDir := t.TempDir()
 
 	for i, tt := range tests {
 		if tt.name == "" {
@@ -71,7 +68,7 @@ func TestCmdRequirementsEdit(t *testing.T) {
 		t.Logf("running test %s", tt.name)
 		dir := filepath.Join(tmpDir, tt.name)
 
-		err = os.MkdirAll(dir, files.DefaultDirWritePermissions)
+		err := os.MkdirAll(dir, files.DefaultDirWritePermissions)
 		require.NoError(t, err, "failed to create dir %s", dir)
 
 		localReqFile := filepath.Join(dir, jxcore.RequirementsConfigFileName)
@@ -84,7 +81,7 @@ func TestCmdRequirementsEdit(t *testing.T) {
 		cmd, _ := edit.NewCmdRequirementsEdit()
 		args := append(tt.args, "--dir", dir)
 
-		err := cmd.ParseFlags(args)
+		err = cmd.ParseFlags(args)
 		require.NoError(t, err, "failed to parse arguments %#v for test %", args, tt.name)
 
 		old := os.Args

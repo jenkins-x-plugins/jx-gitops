@@ -19,8 +19,7 @@ func TestResolveRepositorySourceDir(t *testing.T) {
 	fileNames, err := ioutil.ReadDir(sourceData)
 	assert.NoError(t, err)
 
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	tmpDir := t.TempDir()
 
 	t.Logf("generating fileNames to %s\n", tmpDir)
 
@@ -80,11 +79,10 @@ func TestResolveRepositorySourceDir(t *testing.T) {
 func TestResolveRepositoryInRequirements(t *testing.T) {
 	srcFile := filepath.Join("test_data", "requirements", "jx-requirements.yml")
 
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	tmpDir := t.TempDir()
 
 	outFile := filepath.Join(tmpDir, "jx-requirements.yml")
-	err = files.CopyFile(srcFile, outFile)
+	err := files.CopyFile(srcFile, outFile)
 	require.NoError(t, err, "failed to copy %s to %s", srcFile, outFile)
 	require.FileExists(t, outFile)
 

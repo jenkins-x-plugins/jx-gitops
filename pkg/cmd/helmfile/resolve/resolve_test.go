@@ -101,8 +101,7 @@ func TestStepHelmfileResolve(t *testing.T) {
 
 		_, o := resolve.NewCmdHelmfileResolve()
 
-		tmpDir, err := ioutil.TempDir("", "")
-		require.NoError(t, err, "failed to create tmp dir")
+		tmpDir := t.TempDir()
 
 		srcDir := filepath.Join("test_data", name)
 		require.DirExists(t, srcDir)

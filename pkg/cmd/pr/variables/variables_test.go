@@ -2,11 +2,10 @@ package variables_test
 
 import (
 	"io/ioutil"
-	"strings"
-	"testing"
-
 	"os"
 	"path/filepath"
+	"strings"
+	"testing"
 
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/pr/variables"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/fakerunners"
@@ -68,8 +67,7 @@ func TestPullRequestVariables(t *testing.T) {
 		},
 	}
 
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "failed to create temp dir")
+	tmpDir := t.TempDir()
 
 	testDir := filepath.Join("test_data")
 	fs, err := ioutil.ReadDir(testDir)

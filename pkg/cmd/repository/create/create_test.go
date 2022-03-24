@@ -19,12 +19,11 @@ var generateTestOutput = false
 func TestCreateRepositorySourceDir(t *testing.T) {
 	sourceData := filepath.Join("test_data", "input")
 
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	tmpDir := t.TempDir()
 
 	t.Logf("generating SourceRepository files in %s", tmpDir)
 
-	err = files.CopyDirOverwrite(sourceData, tmpDir)
+	err := files.CopyDirOverwrite(sourceData, tmpDir)
 	require.NoError(t, err, "failed to copy from %s to %s", sourceData, tmpDir)
 
 	_, o := create.NewCmdCreateRepository()

@@ -1,7 +1,6 @@
 package publish_test
 
 import (
-	"io/ioutil"
 	"path/filepath"
 	"testing"
 
@@ -13,10 +12,9 @@ import (
 )
 
 func TestRequirementsPublish(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	tmpDir := t.TempDir()
 
-	err = files.CopyDirOverwrite("test_data", tmpDir)
+	err := files.CopyDirOverwrite("test_data", tmpDir)
 	require.NoError(t, err, "failed to copy %s to %s", "test_data", tmpDir)
 
 	_, o := publish.NewCmdRequirementsPublish()

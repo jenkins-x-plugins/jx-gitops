@@ -1,7 +1,6 @@
 package escape_test
 
 import (
-	"io/ioutil"
 	"path/filepath"
 	"testing"
 
@@ -15,10 +14,9 @@ func TestEscapeYAML(t *testing.T) {
 	srcDir := filepath.Join("test_data", "src")
 	require.DirExists(t, srcDir)
 
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	tmpDir := t.TempDir()
 
-	err = files.CopyDirOverwrite(srcDir, tmpDir)
+	err := files.CopyDirOverwrite(srcDir, tmpDir)
 	require.NoError(t, err, "failed to copy %s to %s", srcDir, tmpDir)
 
 	_, o := escape.NewCmdEscape()

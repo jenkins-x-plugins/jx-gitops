@@ -2,7 +2,6 @@ package add_test
 
 import (
 	"fmt"
-	"io/ioutil"
 	"path/filepath"
 	"testing"
 
@@ -20,14 +19,13 @@ import (
 )
 
 func TestJenkinsAdd(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	tmpDir := t.TempDir()
 
 	srcDir := filepath.Join("test_data")
 
 	runner := &fakerunner.FakeRunner{}
 
-	err = files.CopyDirOverwrite(srcDir, tmpDir)
+	err := files.CopyDirOverwrite(srcDir, tmpDir)
 	require.NoError(t, err, "failed to copy from %s to %s", srcDir, tmpDir)
 
 	gitter := cli.NewCLIClient("", nil)

@@ -14,8 +14,7 @@ import (
 )
 
 func TestTerraformUpgrade(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	tmpDir := t.TempDir()
 
 	fileNames, err := ioutil.ReadDir("test_data")
 	assert.NoError(t, err)
