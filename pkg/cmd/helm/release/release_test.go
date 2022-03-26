@@ -20,6 +20,18 @@ import (
 )
 
 func TestStepHelmRelease(t *testing.T) {
+	AssertHelmReleaseChart(t, "1.2.3", false, false)
+}
+
+func TestStepHelmReleaseWithArtifactory(t *testing.T) {
+	AssertHelmReleaseChart(t, "2.3.4", true, false)
+}
+
+func TestStepHelmReleaseWithNexus(t *testing.T) {
+	AssertHelmReleaseChart(t, "7.8.9", false, true)
+}
+
+func AssertHelmReleaseChart(t *interface{}, version string, artifactory boolean, nexus boolean) {
 	runner := fakerunners.NewFakeRunnerWithGitClone()
 	helmBin := "helm"
 
@@ -42,7 +54,9 @@ func TestStepHelmRelease(t *testing.T) {
 	o.ChartsDir = filepath.Join("test_data", "charts")
 	o.JXClient = jxClient
 	o.Namespace = ns
-	o.Version = "1.2.3"
+	o.Version = version
+	o.Artifactory = artifactory
+	o.Nexus = nexus
 
 	o.KubeClient = fake.NewSimpleClientset(
 		&corev1.Secret{
@@ -65,98 +79,4 @@ func TestStepHelmRelease(t *testing.T) {
 	}
 
 	assert.Equal(t, o.ReleasedCharts, 1, "should have released 1 chart")
-}
-
-func TestStepHelmReleaseWithArtifactory(t *testing.T) {
-	runner := fakerunners.NewFakeRunnerWithGitClone()
-	helmBin := "helm"
-
-	ns := "jx"
-	devEnv := jxenv.CreateDefaultDevEnvironment(ns)
-	devEnv.Namespace = ns
-	devEnv.Spec.Source.URL = "https://github.com/jx3-gitops-repositories/jx3-kubernetes.git"
-
-	requirements := jxcore.NewRequirementsConfig()
-	requirements.Spec.Cluster.ChartRepository = "http://bucketrepo/bucketrepo/charts/"
-	data, err := yaml.Marshal(requirements)
-	require.NoError(t, err, "failed to marshal requirements")
-	devEnv.Spec.TeamSettings.BootRequirements = string(data)
-
-	jxClient := jxfake.NewSimpleClientset(devEnv)
-
-	_, o := release.NewCmdHelmRelease()
-	o.HelmBinary = helmBin
-	o.CommandRunner = runner.Run
-	o.ChartsDir = filepath.Join("test_data", "charts")
-	o.JXClient = jxClient
-	o.Namespace = ns
-	o.Version = "2.3.4"
-	o.Artifactory = true
-
-	o.KubeClient = fake.NewSimpleClientset(
-		&corev1.Secret{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      kube.SecretJenkinsChartMuseum,
-				Namespace: ns,
-			},
-			Data: map[string][]byte{
-				"BASIC_AUTH_USER": []byte("myuser"),
-				"BASIC_AUTH_PASS": []byte("mypwd"),
-			},
-		},
-	)
-
-	err = o.Run()
-	require.NoError(t, err, "failed to run the command")
-
-	for _, c := range runner.OrderedCommands {
-		t.Logf("ran: %s\n", c.CLI())
-	}
-}
-
-func TestStepHelmReleaseWithNexus(t *testing.T) {
-	runner := fakerunners.NewFakeRunnerWithGitClone()
-	helmBin := "helm"
-
-	ns := "jx"
-	devEnv := jxenv.CreateDefaultDevEnvironment(ns)
-	devEnv.Namespace = ns
-	devEnv.Spec.Source.URL = "https://github.com/jx3-gitops-repositories/jx3-kubernetes.git"
-
-	requirements := jxcore.NewRequirementsConfig()
-	requirements.Spec.Cluster.ChartRepository = "http://bucketrepo/bucketrepo/charts/"
-	data, err := yaml.Marshal(requirements)
-	require.NoError(t, err, "failed to marshal requirements")
-	devEnv.Spec.TeamSettings.BootRequirements = string(data)
-
-	jxClient := jxfake.NewSimpleClientset(devEnv)
-
-	_, o := release.NewCmdHelmRelease()
-	o.HelmBinary = helmBin
-	o.CommandRunner = runner.Run
-	o.ChartsDir = filepath.Join("test_data", "charts")
-	o.JXClient = jxClient
-	o.Namespace = ns
-	o.Version = "4.5.6"
-	o.Nexus = true
-
-	o.KubeClient = fake.NewSimpleClientset(
-		&corev1.Secret{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      kube.SecretJenkinsChartMuseum,
-				Namespace: ns,
-			},
-			Data: map[string][]byte{
-				"BASIC_AUTH_USER": []byte("myuser"),
-				"BASIC_AUTH_PASS": []byte("mypwd"),
-			},
-		},
-	)
-
-	err = o.Run()
-	require.NoError(t, err, "failed to run the command")
-
-	for _, c := range runner.OrderedCommands {
-		t.Logf("ran: %s\n", c.CLI())
-	}
 }
