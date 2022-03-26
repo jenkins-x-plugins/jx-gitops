@@ -25,8 +25,7 @@ func TestUpdateAnnotatesInYamlFiles(t *testing.T) {
 	}
 
 	for _, args := range argTests {
-		tmpDir, err := ioutil.TempDir("", "")
-		require.NoError(t, err, "could not create temp dir")
+		tmpDir := t.TempDir()
 
 		type testCase struct {
 			SourceFile   string

@@ -21,8 +21,7 @@ var generateTestOutput = false
 
 func TestRequirementsMergeFile(t *testing.T) {
 	// setup the disk
-	rootTmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	rootTmpDir := t.TempDir()
 
 	fileNames, err := ioutil.ReadDir("test_data")
 	assert.NoError(t, err)
@@ -67,13 +66,12 @@ func TestRequirementsMergeFile(t *testing.T) {
 
 func TestRequirementsMergeConfigMap(t *testing.T) {
 	// setup the disk
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	tmpDir := t.TempDir()
 
 	srcDir := filepath.Join("test_data", "sample")
 	require.DirExists(t, srcDir)
 
-	err = files.CopyDirOverwrite(srcDir, tmpDir)
+	err := files.CopyDirOverwrite(srcDir, tmpDir)
 	require.NoError(t, err, "failed to copy %s to %s", srcDir, tmpDir)
 
 	changesFile := filepath.Join("test_data", "sample", "changes.yml")
@@ -107,13 +105,12 @@ func TestRequirementsMergeConfigMap(t *testing.T) {
 
 func TestRequirementsMergeConfigMapDoesNotExist(t *testing.T) {
 	// setup the disk
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	tmpDir := t.TempDir()
 
 	srcDir := filepath.Join("test_data", "sample")
 	require.DirExists(t, srcDir)
 
-	err = files.CopyDirOverwrite(srcDir, tmpDir)
+	err := files.CopyDirOverwrite(srcDir, tmpDir)
 	require.NoError(t, err, "failed to copy %s to %s", srcDir, tmpDir)
 
 	// now lets run the command

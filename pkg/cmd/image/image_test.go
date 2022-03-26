@@ -1,7 +1,6 @@
 package image_test
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -21,10 +20,9 @@ func TestUpdateImages(t *testing.T) {
 	require.DirExists(t, inputDir)
 	require.DirExists(t, expectedDir)
 
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	tmpDir := t.TempDir()
 
-	err = files.CopyDirOverwrite(inputDir, tmpDir)
+	err := files.CopyDirOverwrite(inputDir, tmpDir)
 	require.NoError(t, err, "failed to copy %s to %s", inputDir, tmpDir)
 
 	o.SourceDir = filepath.Join(tmpDir, "src")

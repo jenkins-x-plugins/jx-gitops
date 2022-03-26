@@ -1,7 +1,6 @@
 package rename_test
 
 import (
-	"io/ioutil"
 	"path/filepath"
 	"testing"
 
@@ -15,10 +14,9 @@ func TestRenameYamlFiles(t *testing.T) {
 	srcFile := filepath.Join("test_data")
 	require.DirExists(t, srcFile)
 
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	tmpDir := t.TempDir()
 
-	err = files.CopyDirOverwrite(srcFile, tmpDir)
+	err := files.CopyDirOverwrite(srcFile, tmpDir)
 	require.NoError(t, err, "failed to copy %s to %s", srcFile, tmpDir)
 
 	_, o := rename.NewCmdRename()

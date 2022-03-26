@@ -19,13 +19,12 @@ var generateTestOutput = false
 func TestHemlfileMarkdownReport(t *testing.T) {
 	var charts []*releasereport.NamespaceReleases
 
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "failed to create temp dir")
+	tmpDir := t.TempDir()
 
 	sourceFile := filepath.Join("test_data", "releases.yaml")
 	expectedPath := filepath.Join("test_data", "expected.README.md")
 
-	err = yamls.LoadFile(sourceFile, &charts)
+	err := yamls.LoadFile(sourceFile, &charts)
 	require.NoError(t, err, "failed to load file %s", sourceFile)
 	require.NotEmpty(t, charts, "no namespace charts found for %s", sourceFile)
 

@@ -1,7 +1,6 @@
 package get_test
 
 import (
-	"io/ioutil"
 	"path/filepath"
 	"testing"
 
@@ -13,8 +12,7 @@ import (
 )
 
 func TestGitGetFromRepository(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "failed to create tmp dir")
+	tmpDir := t.TempDir()
 
 	_, o := get.NewCmdGitGet()
 
@@ -25,7 +23,7 @@ func TestGitGetFromRepository(t *testing.T) {
 	o.Path = "expected.txt"
 	o.FromRepository = "myorg/myrepo"
 
-	err = o.Run()
+	err := o.Run()
 	if err != nil {
 		require.NoError(t, err, "failed to run command")
 	}
@@ -37,8 +35,7 @@ func TestGitGetFromRepository(t *testing.T) {
 }
 
 func TestGitGetFromEnvironment(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "failed to create tmp dir")
+	tmpDir := t.TempDir()
 
 	ns := "jx"
 	devEnv := jxenv.CreateDefaultDevEnvironment(ns)
@@ -58,7 +55,7 @@ func TestGitGetFromEnvironment(t *testing.T) {
 	o.Env = "dev"
 	o.Namespace = ns
 
-	err = o.Run()
+	err := o.Run()
 	if err != nil {
 		require.NoError(t, err, "failed to run command")
 	}
