@@ -2,7 +2,6 @@ package report
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -194,7 +193,7 @@ func (o *Options) Run() error {
 		return errors.Wrap(err, "failed to convert charts to markdown")
 	}
 	path = filepath.Join(o.OutDir, "README.md")
-	err = ioutil.WriteFile(path, []byte(md), files.DefaultFileWritePermissions)
+	err = os.WriteFile(path, []byte(md), files.DefaultFileWritePermissions)
 	if err != nil {
 		return errors.Wrapf(err, "failed to save %s", path)
 	}
@@ -431,7 +430,7 @@ func (o *Options) discoverResources(ci *releasereport.ReleaseInfo, ns string, re
 }
 
 func (o *Options) discoverIngress(ci *releasereport.ReleaseInfo, rel *state.ReleaseSpec, resourcesDir string) error {
-	fs, err := ioutil.ReadDir(resourcesDir)
+	fs, err := os.ReadDir(resourcesDir)
 	if err != nil {
 		return errors.Wrapf(err, "failed to read dir %s", resourcesDir)
 	}
@@ -446,7 +445,7 @@ func (o *Options) discoverIngress(ci *releasereport.ReleaseInfo, rel *state.Rele
 		}
 
 		path := filepath.Join(resourcesDir, name)
-		data, err := ioutil.ReadFile(path)
+		data, err := os.ReadFile(path)
 		if err != nil {
 			return errors.Wrapf(err, "failed to load file %s", path)
 		}

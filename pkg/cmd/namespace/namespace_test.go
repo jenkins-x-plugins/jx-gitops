@@ -19,7 +19,7 @@ import (
 
 func TestUpdateNamespaceInYamlFiles(t *testing.T) {
 	sourceData := filepath.Join("test_data", "regular")
-	fileNames, err := ioutil.ReadDir(sourceData)
+	fileNames, err := os.ReadDir(sourceData)
 	assert.NoError(t, err)
 
 	tmpDir, err := ioutil.TempDir("", "")
@@ -58,10 +58,10 @@ func TestUpdateNamespaceInYamlFiles(t *testing.T) {
 	require.NoError(t, err, "failed to update namespace in dir %s", tmpDir)
 
 	for _, tc := range testCases {
-		resultData, err := ioutil.ReadFile(tc.ResultFile)
+		resultData, err := os.ReadFile(tc.ResultFile)
 		require.NoError(t, err, "failed to load results %s", tc.ResultFile)
 
-		expectData, err := ioutil.ReadFile(tc.ExpectedFile)
+		expectData, err := os.ReadFile(tc.ExpectedFile)
 		require.NoError(t, err, "failed to load results %s", tc.ExpectedFile)
 
 		result := strings.TrimSpace(string(resultData))

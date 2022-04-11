@@ -2,7 +2,6 @@ package resolve
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -1066,7 +1065,7 @@ func (o *Options) migrateRequirementsToV4() error {
 	}
 
 	if exists {
-		file, err := ioutil.ReadFile(path)
+		file, err := os.ReadFile(path)
 		if err != nil {
 			return errors.Wrapf(err, "failed to read %s", path)
 		}

@@ -2,6 +2,7 @@ package label_test
 
 import (
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -16,7 +17,7 @@ import (
 
 func TestUpdateLabelsInYamlFiles(t *testing.T) {
 	sourceData := filepath.Join("test_data")
-	fileNames, err := ioutil.ReadDir(sourceData)
+	fileNames, err := os.ReadDir(sourceData)
 	assert.NoError(t, err)
 
 	argTests := [][]string{
@@ -61,10 +62,10 @@ func TestUpdateLabelsInYamlFiles(t *testing.T) {
 		require.NoError(t, err, "failed to update namespace in dir %s for args %#v", tmpDir, args)
 
 		for _, tc := range testCases {
-			resultData, err := ioutil.ReadFile(tc.ResultFile)
+			resultData, err := os.ReadFile(tc.ResultFile)
 			require.NoError(t, err, "failed to load results %s for args %#v", tc.ResultFile, args)
 
-			expectData, err := ioutil.ReadFile(tc.ExpectedFile)
+			expectData, err := os.ReadFile(tc.ExpectedFile)
 			require.NoError(t, err, "failed to load results %s for args %#v", tc.ExpectedFile, args)
 
 			result := strings.TrimSpace(string(resultData))

@@ -252,7 +252,7 @@ func downloadURLToFile(u, path string) error {
 		return errors.Wrapf(err, "failed to read response from %s", u)
 	}
 
-	err = ioutil.WriteFile(path, body, files.DefaultFileWritePermissions)
+	err = os.WriteFile(path, body, files.DefaultFileWritePermissions)
 	if err != nil {
 		return errors.Wrapf(err, "failed to save file %s", path)
 	}

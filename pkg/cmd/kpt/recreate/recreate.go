@@ -109,7 +109,7 @@ func (o *Options) Run() error {
 		_, kptDirName := filepath.Split(kptDir)
 
 		u := &unstructured.Unstructured{}
-		data, err := ioutil.ReadFile(path)
+		data, err := os.ReadFile(path)
 		if err != nil {
 			return errors.Wrapf(err, "failed to read file %s", path)
 		}

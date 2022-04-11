@@ -2,7 +2,6 @@ package update
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -269,7 +268,7 @@ func (o *Options) Matches(path string) (bool, error) {
 		return true, nil
 	}
 
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return false, errors.Wrapf(err, "failed to load file %s", path)
 	}
@@ -318,7 +317,7 @@ func (o *Options) LoadOverrideStrategies() (map[string]string, error) {
 		log.Logger().Infof("no strategy configuration file %s found so using default merge strategies", info(kptStrategyFilename))
 		return strategies, nil
 	}
-	data, err := ioutil.ReadFile(kptStrategyFilename)
+	data, err := os.ReadFile(kptStrategyFilename)
 	if err != nil {
 		return strategies, errors.Wrapf(err, "failed to read kpt strategy file %s", kptStrategyFilename)
 	}

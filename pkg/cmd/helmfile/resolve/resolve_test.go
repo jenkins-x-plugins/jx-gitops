@@ -3,6 +3,7 @@ package resolve_test
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -178,10 +179,10 @@ func TestStepHelmfileResolve(t *testing.T) {
 			generatedFile := filepath.Join(tmpDir, "helmfiles", ns, "helmfile.yaml")
 
 			if generateTestOutput {
-				data, err := ioutil.ReadFile(generatedFile)
+				data, err := os.ReadFile(generatedFile)
 				require.NoError(t, err, "failed to load %s", generatedFile)
 
-				err = ioutil.WriteFile(expectedPath, data, 0600)
+				err = os.WriteFile(expectedPath, data, 0600)
 				require.NoError(t, err, "failed to save file %s", expectedPath)
 
 				t.Logf("saved file %s\n", expectedPath)

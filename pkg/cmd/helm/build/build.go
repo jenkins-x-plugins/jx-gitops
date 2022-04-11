@@ -2,7 +2,7 @@ package build
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strconv"
 
@@ -98,7 +98,7 @@ func (o *Options) Run() error {
 		return nil
 	}
 
-	fileSlice, err := ioutil.ReadDir(dir)
+	fileSlice, err := os.ReadDir(dir)
 	if err != nil {
 		return errors.Wrapf(err, "failed to read dir %s", dir)
 	}

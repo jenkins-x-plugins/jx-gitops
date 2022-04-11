@@ -2,6 +2,7 @@ package yset_test
 
 import (
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -62,10 +63,10 @@ func TestYSet(t *testing.T) {
 		require.NoError(t, err, "failed to run for test %s", name)
 
 		if generateTestOutput {
-			data, err := ioutil.ReadFile(outFile)
+			data, err := os.ReadFile(outFile)
 			require.NoError(t, err, "failed to load %s", outFile)
 
-			err = ioutil.WriteFile(expectedFile, data, 0600)
+			err = os.WriteFile(expectedFile, data, 0600)
 			require.NoError(t, err, "failed to save file %s", expectedFile)
 			continue
 		}

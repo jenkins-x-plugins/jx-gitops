@@ -2,6 +2,7 @@ package create_test
 
 import (
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -43,10 +44,10 @@ func TestCreateRepositorySourceDir(t *testing.T) {
 		if generateTestOutput {
 			generatedFile := genFile
 			expectedPath := expectedFile
-			data, err := ioutil.ReadFile(generatedFile)
+			data, err := os.ReadFile(generatedFile)
 			require.NoError(t, err, "failed to load %s", generatedFile)
 
-			err = ioutil.WriteFile(expectedPath, data, 0600)
+			err = os.WriteFile(expectedPath, data, 0600)
 			require.NoError(t, err, "failed to save file %s", expectedPath)
 
 			t.Logf("saved file %s\n", expectedPath)
@@ -58,7 +59,7 @@ func TestCreateRepositorySourceDir(t *testing.T) {
 		t.Logf("generated expected file %s\n", genFile)
 
 		target := &v1.SourceRepository{}
-		data, err := ioutil.ReadFile(genFile)
+		data, err := os.ReadFile(genFile)
 		require.NoError(t, err, "failed to read file %s", genFile)
 
 		results, err := util.ValidateYaml(target, data)

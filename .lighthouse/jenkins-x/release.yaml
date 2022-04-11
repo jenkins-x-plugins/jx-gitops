@@ -28,6 +28,9 @@ spec:
           resources: {}
         - name: release-binary
           resources: {}
+        - image: uses:spring-financial-group/DevOps/pipelines/golang-lint.yaml@main
+          name: ""
+          resources: {}
         - name: build-and-push-image
           resources: {}
         - name: chart-docs

@@ -38,7 +38,7 @@ func TestCmdVariables(t *testing.T) {
 	require.NoError(t, err, "failed to create temp dir")
 
 	testDir := filepath.Join("test_data", "tests")
-	fs, err := ioutil.ReadDir(testDir)
+	fs, err := os.ReadDir(testDir)
 	require.NoError(t, err, "failed to read test dir %s", testDir)
 	for _, f := range fs {
 		if f == nil || !f.IsDir() {
@@ -58,7 +58,7 @@ func TestCmdVariables(t *testing.T) {
 
 		version := "1.2.3"
 		versionFile := filepath.Join(runDir, "VERSION")
-		err = ioutil.WriteFile(versionFile, []byte(version), files.DefaultFileWritePermissions)
+		err = os.WriteFile(versionFile, []byte(version), files.DefaultFileWritePermissions)
 		require.NoError(t, err, "failed to write file %s", versionFile)
 
 		ns := "jx"
@@ -122,10 +122,10 @@ func TestCmdVariables(t *testing.T) {
 		if generateTestOutput {
 			generatedFile := f
 			expectedPath := filepath.Join(srcDir, "expected.sh")
-			data, err := ioutil.ReadFile(generatedFile)
+			data, err := os.ReadFile(generatedFile)
 			require.NoError(t, err, "failed to load %s", generatedFile)
 
-			err = ioutil.WriteFile(expectedPath, data, 0600)
+			err = os.WriteFile(expectedPath, data, 0600)
 			require.NoError(t, err, "failed to save file %s", expectedPath)
 
 			t.Logf("saved file %s\n", expectedPath)

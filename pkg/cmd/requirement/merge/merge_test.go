@@ -2,6 +2,7 @@ package merge_test
 
 import (
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -24,7 +25,7 @@ func TestRequirementsMergeFile(t *testing.T) {
 	rootTmpDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err, "could not create temp dir")
 
-	fileNames, err := ioutil.ReadDir("test_data")
+	fileNames, err := os.ReadDir("test_data")
 	assert.NoError(t, err)
 
 	for _, f := range fileNames {
@@ -53,10 +54,10 @@ func TestRequirementsMergeFile(t *testing.T) {
 		generatedFile := filepath.Join(tmpDir, jxcore.RequirementsConfigFileName)
 
 		if generateTestOutput {
-			data, err := ioutil.ReadFile(generatedFile)
+			data, err := os.ReadFile(generatedFile)
 			require.NoError(t, err, "failed to load %s", generatedFile)
 
-			err = ioutil.WriteFile(expectedPath, data, 0600)
+			err = os.WriteFile(expectedPath, data, 0600)
 			require.NoError(t, err, "failed to save file %s", expectedPath)
 			continue
 		}
@@ -79,7 +80,7 @@ func TestRequirementsMergeConfigMap(t *testing.T) {
 	changesFile := filepath.Join("test_data", "sample", "changes.yml")
 	require.FileExists(t, changesFile)
 
-	changesYaml, err := ioutil.ReadFile(changesFile)
+	changesYaml, err := os.ReadFile(changesFile)
 	require.NoError(t, err, "failed to load %s", changesYaml)
 
 	// now lets run the command

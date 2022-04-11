@@ -2,6 +2,7 @@ package tfupgrade_test
 
 import (
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -17,7 +18,7 @@ func TestTerraformUpgrade(t *testing.T) {
 	tmpDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err, "could not create temp dir")
 
-	fileNames, err := ioutil.ReadDir("test_data")
+	fileNames, err := os.ReadDir("test_data")
 	assert.NoError(t, err)
 
 	for _, f := range fileNames {

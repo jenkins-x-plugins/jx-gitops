@@ -1,0 +1,23 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  creationTimestamp: null
+  name: golint
+spec:
+  pipelineSpec:
+    tasks:
+    - name: from-build-pack
+      resources: {}
+      taskSpec:
+        metadata: {}
+        steps:
+        - image: uses:jenkins-x/jx3-pipeline-catalog/tasks/git-clone/git-clone-pr.yaml@versionStream
+          name: ""
+          resources: {}
+        - image: uses:spring-financial-group/DevOps/pipelines/golang-lint.yaml@main
+          name: ""
+          resources: {}
+  podTemplate: {}
+  serviceAccountName: tekton-bot
+  timeout: 10h0m0s
+status: {}

@@ -63,17 +63,17 @@ func AssertUpdateIngress(t *testing.T, rootDir string) {
 		require.FileExists(t, path)
 		require.FileExists(t, expectedFile)
 
-		resultData, err := ioutil.ReadFile(path)
+		resultData, err := os.ReadFile(path)
 		require.NoError(t, err, "failed to load results %s", path)
 
-		expectData, err := ioutil.ReadFile(expectedFile)
+		expectData, err := os.ReadFile(expectedFile)
 		require.NoError(t, err, "failed to load results %s", expectedFile)
 
 		result := strings.TrimSpace(string(resultData))
 		expectedText := strings.TrimSpace(string(expectData))
 
 		if generateTestOutput {
-			err = ioutil.WriteFile(expectedFile, []byte(result), 0600)
+			err = os.WriteFile(expectedFile, []byte(result), 0600)
 			require.NoError(t, err, "failed to save file %s", expectedFile)
 			return nil
 		}

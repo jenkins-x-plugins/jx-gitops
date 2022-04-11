@@ -1,7 +1,7 @@
 package kustomizes
 
 import (
-	"io/ioutil"
+	"os"
 	"path/filepath"
 
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
@@ -33,7 +33,7 @@ func LoadKustomization(dir string) (*types.Kustomization, error) {
 	if !exists {
 		return answer, nil
 	}
-	data, err := ioutil.ReadFile(fileName)
+	data, err := os.ReadFile(fileName)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to load file %s", fileName)
 	}
@@ -51,7 +51,7 @@ func SaveKustomization(kustomization *types.Kustomization, dir string) error {
 		return errors.Wrapf(err, "failed to marshal Kustomization")
 	}
 	fileName := filepath.Join(dir, "kustomization.yaml")
-	err = ioutil.WriteFile(fileName, data, files.DefaultFileWritePermissions)
+	err = os.WriteFile(fileName, data, files.DefaultFileWritePermissions)
 	if err != nil {
 		return errors.Wrapf(err, "failed write file %s", fileName)
 	}

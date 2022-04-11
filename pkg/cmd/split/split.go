@@ -2,7 +2,6 @@ package split
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -70,7 +69,7 @@ func ProcessYamlFiles(dir string) error {
 		if !strings.HasSuffix(path, ".yaml") && !strings.HasSuffix(path, ".yml") {
 			return nil
 		}
-		data, err := ioutil.ReadFile(path) //nolint:staticcheck
+		data, err := os.ReadFile(path) //nolint:staticcheck
 		if err != nil {
 			return errors.Wrapf(err, "failed to load file %s", path)
 		}
@@ -128,7 +127,7 @@ func ProcessYamlFiles(dir string) error {
 					}
 					continue
 				}
-				err = ioutil.WriteFile(name, []byte(text), files.DefaultFileWritePermissions)
+				err = os.WriteFile(name, []byte(text), files.DefaultFileWritePermissions)
 				if err != nil {
 					return errors.Wrapf(err, "failed to save %s", name)
 				}

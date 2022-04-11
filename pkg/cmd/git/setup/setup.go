@@ -3,7 +3,6 @@ package setup
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -283,7 +282,7 @@ func (o *Options) createGitCredentialsFile(fileName string, credentials []creden
 		return errors.Wrap(err, "creating git credentials")
 	}
 
-	if err := ioutil.WriteFile(fileName, data, files.DefaultDirWritePermissions); err != nil {
+	if err := os.WriteFile(fileName, data, files.DefaultDirWritePermissions); err != nil {
 		return fmt.Errorf("failed to write to %s: %s", fileName, err)
 	}
 	return nil

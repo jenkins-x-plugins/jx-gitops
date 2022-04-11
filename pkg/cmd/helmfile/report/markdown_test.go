@@ -2,6 +2,7 @@ package report_test
 
 import (
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -33,14 +34,14 @@ func TestHemlfileMarkdownReport(t *testing.T) {
 	require.NoError(t, err, "failed to generate markdown for file %s", sourceFile)
 
 	generatedFile := filepath.Join(tmpDir, "README.md")
-	err = ioutil.WriteFile(generatedFile, []byte(md), files.DefaultFileWritePermissions)
+	err = os.WriteFile(generatedFile, []byte(md), files.DefaultFileWritePermissions)
 	require.NoError(t, err, "failed to save file %s", generatedFile)
 
 	if generateTestOutput {
-		data, err := ioutil.ReadFile(generatedFile)
+		data, err := os.ReadFile(generatedFile)
 		require.NoError(t, err, "failed to load %s", generatedFile)
 
-		err = ioutil.WriteFile(expectedPath, data, 0600)
+		err = os.WriteFile(expectedPath, data, 0600)
 		require.NoError(t, err, "failed to save file %s", expectedPath)
 
 		t.Logf("saved file %s\n", expectedPath)

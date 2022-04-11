@@ -1,8 +1,8 @@
 package tfupgrade
 
 import (
-	"io/ioutil"
 	"net/url"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -73,7 +73,7 @@ func (o *Options) Run() error {
 
 	log.Logger().Infof("checking for terraform git repository versions in file: %s", info(path))
 
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return errors.Wrapf(err, "failed to load file %s", path)
 	}
@@ -102,7 +102,7 @@ func (o *Options) Run() error {
 
 	}
 
-	err = ioutil.WriteFile(path, []byte(text2), files.DefaultFileWritePermissions)
+	err = os.WriteFile(path, []byte(text2), files.DefaultFileWritePermissions)
 	if err != nil {
 		return errors.Wrapf(err, "failed to save file %s", path)
 	}

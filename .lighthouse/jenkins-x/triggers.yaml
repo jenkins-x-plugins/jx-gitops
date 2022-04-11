@@ -2,6 +2,11 @@ apiVersion: config.lighthouse.jenkins-x.io/v1alpha1
 kind: TriggerConfig
 spec:
   presubmits:
+  - name: gl
+    context: "golint"
+    always_run: true
+    optional: false
+    source: "golint.yaml"s
   - name: pr
     context: "pr"
     always_run: true
