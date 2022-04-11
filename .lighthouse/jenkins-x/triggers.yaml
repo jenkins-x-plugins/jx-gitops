@@ -6,7 +6,7 @@ spec:
     context: "golint"
     always_run: true
     optional: false
-    source: "golint.yaml"s
+    source: "golint.yaml"
   - name: pr
     context: "pr"
     always_run: true
