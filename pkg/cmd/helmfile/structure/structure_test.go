@@ -1,7 +1,6 @@
 package structure_test
 
 import (
-	"io/ioutil"
 	"path/filepath"
 	"testing"
 
@@ -17,10 +16,9 @@ func TestHelmfileStructure(t *testing.T) {
 	srcDir := "test_data"
 	require.DirExists(t, srcDir)
 
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "failed to create tmp dir")
+	tmpDir := t.TempDir()
 
-	err = files.CopyDirOverwrite(srcDir, tmpDir)
+	err := files.CopyDirOverwrite(srcDir, tmpDir)
 	require.NoError(t, err, "failed to copy test files at %s to %s", srcDir, tmpDir)
 
 	o := structure.Options{

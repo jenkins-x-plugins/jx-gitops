@@ -34,10 +34,9 @@ func AssertUpdateIngress(t *testing.T, rootDir string) {
 	expectedData := filepath.Join(rootDir, "expected")
 	require.DirExists(t, expectedData)
 
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	tmpDir := t.TempDir()
 
-	err = files.CopyDir(sourceData, tmpDir, true)
+	err := files.CopyDir(sourceData, tmpDir, true)
 	require.NoError(t, err, "failed to copy from %s to %s", sourceData, tmpDir)
 
 	_, uo := ingress.NewCmdUpdateIngress()

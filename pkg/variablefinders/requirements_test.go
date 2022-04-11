@@ -26,8 +26,7 @@ func TestFindRequirements(t *testing.T) {
 	ns := "jx"
 	devGitURL := "https://github.com/myorg/myrepo.git"
 
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	tmpDir := t.TempDir()
 
 	devEnv := jxenv.CreateDefaultDevEnvironment(ns)
 	devEnv.Namespace = ns

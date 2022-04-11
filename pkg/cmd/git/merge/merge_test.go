@@ -64,8 +64,7 @@ func TestGitMerge(t *testing.T) {
 		},
 	}
 
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "failed to create tmp dir")
+	tmpDir := t.TempDir()
 
 	for _, tc := range testCases {
 		name := tc.name
@@ -166,8 +165,7 @@ func readRef(t *testing.T, repoDir, name string) string {
 func TestGitMergeFindCommits(t *testing.T) {
 	t.SkipNow()
 
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	tmpDir := t.TempDir()
 
 	_, o := merge.NewCmdGitMerge()
 	o.Dir = tmpDir
@@ -175,7 +173,7 @@ func TestGitMergeFindCommits(t *testing.T) {
 	o.BaseSHA = "0ec6b33a1bf37b3f06ecea6687763df4a528da9c"
 	o.ExcludeCommitComment = "^chore: regenerate"
 	o.PullNumber = "5"
-	err = o.Validate()
+	err := o.Validate()
 	require.NoError(t, err, "failed to validate")
 
 	g := o.GitClient
