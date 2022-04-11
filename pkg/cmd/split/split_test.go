@@ -2,7 +2,6 @@ package split_test
 
 import (
 	"fmt"
-	"io/ioutil"
 	"path/filepath"
 	"testing"
 
@@ -17,10 +16,9 @@ func TestSplitYamlFiles(t *testing.T) {
 	srcFile := filepath.Join("test_data")
 	require.DirExists(t, srcFile)
 
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	tmpDir := t.TempDir()
 
-	err = files.CopyDirOverwrite(srcFile, tmpDir)
+	err := files.CopyDirOverwrite(srcFile, tmpDir)
 	require.NoError(t, err, "failed to copy %s to %s", srcFile, tmpDir)
 
 	o := &split.Options{
@@ -52,10 +50,9 @@ func TestSplitHelmTemplateYamlFiles(t *testing.T) {
 	srcFile := filepath.Join("test_data", "helm")
 	require.DirExists(t, srcFile)
 
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	tmpDir := t.TempDir()
 
-	err = files.CopyDirOverwrite(srcFile, tmpDir)
+	err := files.CopyDirOverwrite(srcFile, tmpDir)
 	require.NoError(t, err, "failed to copy %s to %s", srcFile, tmpDir)
 
 	o := &split.Options{

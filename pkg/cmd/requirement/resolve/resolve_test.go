@@ -1,7 +1,6 @@
 package resolve_test
 
 import (
-	"io/ioutil"
 	"path/filepath"
 	"testing"
 
@@ -65,13 +64,12 @@ func TestRequirementsResolveGKE(t *testing.T) {
 	}
 
 	// setup the disk
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	tmpDir := t.TempDir()
 
 	srcFile := filepath.Join("test_data", "gke")
 	require.DirExists(t, srcFile)
 
-	err = files.CopyDirOverwrite(srcFile, tmpDir)
+	err := files.CopyDirOverwrite(srcFile, tmpDir)
 	require.NoError(t, err, "failed to copy %s to %s", srcFile, tmpDir)
 
 	// now lets run the command
@@ -101,13 +99,12 @@ func TestRequirementsResolveGKE(t *testing.T) {
 
 func TestRequirementsResolvePipelineUser(t *testing.T) {
 	// setup the disk
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	tmpDir := t.TempDir()
 
 	srcFile := filepath.Join("test_data", "eks")
 	require.DirExists(t, srcFile)
 
-	err = files.CopyDirOverwrite(srcFile, tmpDir)
+	err := files.CopyDirOverwrite(srcFile, tmpDir)
 	require.NoError(t, err, "failed to copy %s to %s", srcFile, tmpDir)
 
 	// now lets run the command

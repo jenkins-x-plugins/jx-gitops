@@ -1,7 +1,6 @@
 package add_test
 
 import (
-	"io/ioutil"
 	"path/filepath"
 	"testing"
 
@@ -37,8 +36,7 @@ func TestRepositoryAdd(t *testing.T) {
 			provider: "https://github.com",
 		},
 	}
-	rootTmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	rootTmpDir := t.TempDir()
 
 	ns := "jx"
 	for _, tc := range testCases {
@@ -49,7 +47,7 @@ func TestRepositoryAdd(t *testing.T) {
 
 		t.Logf("running test %s in %s", name, tmpDir)
 
-		err = files.CopyDirOverwrite(sourceData, tmpDir)
+		err := files.CopyDirOverwrite(sourceData, tmpDir)
 		require.NoError(t, err, "failed to copy from %s to %s", sourceData, tmpDir)
 
 		sr := testjx.CreateSourceRepository(ns, tc.owner, tc.repo, tc.kind, tc.provider)

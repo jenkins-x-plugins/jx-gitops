@@ -38,8 +38,7 @@ func TestYSet(t *testing.T) {
 		},
 	}
 
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	tmpDir := t.TempDir()
 
 	for _, tc := range testCases {
 		name := tc.dir
@@ -50,7 +49,7 @@ func TestYSet(t *testing.T) {
 		require.FileExists(t, expectedFile)
 
 		outFile := filepath.Join(tmpDir, name+".yaml")
-		err = files.CopyFile(srcFile, outFile)
+		err := files.CopyFile(srcFile, outFile)
 		require.NoError(t, err, "failed to copy %s to %s", srcFile, outFile)
 
 		_, o := yset.NewCmdYSet()

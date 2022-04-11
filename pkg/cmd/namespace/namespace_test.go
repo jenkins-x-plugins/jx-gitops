@@ -22,8 +22,7 @@ func TestUpdateNamespaceInYamlFiles(t *testing.T) {
 	fileNames, err := os.ReadDir(sourceData)
 	assert.NoError(t, err)
 
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	tmpDir := t.TempDir()
 
 	type testCase struct {
 		SourceFile   string
@@ -77,11 +76,10 @@ func TestNamespaceDirMode(t *testing.T) {
 	srcFile := filepath.Join("test_data", "dirmode")
 	require.DirExists(t, srcFile)
 
-	rootTmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	rootTmpDir := t.TempDir()
 
 	tmpDir := filepath.Join(rootTmpDir, "namespaces")
-	err = os.MkdirAll(tmpDir, files.DefaultDirWritePermissions)
+	err := os.MkdirAll(tmpDir, files.DefaultDirWritePermissions)
 	require.NoError(t, err, "failed to make namespaces dir")
 
 	err = files.CopyDirOverwrite(srcFile, tmpDir)

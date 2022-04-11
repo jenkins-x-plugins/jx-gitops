@@ -1,7 +1,6 @@
 package export_test
 
 import (
-	"io/ioutil"
 	"path/filepath"
 	"testing"
 
@@ -17,8 +16,7 @@ import (
 )
 
 func TestExportRepositorySourceDir(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "failed to create tmp dir")
+	tmpDir := t.TempDir()
 
 	_, o := export.NewCmdExportConfig()
 	ns := "jx"
@@ -30,7 +28,7 @@ func TestExportRepositorySourceDir(t *testing.T) {
 	generatedFile := filepath.Join(tmpDir, v1alpha1.SourceConfigFileName)
 	o.ConfigFile = generatedFile
 
-	err = o.Run()
+	err := o.Run()
 	require.NoError(t, err, "failed to run the export")
 
 	t.Logf("generated export file %s", o.ConfigFile)

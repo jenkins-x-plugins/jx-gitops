@@ -1,7 +1,6 @@
 package secret_test
 
 import (
-	"io/ioutil"
 	"path/filepath"
 	"testing"
 
@@ -14,12 +13,11 @@ import (
 )
 
 func TestServiceAccountSecret(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	tmpDir := t.TempDir()
 
 	sourceData := filepath.Join("test_data")
 
-	err = files.CopyDirOverwrite(sourceData, tmpDir)
+	err := files.CopyDirOverwrite(sourceData, tmpDir)
 	require.NoError(t, err, "failed to copy generated crds at %s to %s", sourceData, tmpDir)
 
 	_, o := secret.NewCmdServiceAccountSecrets()

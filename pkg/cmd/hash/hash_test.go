@@ -1,7 +1,6 @@
 package hash_test
 
 import (
-	"io/ioutil"
 	"path/filepath"
 	"testing"
 
@@ -16,8 +15,7 @@ import (
 
 func TestUpdateAnnotatesInYamlFiles(t *testing.T) {
 	sourceDir := filepath.Join("test_data", "configs")
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	tmpDir := t.TempDir()
 
 	_, ho := hash.NewCmdHashAnnotate()
 	ho.SourceFiles = []string{
@@ -27,7 +25,7 @@ func TestUpdateAnnotatesInYamlFiles(t *testing.T) {
 	ho.Dir = tmpDir
 
 	deploymentsDir := filepath.Join("test_data", "deployments")
-	err = files.CopyDir(deploymentsDir, tmpDir, true)
+	err := files.CopyDir(deploymentsDir, tmpDir, true)
 	require.NoError(t, err, "failed to copy from %s to %s", deploymentsDir, tmpDir)
 
 	err = ho.Run()
@@ -50,8 +48,7 @@ func TestUpdateAnnotatesInYamlFiles(t *testing.T) {
 
 func TestUpdatePodSpecAnnotatesInYamlFiles(t *testing.T) {
 	sourceDir := filepath.Join("test_data", "configs")
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	tmpDir := t.TempDir()
 
 	_, ho := hash.NewCmdHashAnnotate()
 	ho.SourceFiles = []string{
@@ -62,7 +59,7 @@ func TestUpdatePodSpecAnnotatesInYamlFiles(t *testing.T) {
 	ho.PodSpec = true
 
 	deploymentsDir := filepath.Join("test_data", "deployments")
-	err = files.CopyDir(deploymentsDir, tmpDir, true)
+	err := files.CopyDir(deploymentsDir, tmpDir, true)
 	require.NoError(t, err, "failed to copy from %s to %s", deploymentsDir, tmpDir)
 
 	err = ho.Run()
