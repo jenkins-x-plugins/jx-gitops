@@ -22,13 +22,13 @@ const (
 	KustomizePluginName = "kustomize"
 
 	// HelmVersion the default version of helm to use
-	HelmVersion = "3.7.2"
+	HelmVersion = "3.8.2"
 
 	// HelmfileVersion the default version of helmfile to use
 	HelmfileVersion = "0.143.0"
 
 	// KptVersion the default version of kpt to use
-	KptVersion = "0.37.0"
+	KptVersion = "v1.0.0-beta.14"
 
 	// KubectlVersion the default version of kpt to use
 	KubectlVersion = "1.21.0"

@@ -126,6 +126,10 @@ darwin: ## Build for OSX
 	CGO_ENABLED=$(CGO_ENABLED) GOOS=darwin GOARCH=amd64 $(GO) $(BUILD_TARGET) $(BUILDFLAGS) -o build/darwin/$(NAME) $(MAIN_SRC_FILE)
 	chmod +x build/darwin/$(NAME)
 
+darwin-arm: ## Build for OSX
+	CGO_ENABLED=$(CGO_ENABLED) GOOS=darwin GOARCH=arm64 $(GO) $(BUILD_TARGET) $(BUILDFLAGS) -o build/darwin-arm/$(NAME) $(MAIN_SRC_FILE)
+	chmod +x build/darwin-arm/$(NAME)
+
 .PHONY: release
 release: clean linux test
 
