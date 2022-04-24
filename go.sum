@@ -215,7 +215,6 @@ github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6r
 github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d h1:xDfNPAt8lFiC1UJrqV3uuy861HCTo708pDMbjHHdCas=
 github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d/go.mod h1:6QX/PXZ00z/TKoufEY6K/a0k6AhaJrQKdFe6OfVXsa4=
 github.com/bgentry/speakeasy v0.1.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
-github.com/bitly/go-simplejson v0.5.0 h1:6IH+V8/tVMab511d5bn4M7EwGXZf9Hj6i2xSwkNEM+Y=
 github.com/bitly/go-simplejson v0.5.0/go.mod h1:cXHtHw4XUPsvGaxgjIAn8PhEWG9NfngEKAMDJEczWVA=
 github.com/bketelsen/crypt v0.0.3-0.20200106085610-5cbc8cc4026c/go.mod h1:MKsuJmJgSg28kpZDP6UIiPt0e0Oz0kqKNGyRaWEPv84=
 github.com/bketelsen/crypt v0.0.4/go.mod h1:aI6NrJ0pMGgvZKL1iVgXLnfIFJtfV+bKCoqOes/6LfM=
@@ -227,7 +226,6 @@ github.com/blendle/zapdriver v1.3.1 h1:C3dydBOWYRiOk+B8X9IVZ5IOe+7cl+tGOexN4QqHf
 github.com/blendle/zapdriver v1.3.1/go.mod h1:mdXfREi6u5MArG4j9fewC+FGnXaBR+T4Ox4J2u4eHCc=
 github.com/bluekeyes/go-gitdiff v0.4.0 h1:Q3qUnQ5cv27vG6ywUTiSQUobRYRcQIBs8KVGKojLg9I=
 github.com/bluekeyes/go-gitdiff v0.4.0/go.mod h1:QpfYYO1E0fTVHVZAZKiRjtSGY9823iCdvGXBcEzHGbM=
-github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 h1:DDGfHa7BWjL4YnC6+E63dPcxHo2sUxDIu8g3QgEJdRY=
 github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869/go.mod h1:Ekp36dRnpXw/yCqJaO+ZrUyxD+3VXMFFr56k5XYrpB4=
 github.com/bmizerany/perks v0.0.0-20141205001514-d9a9656a3a4b/go.mod h1:ac9efd0D1fsDb3EJvhqgXRbFx7bs2wqZ10HQPeU8U/Q=
 github.com/bshuster-repo/logrus-logstash-hook v0.4.1 h1:pgAtgj+A31JBVtEHu2uHuEx0n+2ukqUJnS2vVe5pQNA=
@@ -627,7 +625,6 @@ github.com/gorilla/websocket v1.4.0/go.mod h1:E7qHFY5m1UJ88s3WnNqhKjPHQ0heANvMoA
 github.com/gorilla/websocket v1.4.2/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
 github.com/gosuri/uitable v0.0.4 h1:IG2xLKRvErL3uhY6e1BylFzG+aJiwQviDDTfOKeKTpY=
 github.com/gosuri/uitable v0.0.4/go.mod h1:tKR86bXuXPZazfOTG1FIzvjIdXzd0mo4Vtn16vt0PJo=
-github.com/gotestyourself/gotestyourself v2.2.0+incompatible h1:AQwinXlbQR2HvPjQZOmDhRqsv5mZf+Jb1RnSLxcqZcI=
 github.com/gotestyourself/gotestyourself v2.2.0+incompatible/go.mod h1:zZKM6oeNM8k+FRljX1mnzVYeS8wiGgQyvST1/GafPbY=
 github.com/goware/prefixer v0.0.0-20160118172347-395022866408 h1:Y9iQJfEqnN3/Nce9cOegemcy/9Ai5k3huT6E80F3zaw=
 github.com/goware/prefixer v0.0.0-20160118172347-395022866408/go.mod h1:PE1ycukgRPJ7bJ9a1fdfQ9j8i/cEcRAoLZzbxYpNB/s=
@@ -747,21 +744,21 @@ github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869/go.mod h1:cJ6Cj
 github.com/jenkins-x-plugins/jx-charter v0.0.28 h1:Pwtcm2L8+xmtboPBIvTsc3jPLEwZuYnzDtBQurdVuv0=
 github.com/jenkins-x-plugins/jx-charter v0.0.28/go.mod h1:oWhIpQIRc08qikMIH7VF08kQM/onYtU9teWq8eCSaJE=
 github.com/jenkins-x/gen-crd-api-reference-docs v0.1.6/go.mod h1:a4dzSf/nNLMMMqultm6IlV/04xq26uICEYPkSTOahWQ=
-github.com/jenkins-x/go-scm v1.11.4 h1:uYEFE4Ty9nmlo8paG4ysSxmO5ii6uj7nCQIsSh+ppXU=
-github.com/jenkins-x/go-scm v1.11.4/go.mod h1:8zDNVAps5UCZ7nDVBCzkIrPaSGN4vHq+1bDrHLk6JJc=
+github.com/jenkins-x/go-scm v1.11.5 h1:bWfyBlcDB/HHSRmJOSmBs2l4VRL2YF1Ka6Y1dn4Inx0=
+github.com/jenkins-x/go-scm v1.11.5/go.mod h1:GB6XjszezsDOxKTsPoyk4MT/cKw30qkPdJ4tml+MImg=
 github.com/jenkins-x/jx-api/v4 v4.1.5/go.mod h1:l11kHlFy40UGu9pdhCRxDiJcEgRubSVzybWB2jXjLcs=
 github.com/jenkins-x/jx-api/v4 v4.3.3/go.mod h1:l11kHlFy40UGu9pdhCRxDiJcEgRubSVzybWB2jXjLcs=
-github.com/jenkins-x/jx-api/v4 v4.3.4 h1:aximwXBVce5DwCTF6DQziRTzI/tgyGBKu7SJMIvEkwQ=
-github.com/jenkins-x/jx-api/v4 v4.3.4/go.mod h1:hORWEL0AqeqtkCmgfs1yEwv6CGZXljDE/7+/P3sfs/k=
+github.com/jenkins-x/jx-api/v4 v4.3.5 h1:B+K9DKCtCYyYteDaHGmZrBUKkuUULHPFwKQc3j16ECA=
+github.com/jenkins-x/jx-api/v4 v4.3.5/go.mod h1:iHK40sCT1ct/C5cIa+Uo+MDFFAjXfnA88MImhPfiTmY=
 github.com/jenkins-x/jx-helpers/v3 v3.0.127/go.mod h1:0U5fcXnqSv5ugx+XMZ2rYT+VU3o+pyJeXJEiNMAVeSU=
-github.com/jenkins-x/jx-helpers/v3 v3.2.4 h1:jhYcQn5NXahr0LxCaCRIgXCSl4Ld00cXU83eOyQIWe4=
-github.com/jenkins-x/jx-helpers/v3 v3.2.4/go.mod h1:w0isjFV0n85jYJogjTW9cdm8vM/8k1mLhTfLXrb4lCs=
+github.com/jenkins-x/jx-helpers/v3 v3.2.5 h1:Nxy83rMtTAoLrduPStldEuwS1E9tpGEON/VpMlACFtE=
+github.com/jenkins-x/jx-helpers/v3 v3.2.5/go.mod h1:w0isjFV0n85jYJogjTW9cdm8vM/8k1mLhTfLXrb4lCs=
 github.com/jenkins-x/jx-kube-client/v3 v3.0.2 h1:sJs6FaIwycDYwE4UsA7j9tpdXOxXEta9KNUJp6s45VI=
 github.com/jenkins-x/jx-kube-client/v3 v3.0.2/go.mod h1:C/mKnCT5wvolX61eLKJVBNev9sqnkGNpi4skTQ1Gr3Q=
 github.com/jenkins-x/jx-logging/v3 v3.0.6 h1:rXiLYK7WuliCtujKkeU77fnSTJRDSIgbIk7PG4fnZGc=
 github.com/jenkins-x/jx-logging/v3 v3.0.6/go.mod h1:Vp2ER2SYgGhAgEEHlLwfi2ZB54tz6ya1qExq0A4CKMI=
-github.com/jenkins-x/lighthouse-client v0.0.414 h1:NBBDWolFe4C4XgFkBUFcZuwiZmNbxm0jK5yRstCg9dw=
-github.com/jenkins-x/lighthouse-client v0.0.414/go.mod h1:vqnDCis5KBBic6HIaIzb+jM4d9IoPD0og2p2E+vczFw=
+github.com/jenkins-x/lighthouse-client v0.0.438 h1:bgdwLGzgrpdDolI3lQ0DIkekvmXFvdc3N+DQVWo5d5o=
+github.com/jenkins-x/lighthouse-client v0.0.438/go.mod h1:N7QjV8q6Pc72XiEWdEJAfx/HxO4XyiDj7H9l6ah6mcE=
 github.com/jenkins-x/logrus-stackdriver-formatter v0.2.3 h1:NuRWKUPCEX1wKlXA8ZYSG28qGKd41R7BK11YDQkPwqo=
 github.com/jenkins-x/logrus-stackdriver-formatter v0.2.3/go.mod h1:litPp7VZWDRCl8LvXuqGngy+65kkg/+T23TgFnDmfTk=
 github.com/jessevdk/go-flags v1.4.0/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=
@@ -878,6 +875,7 @@ github.com/mattn/go-runewidth v0.0.8/go.mod h1:H031xJmbD/WCDINGzjvQ9THkh0rPKHF+m
 github.com/mattn/go-shellwords v1.0.11/go.mod h1:EZzvwXDESEeg03EKmM+RmDnNOPKG4lLtQsUlTZDWQ8Y=
 github.com/mattn/go-sqlite3 v1.12.0/go.mod h1:FPy6KqzDD04eiIsT53CuJW3U88zkxoIYsOqkbpncsNc=
 github.com/mattn/go-sqlite3 v1.14.6/go.mod h1:NyWgC/yNuGj7Q9rpYnZvas74GogHl5/Z4A/KQRfk6bU=
+github.com/mattn/go-zglob v0.0.1/go.mod h1:9fxibJccNxU2cnpIKLRRFA7zX7qhkJIQWBb449FYHOo=
 github.com/matttproud/golang_protobuf_extensions v1.0.1/go.mod h1:D8He9yQNgCq6Z5Ld7szi9bcBfOoFv/3dc6xSMkL2PC0=
 github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 h1:I0XW9+e1XWDxdcEniV4rQAIOPUGDq67JSCiRCgGCZLI=
 github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369/go.mod h1:BSXmuO+STAnVfrANrmjBb36TMTDstsz7MSK+HVaYKv4=
@@ -905,7 +903,6 @@ github.com/mitchellh/mapstructure v0.0.0-20160808181253-ca63d7c062ee/go.mod h1:F
 github.com/mitchellh/mapstructure v1.1.2/go.mod h1:FVVH3fgwuzCH5S8UJGiWEs2h04kUh9fWfEaFds41c1Y=
 github.com/mitchellh/mapstructure v1.4.1 h1:CpVNEelQCZBooIPDn+AR3NpivK/TIKU8bDxdASFVQag=
 github.com/mitchellh/mapstructure v1.4.1/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
-github.com/mitchellh/osext v0.0.0-20151018003038-5e2d6d41470f h1:2+myh5ml7lgEU/51gbeLHfKGNfgEQQIWrlbdaOsidbQ=
 github.com/mitchellh/osext v0.0.0-20151018003038-5e2d6d41470f/go.mod h1:OkQIRizQZAeMln+1tSwduZz7+Af5oFlKirV/MSYes2A=
 github.com/mitchellh/reflectwalk v1.0.0/go.mod h1:mSTlrgnPZtwu0c4WaC2kGObEpuNDbx0jmZXqmk4esnw=
 github.com/mitchellh/reflectwalk v1.0.1 h1:FVzMWA5RllMAKIdUSC8mdWo3XtwoecrH79BY70sEEpE=
@@ -1000,7 +997,6 @@ github.com/otiai10/copy v1.1.1/go.mod h1:rrF5dJ5F0t/EWSYODDu4j9/vEeYHMkc8jt0zJCh
 github.com/otiai10/copy v1.2.0 h1:HvG945u96iNadPoG2/Ja2+AUJeW5YuFQMixq9yirC+k=
 github.com/otiai10/copy v1.2.0/go.mod h1:rrF5dJ5F0t/EWSYODDu4j9/vEeYHMkc8jt0zJChqQWw=
 github.com/otiai10/curr v0.0.0-20150429015615-9b4961190c95/go.mod h1:9qAhocn7zKJG+0mI8eUu6xqkFDYS2kb2saOteoSB3cE=
-github.com/otiai10/curr v1.0.0 h1:TJIWdbX0B+kpNagQrjgq8bCMrbhiuX73M2XwgtDMoOI=
 github.com/otiai10/curr v1.0.0/go.mod h1:LskTG5wDwr8Rs+nNQ+1LlxRjAtTZZjtJW4rMXl6j4vs=
 github.com/otiai10/mint v1.3.0/go.mod h1:F5AjcsTsWUqX+Na9fpHb52P8pcRX2CI6A3ctIT91xUo=
 github.com/otiai10/mint v1.3.1 h1:BCmzIS3n71sGfHB5NMNDB3lHYPz8fWSkCAErHed//qc=
@@ -1211,7 +1207,6 @@ github.com/urfave/cli v1.20.0/go.mod h1:70zkFmudgCuE/ngEzBv17Jvp/497gISqfk5gWijb
 github.com/urfave/cli v1.22.1/go.mod h1:Gos4lmkARVdJ6EkW0WaNv/tZAAMe9V7XWyB60NtXRu0=
 github.com/urfave/cli v1.22.2/go.mod h1:Gos4lmkARVdJ6EkW0WaNv/tZAAMe9V7XWyB60NtXRu0=
 github.com/urfave/cli v1.22.5/go.mod h1:Gos4lmkARVdJ6EkW0WaNv/tZAAMe9V7XWyB60NtXRu0=
-github.com/valyala/bytebufferpool v1.0.0 h1:GqA5TC/0021Y/b9FG4Oi9Mr3q7XYx6KllzawFIhcdPw=
 github.com/valyala/bytebufferpool v1.0.0/go.mod h1:6bBcMArwyJ5K/AmCkWv1jt77kVWyCJ6HpOuEn7z0Csc=
 github.com/variantdev/chartify v0.8.5 h1:yAw2+IxftPDR5A2/vr97Y6DR1U/2lJCHxfp40DBxfw0=
 github.com/variantdev/chartify v0.8.5/go.mod h1:qF4XzQlkfH/6k2jAi1hLas+lK4zSCa8kY+r5JdmLA68=
@@ -1478,6 +1473,7 @@ golang.org/x/sys v0.0.0-20190515120540-06a5c4944438/go.mod h1:h1NjWce9XRLGQEsW7w
 golang.org/x/sys v0.0.0-20190530182044-ad28b68e88f1/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20190602015325-4c4f7f33c9ed/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20190606165138-5da285871e9c/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+golang.org/x/sys v0.0.0-20190616124812-15dcb6c0061f/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20190624142023-c5567b49c5d0/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20190626221950-04f50cda93cb/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20190726091711-fc99dfbffb4e/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
