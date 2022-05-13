@@ -303,6 +303,7 @@ func (o *Options) createReleaseInfo(helmState *state.HelmState, ns string, rel *
 		}
 	}
 
+	answer.ReleaseName = rel.Name
 	answer.LogsURL = getLogURL(&o.Requirements.Spec, ns, answer.Name)
 	return answer, nil
 }
