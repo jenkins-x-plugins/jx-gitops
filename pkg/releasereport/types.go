@@ -18,6 +18,9 @@ type NamespaceReleases struct {
 type ReleaseInfo struct {
 	chart.Metadata
 
+	// ReleaseName is the name of the helm release
+	ReleaseName string `json:"releaseName,omitempty"`
+
 	// FirstDeployed is when the chart version was first deployed.
 	FirstDeployed *metav1.Time `json:"firstDeployed,omitempty"`
 	// LastDeployed is when the release was last deployed.

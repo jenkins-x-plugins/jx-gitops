@@ -22,6 +22,7 @@ func ToMarkdown(charts []*releasereport.NamespaceReleases) (string, error) {
   <thead>
     <tr>
       <th scope="col">Release</th>
+      <th scope="col">Chart</th>
       <th scope="col">Version</th>
       <th scope="col">Open</th>
       <th scope="col">Source</th>
@@ -49,7 +50,7 @@ func WriteNamespaceCharts(w io.StringWriter, ns *releasereport.NamespaceReleases
 	}
 
 	_, err := w.WriteString(fmt.Sprintf(`    <tr>
-		      <td colspan='4'><h3>%s</h3></td>
+		      <td colspan='5'><h3>%s</h3></td>
 		    </tr>
 	`, ns.Namespace))
 	if err != nil {
@@ -73,12 +74,13 @@ func WriteChart(w io.StringWriter, ch *releasereport.ReleaseInfo) {
 	}
 
 	_, err := w.WriteString(fmt.Sprintf(`    <tr>
+	      <td>%s</td>
 	      <td><a href='%s' title='%s'> <img src='%s' width='24px' height='24px'> %s </a></td>
 	      <td>%s</td>
 	      <td>%s</td>
 	      <td>%s</td>
 	    </tr>
-`, ch.Home, description, ch.Icon, ch.Name, ch.Version, viewLink, sourceLink))
+`, ch.ReleaseName, ch.Home, description, ch.Icon, ch.Name, ch.Version, viewLink, sourceLink))
 	if err != nil {
 		log.Logger().Warn(err)
 	}
