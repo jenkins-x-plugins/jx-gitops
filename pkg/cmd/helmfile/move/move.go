@@ -343,7 +343,7 @@ func (o *Options) isClusterWide(kind string) (bool, error) {
 			return kyamls.IsClusterKind(kind), errors.Wrapf(err, "Failed to fetch api resources")
 		}
 
-		for _, apiResourceList := range apiResourceLists {
+		for _, apiResourceList := range apiResourceLists { //nolint:gocritic
 			for _, resource := range apiResourceList.APIResources {
 				o.ClusterWide[resource.Kind] = !resource.Namespaced
 			}
