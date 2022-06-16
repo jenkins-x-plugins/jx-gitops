@@ -68,7 +68,6 @@ func (o *Options) Validate() error {
 }
 
 func (o Options) Run() error {
-
 	err := o.Validate()
 	if err != nil {
 		return errors.Wrapf(err, "failed to validate")
@@ -77,6 +76,9 @@ func (o Options) Run() error {
 	rootHelmState := state.HelmState{}
 
 	err = yaml2s.LoadFile(o.Helmfile, &rootHelmState)
+	if err != nil {
+		return errors.Wrapf(err, "fail to load yaml file %s", o.Helmfile)
+	}
 	for _, nestedState := range rootHelmState.Helmfiles {
 		err := o.validateSubHelmFile(nestedState.Path)
 		if err != nil {
@@ -99,7 +101,8 @@ func (o Options) validateSubHelmFile(path string) error {
 		return fmt.Errorf("failed to load helmfile - %w", err)
 	}
 
-	for _, release := range helmState.Releases {
+	for k := range helmState.Releases {
+		release := helmState.Releases[k]
 		if release.Namespace != targetNamespace {
 			return fmt.Errorf("namespace for release %s is %s does not match namespace of folder %s", release.Name, release.Namespace, targetNamespace)
 		}
@@ -115,7 +118,8 @@ func (o Options) validateSubHelmFile(path string) error {
 }
 
 func checkChartRepositoryExists(chartRepo string, repos []state.RepositorySpec) error {
-	for _, repo := range repos {
+	for k := range repos {
+		repo := repos[k]
 		if chartRepo == repo.Name {
 			return nil
 		}

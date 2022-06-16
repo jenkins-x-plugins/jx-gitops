@@ -18,6 +18,8 @@ import (
 	lhclient "github.com/jenkins-x/lighthouse-client/pkg/client/clientset/versioned"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
+	tknC "github.com/tektoncd/pipeline/pkg/client/clientset/versioned"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -35,7 +37,10 @@ type Options struct {
 	Namespace               string
 	JXClient                jxc.Interface
 	LHClient                lhclient.Interface
+	TknClient               tknC.Interface
 }
+
+const PrLabel = "tekton.dev/pipeline"
 
 var (
 	info = termcolor.ColorInfo
@@ -118,6 +123,11 @@ func (o *Options) Run() error {
 		return errors.Wrapf(err, "failed to create the lighthouse client")
 	}
 
+	o.TknClient, err = LazyCreateTknClient(o.TknClient)
+	if err != nil {
+		return errors.Wrapf(err, "failed to create the tekton client")
+	}
+
 	client := o.JXClient
 	currentNs := o.Namespace
 	ctx := context.TODO()
@@ -140,7 +150,8 @@ func (o *Options) Run() error {
 	var completedActivities []v1.PipelineActivity
 
 	// Filter out running activities
-	for _, a := range activities.Items {
+	for k := range activities.Items {
+		a := activities.Items[k]
 		if a.Spec.CompletedTimestamp != nil {
 			completedActivities = append(completedActivities, a)
 		}
@@ -152,19 +163,14 @@ func (o *Options) Run() error {
 	})
 
 	//
-	for _, a := range completedActivities {
-		activity := a
-		branchName := a.BranchName()
+	for k := range completedActivities {
+		activity := completedActivities[k]
+		branchName := activity.BranchName()
 		isPR, isBatch := o.isPullRequestOrBatchBranch(branchName)
 		maxAge, revisionHistory := o.ageAndHistoryLimits(isPR, isBatch)
 		// lets remove activities that are too old
 		if activity.Spec.CompletedTimestamp != nil && activity.Spec.CompletedTimestamp.Add(maxAge).Before(now) {
-			err = o.deleteLighthouseJob(ctx, &activity)
-			if err != nil {
-				return err
-			}
-
-			err = o.deleteActivity(ctx, activityInterface, &activity)
+			err = o.deleteResources(ctx, activityInterface, &activity, currentNs)
 			if err != nil {
 				return err
 			}
@@ -173,8 +179,8 @@ func (o *Options) Run() error {
 
 		repoBranchAndContext := activity.RepositoryOwner() + "/" + activity.RepositoryName() + "/" + activity.BranchName() + "/" + activity.Spec.Context
 		c := counters.AddBuild(repoBranchAndContext, isPR)
-		if c > revisionHistory && a.Spec.CompletedTimestamp != nil {
-			err = o.deleteActivity(ctx, activityInterface, &activity)
+		if c > revisionHistory && activity.Spec.CompletedTimestamp != nil {
+			err = o.deleteResources(ctx, activityInterface, &activity, currentNs)
 			if err != nil {
 				return err
 			}
@@ -182,14 +188,32 @@ func (o *Options) Run() error {
 		}
 	}
 
-	// Clean up completed PipelineRuns
-	/*
-		err = o.gcPipelineRuns(currentNs)
-		if err != nil {
-			return err
-		}
-	*/
+	return nil
+}
 
+func (o *Options) deleteResources(ctx context.Context, activityInterface jv1.PipelineActivityInterface, a *v1.PipelineActivity, currentNs string) error {
+	err := o.deleteLighthouseJob(ctx, a)
+	if err != nil {
+		return err
+	}
+
+	prName := a.Labels[PrLabel]
+	pr, err := o.getPipelineRun(ctx, currentNs, prName)
+	if err != nil {
+		log.Logger().Warnf("pipelinerun %s not found, skipping", prName)
+	}
+
+	// Delete only existing pipelineRuns, need to check for error, as we dont return err in the step before
+	if pr != nil && err == nil {
+		err = o.deletePipelineRun(ctx, currentNs, prName)
+		if err != nil {
+			log.Logger().Warn(err.Error())
+		}
+	}
+	err = o.deleteActivity(ctx, activityInterface, a)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -266,7 +290,23 @@ func (o *Options) deleteLighthouseJob(ctx context.Context, pa *v1.PipelineActivi
 	return nil
 }
 
-// LazyCreateLHClient lazy creates the jx client if its not defined
+func (o *Options) deletePipelineRun(ctx context.Context, ns, prName string) error {
+	prefix := ""
+	if o.DryRun {
+		prefix = "not "
+	}
+	log.Logger().Infof("%sdeleting PipelineRun %s", prefix, info(prName))
+	if o.DryRun {
+		return nil
+	}
+	return o.TknClient.TektonV1beta1().PipelineRuns(ns).Delete(ctx, prName, metav1.DeleteOptions{})
+}
+
+func (o *Options) getPipelineRun(ctx context.Context, ns, prName string) (*v1beta1.PipelineRun, error) {
+	return o.TknClient.TektonV1beta1().PipelineRuns(ns).Get(ctx, prName, metav1.GetOptions{})
+}
+
+// LazyCreateLHClient lazy creates the lighthouse client if its not defined
 func LazyCreateLHClient(client lhclient.Interface) (lhclient.Interface, error) {
 	if client != nil {
 		return client, nil
@@ -279,6 +319,23 @@ func LazyCreateLHClient(client lhclient.Interface) (lhclient.Interface, error) {
 	client, err = lhclient.NewForConfig(cfg)
 	if err != nil {
 		return client, errors.Wrap(err, "error building lighthouse clientset")
+	}
+	return client, nil
+}
+
+// LazyCreateTknClient lazy creates the tekton client if its not defined
+func LazyCreateTknClient(client tknC.Interface) (tknC.Interface, error) {
+	if client != nil {
+		return client, nil
+	}
+	f := kubeclient.NewFactory()
+	cfg, err := f.CreateKubeConfig()
+	if err != nil {
+		return client, errors.Wrap(err, "failed to get kubernetes config")
+	}
+	client, err = tknC.NewForConfig(cfg)
+	if err != nil {
+		return client, errors.Wrap(err, "error building tekton clientset")
 	}
 	return client, nil
 }

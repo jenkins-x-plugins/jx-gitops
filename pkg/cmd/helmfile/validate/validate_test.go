@@ -1,7 +1,6 @@
 package validate_test
 
 import (
-	"io/ioutil"
 	"path/filepath"
 	"testing"
 
@@ -50,13 +49,12 @@ func TestStepHelmfileStructure(t *testing.T) {
 
 	for _, tc := range testCases {
 
-		tmpDir, err := ioutil.TempDir("", "")
-		require.NoError(t, err, "failed to create tmp dir")
+		tmpDir := t.TempDir()
 
 		srcDir := filepath.Join("test_data", tc.testFolder)
 		require.DirExists(t, srcDir)
 
-		err = files.CopyDirOverwrite(srcDir, tmpDir)
+		err := files.CopyDirOverwrite(srcDir, tmpDir)
 		require.NoError(t, err, "failed to copy generated helmfiles at %s to %s", srcDir, tmpDir)
 
 		_, o := validate.NewCmdHelmfileValidate()

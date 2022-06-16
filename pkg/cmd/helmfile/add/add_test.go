@@ -1,7 +1,6 @@
 package add_test
 
 import (
-	"io/ioutil"
 	"path/filepath"
 	"testing"
 
@@ -48,13 +47,12 @@ func TestStepHelmfileAdd(t *testing.T) {
 		},
 	}
 
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "failed to create tmp dir")
+	tmpDir := t.TempDir()
 
 	srcDir := filepath.Join("test_data", "input")
 	require.DirExists(t, srcDir)
 
-	err = files.CopyDirOverwrite(srcDir, tmpDir)
+	err := files.CopyDirOverwrite(srcDir, tmpDir)
 	require.NoError(t, err, "failed to copy generated data at %s to %s", srcDir, tmpDir)
 
 	runner := &fakerunner.FakeRunner{

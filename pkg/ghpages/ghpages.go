@@ -70,7 +70,7 @@ func CloneGitHubPagesToDir(g gitclient.Interface, repoURL, branch, username, pas
 }
 
 // GitHubPagesCloneURL adds the optional username and password to the github pages URL for cloning
-func GitHubPagesCloneURL(repoURL string, username string, password string) (string, error) {
+func GitHubPagesCloneURL(repoURL, username, password string) (string, error) {
 	if username == "" || password == "" {
 		return repoURL, nil
 	}

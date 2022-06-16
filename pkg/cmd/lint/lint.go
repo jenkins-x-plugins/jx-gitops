@@ -21,12 +21,9 @@ var (
 `)
 
 	splitExample = templates.Examples(`
-		# lint files 
+		# lint files
 		%s lint --dir .
 	`)
-
-	// resourcesSeparator is used to separate multiple objects stored in the same YAML file
-	resourcesSeparator = "---\n"
 )
 
 // Options the options for the command

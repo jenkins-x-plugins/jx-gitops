@@ -13,20 +13,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var (
-	// generateTestOutput enable to regenerate the expected output
-	generateTestOutput = false
-)
+// generateTestOutput enable to regenerate the expected output
+var generateTestOutput = false
 
 func TestCreateRepositorySourceDir(t *testing.T) {
 	sourceData := filepath.Join("test_data", "input")
 
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	tmpDir := t.TempDir()
 
 	t.Logf("generating SourceRepository files in %s", tmpDir)
 
-	err = files.CopyDirOverwrite(sourceData, tmpDir)
+	err := files.CopyDirOverwrite(sourceData, tmpDir)
 	require.NoError(t, err, "failed to copy from %s to %s", sourceData, tmpDir)
 
 	_, o := create.NewCmdCreateRepository()
@@ -38,7 +35,7 @@ func TestCreateRepositorySourceDir(t *testing.T) {
 	expectedDir := filepath.Join("test_data", "expected", "config-root", "namespaces", "jx", "source-repositories")
 	genDir := filepath.Join(tmpDir, "config-root", "namespaces", "jx", "source-repositories")
 
-	for _, name := range []string{"jenkins-x-jx-cli.yaml", "jenkins-x-jx-gitops.yaml", "mygitlaborg-somegitlab.yaml"} {
+	for _, name := range []string{"jenkins-x-jx-cli.yaml", "jenkins-x-jx-gitops.yaml", "mygitlaborg-somegitlab.yaml", "jx-gitlab-test-cluster-gitlab-import-test-1.yaml"} {
 		expectedFile := filepath.Join(expectedDir, name)
 		genFile := filepath.Join(genDir, name)
 
@@ -48,7 +45,7 @@ func TestCreateRepositorySourceDir(t *testing.T) {
 			data, err := ioutil.ReadFile(generatedFile)
 			require.NoError(t, err, "failed to load %s", generatedFile)
 
-			err = ioutil.WriteFile(expectedPath, data, 0666)
+			err = ioutil.WriteFile(expectedPath, data, 0600)
 			require.NoError(t, err, "failed to save file %s", expectedPath)
 
 			t.Logf("saved file %s\n", expectedPath)

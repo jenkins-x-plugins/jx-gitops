@@ -8,7 +8,6 @@ import (
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/versionstreamer"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/giturl"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kyamls"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/pkg/errors"
@@ -69,8 +68,6 @@ type Options struct {
 	VersionStreamer versionstreamer.Options
 	SourceDir       string
 	ImageResolver   func(string, []string, string) (string, error)
-	gitURL          string
-	gitInfo         *giturl.GitRepository
 }
 
 // NewCmdUpdateImage creates a command object for the command
@@ -128,7 +125,7 @@ func (o *Options) Run() error {
 	return kyamls.ModifyFiles(o.SourceDir, modifyFn, o.Filter)
 }
 
-func (o *Options) modifyImages(node *yaml.RNode, filePath string, jsonPath string, names ...string) (bool, error) {
+func (o *Options) modifyImages(node *yaml.RNode, filePath, jsonPath string, names ...string) (bool, error) {
 	if len(names) == 0 {
 		return false, errors.Errorf("no JSON path names supplied")
 	}

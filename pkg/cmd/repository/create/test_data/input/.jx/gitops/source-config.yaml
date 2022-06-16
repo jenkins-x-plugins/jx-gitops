@@ -15,4 +15,12 @@ spec:
     providerName: mygitlab
     repositories:
       - name: somegitlab
+  - owner: jx-gitlab-test
+    provider: https://gitlab.com
+    providerKind: gitlab
+    repositories:
+    - name: cluster/gitlab-import-test-1
+    - name: cluster/gitlab-import-test-2
+    scheduler: in-repo
+
   scheduler: cheese

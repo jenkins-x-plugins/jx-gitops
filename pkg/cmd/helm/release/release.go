@@ -87,6 +87,7 @@ type Options struct {
 	RepositoryURL        string
 	RepositoryUsername   string
 	RepositoryPassword   string
+	RepositoryNested     string
 	GithubPagesBranch    string
 	GithubPagesURL       string
 	Version              string
@@ -123,6 +124,7 @@ func NewCmdHelmRelease() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.RepositoryURL, "repo-url", "u", "", "the URL to release to")
 	cmd.Flags().StringVarP(&o.RepositoryUsername, "repo-username", "", "", "the username to access the chart repository. If not specified defaults to the environment variable $JX_REPOSITORY_USERNAME")
 	cmd.Flags().StringVarP(&o.RepositoryPassword, "repo-password", "", "", "the password to access the chart repository. If not specified defaults to the environment variable $JX_REPOSITORY_PASSWORD")
+	cmd.Flags().StringVarP(&o.RepositoryNested, "repo-nested", "", "", "the nested repository inside the repository. If not specified defaults to empty (not nested repo)")
 	cmd.Flags().StringVarP(&o.Version, "version", "", "", "specify the version to release")
 	cmd.Flags().StringVarP(&o.VersionFile, "version-file", "", "VERSION", "the file to load the version from if not specified directly or via a $VERSION environment variable")
 	cmd.Flags().StringVarP(&o.Namespace, "namespace", "", "", "the namespace to look for the dev Environment. Defaults to the current namespace")
@@ -391,7 +393,7 @@ func (o *Options) ChartPageRegistry(repoURL, chartDir, name string) error {
 				o.RepositoryPassword = discover.GitToken
 			}
 			if o.RepositoryUsername == "" {
-				o.RepositoryUsername = discover.Owner
+				o.RepositoryUsername = discover.ScmClient.Username
 			}
 			if o.GithubPagesURL == "" {
 				o.GithubPagesURL = fmt.Sprintf("https://%s.github.io/%s/", discover.Owner, discover.Repository)
@@ -483,14 +485,19 @@ func (o *Options) GitCloneGitHubPages(repoURL, branch string) (string, error) {
 
 func (o *Options) BasicRegistry(repoURL, chartDir, name string) error {
 	username, password, err := o.findChartRepositoryUserPassword()
+
+	var args []string
 	if err != nil {
-		return errors.Wrapf(err, "failed to find chart repository user and password")
+		log.Logger().Warnf("Failed to find chart repository user and password. Will try without. %s", err)
+		args = []string{"repo", "add", o.RepositoryName, repoURL}
+	} else {
+		args = []string{"repo", "add", "--username", username, "--password", password, o.RepositoryName, repoURL}
 	}
 
 	c := &cmdrunner.Command{
 		Dir:  chartDir,
 		Name: o.HelmBinary,
-		Args: []string{"repo", "add", "--username", username, "--password", password, o.RepositoryName, repoURL},
+		Args: args,
 	}
 	_, err = o.CommandRunner(c)
 	if err != nil {
@@ -509,9 +516,8 @@ func (o *Options) BasicRegistry(repoURL, chartDir, name string) error {
 
 	c, err = o.createPublishCommand(repoURL, name, chartDir, username, password)
 	if err != nil {
-		return errors.Wrapf(err, "failed to create release command in dir %s", chartDir)
+		return errors.Wrapf(err, "failed to publish")
 	}
-
 	_, err = o.CommandRunner(c)
 	if err != nil {
 		return errors.Wrapf(err, "failed to publish")
@@ -530,7 +536,7 @@ func (o *Options) BuildAndPackage(chartDir string) error {
 	if exists {
 		err = yamls.LoadFile(chartFile, chartDef)
 		if err != nil {
-			errors.Wrapf(err, "failed to load Chart.yaml")
+			return errors.Wrapf(err, "failed to load Chart.yaml")
 		}
 
 		for i, dependency := range chartDef.Dependencies {
@@ -595,6 +601,15 @@ func (o *Options) createPublishCommand(repoURL, name, chartDir, username, passwo
 		}, nil
 	}
 
+	if strings.HasPrefix(repoURL, "s3:") {
+		// use s3 to push the chart
+		return &cmdrunner.Command{
+			Dir:  chartDir,
+			Name: o.HelmBinary,
+			Args: []string{"s3", "push", tarFile, o.RepositoryName},
+		}, nil
+	}
+
 	if o.Artifactory {
 		// lets try detect the git repository name
 		url := stringhelpers.UrlJoin(repoURL, tarFile)
@@ -604,6 +619,9 @@ func (o *Options) createPublishCommand(repoURL, name, chartDir, username, passwo
 			url = stringhelpers.UrlJoin(repoURL, repoName, tarFile)
 		}
 
+		if password == "" {
+			return nil, fmt.Errorf("password missing for %s", repoURL)
+		}
 		apiKey := "X-JFrog-Art-Api:" + password
 
 		return &cmdrunner.Command{
@@ -613,9 +631,16 @@ func (o *Options) createPublishCommand(repoURL, name, chartDir, username, passwo
 			Args: []string{"--fail", "-sS", "-H", apiKey, "-T", tarFile, url},
 		}, nil
 	}
+	if username == "" || password == "" {
+		return nil, fmt.Errorf("user name or password missing for %s", repoURL)
+	}
 	userSecret := username + ":" + password
 
 	url := stringhelpers.UrlJoin(repoURL, "/api/charts")
+
+	if o.RepositoryNested != "" {
+		url = stringhelpers.UrlJoin(repoURL, "/api/", o.RepositoryNested, "/charts")
+	}
 
 	return &cmdrunner.Command{
 		Dir:  chartDir,
@@ -646,32 +671,32 @@ func (o *Options) findChartRepositoryUserPassword() (string, string, error) {
 		}
 		if err != nil {
 			log.Logger().Warnf("Could not load Secret %s or %s in namespace %s: %s", secretName, kube.SecretBucketRepo, ns, err)
-		} else {
-			if secret != nil && secret.Data != nil {
+		} else if secret != nil && secret.Data != nil {
+			if password == "" {
+				password = string(secret.Data["BASIC_AUTH_PASS"])
 				if password == "" {
-					password = string(secret.Data["BASIC_AUTH_PASS"])
-					if password == "" {
-						password = string(secret.Data["password"])
-					}
+					password = string(secret.Data["password"])
 				}
+			}
+			if userName == "" {
+				userName = string(secret.Data["BASIC_AUTH_USER"])
 				if userName == "" {
-					userName = string(secret.Data["BASIC_AUTH_USER"])
-					if userName == "" {
-						userName = string(secret.Data["username"])
-						if userName == "" && password != "" {
-							// for easier integration with nexus lets default to admin
-							userName = "admin"
-						}
+					userName = string(secret.Data["username"])
+					if userName == "" && password != "" {
+						// for easier integration with nexus lets default to admin
+						userName = "admin"
 					}
 				}
 			}
+
 		}
 	}
+	var err error
 	if userName == "" {
-		return "", "", fmt.Errorf("No environment variable $JX_REPOSITORY_USERNAME defined")
+		err = fmt.Errorf("no environment variable $JX_REPOSITORY_USERNAME defined")
 	}
 	if password == "" {
-		return "", "", fmt.Errorf("No environment variable $JX_REPOSITORY_PASSWORD defined")
+		err = fmt.Errorf("no environment variable $JX_REPOSITORY_PASSWORD defined")
 	}
-	return userName, password, nil
+	return userName, password, err
 }

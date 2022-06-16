@@ -39,7 +39,8 @@ func TestCmdCopy(t *testing.T) {
 		key := "drink"
 		value := "beer"
 		scheme := runtime.NewScheme()
-		corev1.AddToScheme(scheme)
+		// skipping error check because this is not the right place to check for errors with corev1 functionality
+		_ = corev1.AddToScheme(scheme)
 
 		_, o := copy.NewCmdCopy()
 		o.Namespace = ns

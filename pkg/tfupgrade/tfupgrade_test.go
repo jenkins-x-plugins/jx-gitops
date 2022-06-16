@@ -14,8 +14,7 @@ import (
 )
 
 func TestTerraformUpgrade(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	tmpDir := t.TempDir()
 
 	fileNames, err := ioutil.ReadDir("test_data")
 	assert.NoError(t, err)
@@ -39,43 +38,55 @@ func TestTerraformUpgrade(t *testing.T) {
 		err = o.Run()
 		require.NoError(t, err, "failed to run in dir %s for %s", srcDir, name)
 
-		testhelpers.AssertEqualFileText(t, filepath.Join(tmpDir, "expected.tf"), filepath.Join(tmpDir, "main.tf"))
+		_ = testhelpers.AssertEqualFileText(t, filepath.Join(tmpDir, "expected.tf"), filepath.Join(tmpDir, "main.tf"))
 	}
 }
 
 func TestTerraformUpgradeReplaceValue(t *testing.T) {
 	testCases := []struct {
-		input    string
-		expected string
+		input         string
+		expected      string
+		cloudProvider string
 	}{
 		{
-			input:    "not-even-url",
-			expected: "",
+			input:         "not-even-url",
+			expected:      "",
+			cloudProvider: "gke",
 		},
 		{
-			input:    "github.com/jenkins-x/terraform-google-jx",
-			expected: "github.com/jenkins-x/terraform-google-jx?ref=v1.9.0",
+			input:         "github.com/jenkins-x/terraform-google-jx",
+			expected:      "github.com/jenkins-x/terraform-google-jx?ref=v1.9.0",
+			cloudProvider: "gke",
 		},
 		{
-			input:    "github.com/jenkins-x/terraform-google-jx",
-			expected: "github.com/jenkins-x/terraform-google-jx?ref=v1.9.0",
+			input:         "github.com/jenkins-x/terraform-google-jx",
+			expected:      "github.com/jenkins-x/terraform-google-jx?ref=v1.9.0",
+			cloudProvider: "gke",
 		},
 		{
-			input:    "github.com/jenkins-x/terraform-google-jx?ref=master",
-			expected: "github.com/jenkins-x/terraform-google-jx?ref=v1.9.0",
+			input:         "github.com/jenkins-x/terraform-google-jx?ref=master",
+			expected:      "github.com/jenkins-x/terraform-google-jx?ref=v1.9.0",
+			cloudProvider: "gke",
 		},
 		{
-			input:    "https://github.com/jenkins-x/terraform-google-jx?ref=master",
-			expected: "https://github.com/jenkins-x/terraform-google-jx?ref=v1.9.0",
+			input:         "https://github.com/jenkins-x/terraform-google-jx?ref=master",
+			expected:      "https://github.com/jenkins-x/terraform-google-jx?ref=v1.9.0",
+			cloudProvider: "gke",
 		},
 		{
-			input:    "git::https://github.com/jenkins-x/terraform-google-jx?ref=master",
-			expected: "git::https://github.com/jenkins-x/terraform-google-jx?ref=v1.9.0",
+			input:         "git::https://github.com/jenkins-x/terraform-google-jx?ref=master",
+			expected:      "git::https://github.com/jenkins-x/terraform-google-jx?ref=v1.9.0",
+			cloudProvider: "gke",
+		},
+		{
+			input:         "github.com/jenkins-x/terraform-aws-eks-jx?ref=v1.15.2",
+			expected:      "github.com/jenkins-x/terraform-aws-eks-jx?ref=v1.18.4",
+			cloudProvider: "eks",
 		},
 	}
 	for _, tc := range testCases {
 		o := &tfupgrade.Options{
-			VersionStreamDir: filepath.Join("test_data", "gke", "versionStream"),
+			VersionStreamDir: filepath.Join("test_data", tc.cloudProvider, "versionStream"),
 		}
 
 		got := o.ReplaceValue(tc.input)

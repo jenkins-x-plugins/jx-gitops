@@ -47,8 +47,6 @@ var (
 		%s kpt --dir .
 	`)
 
-	pathSeparator = string(os.PathSeparator)
-
 	info = termcolor.ColorInfo
 )
 
@@ -143,7 +141,7 @@ func (o *Options) Run() error {
 		return errors.Errorf("cannot upgrade files via kpt until you have commit the pending git changes. See 'git status' for more details")
 	}
 
-	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error { //nolint:staticcheck
 		if info == nil || info.IsDir() {
 			return nil
 		}
@@ -151,7 +149,7 @@ func (o *Options) Run() error {
 		if name != "Kptfile" {
 			return nil
 		}
-		flag, err := o.Matches(path)
+		flag, err := o.Matches(path) //nolint:staticcheck
 		if err != nil {
 			return errors.Wrapf(err, "failed to check if path matches %s", path)
 		}
@@ -162,9 +160,6 @@ func (o *Options) Run() error {
 		if err != nil {
 			return errors.Wrapf(err, "failed to calculate the relative directory of %s", kptDir)
 		}
-		kptDir = strings.TrimSuffix(kptDir, pathSeparator)
-		parentDir, _ := filepath.Split(kptDir)
-		parentDir = strings.TrimSuffix(parentDir, pathSeparator)
 
 		// clear the kpt repo cache everytime else we run into issues
 		err = os.RemoveAll(filepath.Join(homedir, ".kpt", "repos"))
@@ -316,6 +311,9 @@ func (o *Options) LoadOverrideStrategies() (map[string]string, error) {
 	kptStrategyFilename := filepath.Join(o.Dir, ".jx", "gitops", v1alpha1.KptStragegyFileName)
 
 	exists, err := files.FileExists(kptStrategyFilename)
+	if err != nil {
+		return strategies, errors.Wrap(err, "could not check if path exists and is a file")
+	}
 	if !exists {
 		log.Logger().Infof("no strategy configuration file %s found so using default merge strategies", info(kptStrategyFilename))
 		return strategies, nil

@@ -6,6 +6,8 @@ import (
 	"io"
 	"strings"
 
+	"github.com/jenkins-x/jx-logging/v3/pkg/log"
+
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/releasereport"
 )
 
@@ -20,6 +22,7 @@ func ToMarkdown(charts []*releasereport.NamespaceReleases) (string, error) {
   <thead>
     <tr>
       <th scope="col">Release</th>
+      <th scope="col">Chart</th>
       <th scope="col">Version</th>
       <th scope="col">Open</th>
       <th scope="col">Source</th>
@@ -46,15 +49,16 @@ func WriteNamespaceCharts(w io.StringWriter, ns *releasereport.NamespaceReleases
 		return
 	}
 
-	w.WriteString(fmt.Sprintf(`    <tr>
-		      <td colspan='4'><h3>%s</h3></td>
+	_, err := w.WriteString(fmt.Sprintf(`    <tr>
+		      <td colspan='5'><h3>%s</h3></td>
 		    </tr>
 	`, ns.Namespace))
-
+	if err != nil {
+		log.Logger().Warn(err)
+	}
 	for _, ch := range ns.Releases {
 		WriteChart(w, ch)
 	}
-
 }
 
 func WriteChart(w io.StringWriter, ch *releasereport.ReleaseInfo) {
@@ -69,11 +73,15 @@ func WriteChart(w io.StringWriter, ch *releasereport.ReleaseInfo) {
 		sourceLink = fmt.Sprintf("<a href='%s'>source</a>", ch.Home)
 	}
 
-	w.WriteString(fmt.Sprintf(`    <tr>
+	_, err := w.WriteString(fmt.Sprintf(`    <tr>
+	      <td>%s</td>
 	      <td><a href='%s' title='%s'> <img src='%s' width='24px' height='24px'> %s </a></td>
 	      <td>%s</td>
 	      <td>%s</td>
 	      <td>%s</td>
 	    </tr>
-`, ch.Home, description, ch.Icon, ch.Name, ch.Version, viewLink, sourceLink))
+`, ch.ReleaseName, ch.Home, description, ch.Icon, ch.Name, ch.Version, viewLink, sourceLink))
+	if err != nil {
+		log.Logger().Warn(err)
+	}
 }

@@ -25,8 +25,7 @@ func TestUpdateAnnotatesInYamlFiles(t *testing.T) {
 	}
 
 	for _, args := range argTests {
-		tmpDir, err := ioutil.TempDir("", "")
-		require.NoError(t, err, "could not create temp dir")
+		tmpDir := t.TempDir()
 
 		type testCase struct {
 			SourceFile   string
@@ -36,23 +35,25 @@ func TestUpdateAnnotatesInYamlFiles(t *testing.T) {
 
 		var testCases []testCase
 		for _, f := range fileNames {
-			if f.IsDir() {
-				name := f.Name()
-				srcFile := filepath.Join(sourceData, name, "source.yaml")
-				expectedFile := filepath.Join(sourceData, name, "expected.yaml")
-				require.FileExists(t, srcFile)
-				require.FileExists(t, expectedFile)
-
-				outFile := filepath.Join(tmpDir, name+".yaml")
-				err = files.CopyFile(srcFile, outFile)
-				require.NoError(t, err, "failed to copy %s to %s", srcFile, outFile)
-
-				testCases = append(testCases, testCase{
-					SourceFile:   srcFile,
-					ResultFile:   outFile,
-					ExpectedFile: expectedFile,
-				})
+			if !f.IsDir() {
+				continue
 			}
+			name := f.Name()
+			srcFile := filepath.Join(sourceData, name, "source.yaml")
+			expectedFile := filepath.Join(sourceData, name, "expected.yaml")
+			require.FileExists(t, srcFile)
+			require.FileExists(t, expectedFile)
+
+			outFile := filepath.Join(tmpDir, name+".yaml")
+			err = files.CopyFile(srcFile, outFile)
+			require.NoError(t, err, "failed to copy %s to %s", srcFile, outFile)
+
+			testCases = append(testCases, testCase{
+				SourceFile:   srcFile,
+				ResultFile:   outFile,
+				ExpectedFile: expectedFile,
+			})
+
 		}
 		err = annotate.UpdateAnnotateInYamlFiles(tmpDir, args, kyamls.Filter{}, false)
 		require.NoError(t, err, "failed to update namespace in dir %s for args %#v", tmpDir, args)

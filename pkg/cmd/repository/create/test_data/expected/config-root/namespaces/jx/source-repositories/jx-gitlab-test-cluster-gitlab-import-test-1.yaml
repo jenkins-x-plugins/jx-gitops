@@ -1,0 +1,20 @@
+apiVersion: jenkins.io/v1
+kind: SourceRepository
+metadata:
+  creationTimestamp: null
+  labels:
+    owner: jx-gitlab-test
+    provider: gitlab
+    repository: cluster-gitlab-import-test-1
+  name: jx-gitlab-test-cluster-gitlab-import-test-1
+spec:
+  httpCloneURL: https://gitlab.com/jx-gitlab-test/cluster/gitlab-import-test-1.git
+  org: jx-gitlab-test
+  provider: https://gitlab.com
+  providerKind: gitlab
+  providerName: github
+  repo: cluster/gitlab-import-test-1
+  scheduler:
+    kind: ""
+    name: in-repo
+  url: https://gitlab.com/jx-gitlab-test/cluster/gitlab-import-test-1

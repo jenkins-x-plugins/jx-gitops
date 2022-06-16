@@ -2,7 +2,6 @@ package add_test
 
 import (
 	"fmt"
-	"io/ioutil"
 	"path/filepath"
 	"testing"
 
@@ -20,14 +19,13 @@ import (
 )
 
 func TestJenkinsAdd(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	tmpDir := t.TempDir()
 
 	srcDir := filepath.Join("test_data")
 
 	runner := &fakerunner.FakeRunner{}
 
-	err = files.CopyDirOverwrite(srcDir, tmpDir)
+	err := files.CopyDirOverwrite(srcDir, tmpDir)
 	require.NoError(t, err, "failed to copy from %s to %s", srcDir, tmpDir)
 
 	gitter := cli.NewCLIClient("", nil)
@@ -96,7 +94,8 @@ func assertValidHelmfile(t *testing.T, expectedFile string) {
 
 func AssertHemlfileChartCount(t *testing.T, expectedCount int, helmState *state.HelmState, chartName string, messageAndArgs ...interface{}) {
 	count := 0
-	for _, rel := range helmState.Releases {
+	for k := range helmState.Releases {
+		rel := helmState.Releases[k]
 		if rel.Chart == chartName {
 			count++
 		}
@@ -104,10 +103,11 @@ func AssertHemlfileChartCount(t *testing.T, expectedCount int, helmState *state.
 	assert.Equal(t, expectedCount, count, messageAndArgs...)
 }
 
-func AssertHemlfileRepository(t *testing.T, helmState *state.HelmState, name string, url string, message string, args ...interface{}) {
+func AssertHemlfileRepository(t *testing.T, helmState *state.HelmState, name, url, message string, args ...interface{}) {
 	text := fmt.Sprintf(message, args...)
 	found := false
-	for _, r := range helmState.Repositories {
+	for k := range helmState.Repositories {
+		r := helmState.Repositories[k]
 		if r.Name == name {
 			found = true
 			assert.Equal(t, url, r.URL, "url for repository name %s for %s", name, text)

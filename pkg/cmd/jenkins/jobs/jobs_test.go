@@ -1,7 +1,6 @@
 package jobs_test
 
 import (
-	"io/ioutil"
 	"path/filepath"
 	"testing"
 
@@ -20,12 +19,11 @@ import (
 const jenkinsName = "myjenkins"
 
 func TestJenkinsJobs(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	tmpDir := t.TempDir()
 
 	srcDir := filepath.Join("test_data", "hasjobs")
 
-	err = files.CopyDirOverwrite(srcDir, tmpDir)
+	err := files.CopyDirOverwrite(srcDir, tmpDir)
 	require.NoError(t, err, "failed to copy from %s to %s", srcDir, tmpDir)
 
 	gitter := cli.NewCLIClient("", nil)
@@ -36,12 +34,11 @@ func TestJenkinsJobs(t *testing.T) {
 }
 
 func TestJenkinsJobsForExistingJenkins(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	tmpDir := t.TempDir()
 
 	srcDir := filepath.Join("test_data", "hasjobs")
 
-	err = files.CopyDirOverwrite(srcDir, tmpDir)
+	err := files.CopyDirOverwrite(srcDir, tmpDir)
 	require.NoError(t, err, "failed to copy from %s to %s", srcDir, tmpDir)
 
 	gitter := cli.NewCLIClient("", nil)
@@ -58,7 +55,7 @@ func TestJenkinsJobsForExistingJenkins(t *testing.T) {
 	AssertGenerateJobs(t, tmpDir, jenkinsName)
 }
 
-func AssertGenerateJobs(t *testing.T, tmpDir string, jenkinsName string) {
+func AssertGenerateJobs(t *testing.T, tmpDir, jenkinsName string) {
 	t.Logf("running test in dir %s\n", tmpDir)
 
 	_, o := jobs.NewCmdJenkinsJobs()
@@ -101,13 +98,12 @@ func AssertGenerateJobs(t *testing.T, tmpDir string, jenkinsName string) {
 }
 
 func TestNoJenkinsJobs(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	tmpDir := t.TempDir()
 
 	_, o := jobs.NewCmdJenkinsJobs()
 	o.OutDir = tmpDir
 	o.Dir = filepath.Join("test_data", "nojobs")
 
-	err = o.Run()
+	err := o.Run()
 	require.NoError(t, err, "failed to run the command in dir %s", tmpDir)
 }

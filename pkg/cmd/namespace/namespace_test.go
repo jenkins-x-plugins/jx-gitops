@@ -22,8 +22,7 @@ func TestUpdateNamespaceInYamlFiles(t *testing.T) {
 	fileNames, err := ioutil.ReadDir(sourceData)
 	assert.NoError(t, err)
 
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	tmpDir := t.TempDir()
 
 	type testCase struct {
 		SourceFile   string
@@ -33,23 +32,25 @@ func TestUpdateNamespaceInYamlFiles(t *testing.T) {
 
 	var testCases []testCase
 	for _, f := range fileNames {
-		if f.IsDir() {
-			name := f.Name()
-			srcFile := filepath.Join(sourceData, name, "source.yaml")
-			expectedFile := filepath.Join(sourceData, name, "expected.yaml")
-			require.FileExists(t, srcFile)
-			require.FileExists(t, expectedFile)
-
-			outFile := filepath.Join(tmpDir, name+".yaml")
-			err = files.CopyFile(srcFile, outFile)
-			require.NoError(t, err, "failed to copy %s to %s", srcFile, outFile)
-
-			testCases = append(testCases, testCase{
-				SourceFile:   srcFile,
-				ResultFile:   outFile,
-				ExpectedFile: expectedFile,
-			})
+		if !f.IsDir() {
+			continue
 		}
+		name := f.Name()
+		srcFile := filepath.Join(sourceData, name, "source.yaml")
+		expectedFile := filepath.Join(sourceData, name, "expected.yaml")
+		require.FileExists(t, srcFile)
+		require.FileExists(t, expectedFile)
+
+		outFile := filepath.Join(tmpDir, name+".yaml")
+		err = files.CopyFile(srcFile, outFile)
+		require.NoError(t, err, "failed to copy %s to %s", srcFile, outFile)
+
+		testCases = append(testCases, testCase{
+			SourceFile:   srcFile,
+			ResultFile:   outFile,
+			ExpectedFile: expectedFile,
+		})
+
 	}
 
 	err = namespace.UpdateNamespaceInYamlFiles(tmpDir, "something", kyamls.Filter{})
@@ -75,11 +76,10 @@ func TestNamespaceDirMode(t *testing.T) {
 	srcFile := filepath.Join("test_data", "dirmode")
 	require.DirExists(t, srcFile)
 
-	rootTmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	rootTmpDir := t.TempDir()
 
 	tmpDir := filepath.Join(rootTmpDir, "namespaces")
-	err = os.MkdirAll(tmpDir, files.DefaultDirWritePermissions)
+	err := os.MkdirAll(tmpDir, files.DefaultDirWritePermissions)
 	require.NoError(t, err, "failed to make namespaces dir")
 
 	err = files.CopyDirOverwrite(srcFile, tmpDir)
@@ -96,7 +96,7 @@ func TestNamespaceDirMode(t *testing.T) {
 	t.Logf("replaced namespaces in dir %s\n", tmpDir)
 
 	found := map[string][]string{}
-	err = filepath.Walk(tmpDir, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(tmpDir, func(path string, info os.FileInfo, err error) error { //nolint:staticcheck
 		if info == nil || info.IsDir() {
 			return nil
 		}
@@ -104,7 +104,7 @@ func TestNamespaceDirMode(t *testing.T) {
 			return nil
 		}
 
-		relPath, err := filepath.Rel(tmpDir, path)
+		relPath, err := filepath.Rel(tmpDir, path) //nolint:staticcheck
 		if err != nil {
 			return errors.Wrapf(err, "failed to find relative path of %s", path)
 		}

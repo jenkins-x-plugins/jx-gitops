@@ -26,11 +26,6 @@ var (
 	info = termcolor.ColorInfo
 
 	sourceRegex = regexp.MustCompile(`source\s*=\s*"(.*)"`)
-
-	// gitURLAliases aliases for the version stream git URLs as terraform allows some different git URL layouts
-	gitURLAliases = map[string]string{
-		"jenkins-x/eks-jx/aws": "github.com/jenkins-x/terraform-aws-eks-jx",
-	}
 )
 
 type Options struct {
@@ -165,13 +160,6 @@ func (o *Options) findGitVersion(gitRepo string) (string, error) {
 	version, err := resolver.StableVersionNumber(versionstream.KindGit, gitRepo)
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to resolve git version %s", gitRepo)
-	}
-
-	if version == "" {
-		alias := gitURLAliases[gitRepo]
-		if alias != "" {
-			return o.findGitVersion(alias)
-		}
 	}
 	return version, nil
 }

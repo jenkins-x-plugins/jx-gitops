@@ -159,7 +159,8 @@ func (o *Options) ensureSourceRepositoryExists(config *v1alpha1.SourceConfig, gr
 		modified = true
 	}
 	if sr.Labels["repository"] != repoName {
-		sr.Labels["repository"] = repoName
+		// Convert / to - for nested repositories, so that it's a valid kubernetes label value
+		sr.Labels["repository"] = naming.ToValidName(repoName)
 		modified = true
 	}
 	if group.ProviderKind != "" && sr.Labels["provider"] != owner {

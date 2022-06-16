@@ -23,10 +23,8 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 )
 
-var (
-	// generateTestOutput enable to regenerate the expected output
-	generateTestOutput = false
-)
+// generateTestOutput enable to regenerate the expected output
+var generateTestOutput = false
 
 func TestCmdVariables(t *testing.T) {
 	// lets skip this test if inside a goreleaser when we've got the env vars defined
@@ -36,8 +34,7 @@ func TestCmdVariables(t *testing.T) {
 		return
 	}
 
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "failed to create temp dir")
+	tmpDir := t.TempDir()
 
 	testDir := filepath.Join("test_data", "tests")
 	fs, err := ioutil.ReadDir(testDir)
@@ -127,7 +124,7 @@ func TestCmdVariables(t *testing.T) {
 			data, err := ioutil.ReadFile(generatedFile)
 			require.NoError(t, err, "failed to load %s", generatedFile)
 
-			err = ioutil.WriteFile(expectedPath, data, 0666)
+			err = ioutil.WriteFile(expectedPath, data, 0600)
 			require.NoError(t, err, "failed to save file %s", expectedPath)
 
 			t.Logf("saved file %s\n", expectedPath)
@@ -136,7 +133,6 @@ func TestCmdVariables(t *testing.T) {
 
 		testhelpers.AssertTextFilesEqual(t, filepath.Join(runDir, "expected.sh"), f, "generated file")
 	}
-
 }
 
 func TestFindBuildNumber(t *testing.T) {

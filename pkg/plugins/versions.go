@@ -18,21 +18,32 @@ const (
 	// KappPluginName the default name of the kapp plugin
 	KappPluginName = "kapp"
 
+	// KustomizePluginName the default name of the kustomize plugin
+	KustomizePluginName = "kustomize"
+
 	// HelmVersion the default version of helm to use
-	HelmVersion = "3.6.2"
+	HelmVersion = "3.7.2"
 
 	// HelmfileVersion the default version of helmfile to use
-	HelmfileVersion = "0.139.9"
+	HelmfileVersion = "0.143.0"
 
 	// KptVersion the default version of kpt to use
 	KptVersion = "0.37.0"
 
 	// KubectlVersion the default version of kpt to use
-	KubectlVersion = "1.16.15"
+	KubectlVersion = "1.21.0"
 
 	// KappVersion the default version of kapp to use
 	KappVersion = "0.35.1-cmfork"
+
+	// KustomizeVersion the default version of kustomize to use
+	KustomizeVersion = "4.4.1"
 )
+
+type HelmPlugin struct {
+	URL  string
+	Name string
+}
 
 var (
 	// Plugins default plugins
@@ -40,8 +51,15 @@ var (
 		CreateHelmPlugin(HelmVersion),
 		CreateHelmfilePlugin(HelmfileVersion),
 		// disable as no arm image yet
-		//CreateKptPlugin(KptVersion),
+		// CreateKptPlugin(KptVersion),
 		CreateKubectlPlugin(KubectlVersion),
 		CreateKappPlugin(KappVersion),
+		CreateKustomizePlugin(KustomizeVersion),
+	}
+
+	// HelmPlugins to install and upgrade
+	HelmPlugins = []HelmPlugin{
+		{"https://github.com/mumoshu/helm-x", "x"},
+		{"https://github.com/hypnoglow/helm-s3", "s3"},
 	}
 )

@@ -13,21 +13,18 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var (
-	// generateTestOutput enable to regenerate the expected output
-	generateTestOutput = false
-)
+// generateTestOutput enable to regenerate the expected output
+var generateTestOutput = false
 
 func TestHemlfileMarkdownReport(t *testing.T) {
 	var charts []*releasereport.NamespaceReleases
 
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "failed to create temp dir")
+	tmpDir := t.TempDir()
 
 	sourceFile := filepath.Join("test_data", "releases.yaml")
 	expectedPath := filepath.Join("test_data", "expected.README.md")
 
-	err = yamls.LoadFile(sourceFile, &charts)
+	err := yamls.LoadFile(sourceFile, &charts)
 	require.NoError(t, err, "failed to load file %s", sourceFile)
 	require.NotEmpty(t, charts, "no namespace charts found for %s", sourceFile)
 
@@ -42,7 +39,7 @@ func TestHemlfileMarkdownReport(t *testing.T) {
 		data, err := ioutil.ReadFile(generatedFile)
 		require.NoError(t, err, "failed to load %s", generatedFile)
 
-		err = ioutil.WriteFile(expectedPath, data, 0666)
+		err = ioutil.WriteFile(expectedPath, data, 0600)
 		require.NoError(t, err, "failed to save file %s", expectedPath)
 
 		t.Logf("saved file %s\n", expectedPath)

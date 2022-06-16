@@ -11,13 +11,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var (
-	// generateTestOutput enable to regenerate the expected output
-	generateTestOutput = false
-)
+// generateTestOutput enable to regenerate the expected output
+var generateTestOutput = false
 
 func TestYSet(t *testing.T) {
-
 	testCases := []struct {
 		dir   string
 		path  string
@@ -40,8 +37,7 @@ func TestYSet(t *testing.T) {
 		},
 	}
 
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	tmpDir := t.TempDir()
 
 	for _, tc := range testCases {
 		name := tc.dir
@@ -52,7 +48,7 @@ func TestYSet(t *testing.T) {
 		require.FileExists(t, expectedFile)
 
 		outFile := filepath.Join(tmpDir, name+".yaml")
-		err = files.CopyFile(srcFile, outFile)
+		err := files.CopyFile(srcFile, outFile)
 		require.NoError(t, err, "failed to copy %s to %s", srcFile, outFile)
 
 		_, o := yset.NewCmdYSet()
@@ -68,10 +64,10 @@ func TestYSet(t *testing.T) {
 			data, err := ioutil.ReadFile(outFile)
 			require.NoError(t, err, "failed to load %s", outFile)
 
-			err = ioutil.WriteFile(expectedFile, data, 0666)
+			err = ioutil.WriteFile(expectedFile, data, 0600)
 			require.NoError(t, err, "failed to save file %s", expectedFile)
 			continue
 		}
-		testhelpers.AssertEqualFileText(t, expectedFile, outFile)
+		_ = testhelpers.AssertEqualFileText(t, expectedFile, outFile)
 	}
 }

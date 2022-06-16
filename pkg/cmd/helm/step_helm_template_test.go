@@ -1,7 +1,6 @@
 package helm_test
 
 import (
-	"io/ioutil"
 	"path/filepath"
 	"testing"
 
@@ -22,8 +21,7 @@ func TestStepHelmTemplate(t *testing.T) {
 		return
 	}
 
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "failed to create tmp dir")
+	tmpDir := t.TempDir()
 
 	name := "mychart"
 	o.HelmBinary = helmBin
@@ -35,7 +33,7 @@ func TestStepHelmTemplate(t *testing.T) {
 	runner := &fakerunner.FakeRunner{}
 	o.Gitter = cli.NewCLIClient("", runner.Run)
 
-	err = o.Run()
+	err := o.Run()
 	require.NoError(t, err, "failed to run the command")
 
 	if hasHelm {

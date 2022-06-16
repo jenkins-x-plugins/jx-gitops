@@ -18,7 +18,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/pborman/uuid"
+	"github.com/google/uuid"
 )
 
 // CompleteScheduler returns a SchedulerSpec completely filled with dummy data
@@ -97,7 +97,7 @@ func pointerToTrue() *bool {
 }
 
 func pointerToUUID() *string {
-	s := uuid.New()
+	s := uuid.New().String()
 	return &s
 }
 
@@ -107,7 +107,7 @@ func pointerToRandomNumber() *int {
 }
 
 func pointerToRandomDuration() *time.Duration {
-	i := rand.Int63()
+	i := rand.Int63() //nolint:gosec
 	duration := time.Duration(i)
 	return &duration
 }
@@ -116,18 +116,8 @@ func pointerToRandomDuration() *time.Duration {
 func PointerToReplaceableSliceOfStrings() *schedulerapi.ReplaceableSliceOfStrings {
 	return &schedulerapi.ReplaceableSliceOfStrings{
 		Items: []string{
-			uuid.New(),
+			uuid.New().String(),
 		},
-	}
-}
-
-func pointerToContextPolicy() *schedulerapi.ContextPolicy {
-	return &schedulerapi.ContextPolicy{
-		SkipUnknownContexts:       pointerToTrue(),
-		FromBranchProtection:      pointerToTrue(),
-		RequiredIfPresentContexts: PointerToReplaceableSliceOfStrings(),
-		RequiredContexts:          PointerToReplaceableSliceOfStrings(),
-		OptionalContexts:          PointerToReplaceableSliceOfStrings(),
 	}
 }
 

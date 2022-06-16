@@ -17,9 +17,7 @@ type Helmfile struct {
 	RelativePathToRoot string
 }
 
-var (
-	pathSeparator = string(os.PathSeparator)
-)
+var pathSeparator = string(os.PathSeparator)
 
 // GatherHelmfiles gathers the helmfiles from the given file
 func GatherHelmfiles(helmfile, dir string) ([]Helmfile, error) {
@@ -64,9 +62,7 @@ func GatherHelmfiles(helmfile, dir string) ([]Helmfile, error) {
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to get nested helmnfiles %s in %s", nested.Path, dir)
 		}
-		for _, h := range nestedHelmfile {
-			helmfiles = append(helmfiles, h)
-		}
+		helmfiles = append(helmfiles, nestedHelmfile...)
 
 		nestedHelmfileDepth := len(strings.Split(filepath.Dir(nested.Path), pathSeparator))
 		relativePath := strings.Repeat("../", parentHelmfileDepth+nestedHelmfileDepth)

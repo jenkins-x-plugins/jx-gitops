@@ -103,25 +103,26 @@ func (o *Options) Run() error {
 		goarch := strings.ToLower(runtime.GOARCH)
 		if p.Name == plugins.HelmPluginName && goarch != "arm" && !strings.HasPrefix(goarch, "arm") {
 			log.Logger().Infof("checking if we have installed the helm plugin helm-x on OS %s arch: %s", runtime.GOOS, goarch)
-			// we can't install helm-x yet on ARM
-			installHelmX := &cmdrunner.Command{
-				Name: fileName,
-				Args: []string{"plugin", "install", "https://github.com/mumoshu/helm-x"},
-			}
-			out, err := o.CommandRunner(installHelmX)
-			if err != nil {
-				if strings.Contains(out, "plugin already exists") {
-					updateHelmX := &cmdrunner.Command{
-						Name: fileName,
-						Args: []string{"plugin", "update", "x"},
+			// we can't install helm-x or helm-s3 on ARM yet
+			for _, h := range plugins.HelmPlugins {
+				installHelmPlugin := &cmdrunner.Command{
+					Name: fileName,
+					Args: []string{"plugin", "install", h.URL},
+				}
+				out, err := o.CommandRunner(installHelmPlugin)
+				if err != nil {
+					if strings.Contains(out, "plugin already exists") {
+						updateHelmPlugin := &cmdrunner.Command{
+							Name: fileName,
+							Args: []string{"plugin", "update", h.Name},
+						}
+						_, err = o.CommandRunner(updateHelmPlugin)
+						if err != nil {
+							return errors.Wrapf(err, "failed to update helm plugin %s", h.Name)
+						}
+					} else {
+						return errors.Wrapf(err, "failed to install helm plugin %s", h.Name)
 					}
-					out, err = o.CommandRunner(updateHelmX)
-					if err != nil {
-						return errors.Wrapf(err, "failed to update plugin helm-x")
-					}
-
-				} else {
-					return errors.Wrapf(err, "failed to install plugin helm-x")
 				}
 			}
 		}

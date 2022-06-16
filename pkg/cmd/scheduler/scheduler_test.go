@@ -1,7 +1,6 @@
 package scheduler_test
 
 import (
-	"io/ioutil"
 	"path/filepath"
 	"testing"
 
@@ -21,15 +20,14 @@ func TestScheduler(t *testing.T) {
 	sourceDir := filepath.Join("test_data")
 	require.DirExists(t, sourceDir)
 
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	tmpDir := t.TempDir()
 
 	_, so := scheduler.NewCmdScheduler()
 
 	so.OutDir = tmpDir
 	so.Dir = sourceDir
 
-	err = so.Run()
+	err := so.Run()
 	require.NoError(t, err, "failed to run scheduler command")
 
 	configFile := filepath.Join(tmpDir, scheduler.ConfigMapConfigFileName)
@@ -105,7 +103,7 @@ func TestScheduler(t *testing.T) {
 	assert.Equal(t, "http://deck-jx..jx.1.2.3.4.nip.io", lhCfg.Keeper.TargetURL, "config.Keeper.TargetURL")
 }
 
-func AssertYamlMap(t *testing.T, text string, message string) map[string]interface{} {
+func AssertYamlMap(t *testing.T, text, message string) map[string]interface{} {
 	require.NotEmpty(t, text, "no YAML text for %s", message)
 
 	m := map[string]interface{}{}

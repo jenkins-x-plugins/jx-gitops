@@ -32,10 +32,9 @@ func TestRepositoryDelete(t *testing.T) {
 			dir:   "simple",
 		},
 	}
-	rootTmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	rootTmpDir := t.TempDir()
 
-	err = files.CopyDirOverwrite("test_data", rootTmpDir)
+	err := files.CopyDirOverwrite("test_data", rootTmpDir)
 	require.NoError(t, err, "failed to copy from test_data to %s", rootTmpDir)
 
 	ns := "jx"
@@ -63,7 +62,7 @@ func TestRepositoryDelete(t *testing.T) {
 			data, err := ioutil.ReadFile(generatedFile)
 			require.NoError(t, err, "failed to load %s", generatedFile)
 
-			err = ioutil.WriteFile(expectedPath, data, 0666)
+			err = ioutil.WriteFile(expectedPath, data, 0600)
 			require.NoError(t, err, "failed to save file %s", expectedPath)
 
 			t.Logf("saved file %s\n", expectedPath)

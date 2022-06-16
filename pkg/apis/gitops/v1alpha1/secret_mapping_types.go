@@ -92,7 +92,7 @@ type GcpSecretsManager struct {
 	// Version of the referenced secret
 	Version string `json:"version,omitempty"`
 	// ProjectId for the secret, defaults to the current GCP project
-	ProjectId string `json:"projectId,omitempty"`
+	ProjectID string `json:"projectId,omitempty"`
 	// UniquePrefix needs to be a unique prefix in the GCP project where the secret resides, defaults to cluster name
 	UniquePrefix string `json:"uniquePrefix,omitempty"`
 }
@@ -112,8 +112,9 @@ type Mapping struct {
 }
 
 // FindRule finds a secret rule for the given secret name
-func (c *SecretMapping) FindRule(namespace string, secretName string) SecretRule {
-	for _, m := range c.Spec.Secrets {
+func (c *SecretMapping) FindRule(namespace, secretName string) SecretRule {
+	for i := range c.Spec.Secrets {
+		m := c.Spec.Secrets[i]
 		if m.Name == secretName && (m.Namespace == "" || m.Namespace == namespace) {
 			return m
 		}
@@ -124,10 +125,11 @@ func (c *SecretMapping) FindRule(namespace string, secretName string) SecretRule
 }
 
 // Find finds a secret rule for the given secret name
-func (c *SecretMapping) Find(secretName string, dataKey string) *Mapping {
-	for i, m := range c.Spec.Secrets {
+func (c *SecretMapping) Find(secretName, dataKey string) *Mapping {
+	for i := range c.Spec.Secrets {
+		m := c.Spec.Secrets[i]
 		if m.Name == secretName {
-			return c.Spec.Secrets[i].Find(dataKey)
+			return m.Find(dataKey)
 		}
 	}
 	return nil
@@ -135,9 +137,10 @@ func (c *SecretMapping) Find(secretName string, dataKey string) *Mapping {
 
 // Find finds a secret rule for the given secret name
 func (c *SecretMapping) FindSecret(secretName string) *SecretRule {
-	for i, m := range c.Spec.Secrets {
+	for i := range c.Spec.Secrets {
+		m := c.Spec.Secrets[i]
 		if m.Name == secretName {
-			return &c.Spec.Secrets[i]
+			return &m
 		}
 	}
 	return nil

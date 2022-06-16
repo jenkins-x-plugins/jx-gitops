@@ -17,26 +17,28 @@ func TestStepHelmBuild(t *testing.T) {
 	assert.NoError(t, err)
 
 	for _, f := range fileNames {
-		if f.IsDir() {
-			name := f.Name()
-			path := filepath.Join(sourceData, name)
-
-			t.Logf("running test dir %s", name)
-
-			runner := &fakerunner.FakeRunner{}
-			helmBin := "helm"
-
-			_, o := build.NewCmdHelmBuild()
-			o.HelmBinary = helmBin
-			o.CommandRunner = runner.Run
-			o.ChartsDir = filepath.Join(path, "charts")
-
-			err = o.Run()
-			require.NoError(t, err, "failed to run the command for dir %s", name)
-
-			for _, c := range runner.OrderedCommands {
-				t.Logf("ran: %s\n", c.CLI())
-			}
+		if !f.IsDir() {
+			continue
 		}
+		name := f.Name()
+		path := filepath.Join(sourceData, name)
+
+		t.Logf("running test dir %s", name)
+
+		runner := &fakerunner.FakeRunner{}
+		helmBin := "helm"
+
+		_, o := build.NewCmdHelmBuild()
+		o.HelmBinary = helmBin
+		o.CommandRunner = runner.Run
+		o.ChartsDir = filepath.Join(path, "charts")
+
+		err = o.Run()
+		require.NoError(t, err, "failed to run the command for dir %s", name)
+
+		for _, c := range runner.OrderedCommands {
+			t.Logf("ran: %s\n", c.CLI())
+		}
+
 	}
 }

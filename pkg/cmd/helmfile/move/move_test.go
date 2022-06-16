@@ -1,7 +1,6 @@
 package move_test
 
 import (
-	"io/ioutil"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -14,8 +13,6 @@ import (
 )
 
 func TestUpdateNamespaceInYamlFiles(t *testing.T) {
-
-	// testDirs := []string{"chart_name_only", "release_name_and_chart_name"}
 	tests := []struct {
 		folder                  string
 		hasReleaseName          bool
@@ -53,8 +50,7 @@ func TestUpdateNamespaceInYamlFiles(t *testing.T) {
 
 	for _, test := range tests {
 
-		tmpDir, err := ioutil.TempDir("", "")
-		require.NoError(t, err, "could not create temp dir")
+		tmpDir := t.TempDir()
 
 		_, o := move.NewCmdHelmfileMove()
 
@@ -65,7 +61,7 @@ func TestUpdateNamespaceInYamlFiles(t *testing.T) {
 		o.DirIncludesReleaseName = test.hasReleaseName
 		o.AnnotateReleaseNames = true
 
-		err = o.Run()
+		err := o.Run()
 		require.NoError(t, err, "failed to run helmfile move")
 
 		for _, efn := range test.expectedFiles {

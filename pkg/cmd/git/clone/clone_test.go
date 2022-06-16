@@ -1,7 +1,6 @@
 package clone_test
 
 import (
-	"io/ioutil"
 	"path/filepath"
 	"testing"
 
@@ -39,14 +38,13 @@ func TestGitClone(t *testing.T) {
 			},
 		},
 	)
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "failed to create temp flie")
+	tmpDir := t.TempDir()
 	o.OutputFile = filepath.Join(tmpDir, "git-credentials")
 	o.Dir = tmpDir
 
 	t.Logf("creating git credentials file %s", o.OutputFile)
 
-	err = o.Run()
+	err := o.Run()
 	require.NoError(t, err, "failed to run git setup")
 
 	runner.ExpectResults(t,

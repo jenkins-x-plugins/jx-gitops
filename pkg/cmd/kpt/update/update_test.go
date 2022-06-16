@@ -1,3 +1,4 @@
+//nolint:dupl
 package update_test
 
 import (

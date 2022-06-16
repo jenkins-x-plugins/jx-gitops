@@ -25,6 +25,9 @@ func TestGitMerge(t *testing.T) {
 
 	g := cli.NewCLIClient("", nil)
 
+	// Set this for manual triggers
+	os.Setenv("PULL_BASE_REF", "HEAD")
+
 	defaultBranch := testhelpers.GetDefaultBranch(t)
 	testCases := []struct {
 		name  string
@@ -61,11 +64,11 @@ func TestGitMerge(t *testing.T) {
 		},
 	}
 
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "failed to create tmp dir")
+	tmpDir := t.TempDir()
 
 	for _, tc := range testCases {
 		name := tc.name
+		t.Logf(name)
 		dir = filepath.Join(tmpDir, name)
 
 		err := os.MkdirAll(dir, files.DefaultDirWritePermissions)
@@ -107,7 +110,7 @@ func TestGitMerge(t *testing.T) {
 	}
 }
 
-func requireWritefile(t *testing.T, dir string, name string, contents string) {
+func requireWritefile(t *testing.T, dir, name, contents string) {
 	path := filepath.Join(dir, name)
 	err := ioutil.WriteFile(path, []byte(contents), files.DefaultFileWritePermissions)
 	require.NoError(t, err, "failed to write file %s", path)
@@ -118,13 +121,13 @@ func requireGitAdd(t *testing.T, g gitclient.Interface, dir string) {
 	require.NoError(t, err, "failed to git add in dir %s, dir")
 }
 
-func requireCommit(t *testing.T, g gitclient.Interface, dir string, message string) string {
+func requireCommit(t *testing.T, g gitclient.Interface, dir, message string) string {
 	_, err := g.Command(dir, "commit", "-m", message, "--no-gpg-sign")
 	require.NoError(t, err, "failed to git commit")
 	return readHeadSHA(t, dir)
 }
 
-func requireNewBranch(t *testing.T, g gitclient.Interface, dir string, branch string) {
+func requireNewBranch(t *testing.T, g gitclient.Interface, dir, branch string) {
 	_, err := g.Command(dir, "checkout", "-b", branch)
 	require.NoError(t, err, "failed to create branch %s", branch)
 }
@@ -152,7 +155,7 @@ func readHeadSHA(t *testing.T, dir string) string {
 }
 
 // readRef reads the commit SHA of the specified ref. Needs to be of the form /refs/heads/<name>.
-func readRef(t *testing.T, repoDir string, name string) string {
+func readRef(t *testing.T, repoDir, name string) string {
 	path := filepath.Join(repoDir, ".git", name)
 	data, err := ioutil.ReadFile(path)
 	require.NoError(t, err, "failed to read path %s", path)
@@ -162,8 +165,7 @@ func readRef(t *testing.T, repoDir string, name string) string {
 func TestGitMergeFindCommits(t *testing.T) {
 	t.SkipNow()
 
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	tmpDir := t.TempDir()
 
 	_, o := merge.NewCmdGitMerge()
 	o.Dir = tmpDir
@@ -171,7 +173,7 @@ func TestGitMergeFindCommits(t *testing.T) {
 	o.BaseSHA = "0ec6b33a1bf37b3f06ecea6687763df4a528da9c"
 	o.ExcludeCommitComment = "^chore: regenerate"
 	o.PullNumber = "5"
-	err = o.Validate()
+	err := o.Validate()
 	require.NoError(t, err, "failed to validate")
 
 	g := o.GitClient

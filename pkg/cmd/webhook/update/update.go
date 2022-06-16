@@ -37,7 +37,7 @@ type Options struct {
 	User             string
 	Repo             string
 	ExactHookMatch   bool
-	PreviousHookUrl  string
+	PreviousHookURL  string
 	HMAC             string
 	Endpoint         string
 	DryRun           bool
@@ -84,7 +84,7 @@ func NewCmdWebHookVerify() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.Org, "owner", "o", "", "The name of the git organisation or user to filter on")
 	cmd.Flags().StringVarP(&o.Repo, "repo", "r", "", "The name of the repository to filter on")
 	cmd.Flags().BoolVarP(&o.ExactHookMatch, "exact-hook-url-match", "", true, "Whether to exactly match the hook based on the URL")
-	cmd.Flags().StringVarP(&o.PreviousHookUrl, "previous-hook-url", "", "", "Whether to match based on an another URL")
+	cmd.Flags().StringVarP(&o.PreviousHookURL, "previous-hook-url", "", "", "Whether to match based on an another URL")
 	cmd.Flags().StringVarP(&o.HMAC, "hmac", "", "", "Don't use the HMAC token from the cluster, use the provided token")
 	cmd.Flags().StringVarP(&o.Endpoint, "endpoint", "", "", "Don't use the endpoint from the cluster, use the provided endpoint")
 	cmd.Flags().BoolVarP(&o.WarnOnFail, "warn-on-fail", "", false, "If enabled lets just log a warning that we could not update the webhook")
@@ -138,19 +138,22 @@ func (o *Options) Run() error {
 		return errors.Wrapf(err, "failed to find any SourceRepositories in namespace %s", ns)
 	}
 	envMap, _, err := jxenv.GetEnvironments(jxClient, ns)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to get environments in %s namespace", ns)
+	}
 
-	for _, sr := range srList.Items {
-		sourceRepo := sr
+	for k := range srList.Items {
+		sourceRepo := srList.Items[k]
 
 		// hmac isn't supported on bitbucketcloud
-		if sr.Spec.ProviderKind != "bitbucketcloud" && o.HMAC == "" {
+		if sourceRepo.Spec.ProviderKind != "bitbucketcloud" && o.HMAC == "" {
 			o.HMAC, err = o.GetHMACTokenFromSecret()
 			if err != nil {
 				return errors.Wrapf(err, "failed to find hmac token from secret")
 			}
 		}
 
-		_, err2 := o.UpdateWebhookForSourceRepository(&sourceRepo, envMap, err, o.Endpoint, o.HMAC)
+		_, err2 := o.UpdateWebhookForSourceRepository(&sourceRepo, envMap, o.Endpoint, o.HMAC)
 		if err2 != nil {
 			return err2
 		}
@@ -189,11 +192,11 @@ func (o *Options) GetHMACTokenFromSecret() (string, error) {
 }
 
 // UpdateWebhookForSourceRepository updates the webhook for the given source repository
-func (o *Options) UpdateWebhookForSourceRepository(sr *v1.SourceRepository, envMap map[string]*v1.Environment, err error, webhookURL string, hmacToken string) (bool, error) {
+func (o *Options) UpdateWebhookForSourceRepository(sr *v1.SourceRepository, envMap map[string]*v1.Environment, webhookURL, hmacToken string) (bool, error) {
 	if !o.matchesRepository(sr) {
 		return false, nil
 	}
-	err = o.ensureWebHookCreated(sr, webhookURL, hmacToken)
+	err := o.ensureWebHookCreated(sr, webhookURL, hmacToken)
 	if err != nil {
 		if !o.WarnOnFail {
 			return false, err
@@ -203,7 +206,7 @@ func (o *Options) UpdateWebhookForSourceRepository(sr *v1.SourceRepository, envM
 	return true, nil
 }
 
-func (o *Options) ensureWebHookCreated(repository *v1.SourceRepository, webhookURL string, hmacToken string) error {
+func (o *Options) ensureWebHookCreated(repository *v1.SourceRepository, webhookURL, hmacToken string) error {
 	spec := repository.Spec
 	gitServerURL := spec.Provider
 	owner := spec.Org
@@ -248,7 +251,7 @@ func (o *Options) ensureWebHookCreated(repository *v1.SourceRepository, webhookU
 	return err
 }
 
-func (o *Options) updateRepositoryWebhook(scmClient *scm.Client, owner string, repoName string, webhookURL string, hmacToken string) error {
+func (o *Options) updateRepositoryWebhook(scmClient *scm.Client, owner, repoName, webhookURL, hmacToken string) error {
 	fullName := scm.Join(owner, repoName)
 
 	log.Logger().Debugf("Checking hooks for repository %s", info(fullName))
@@ -325,17 +328,16 @@ func (o *Options) updateRepositoryWebhook(scmClient *scm.Client, owner string, r
 }
 
 func (o *Options) matchesWebhookURL(webHookArgs *scm.Hook, webhookURL string) bool {
-	if "" != o.PreviousHookUrl {
-		return o.PreviousHookUrl == webHookArgs.Target
+	if o.PreviousHookURL != "" {
+		return o.PreviousHookURL == webHookArgs.Target
 	}
 	if o.ScmClientFactory.GitKind == "gitlab" || o.ScmClientFactory.GitKind == "gitea" {
 		return strings.HasPrefix(webHookArgs.Target, webhookURL)
 	}
 	if o.ExactHookMatch {
 		return webhookURL == webHookArgs.Target
-	} else {
-		return strings.Contains(webHookArgs.Target, "hook")
 	}
+	return strings.Contains(webHookArgs.Target, "hook")
 }
 
 // matchesRepository returns true if the given source repository matchesWebhookURL the current filters

@@ -1,7 +1,6 @@
 package image_test
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -21,10 +20,9 @@ func TestUpdateImages(t *testing.T) {
 	require.DirExists(t, inputDir)
 	require.DirExists(t, expectedDir)
 
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err, "could not create temp dir")
+	tmpDir := t.TempDir()
 
-	err = files.CopyDirOverwrite(inputDir, tmpDir)
+	err := files.CopyDirOverwrite(inputDir, tmpDir)
 	require.NoError(t, err, "failed to copy %s to %s", inputDir, tmpDir)
 
 	o.SourceDir = filepath.Join(tmpDir, "src")
@@ -36,12 +34,12 @@ func TestUpdateImages(t *testing.T) {
 	require.NoError(t, err, "failed to convert images")
 
 	// lets assert the files match the expected
-	err = filepath.Walk(expectedDir, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(expectedDir, func(path string, info os.FileInfo, err error) error { //nolint:staticcheck
 		if info == nil || info.IsDir() {
 			return nil
 		}
 
-		relPath, err := filepath.Rel(expectedDir, path)
+		relPath, err := filepath.Rel(expectedDir, path) //nolint:staticcheck
 		if err != nil {
 			return errors.Wrapf(err, "failed to find relative path of %s", path)
 		}
@@ -51,5 +49,4 @@ func TestUpdateImages(t *testing.T) {
 		return nil
 	})
 	require.NoError(t, err, "failed to walk expected files")
-
 }

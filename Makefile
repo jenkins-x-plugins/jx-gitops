@@ -12,7 +12,7 @@ ORG := jenkins-x-plugins
 ORG_REPO := $(ORG)/$(NAME)
 RELEASE_ORG_REPO := $(ORG_REPO)
 ROOT_PACKAGE := github.com/$(ORG_REPO)
-GO_VERSION := $(shell $(GO) version | sed -e 's/^[^0-9.]*\([0-9.]*\).*/\1/')
+GO_VERSION := 1.17.9
 GO_DEPENDENCIES := $(call rwildcard,pkg/,*.go) $(call rwildcard,cmd/,*.go)
 
 BRANCH     := $(shell git rev-parse --abbrev-ref HEAD 2> /dev/null  || echo 'unknown')
@@ -97,7 +97,7 @@ make-reports-dir:
 	mkdir -p $(REPORTS_DIR)
 
 test: ## Run tests with the "unit" build tag
-	KUBECONFIG=/cluster/connections/not/allowed CGO_ENABLED=$(CGO_ENABLED) $(GOTEST) --tags=unit -failfast -short ./... $(TEST_BUILDFLAGS)
+	KUBECONFIG=/cluster/connections/not/allowed JX_NO_KUBERNETES=true CGO_ENABLED=$(CGO_ENABLED) $(GOTEST) --tags=unit -failfast -short ./... $(TEST_BUILDFLAGS)
 
 test-coverage : make-reports-dir ## Run tests and coverage for all tests with the "unit" build tag
 	CGO_ENABLED=$(CGO_ENABLED) $(GOTEST) --tags=unit $(COVERFLAGS) -failfast -short ./... $(TEST_BUILDFLAGS)
