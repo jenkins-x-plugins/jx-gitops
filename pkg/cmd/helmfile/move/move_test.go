@@ -9,7 +9,10 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	fakediscovery "k8s.io/client-go/discovery/fake"
+	"k8s.io/client-go/kubernetes/fake"
 )
 
 func TestUpdateNamespaceInYamlFiles(t *testing.T) {
@@ -49,17 +52,54 @@ func TestUpdateNamespaceInYamlFiles(t *testing.T) {
 	}
 
 	for _, test := range tests {
-
 		tmpDir := t.TempDir()
-
 		_, o := move.NewCmdHelmfileMove()
-
 		t.Logf("generating output to %s\n", tmpDir)
-
+		kubeClient := fake.NewSimpleClientset()
+		fakeDiscovery, ok := kubeClient.Discovery().(*fakediscovery.FakeDiscovery)
+		if !ok {
+			t.Fatalf("couldn't convert Discovery() to *FakeDiscovery")
+		}
+		fakeDiscovery.Resources = []*v1.APIResourceList{
+			{
+				TypeMeta:     v1.TypeMeta{},
+				GroupVersion: "apps/v1",
+				APIResources: []v1.APIResource{
+					{
+						Name:       "test-deployment",
+						Namespaced: true,
+						Kind:       "Deployment",
+					},
+				},
+			},
+			{
+				TypeMeta:     v1.TypeMeta{},
+				GroupVersion: "rbac.authorization.k8s.io/v1",
+				APIResources: []v1.APIResource{
+					{
+						Name:       "test-clusterRole",
+						Namespaced: false,
+						Kind:       "ClusterRole",
+					},
+				},
+			},
+			{
+				TypeMeta:     v1.TypeMeta{},
+				GroupVersion: "example.io/v1",
+				APIResources: []v1.APIResource{
+					{
+						Name:       "test-example",
+						Namespaced: true,
+						Kind:       "Example",
+					},
+				},
+			},
+		}
 		o.Dir = filepath.Join("test_data", test.folder)
 		o.OutputDir = tmpDir
 		o.DirIncludesReleaseName = test.hasReleaseName
 		o.AnnotateReleaseNames = true
+		o.KubeClient = kubeClient
 
 		err := o.Run()
 		require.NoError(t, err, "failed to run helmfile move")
