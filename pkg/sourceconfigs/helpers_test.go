@@ -116,6 +116,16 @@ func TestSourceConfigGlobalDefaultValues(t *testing.T) {
 						},
 					},
 				},
+				{
+					Provider:     gitServer,
+					ProviderKind: gitKind,
+					Owner:        owner,
+					Repositories: []v1alpha1.Repository{
+						{
+							Name: "myrepo2",
+						},
+					},
+				},
 			},
 			Slack: &v1alpha1.SlackNotify{
 				Channel:  "my-channel",
@@ -128,11 +138,12 @@ func TestSourceConfigGlobalDefaultValues(t *testing.T) {
 	require.NoError(t, err)
 
 	assertSlackChannel(t, config, owner, "myrepo", "my-channel", v1alpha1.PipelineKindAll, false, false)
+	assertSlackChannel(t, config, owner, "myrepo2", "my-channel", v1alpha1.PipelineKindAll, false, false)
 }
 
 func assertSlackChannel(t *testing.T, config *v1alpha1.SourceConfig, owner, repoName, expectedChannel string, expectedPipeline v1alpha1.PipelineKind, expectedDirectMessage, expectedNotifyReviewers bool) {
-	group := sourceconfigs.GetOrCreateGroup(config, gitKind, gitServer, owner)
-	repo := sourceconfigs.GetOrCreateRepository(group, repoName)
+	groups := sourceconfigs.GetFilteredGroups(config.Spec.Groups, gitKind, gitServer, owner)
+	repo := sourceconfigs.GetRepository(groups, repoName)
 	require.NotNil(t, repo, "should have found a repo for owner %s and repo %s", owner, repoName)
 	slack := repo.Slack
 	require.NotNil(t, slack, "no slack configuration found for owner %s and repo %s", owner, repoName)
