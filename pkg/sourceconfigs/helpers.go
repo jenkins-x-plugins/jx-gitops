@@ -138,9 +138,10 @@ func DefaultValues(config *v1alpha1.SourceConfig, group *v1alpha1.RepositoryGrou
 // GetFilteredGroups get the groups for the given git kind & server URL if specified and owner
 func GetFilteredGroups(groups []v1alpha1.RepositoryGroup, gitKind, gitServerURL, owner string) []v1alpha1.RepositoryGroup {
 	var filteredGroups []v1alpha1.RepositoryGroup
-	for _, group := range groups {
+	for g := range groups {
+		group := &groups[g]
 		if (group.ProviderKind == gitKind || gitKind == "") && (group.Provider == gitServerURL || gitServerURL == "") && strings.EqualFold(group.Owner, owner) {
-			filteredGroups = append(filteredGroups, group)
+			filteredGroups = append(filteredGroups, *group)
 		}
 	}
 
@@ -191,7 +192,8 @@ func GetRepositoryFor(config *v1alpha1.SourceConfig, gitServerURL, owner, repo s
 
 // GetRepository get the repository for the given name
 func GetRepository(groups []v1alpha1.RepositoryGroup, repoName string) *v1alpha1.Repository {
-	for _, group := range groups {
+	for g := range groups {
+		group := &groups[g]
 		for r := range group.Repositories {
 			repo := &group.Repositories[r]
 			if repo.Name == repoName {

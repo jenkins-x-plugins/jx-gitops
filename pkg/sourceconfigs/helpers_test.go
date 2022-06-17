@@ -152,8 +152,7 @@ func TestSourceConfigGlobalDefaultValues(t *testing.T) {
 }
 
 func assertSlackChannel(t *testing.T, config *v1alpha1.SourceConfig, owner, repoName, expectedChannel string, expectedPipeline v1alpha1.PipelineKind, expectedDirectMessage, expectedNotifyReviewers, expectedRepo bool) {
-	groups := sourceconfigs.GetFilteredGroups(config.Spec.Groups, gitKind, gitServer, owner)
-	repo := sourceconfigs.GetRepository(groups, repoName)
+	repo := sourceconfigs.GetRepositoryFor(config, "", owner, repoName)
 	if expectedRepo {
 		require.NotNil(t, repo, "should have found a repo for owner %s and repo %s", owner, repoName)
 		slack := repo.Slack
