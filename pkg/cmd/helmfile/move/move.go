@@ -13,7 +13,6 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/jxclient"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kyamls"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"
@@ -334,7 +333,7 @@ func (o *Options) isClusterWide(kind string) (bool, error) {
 	}
 	if o.ClusterWide == nil {
 		o.ClusterWide = make(map[string]bool)
-		client, err := jxclient.LazyCreateJXClient(nil)
+		client, err := kube.LazyCreateKubeClient(nil)
 		if err != nil {
 			return kyamls.IsClusterKind(kind), errors.Wrapf(err, "Failed to create k8s client")
 		}
@@ -343,10 +342,10 @@ func (o *Options) isClusterWide(kind string) (bool, error) {
 			return kyamls.IsClusterKind(kind), errors.Wrapf(err, "Failed to fetch api resources")
 		}
 
-		for _, apiResourceList := range apiResourceLists {
-			resources := apiResourceList.APIResources
-			for i := range resources {
-				o.ClusterWide[resources[i].Kind] = !resources[i].Namespaced
+		for i := range apiResourceLists {
+			resources := apiResourceLists[i].APIResources
+			for j := range resources {
+				o.ClusterWide[resources[j].Kind] = !resources[j].Namespaced
 			}
 		}
 	}
