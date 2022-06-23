@@ -9,12 +9,10 @@ import (
 
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/helmhelpers"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
-	"github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/jxclient"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kyamls"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"
@@ -223,9 +221,7 @@ func (o *Options) lazyCreateNamespaceResource(ns string) error {
 }
 
 func (o *Options) moveFilesToClusterOrNamespacesFolder(dir, ns, releaseName, chartName string) error {
-	o.ClusterWide = make(map[string]bool)
-	JXClient, err := jxclient.LazyCreateJXClient(nil)
-	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error { //nolint:staticcheck
+	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error { //nolint:staticcheck
 		if info == nil || info.IsDir() {
 			return nil
 		}
@@ -292,7 +288,7 @@ func (o *Options) moveFilesToClusterOrNamespacesFolder(dir, ns, releaseName, cha
 		if kyamls.IsCustomResourceDefinition(kind) {
 			outDir = filepath.Join(o.CustomResourceDefinitionsDir, ns, pathName)
 		} else {
-			isClusterKind, err := o.isClusterWide(kind, kyamls.GetAPIVersion(node, path), JXClient)
+			isClusterKind, err := o.isClusterWide(kind)
 			if err != nil {
 				return err
 			}
@@ -330,25 +326,33 @@ func (o *Options) moveFilesToClusterOrNamespacesFolder(dir, ns, releaseName, cha
 	return nil
 }
 
-func (o *Options) isClusterWide(kind string, apiVersion string, client versioned.Interface) (bool, error) {
+func (o *Options) isClusterWide(kind string) (bool, error) {
 	if kube.IsNoKubernetes() {
 		// Approximates the truth
 		return kyamls.IsClusterKind(kind), nil
 	}
-	val, ok := o.ClusterWide[kind]
-	if !ok {
-		apiResourceList, err := client.Discovery().ServerResourcesForGroupVersion(apiVersion)
+	if o.ClusterWide == nil {
+		o.ClusterWide = make(map[string]bool)
+		client, err := kube.LazyCreateKubeClient(nil)
 		if err != nil {
-			return true, err
+			return kyamls.IsClusterKind(kind), errors.Wrapf(err, "Failed to create k8s client")
+		}
+		apiResourceLists, err := client.Discovery().ServerPreferredResources()
+		if err != nil {
+			return kyamls.IsClusterKind(kind), errors.Wrapf(err, "Failed to fetch api resources")
 		}
 
-		for _, resource := range apiResourceList.APIResources {
-			o.ClusterWide[resource.Kind] = !resource.Namespaced
-		}
-		val, ok = o.ClusterWide[kind]
-		if !ok {
-			return false, fmt.Errorf("the server doesn't have %s of %s", kind, apiVersion)
+		for i := range apiResourceLists {
+			resources := apiResourceLists[i].APIResources
+			for j := range resources {
+				o.ClusterWide[resources[j].Kind] = !resources[j].Namespaced
+			}
 		}
 	}
+	val, ok := o.ClusterWide[kind]
+	if !ok {
+		return false, fmt.Errorf("the server doesn't have resource of kind %s", kind)
+	}
+
 	return val, nil
 }
