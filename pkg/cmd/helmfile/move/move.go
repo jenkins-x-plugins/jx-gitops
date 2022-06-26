@@ -64,7 +64,8 @@ type Options struct {
 	DirIncludesReleaseName       bool
 	AnnotateReleaseNames         bool
 	HelmState                    *state.HelmState
-	ClusterWide                  map[string]bool
+	NamespacedKind               map[string]bool
+	ResourcesToMove              []ResourceToMove
 }
 
 // NewCmdHelmfileMove creates a command object for the command
@@ -128,6 +129,26 @@ func (o *Options) Run() error {
 	}
 
 	var namespaces []string
+	o.NamespacedKind = make(map[string]bool)
+	if !kube.IsNoKubernetes() {
+		client, err := kube.LazyCreateKubeClient(nil)
+		if err != nil {
+			log.Logger().Errorf("Failed to create k8s client: %v", err)
+			goto noKube
+		}
+		apiResourceLists, err := client.Discovery().ServerPreferredResources()
+		if err != nil {
+			log.Logger().Errorf("Failed to fetch api resources: %v", err)
+		}
+		for i := range apiResourceLists {
+			resources := apiResourceLists[i].APIResources
+			for j := range resources {
+				o.NamespacedKind[resources[j].Kind] = resources[j].Namespaced
+			}
+		}
+	}
+noKube:
+	o.ResourcesToMove = make([]ResourceToMove, 0, len(fileNames))
 	for _, dir := range fileNames {
 		log.Logger().Debugf("processing chart dir %s", dir)
 
@@ -157,6 +178,38 @@ func (o *Options) Run() error {
 		err = o.moveFilesToClusterOrNamespacesFolder(dir, ns, releaseName, chartName)
 		if err != nil {
 			return errors.Wrapf(err, "failed to ")
+		}
+	}
+	for _, res := range o.ResourcesToMove {
+		isNamespaced, ok := o.NamespacedKind[res.kind]
+		if !ok {
+			isNamespaced = !kyamls.IsClusterKind(res.kind)
+			o.NamespacedKind[res.kind] = isNamespaced
+			if !kube.IsNoKubernetes() {
+				not := ""
+				if !isNamespaced {
+					not = " not"
+				}
+				log.Logger().Errorf("the server doesn't have resource of kind %s. Assuming it is%s namespaced.", res.kind, not)
+			}
+		}
+		outDir := filepath.Join(o.ClusterResourcesDir, res.namespace, res.pathname)
+
+		if isNamespaced {
+			err := res.node.PipeE(yaml.LookupCreate(yaml.ScalarNode, "metadata", "namespace"), yaml.FieldSetter{StringValue: res.namespace})
+			if err != nil {
+				return errors.Wrapf(err, "failed to set metadata.namespace to %s for path %s", res.namespace, res.path)
+			}
+			outDir = filepath.Join(o.NamespacesDir, res.namespace, res.pathname)
+		} else {
+			err := res.node.PipeE(yaml.Lookup("metadata"), yaml.FieldClearer{Name: "namespace"})
+			if err != nil {
+				return errors.Wrapf(err, "failed to remove metadata.namespace for path %s", res.path)
+			}
+		}
+		err = o.writeNodeToDir(outDir, res.rel, res.node)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -283,41 +336,25 @@ func (o *Options) moveFilesToClusterOrNamespacesFolder(dir, ns, releaseName, cha
 		}
 
 		kind := kyamls.GetKind(node, path)
-		outDir := filepath.Join(o.ClusterResourcesDir, ns, pathName)
+		if kind == "" {
+			return fmt.Errorf("No kind in %s", path)
+		}
 
 		if kyamls.IsCustomResourceDefinition(kind) {
-			outDir = filepath.Join(o.CustomResourceDefinitionsDir, ns, pathName)
-		} else {
-			isClusterKind, err := o.isClusterWide(kind)
-			if err != nil {
-				return err
-			}
-
-			if isClusterKind {
-				err := node.PipeE(yaml.Lookup("metadata"), yaml.FieldClearer{Name: "namespace"})
-				if err != nil {
-					return errors.Wrapf(err, "failed to remove metadata.namespace for path %s", path)
-				}
-			} else {
-				err := node.PipeE(yaml.LookupCreate(yaml.ScalarNode, "metadata", "namespace"), yaml.FieldSetter{StringValue: ns})
-				if err != nil {
-					return errors.Wrapf(err, "failed to set metadata.namespace to %s for path %s", ns, path)
-				}
-				outDir = filepath.Join(o.NamespacesDir, ns, pathName)
-			}
+			namespaced := kyamls.GetStringField(node, path, "spec", "scope") == "Namespaced"
+			name := kyamls.GetStringField(node, path, "spec", "names", "kind")
+			log.Logger().Debugf("CRD %s: namespaced = %v", name, namespaced)
+			o.NamespacedKind[name] = namespaced
+			return o.writeNodeToDir(filepath.Join(o.CustomResourceDefinitionsDir, ns, pathName), rel, node)
 		}
-
-		outFile := filepath.Join(outDir, rel)
-		parentDir := filepath.Dir(outFile)
-		err = os.MkdirAll(parentDir, files.DefaultDirWritePermissions)
-		if err != nil {
-			return errors.Wrapf(err, "failed to create dir %s", parentDir)
-		}
-
-		err = yaml.WriteFile(node, outFile)
-		if err != nil {
-			return errors.Wrapf(err, "failed to save %s", outFile)
-		}
+		o.ResourcesToMove = append(o.ResourcesToMove, ResourceToMove{
+			kind:      kind,
+			node:      node,
+			path:      path,
+			pathname:  pathName,
+			rel:       rel,
+			namespace: ns,
+		})
 		return nil
 	})
 	if err != nil {
@@ -326,33 +363,26 @@ func (o *Options) moveFilesToClusterOrNamespacesFolder(dir, ns, releaseName, cha
 	return nil
 }
 
-func (o *Options) isClusterWide(kind string) (bool, error) {
-	if kube.IsNoKubernetes() {
-		// Approximates the truth
-		return kyamls.IsClusterKind(kind), nil
-	}
-	if o.ClusterWide == nil {
-		o.ClusterWide = make(map[string]bool)
-		client, err := kube.LazyCreateKubeClient(nil)
-		if err != nil {
-			return kyamls.IsClusterKind(kind), errors.Wrapf(err, "Failed to create k8s client")
-		}
-		apiResourceLists, err := client.Discovery().ServerPreferredResources()
-		if err != nil {
-			return kyamls.IsClusterKind(kind), errors.Wrapf(err, "Failed to fetch api resources")
-		}
+type ResourceToMove struct {
+	kind      string
+	path      string
+	rel       string
+	node      *yaml.RNode
+	pathname  string
+	namespace string
+}
 
-		for i := range apiResourceLists {
-			resources := apiResourceLists[i].APIResources
-			for j := range resources {
-				o.ClusterWide[resources[j].Kind] = !resources[j].Namespaced
-			}
-		}
-	}
-	val, ok := o.ClusterWide[kind]
-	if !ok {
-		return false, fmt.Errorf("the server doesn't have resource of kind %s", kind)
+func (o *Options) writeNodeToDir(outDir, rel string, node *yaml.RNode) error {
+	outFile := filepath.Join(outDir, rel)
+	parentDir := filepath.Dir(outFile)
+	err := os.MkdirAll(parentDir, files.DefaultDirWritePermissions)
+	if err != nil {
+		return errors.Wrapf(err, "failed to create dir %s", parentDir)
 	}
 
-	return val, nil
+	err = yaml.WriteFile(node, outFile)
+	if err != nil {
+		return errors.Wrapf(err, "failed to save %s", outFile)
+	}
+	return nil
 }
