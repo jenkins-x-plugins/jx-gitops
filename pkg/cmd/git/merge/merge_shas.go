@@ -72,7 +72,7 @@ func FetchAndMergeSHAs(gitter gitclient.Interface, shas []string, baseBranch, ba
 		args = append(args, sha)
 		_, err = gitter.Command(dir, args...)
 		if err != nil {
-			return errors.Wrapf(err, "merging %s into master", sha)
+			return errors.Wrapf(err, "merging %s into %s", sha, baseBranch)
 		}
 		log.Logger().Debugf("ran: git merge %s", strings.Join(args, " "))
 	}
