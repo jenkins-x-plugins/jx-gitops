@@ -20,7 +20,13 @@ spec:
           name: ""
           resources: {}
         - name: next-version
-          resources: {}
+          resources:
+            limit:
+              cpu: 4
+              memory: 2Gi
+            requests:
+              cpu: 2
+              memory: 1Gi
         - name: jx-variables
           resources: {}
         - name: release-binary
