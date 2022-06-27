@@ -197,7 +197,7 @@ func (o *Options) Validate() error {
 		{
 			Name: "APP_NAME",
 			Function: func() (string, error) {
-				return o.Options.Repository, nil
+				return naming.ToValidName(o.Options.Repository), nil
 			},
 		},
 		{
