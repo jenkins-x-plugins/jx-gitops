@@ -28,7 +28,7 @@ const (
 	HelmfileVersion = "0.143.0"
 
 	// KptVersion the default version of kpt to use
-	KptVersion = "1.0.0-beta.17"
+	KptVersion = "0.37.0"
 
 	// KubectlVersion the default version of kpt to use
 	KubectlVersion = "1.21.0"
