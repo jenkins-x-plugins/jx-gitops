@@ -11,7 +11,7 @@ require (
 	github.com/h2non/gock v1.0.9
 	github.com/imdario/mergo v0.3.12
 	github.com/jenkins-x-plugins/jx-charter v0.0.28
-	github.com/jenkins-x/go-scm v1.11.5
+	github.com/jenkins-x/go-scm v1.11.15
 	github.com/jenkins-x/jx-api/v4 v4.3.5
 	github.com/jenkins-x/jx-helpers/v3 v3.2.5
 	github.com/jenkins-x/jx-kube-client/v3 v3.0.2
@@ -241,7 +241,7 @@ replace (
 	//knative.dev/pkg => knative.dev/pkg v0.0.0-20210730172132-bb4aaf09c430
 
 	// override the go-scm from tekton
-	github.com/jenkins-x/go-scm => github.com/jenkins-x/go-scm v1.11.5
+	github.com/jenkins-x/go-scm => github.com/jenkins-x/go-scm v1.11.15
 
 	// for the PipelineRun debug fix see: https://github.com/tektoncd/pipeline/pull/4145
 	github.com/tektoncd/pipeline => github.com/jstrachan/pipeline v0.21.1-0.20210811150720-45a86a5488af
