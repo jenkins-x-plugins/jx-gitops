@@ -27,6 +27,7 @@ Generate the kubernetes resources from a helm chart
   -h, --help                       help for release
   -I, --ignore stringArray         the names of helm charts to not release (default [preview])
       --namespace string           the namespace to look for the dev Environment. Defaults to the current namespace
+      --nexus                      use nexus mode for publishing the chart which involves omitting the /api/charts endpoint for pushing the chart
       --no-oci-login               disables using the 'helm registry login' command when using OCI
       --no-release                 disables publishing the release. Useful for a Pull Request pipeline
       --oci                        treat the repository as an OCI container registry. If not specified its defaulted from the cluster.chartOCI flag on the 'jx-requirements.yml' file
