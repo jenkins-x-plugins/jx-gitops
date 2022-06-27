@@ -179,7 +179,9 @@ func (o *Options) modifyVariables(text string) error {
 func (o *Options) loadPRComments(envVars map[string]string, pr *scm.PullRequest) error {
 	ctx := o.GetContext()
 	prNumber := pr.Number
-	opts := scm.ListOptions{}
+	opts := scm.ListOptions{
+		Sort: "asc",
+	}
 	comments, _, err := o.ScmClient.PullRequests.ListComments(ctx, o.FullRepositoryName, prNumber, opts)
 	if err != nil {
 		return errors.Wrapf(err, "failed to list comments of PR %d", prNumber)
