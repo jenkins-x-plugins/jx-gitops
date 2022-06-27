@@ -9,6 +9,7 @@ import (
 
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/cli"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/kyamls"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/options"
 	"sigs.k8s.io/yaml"
 
@@ -93,7 +94,7 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&o.RepositoryOwner, "owner", "o", "", "filter on the Kptfile repository owner (user/organisation) for which packages to update")
 	cmd.Flags().StringVarP(&o.RepositoryName, "repo", "r", "", "filter on the Kptfile repository name  for which packages to update")
 	cmd.Flags().StringVarP(&o.KptBinary, "bin", "", "", "the 'kpt' binary name to use. If not specified this command will download the jx binary plugin into ~/.jx3/plugins/bin and use that")
-	cmd.Flags().StringVarP(&o.Strategy, "strategy", "s", "alpha-git-patch", "the 'kpt' strategy to use. To see available strategies type 'kpt pkg update --help'. Typical values are: resource-merge, fast-forward, alpha-git-patch, force-delete-replace")
+	cmd.Flags().StringVarP(&o.Strategy, "strategy", "s", "resource-merge", "the 'kpt' strategy to use. To see available strategies type 'kpt pkg update --help'. Typical values are: resource-merge, fast-forward, force-delete-replace")
 
 	cmd.Flags().BoolVarP(&o.IgnoreYamlContentError, "ignore-yaml-error", "", false, "ignore kpt errors of the form: yaml: did not find expected node content")
 }
@@ -141,6 +142,8 @@ func (o *Options) Run() error {
 		return errors.Errorf("cannot upgrade files via kpt until you have commit the pending git changes. See 'git status' for more details")
 	}
 
+	increaseRLimit()
+
 	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error { //nolint:staticcheck
 		if info == nil || info.IsDir() {
 			return nil
@@ -180,7 +183,18 @@ func (o *Options) Run() error {
 		} else {
 			node, err := kyaml.ReadFile(path)
 			if err == nil {
-				refNode, err := node.Pipe(kyaml.Lookup("upstream", "git", "ref"))
+				apiVersion := kyamls.GetAPIVersion(node, path)
+				if apiVersion != "kpt.dev/v1" {
+					err := o.upgradeKptPkg(path, bin, apiVersion)
+					if err != nil {
+						return err
+					}
+					node, err = kyaml.ReadFile(path)
+					if err != nil {
+						return err
+					}
+				}
+				refNode, err := node.Pipe(kyaml.Lookup("upstreamLock", "git", "ref"))
 				if err == nil {
 					nodeText, err := refNode.String()
 					if err == nil {
@@ -335,4 +349,19 @@ func (o *Options) LoadOverrideStrategies() (map[string]string, error) {
 		strategies[fileStrategy.RelativePath] = fileStrategy.Strategy
 	}
 	return strategies, nil
+}
+
+func (o *Options) upgradeKptPkg(kptfilePath, bin, upgradeFromAPIVersion string) error {
+	dir := filepath.Dir(kptfilePath)
+	args := []string{"fn", "eval", "--image", "gcr.io/kpt-fn/fix:v0.2", "--truncate-output=false", "--match-api-version", upgradeFromAPIVersion}
+	c := &cmdrunner.Command{
+		Dir:  dir,
+		Name: bin,
+		Args: args,
+	}
+	_, err := o.CommandRunner(c)
+	if err != nil {
+		return errors.Wrapf(err, "failed to run %s", c.CLI())
+	}
+	return nil
 }
