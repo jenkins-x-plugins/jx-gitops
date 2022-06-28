@@ -12,7 +12,6 @@ import (
 )
 
 func TestRun(t *testing.T) {
-
 }
 
 func TestMoreThanOneFlagSet(t *testing.T) {
@@ -72,7 +71,7 @@ func TestOptions_Run(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tmpDir := t.TempDir()
-			err := files.CopyDir(filepath.Join("test_data", tt.name), tmpDir, true)
+			err := files.CopyDir(filepath.Join("testdata", tt.name), tmpDir, true)
 			assert.NoError(t, err)
 
 			o := &Options{
@@ -88,7 +87,7 @@ func TestOptions_Run(t *testing.T) {
 			if err := o.switchVersionStream(); (err != nil) != tt.wantErr {
 				t.Errorf("Run() error = %v, wantErr %v", err, tt.wantErr)
 			} else {
-				testhelpers.AssertTextFilesEqual(t, filepath.Join("test_data", tt.name, "expected"), filepath.Join(tmpDir, "versionStream", "Kptfile"), "updated Kptfile does not match expected")
+				testhelpers.AssertTextFilesEqual(t, filepath.Join("testdata", tt.name, "expected"), filepath.Join(tmpDir, "versionStream", "Kptfile"), "updated Kptfile does not match expected")
 			}
 		})
 	}

@@ -1,7 +1,7 @@
 package tfupgrade_test
 
 import (
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -16,7 +16,7 @@ import (
 func TestTerraformUpgrade(t *testing.T) {
 	tmpDir := t.TempDir()
 
-	fileNames, err := ioutil.ReadDir("test_data")
+	fileNames, err := os.ReadDir("testdata")
 	assert.NoError(t, err)
 
 	for _, f := range fileNames {
@@ -24,7 +24,7 @@ func TestTerraformUpgrade(t *testing.T) {
 			continue
 		}
 		name := f.Name()
-		srcDir := filepath.Join("test_data", name)
+		srcDir := filepath.Join("testdata", name)
 		require.DirExists(t, srcDir)
 
 		err = files.CopyDirOverwrite(srcDir, tmpDir)
@@ -86,7 +86,7 @@ func TestTerraformUpgradeReplaceValue(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		o := &tfupgrade.Options{
-			VersionStreamDir: filepath.Join("test_data", tc.cloudProvider, "versionStream"),
+			VersionStreamDir: filepath.Join("testdata", tc.cloudProvider, "versionStream"),
 		}
 
 		got := o.ReplaceValue(tc.input)

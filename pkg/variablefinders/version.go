@@ -1,7 +1,6 @@
 package variablefinders
 
 import (
-	"io/ioutil"
 	"os"
 	"strings"
 
@@ -19,7 +18,7 @@ func FindVersion(versionFile, branch, buildNumber string) (string, error) {
 			return version, errors.Wrapf(err, "failed to check for file %s", versionFile)
 		}
 		if exists {
-			data, err := ioutil.ReadFile(versionFile)
+			data, err := os.ReadFile(versionFile)
 			if err != nil {
 				return version, errors.Wrapf(err, "failed to read version file %s", versionFile)
 			}

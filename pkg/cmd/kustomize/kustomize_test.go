@@ -13,8 +13,8 @@ import (
 func TestKustomize(t *testing.T) {
 	_, ko := kustomize.NewCmdKustomize()
 
-	ko.SourceDir = filepath.Join("test_data", "source")
-	ko.TargetDir = filepath.Join("test_data", "target")
+	ko.SourceDir = filepath.Join("testdata", "source")
+	ko.TargetDir = filepath.Join("testdata", "target")
 	require.DirExists(t, ko.SourceDir)
 	require.DirExists(t, ko.TargetDir)
 
@@ -25,13 +25,13 @@ func TestKustomize(t *testing.T) {
 	assert.NotEmpty(t, outDir, "no output dir")
 	t.Logf("overlay files generated in %s\n", outDir)
 
-	expected := filepath.Join("test_data", "expected", "godemo48") //nolint:ineffassign,staticcheck
+	expected := filepath.Join("testdata", "expected", "godemo48") //nolint:ineffassign,staticcheck
 	actual := filepath.Join(outDir, "godemo48")
 	testhelpers.AssertFileNotExists(t, filepath.Join(actual, "deployment.yaml"))
 	testhelpers.AssertFileNotExists(t, filepath.Join(actual, "service.yaml"))
 
 	actual = filepath.Join(outDir, "myapp")
-	expected = filepath.Join("test_data", "expected", "myapp")
+	expected = filepath.Join("testdata", "expected", "myapp")
 	assert.FileExists(t, filepath.Join(actual, "deployment.yaml"))
 	assert.FileExists(t, filepath.Join(actual, "ingress.yaml"))
 	testhelpers.AssertFileNotExists(t, filepath.Join(actual, "service.yaml"))

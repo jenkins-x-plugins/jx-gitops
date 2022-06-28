@@ -1,7 +1,7 @@
 package yset_test
 
 import (
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -42,8 +42,8 @@ func TestYSet(t *testing.T) {
 	for _, tc := range testCases {
 		name := tc.dir
 
-		srcFile := filepath.Join("test_data", name, "source.yaml")
-		expectedFile := filepath.Join("test_data", name, "expected.yaml")
+		srcFile := filepath.Join("testdata", name, "source.yaml")
+		expectedFile := filepath.Join("testdata", name, "expected.yaml")
 		require.FileExists(t, srcFile)
 		require.FileExists(t, expectedFile)
 
@@ -61,10 +61,10 @@ func TestYSet(t *testing.T) {
 		require.NoError(t, err, "failed to run for test %s", name)
 
 		if generateTestOutput {
-			data, err := ioutil.ReadFile(outFile)
+			data, err := os.ReadFile(outFile)
 			require.NoError(t, err, "failed to load %s", outFile)
 
-			err = ioutil.WriteFile(expectedFile, data, 0600)
+			err = os.WriteFile(expectedFile, data, 0o600)
 			require.NoError(t, err, "failed to save file %s", expectedFile)
 			continue
 		}

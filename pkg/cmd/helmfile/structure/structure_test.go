@@ -12,8 +12,7 @@ import (
 )
 
 func TestHelmfileStructure(t *testing.T) {
-
-	srcDir := "test_data"
+	srcDir := "testdata"
 	require.DirExists(t, srcDir)
 
 	tmpDir := t.TempDir()
@@ -36,5 +35,4 @@ func TestHelmfileStructure(t *testing.T) {
 	tektonFolder := filepath.Join(tmpDir, "helmfiles", "tekton-pipelines")
 	testhelpers.AssertTextFilesEqual(t, filepath.Join(jxFolder, "expected-helmfile.yaml"), filepath.Join(jxFolder, "helmfile.yaml"), "generated file: helmfile.yaml")
 	testhelpers.AssertTextFilesEqual(t, filepath.Join(tektonFolder, "expected-helmfile.yaml"), filepath.Join(tektonFolder, "helmfile.yaml"), "generated file: helmfile.yaml")
-
 }

@@ -2,7 +2,6 @@ package add
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -151,7 +150,7 @@ func (o *Options) verifyValuesExists() error {
 		return nil
 	}
 
-	err = ioutil.WriteFile(path, []byte(sampleValuesFile), files.DefaultFileWritePermissions)
+	err = os.WriteFile(path, []byte(sampleValuesFile), files.DefaultFileWritePermissions)
 	if err != nil {
 		return errors.Wrapf(err, "failed to save %s", path)
 	}

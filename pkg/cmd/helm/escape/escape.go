@@ -2,7 +2,6 @@ package escape
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -65,7 +64,7 @@ func EncodeYAMLFiles(dir string) error {
 		if !strings.HasSuffix(path, ".yaml") {
 			return nil
 		}
-		data, err := ioutil.ReadFile(path) //nolint:staticcheck
+		data, err := os.ReadFile(path) //nolint:staticcheck
 		if err != nil {
 			return errors.Wrapf(err, "failed to load file %s", path)
 		}
@@ -87,7 +86,7 @@ func EncodeYAMLFiles(dir string) error {
 			return nil
 		}
 
-		err = ioutil.WriteFile(path, []byte(buf.String()), files.DefaultFileWritePermissions)
+		err = os.WriteFile(path, []byte(buf.String()), files.DefaultFileWritePermissions)
 		if err != nil {
 			return errors.Wrapf(err, "failed to save %s", path)
 		}

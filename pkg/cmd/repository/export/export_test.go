@@ -33,7 +33,7 @@ func TestExportRepositorySourceDir(t *testing.T) {
 
 	t.Logf("generated export file %s", o.ConfigFile)
 
-	testhelpers.AssertTextFilesEqual(t, filepath.Join("test_data", "expected.yaml"), generatedFile, "generated source config file")
+	testhelpers.AssertTextFilesEqual(t, filepath.Join("testdata", "expected.yaml"), generatedFile, "generated source config file")
 }
 
 func createGitHubSourceRepository(ns, org, repo string) *jenkinsv1.SourceRepository {

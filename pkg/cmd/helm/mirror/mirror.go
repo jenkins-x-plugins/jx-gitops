@@ -2,7 +2,7 @@ package mirror
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -234,7 +234,7 @@ func downloadURLToFile(u, path string) error {
 	}
 
 	client := httphelpers.GetClient()
-	req, err := http.NewRequest("GET", u, nil)
+	req, err := http.NewRequest("GET", u, http.NoBody)
 	if err != nil {
 		return errors.Wrapf(err, "failed to create http request for %s", u)
 	}
@@ -247,12 +247,12 @@ func downloadURLToFile(u, path string) error {
 		return errors.Wrapf(err, "failed to GET endpoint %s", u)
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return errors.Wrapf(err, "failed to read response from %s", u)
 	}
 
-	err = ioutil.WriteFile(path, body, files.DefaultFileWritePermissions)
+	err = os.WriteFile(path, body, files.DefaultFileWritePermissions)
 	if err != nil {
 		return errors.Wrapf(err, "failed to save file %s", path)
 	}

@@ -41,7 +41,7 @@ func TestRepositoryAdd(t *testing.T) {
 	ns := "jx"
 	for _, tc := range testCases {
 		name := tc.repo
-		sourceData := filepath.Join("test_data", name)
+		sourceData := filepath.Join("testdata", name)
 
 		tmpDir := filepath.Join(rootTmpDir, name)
 

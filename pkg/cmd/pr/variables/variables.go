@@ -2,7 +2,6 @@ package variables
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
@@ -115,11 +114,10 @@ func (o *Options) displayPullRequest(pr *scm.PullRequest) error {
 
 	var lines []string
 	for k, v := range e {
-		lines = append(lines, fmt.Sprintf("export %s=\"%s\"", k, v))
+		lines = append(lines, fmt.Sprintf("export %s=%q", k, v))
 	}
 	sort.Strings(lines)
 	return o.modifyVariables(strings.Join(lines, "\n"))
-
 }
 
 func (o *Options) modifyVariables(text string) error {
@@ -144,7 +142,7 @@ func (o *Options) modifyVariables(text string) error {
 	source := ""
 
 	if exists {
-		data, err := ioutil.ReadFile(file)
+		data, err := os.ReadFile(file)
 		if err != nil {
 			return errors.Wrapf(err, "failed to read file %s", file)
 		}
@@ -168,7 +166,7 @@ func (o *Options) modifyVariables(text string) error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to create dir %s", dir)
 	}
-	err = ioutil.WriteFile(file, []byte(source), files.DefaultFileWritePermissions)
+	err = os.WriteFile(file, []byte(source), files.DefaultFileWritePermissions)
 	if err != nil {
 		return errors.Wrapf(err, "failed to save %s", file)
 	}

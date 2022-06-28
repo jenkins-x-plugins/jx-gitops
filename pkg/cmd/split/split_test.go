@@ -13,7 +13,7 @@ import (
 )
 
 func TestSplitYamlFiles(t *testing.T) {
-	srcFile := filepath.Join("test_data")
+	srcFile := "testdata"
 	require.DirExists(t, srcFile)
 
 	tmpDir := t.TempDir()
@@ -47,7 +47,7 @@ func TestSplitYamlFiles(t *testing.T) {
 }
 
 func TestSplitHelmTemplateYamlFiles(t *testing.T) {
-	srcFile := filepath.Join("test_data", "helm")
+	srcFile := filepath.Join("testdata", "helm")
 	require.DirExists(t, srcFile)
 
 	tmpDir := t.TempDir()

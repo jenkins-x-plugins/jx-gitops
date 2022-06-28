@@ -15,7 +15,7 @@ import (
 func TestServiceAccountSecret(t *testing.T) {
 	tmpDir := t.TempDir()
 
-	sourceData := filepath.Join("test_data")
+	sourceData := "testdata"
 
 	err := files.CopyDirOverwrite(sourceData, tmpDir)
 	require.NoError(t, err, "failed to copy generated crds at %s to %s", sourceData, tmpDir)

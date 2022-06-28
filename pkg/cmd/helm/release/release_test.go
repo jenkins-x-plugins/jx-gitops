@@ -39,7 +39,7 @@ func TestStepHelmRelease(t *testing.T) {
 	_, o := release.NewCmdHelmRelease()
 	o.HelmBinary = helmBin
 	o.CommandRunner = runner.Run
-	o.ChartsDir = filepath.Join("test_data", "charts")
+	o.ChartsDir = filepath.Join("testdata", "charts")
 	o.JXClient = jxClient
 	o.Namespace = ns
 	o.Version = "1.2.3"
@@ -87,7 +87,7 @@ func TestStepHelmReleaseWithArtifactory(t *testing.T) {
 	_, o := release.NewCmdHelmRelease()
 	o.HelmBinary = helmBin
 	o.CommandRunner = runner.Run
-	o.ChartsDir = filepath.Join("test_data", "charts")
+	o.ChartsDir = filepath.Join("testdata", "charts")
 	o.JXClient = jxClient
 	o.Namespace = ns
 	o.Version = "2.3.4"

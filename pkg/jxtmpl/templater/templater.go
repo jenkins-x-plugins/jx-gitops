@@ -2,7 +2,7 @@ package templater
 
 import (
 	"bytes"
-	"io/ioutil"
+	"os"
 	"text/template"
 
 	"github.com/Masterminds/sprig"
@@ -42,7 +42,7 @@ func (o *Templater) Generate(sourceFile, destFile string) error {
 		return errors.Wrapf(err, "failed to render template file %s", sourceFile)
 	}
 
-	err = ioutil.WriteFile(destFile, data, files.DefaultFileWritePermissions)
+	err = os.WriteFile(destFile, data, files.DefaultFileWritePermissions)
 	if err != nil {
 		return errors.Wrapf(err, "failed to save output of template %s to %s", sourceFile, destFile)
 	}

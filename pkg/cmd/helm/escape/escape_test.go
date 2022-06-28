@@ -11,7 +11,7 @@ import (
 )
 
 func TestEscapeYAML(t *testing.T) {
-	srcDir := filepath.Join("test_data", "src")
+	srcDir := filepath.Join("testdata", "src")
 	require.DirExists(t, srcDir)
 
 	tmpDir := t.TempDir()
@@ -28,6 +28,6 @@ func TestEscapeYAML(t *testing.T) {
 	t.Logf("escape files in dir %s\n", tmpDir)
 
 	srcFile := filepath.Join(tmpDir, "config-observability-cm.yaml")
-	expectedFile := filepath.Join("test_data", "expected", "config-observability-cm.yaml")
+	expectedFile := filepath.Join("testdata", "expected", "config-observability-cm.yaml")
 	_ = testhelpers.AssertEqualFileText(t, expectedFile, srcFile)
 }

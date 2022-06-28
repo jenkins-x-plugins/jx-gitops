@@ -17,7 +17,7 @@ import (
 )
 
 func TestScheduler(t *testing.T) {
-	sourceDir := filepath.Join("test_data")
+	sourceDir := "testdata"
 	require.DirExists(t, sourceDir)
 
 	tmpDir := t.TempDir()

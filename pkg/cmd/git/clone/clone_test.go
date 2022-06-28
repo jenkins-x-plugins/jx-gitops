@@ -65,5 +65,5 @@ func TestGitClone(t *testing.T) {
 		},
 	)
 
-	testhelpers.AssertTextFilesEqual(t, filepath.Join("test_data", "expected.txt"), o.OutputFile, "generated git credentials file")
+	testhelpers.AssertTextFilesEqual(t, filepath.Join("testdata", "expected.txt"), o.OutputFile, "generated git credentials file")
 }

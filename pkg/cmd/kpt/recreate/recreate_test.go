@@ -10,7 +10,7 @@ import (
 )
 
 func TestKptRecreate(t *testing.T) {
-	sourceDir := filepath.Join("test_data")
+	sourceDir := "testdata"
 	absSourceDir, err := filepath.Abs(sourceDir)
 	require.NoError(t, err, "failed to find abs dir of %s", sourceDir)
 	require.DirExists(t, absSourceDir)

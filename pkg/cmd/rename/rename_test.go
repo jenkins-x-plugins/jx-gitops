@@ -11,7 +11,7 @@ import (
 )
 
 func TestRenameYamlFiles(t *testing.T) {
-	srcFile := filepath.Join("test_data")
+	srcFile := "testdata"
 	require.DirExists(t, srcFile)
 
 	tmpDir := t.TempDir()

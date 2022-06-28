@@ -2,7 +2,6 @@ package ingress
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -138,7 +137,7 @@ func (o *Options) updateIngresses(dir string, fn func(ing *nv1.Ingress, path str
 			return nil
 		}
 
-		data, err := ioutil.ReadFile(path) //nolint:staticcheck
+		data, err := os.ReadFile(path) //nolint:staticcheck
 		if err != nil {
 			return errors.Wrapf(err, "failed to load file %s", path)
 		}
@@ -177,7 +176,7 @@ func (o *Options) updateIngresses(dir string, fn func(ing *nv1.Ingress, path str
 		if err != nil {
 			return errors.Wrap(err, "failed to marshal ingress onject to yaml")
 		}
-		err = ioutil.WriteFile(path, data, files.DefaultFileWritePermissions)
+		err = os.WriteFile(path, data, files.DefaultFileWritePermissions)
 		if err != nil {
 			return errors.Wrapf(err, "failed to save %s", path)
 		}

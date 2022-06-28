@@ -66,7 +66,7 @@ func TestRequirementsResolveGKE(t *testing.T) {
 	// setup the disk
 	tmpDir := t.TempDir()
 
-	srcFile := filepath.Join("test_data", "gke")
+	srcFile := filepath.Join("testdata", "gke")
 	require.DirExists(t, srcFile)
 
 	err := files.CopyDirOverwrite(srcFile, tmpDir)
@@ -101,7 +101,7 @@ func TestRequirementsResolvePipelineUser(t *testing.T) {
 	// setup the disk
 	tmpDir := t.TempDir()
 
-	srcFile := filepath.Join("test_data", "eks")
+	srcFile := filepath.Join("testdata", "eks")
 	require.DirExists(t, srcFile)
 
 	err := files.CopyDirOverwrite(srcFile, tmpDir)

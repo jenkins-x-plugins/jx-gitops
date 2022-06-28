@@ -1,7 +1,7 @@
 package merge_test
 
 import (
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -23,7 +23,7 @@ func TestRequirementsMergeFile(t *testing.T) {
 	// setup the disk
 	rootTmpDir := t.TempDir()
 
-	fileNames, err := ioutil.ReadDir("test_data")
+	fileNames, err := os.ReadDir("testdata")
 	assert.NoError(t, err)
 
 	for _, f := range fileNames {
@@ -31,7 +31,7 @@ func TestRequirementsMergeFile(t *testing.T) {
 			continue
 		}
 		name := f.Name()
-		srcDir := filepath.Join("test_data", name)
+		srcDir := filepath.Join("testdata", name)
 		require.DirExists(t, srcDir)
 
 		tmpDir := filepath.Join(rootTmpDir, name)
@@ -52,10 +52,10 @@ func TestRequirementsMergeFile(t *testing.T) {
 		generatedFile := filepath.Join(tmpDir, jxcore.RequirementsConfigFileName)
 
 		if generateTestOutput {
-			data, err := ioutil.ReadFile(generatedFile)
+			data, err := os.ReadFile(generatedFile)
 			require.NoError(t, err, "failed to load %s", generatedFile)
 
-			err = ioutil.WriteFile(expectedPath, data, 0600)
+			err = os.WriteFile(expectedPath, data, 0o600)
 			require.NoError(t, err, "failed to save file %s", expectedPath)
 			continue
 		}
@@ -68,16 +68,16 @@ func TestRequirementsMergeConfigMap(t *testing.T) {
 	// setup the disk
 	tmpDir := t.TempDir()
 
-	srcDir := filepath.Join("test_data", "sample")
+	srcDir := filepath.Join("testdata", "sample")
 	require.DirExists(t, srcDir)
 
 	err := files.CopyDirOverwrite(srcDir, tmpDir)
 	require.NoError(t, err, "failed to copy %s to %s", srcDir, tmpDir)
 
-	changesFile := filepath.Join("test_data", "sample", "changes.yml")
+	changesFile := filepath.Join("testdata", "sample", "changes.yml")
 	require.FileExists(t, changesFile)
 
-	changesYaml, err := ioutil.ReadFile(changesFile)
+	changesYaml, err := os.ReadFile(changesFile)
 	require.NoError(t, err, "failed to load %s", changesYaml)
 
 	// now lets run the command
@@ -107,7 +107,7 @@ func TestRequirementsMergeConfigMapDoesNotExist(t *testing.T) {
 	// setup the disk
 	tmpDir := t.TempDir()
 
-	srcDir := filepath.Join("test_data", "sample")
+	srcDir := filepath.Join("testdata", "sample")
 	require.DirExists(t, srcDir)
 
 	err := files.CopyDirOverwrite(srcDir, tmpDir)

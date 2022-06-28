@@ -12,10 +12,6 @@ type StringFilter struct {
 	Prefix   string
 	Suffix   string
 	Contains string
-	// TODO
-	// Regex    string
-	// Includes []string
-	// Excludes []string
 }
 
 // Matches returns true if the given filter matches the value

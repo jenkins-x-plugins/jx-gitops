@@ -12,7 +12,7 @@ func TestHelmMirror(t *testing.T) {
 	t.SkipNow()
 
 	_, o := mirror.NewCmdMirror()
-	o.Dir = filepath.Join("test_data", "versionStream")
+	o.Dir = filepath.Join("testdata", "versionStream")
 
 	o.GitURL = "https://github.com/jenkins-x-test-projects/test-vertx-app"
 	o.GitUsername = "jenkins-x-bot"

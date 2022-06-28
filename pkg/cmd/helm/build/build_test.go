@@ -1,7 +1,7 @@
 package build_test
 
 import (
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -12,8 +12,8 @@ import (
 )
 
 func TestStepHelmBuild(t *testing.T) {
-	sourceData := filepath.Join("test_data")
-	fileNames, err := ioutil.ReadDir(sourceData)
+	sourceData := "testdata"
+	fileNames, err := os.ReadDir(sourceData)
 	assert.NoError(t, err)
 
 	for _, f := range fileNames {

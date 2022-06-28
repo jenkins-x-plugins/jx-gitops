@@ -15,8 +15,8 @@ import (
 func TestUpdateImages(t *testing.T) {
 	_, o := image.NewCmdUpdateImage()
 
-	inputDir := filepath.Join("test_data", "input")
-	expectedDir := filepath.Join("test_data", "expected")
+	inputDir := filepath.Join("testdata", "input")
+	expectedDir := filepath.Join("testdata", "expected")
 	require.DirExists(t, inputDir)
 	require.DirExists(t, expectedDir)
 

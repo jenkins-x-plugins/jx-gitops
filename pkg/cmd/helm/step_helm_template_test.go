@@ -26,7 +26,7 @@ func TestStepHelmTemplate(t *testing.T) {
 	name := "mychart"
 	o.HelmBinary = helmBin
 	o.ReleaseName = name
-	o.Chart = filepath.Join("test_data", name)
+	o.Chart = filepath.Join("testdata", name)
 	o.OutDir = tmpDir
 	o.BatchMode = true
 

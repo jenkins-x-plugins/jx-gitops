@@ -2,7 +2,6 @@ package rename
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -62,7 +61,7 @@ func (o *Options) Run() error {
 			return nil
 		}
 
-		b, err := ioutil.ReadFile(path) //nolint:staticcheck
+		b, err := os.ReadFile(path) //nolint:staticcheck
 		if err != nil {
 			return errors.Wrapf(err, "failed to load file %s", path)
 		}

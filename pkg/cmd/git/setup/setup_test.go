@@ -23,12 +23,12 @@ func TestGitSetup(t *testing.T) {
 		{
 			username:     "myuser",
 			password:     "mypwd",
-			expectedPath: filepath.Join("test_data", "expected.txt"),
+			expectedPath: filepath.Join("testdata", "expected.txt"),
 		},
 		{
 			username:     "myuser",
 			password:     "my/pwd",
-			expectedPath: filepath.Join("test_data", "expected2.txt"),
+			expectedPath: filepath.Join("testdata", "expected2.txt"),
 		},
 	}
 
@@ -126,5 +126,5 @@ func TestGitSetupWithOperatorNamespace(t *testing.T) {
 		},
 	)
 
-	testhelpers.AssertTextFilesEqual(t, filepath.Join("test_data", "expected.txt"), o.OutputFile, "generated git credentials file")
+	testhelpers.AssertTextFilesEqual(t, filepath.Join("testdata", "expected.txt"), o.OutputFile, "generated git credentials file")
 }

@@ -2,7 +2,6 @@ package resolve
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -413,8 +412,6 @@ func (o *Options) resolveHelmfile(helmState *state.HelmState, helmfile helmfiles
 		}
 	}
 	for i := range helmState.Releases {
-		// TODO
-		// repository := release.Repository
 		release := helmState.Releases[i]
 		repository := ""
 		fullChartName := release.Chart
@@ -1066,7 +1063,7 @@ func (o *Options) migrateRequirementsToV4() error {
 	}
 
 	if exists {
-		file, err := ioutil.ReadFile(path)
+		file, err := os.ReadFile(path)
 		if err != nil {
 			return errors.Wrapf(err, "failed to read %s", path)
 		}

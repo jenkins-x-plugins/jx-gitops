@@ -14,7 +14,7 @@ import (
 )
 
 func TestUpdateAnnotatesInYamlFiles(t *testing.T) {
-	sourceDir := filepath.Join("test_data", "configs")
+	sourceDir := filepath.Join("testdata", "configs")
 	tmpDir := t.TempDir()
 
 	_, ho := hash.NewCmdHashAnnotate()
@@ -24,7 +24,7 @@ func TestUpdateAnnotatesInYamlFiles(t *testing.T) {
 	}
 	ho.Dir = tmpDir
 
-	deploymentsDir := filepath.Join("test_data", "deployments")
+	deploymentsDir := filepath.Join("testdata", "deployments")
 	err := files.CopyDir(deploymentsDir, tmpDir, true)
 	require.NoError(t, err, "failed to copy from %s to %s", deploymentsDir, tmpDir)
 
@@ -47,7 +47,7 @@ func TestUpdateAnnotatesInYamlFiles(t *testing.T) {
 }
 
 func TestUpdatePodSpecAnnotatesInYamlFiles(t *testing.T) {
-	sourceDir := filepath.Join("test_data", "configs")
+	sourceDir := filepath.Join("testdata", "configs")
 	tmpDir := t.TempDir()
 
 	_, ho := hash.NewCmdHashAnnotate()
@@ -58,7 +58,7 @@ func TestUpdatePodSpecAnnotatesInYamlFiles(t *testing.T) {
 	ho.Dir = tmpDir
 	ho.PodSpec = true
 
-	deploymentsDir := filepath.Join("test_data", "deployments")
+	deploymentsDir := filepath.Join("testdata", "deployments")
 	err := files.CopyDir(deploymentsDir, tmpDir, true)
 	require.NoError(t, err, "failed to copy from %s to %s", deploymentsDir, tmpDir)
 

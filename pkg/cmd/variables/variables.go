@@ -3,7 +3,6 @@ package variables
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
@@ -341,7 +340,7 @@ func (o *Options) Run() error {
 	source := ""
 
 	if exists {
-		data, err := ioutil.ReadFile(file)
+		data, err := os.ReadFile(file)
 		if err != nil {
 			return errors.Wrapf(err, "failed to read file %s", file)
 		}
@@ -411,7 +410,7 @@ func (o *Options) Run() error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to create dir %s", dir)
 	}
-	err = ioutil.WriteFile(file, []byte(source), files.DefaultFileWritePermissions)
+	err = os.WriteFile(file, []byte(source), files.DefaultFileWritePermissions)
 	if err != nil {
 		return errors.Wrapf(err, "failed to save %s", file)
 	}

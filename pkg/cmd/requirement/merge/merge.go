@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 
 	"github.com/imdario/mergo"
@@ -182,7 +183,7 @@ func (o *Options) loadRequirementsFileFromConfigMap() (string, error) {
 		return "", errors.Wrapf(err, "failed to create a temporaray file")
 	}
 	fileName := tmpFile.Name()
-	err = ioutil.WriteFile(fileName, []byte(text), files.DefaultFileWritePermissions)
+	err = os.WriteFile(fileName, []byte(text), files.DefaultFileWritePermissions)
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to write jx-requirements.yml file to %s", fileName)
 	}

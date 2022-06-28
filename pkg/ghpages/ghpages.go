@@ -44,7 +44,7 @@ func CloneGitHubPagesToDir(g gitclient.Interface, repoURL, branch, username, pas
 		}
 
 		// lets remove all the files other than .git
-		files, err := ioutil.ReadDir(dir)
+		files, err := os.ReadDir(dir)
 		if err != nil {
 			return dir, errors.Wrapf(err, "failed to read files in dir %s", dir)
 		}
