@@ -12,7 +12,7 @@ import (
 )
 
 func TestUpdateKptNoFilter(t *testing.T) {
-	sourceDir := filepath.Join("test_data")
+	sourceDir := "testdata"
 	absSourceDir, err := filepath.Abs(sourceDir)
 	require.NoError(t, err, "failed to find abs dir of %s", sourceDir)
 	require.DirExists(t, absSourceDir)
@@ -43,7 +43,7 @@ func TestUpdateKptNoFilter(t *testing.T) {
 }
 
 func TestUpdateKptFilterRepositoryURL(t *testing.T) {
-	sourceDir := filepath.Join("test_data")
+	sourceDir := "testdata"
 	absSourceDir, err := filepath.Abs(sourceDir)
 	require.NoError(t, err, "failed to find abs dir of %s", sourceDir)
 	require.DirExists(t, absSourceDir)
@@ -70,8 +70,9 @@ func TestUpdateKptFilterRepositoryURL(t *testing.T) {
 		},
 	)
 }
+
 func TestUpdateKptFilterRepositoryName(t *testing.T) {
-	sourceDir := filepath.Join("test_data")
+	sourceDir := "testdata"
 	absSourceDir, err := filepath.Abs(sourceDir)
 	require.NoError(t, err, "failed to find abs dir of %s", sourceDir)
 	require.DirExists(t, absSourceDir)
@@ -100,7 +101,7 @@ func TestUpdateKptFilterRepositoryName(t *testing.T) {
 }
 
 func TestUpdateKptFilterNotMatching(t *testing.T) {
-	sourceDir := filepath.Join("test_data")
+	sourceDir := "testdata"
 	absSourceDir, err := filepath.Abs(sourceDir)
 	require.NoError(t, err, "failed to find abs dir of %s", sourceDir)
 	require.DirExists(t, absSourceDir)
@@ -125,7 +126,6 @@ func TestUpdateKptFilterNotMatching(t *testing.T) {
 }
 
 func TestOptions_loadOverrideStrategies(t *testing.T) {
-
 	tests := []struct {
 		name    string
 		want    map[string]string
@@ -137,7 +137,7 @@ func TestOptions_loadOverrideStrategies(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			o := &update.Options{
-				Dir: filepath.Join("test_data", tt.name),
+				Dir: filepath.Join("testdata", tt.name),
 			}
 			got, err := o.LoadOverrideStrategies()
 			if (err != nil) != tt.wantErr {

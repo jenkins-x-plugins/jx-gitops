@@ -1,7 +1,7 @@
 package reqvalues
 
 import (
-	"io/ioutil"
+	"os"
 	"path/filepath"
 
 	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
@@ -71,7 +71,7 @@ func SaveRequirementsValuesFile(c *jxcore.RequirementsConfig, dir, fileName stri
 		return errors.Wrap(err, "failed to marshal to YAML")
 	}
 	text := jxValuesComment + string(global) + string(data)
-	err = ioutil.WriteFile(fileName, []byte(text), files.DefaultFileWritePermissions)
+	err = os.WriteFile(fileName, []byte(text), files.DefaultFileWritePermissions)
 	if err != nil {
 		return errors.Wrapf(err, "failed to save file %s", fileName)
 	}

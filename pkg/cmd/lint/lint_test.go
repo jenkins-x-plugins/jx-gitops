@@ -9,7 +9,7 @@ import (
 
 func TestLint(t *testing.T) {
 	_, o := lint.NewCmdLint()
-	o.Dir = "test_data"
+	o.Dir = "testdata"
 
 	err := o.Run()
 	require.NoError(t, err, "failed to run")

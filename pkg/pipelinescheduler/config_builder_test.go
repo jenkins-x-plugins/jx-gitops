@@ -1,3 +1,4 @@
+//go:build unit
 // +build unit
 
 package pipelinescheduler_test
@@ -43,7 +44,7 @@ func TestBuild(t *testing.T) {
 func TestRepo(t *testing.T) {
 	wd, err := os.Getwd()
 	assert.NoError(t, err)
-	testhelpers.BuildAndValidateProwConfig(t, filepath.Join(wd, "test_data", "repo"), "config.yaml", "",
+	testhelpers.BuildAndValidateProwConfig(t, filepath.Join(wd, "testdata", "repo"), "config.yaml", "",
 		[]testhelpers.SchedulerFile{
 			{
 				Filenames: []string{"repo.yaml"},
@@ -56,7 +57,7 @@ func TestRepo(t *testing.T) {
 func TestMultipleContexts(t *testing.T) {
 	wd, err := os.Getwd()
 	assert.NoError(t, err)
-	testhelpers.BuildAndValidateProwConfig(t, filepath.Join(wd, "test_data", "multiple_contexts"), "config.yaml", "",
+	testhelpers.BuildAndValidateProwConfig(t, filepath.Join(wd, "testdata", "multiple_contexts"), "config.yaml", "",
 		[]testhelpers.SchedulerFile{
 			{
 				Filenames: []string{"repo.yaml"},
@@ -69,7 +70,7 @@ func TestMultipleContexts(t *testing.T) {
 func TestWithParent(t *testing.T) {
 	wd, err := os.Getwd()
 	assert.NoError(t, err)
-	testhelpers.BuildAndValidateProwConfig(t, filepath.Join(wd, "test_data", "with_parent"), "config.yaml",
+	testhelpers.BuildAndValidateProwConfig(t, filepath.Join(wd, "testdata", "with_parent"), "config.yaml",
 		"plugins.yaml", []testhelpers.SchedulerFile{
 			{
 				Filenames: []string{"parent.yaml", "repo.yaml"},
@@ -82,7 +83,7 @@ func TestWithParent(t *testing.T) {
 func TestNoPostSubmitsWithParent(t *testing.T) {
 	wd, err := os.Getwd()
 	assert.NoError(t, err)
-	testhelpers.BuildAndValidateProwConfig(t, filepath.Join(wd, "test_data", "no_postsubmits_with_parent"), "config.yaml",
+	testhelpers.BuildAndValidateProwConfig(t, filepath.Join(wd, "testdata", "no_postsubmits_with_parent"), "config.yaml",
 		"plugins.yaml", []testhelpers.SchedulerFile{
 			{
 				Filenames: []string{"parent.yaml", "repo.yaml"},
@@ -95,7 +96,7 @@ func TestNoPostSubmitsWithParent(t *testing.T) {
 func TestPolicyWithParent(t *testing.T) {
 	wd, err := os.Getwd()
 	assert.NoError(t, err)
-	testhelpers.BuildAndValidateProwConfig(t, filepath.Join(wd, "test_data", "policy_with_parent"), "config.yaml",
+	testhelpers.BuildAndValidateProwConfig(t, filepath.Join(wd, "testdata", "policy_with_parent"), "config.yaml",
 		"plugins.yaml", []testhelpers.SchedulerFile{
 			{
 				Filenames: []string{"parent.yaml", "repo.yaml"},
@@ -108,7 +109,7 @@ func TestPolicyWithParent(t *testing.T) {
 func TestMergerWithParent(t *testing.T) {
 	wd, err := os.Getwd()
 	assert.NoError(t, err)
-	testhelpers.BuildAndValidateProwConfig(t, filepath.Join(wd, "test_data", "merger_with_parent"), "config.yaml",
+	testhelpers.BuildAndValidateProwConfig(t, filepath.Join(wd, "testdata", "merger_with_parent"), "config.yaml",
 		"plugins.yaml", []testhelpers.SchedulerFile{
 			{
 				Filenames: []string{"parent.yaml", "repo.yaml"},
@@ -121,7 +122,7 @@ func TestMergerWithParent(t *testing.T) {
 func TestMergerWithMergeMethod(t *testing.T) {
 	wd, err := os.Getwd()
 	assert.NoError(t, err)
-	testhelpers.BuildAndValidateProwConfig(t, filepath.Join(wd, "test_data", "merger_with_mergemethod"), "config.yaml",
+	testhelpers.BuildAndValidateProwConfig(t, filepath.Join(wd, "testdata", "merger_with_mergemethod"), "config.yaml",
 		"plugins.yaml", []testhelpers.SchedulerFile{
 			{
 				Filenames: []string{"parent.yaml", "repo.yaml"},
@@ -134,7 +135,7 @@ func TestMergerWithMergeMethod(t *testing.T) {
 func TestOnlyWithParent(t *testing.T) {
 	wd, err := os.Getwd()
 	assert.NoError(t, err)
-	testhelpers.BuildAndValidateProwConfig(t, filepath.Join(wd, "test_data", "only_with_parent"), "config.yaml",
+	testhelpers.BuildAndValidateProwConfig(t, filepath.Join(wd, "testdata", "only_with_parent"), "config.yaml",
 		"plugins.yaml", []testhelpers.SchedulerFile{
 			{
 				Filenames: []string{"parent.yaml"},
@@ -147,7 +148,7 @@ func TestOnlyWithParent(t *testing.T) {
 func TestOnlyPluginsFromRepo(t *testing.T) {
 	wd, err := os.Getwd()
 	assert.NoError(t, err)
-	testhelpers.BuildAndValidateProwConfig(t, filepath.Join(wd, "test_data", "only_plugins_from_repo"), "",
+	testhelpers.BuildAndValidateProwConfig(t, filepath.Join(wd, "testdata", "only_plugins_from_repo"), "",
 		"plugins.yaml", []testhelpers.SchedulerFile{
 			{
 				Filenames: []string{"parent.yaml", "repo.yaml"},
@@ -160,7 +161,7 @@ func TestOnlyPluginsFromRepo(t *testing.T) {
 func TestOnlyPluginsJustFromParent(t *testing.T) {
 	wd, err := os.Getwd()
 	assert.NoError(t, err)
-	testhelpers.BuildAndValidateProwConfig(t, filepath.Join(wd, "test_data", "only_plugins_from_parent"), "",
+	testhelpers.BuildAndValidateProwConfig(t, filepath.Join(wd, "testdata", "only_plugins_from_parent"), "",
 		"plugins.yaml", []testhelpers.SchedulerFile{
 			{
 				Filenames: []string{"parent.yaml", "repo.yaml"},
@@ -173,7 +174,7 @@ func TestOnlyPluginsJustFromParent(t *testing.T) {
 func TestOnlyPluginsMixFromParentAndRepo(t *testing.T) {
 	wd, err := os.Getwd()
 	assert.NoError(t, err)
-	testhelpers.BuildAndValidateProwConfig(t, filepath.Join(wd, "test_data", "only_plugins"), "",
+	testhelpers.BuildAndValidateProwConfig(t, filepath.Join(wd, "testdata", "only_plugins"), "",
 		"plugins.yaml", []testhelpers.SchedulerFile{
 			{
 				Filenames: []string{"parent.yaml", "repo.yaml"},

@@ -14,7 +14,7 @@ import (
 
 func TestSaveRequirementsValuesFile(t *testing.T) {
 	dir := t.TempDir()
-	err := files.CopyDir("test_data", dir, true)
+	err := files.CopyDir("testdata", dir, true)
 	assert.NoError(t, err)
 
 	c := &jxcore.RequirementsConfig{}

@@ -1,8 +1,8 @@
 package testhelpers
 
 import (
-	"io/ioutil"
 	"math/rand"
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -164,7 +164,7 @@ func BuildAndValidateProwConfig(t *testing.T, baseDir string, expectedConfigFile
 	expectedPluginsFilename string, schedulerFiles []SchedulerFile) {
 	var expectedConfig config.Config
 	if expectedConfigFilename != "" {
-		cfgBytes, err := ioutil.ReadFile(filepath.Join(baseDir, expectedConfigFilename))
+		cfgBytes, err := os.ReadFile(filepath.Join(baseDir, expectedConfigFilename))
 		assert.NoError(t, err)
 		err = yaml.Unmarshal(cfgBytes, &expectedConfig)
 		assert.NoError(t, err)
@@ -172,7 +172,7 @@ func BuildAndValidateProwConfig(t *testing.T, baseDir string, expectedConfigFile
 
 	var expectedPlugins plugins.Configuration
 	if expectedPluginsFilename != "" {
-		bytes, err := ioutil.ReadFile(filepath.Join(baseDir, expectedPluginsFilename))
+		bytes, err := os.ReadFile(filepath.Join(baseDir, expectedPluginsFilename))
 		assert.NoError(t, err)
 		err = yaml.Unmarshal(bytes, &expectedPlugins)
 		assert.NoError(t, err)
@@ -182,7 +182,7 @@ func BuildAndValidateProwConfig(t *testing.T, baseDir string, expectedConfigFile
 	for _, sfs := range schedulerFiles {
 		schedulers := make([]*schedulerapi.SchedulerSpec, 0)
 		for _, f := range sfs.Filenames {
-			bytes, err := ioutil.ReadFile(filepath.Join(baseDir, f))
+			bytes, err := os.ReadFile(filepath.Join(baseDir, f))
 			assert.NoError(t, err)
 			s := schedulerapi.SchedulerSpec{}
 			err = yaml.Unmarshal(bytes, &s)

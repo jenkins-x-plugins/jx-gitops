@@ -14,10 +14,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var (
-	// generateTestOutput enable to regenerate the expected output
-	generateTestOutput = false
-)
+// generateTestOutput enable to regenerate the expected output
+var generateTestOutput = false
 
 func TestStepHelmfileAdd(t *testing.T) {
 	testCases := []struct {
@@ -49,7 +47,7 @@ func TestStepHelmfileAdd(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	srcDir := filepath.Join("test_data", "input")
+	srcDir := filepath.Join("testdata", "input")
 	require.DirExists(t, srcDir)
 
 	err := files.CopyDirOverwrite(srcDir, tmpDir)
@@ -63,7 +61,7 @@ func TestStepHelmfileAdd(t *testing.T) {
 			}
 			t.Logf("running command %s in dir %s\n", c.CLI(), c.Dir)
 			if c.Name == "kpt" {
-				return fakekpt.FakeKpt(t, c, filepath.Join("test_data", "input", "versionStream"), tmpDir)
+				return fakekpt.FakeKpt(t, c, filepath.Join("testdata", "input", "versionStream"), tmpDir)
 			}
 			return "", nil
 		},
@@ -92,5 +90,5 @@ func TestStepHelmfileAdd(t *testing.T) {
 
 	t.Logf("generated files to %s\n", tmpDir)
 
-	testhelmfile.AssertHelmfiles(t, filepath.Join("test_data", "expected"), tmpDir, generateTestOutput)
+	testhelmfile.AssertHelmfiles(t, filepath.Join("testdata", "expected"), tmpDir, generateTestOutput)
 }

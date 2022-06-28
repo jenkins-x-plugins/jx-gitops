@@ -2,7 +2,6 @@ package move
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -297,7 +296,7 @@ func (o *Options) moveFilesToClusterOrNamespacesFolder(dir, ns, releaseName, cha
 		}
 
 		// lets check for empty yaml files
-		data, err := ioutil.ReadFile(path)
+		data, err := os.ReadFile(path)
 		if err != nil {
 			return errors.Wrapf(err, "failed to read file %s", path)
 		}

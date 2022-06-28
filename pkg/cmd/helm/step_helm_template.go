@@ -238,7 +238,7 @@ func (o *TemplateOptions) Run() error {
 		return errors.Wrapf(err, "failed to check if charts dir was generated")
 	}
 	if exists {
-		depChartDirs, err := ioutil.ReadDir(dependentChartsDir)
+		depChartDirs, err := os.ReadDir(dependentChartsDir)
 		if err != nil {
 			return errors.Wrapf(err, "failed to read sub chart dirs in %s", dependentChartsDir)
 		}

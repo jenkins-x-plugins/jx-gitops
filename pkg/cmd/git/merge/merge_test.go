@@ -2,7 +2,6 @@ package merge_test
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -112,7 +111,7 @@ func TestGitMerge(t *testing.T) {
 
 func requireWritefile(t *testing.T, dir, name, contents string) {
 	path := filepath.Join(dir, name)
-	err := ioutil.WriteFile(path, []byte(contents), files.DefaultFileWritePermissions)
+	err := os.WriteFile(path, []byte(contents), files.DefaultFileWritePermissions)
 	require.NoError(t, err, "failed to write file %s", path)
 }
 
@@ -140,7 +139,7 @@ func requireGit(t *testing.T, g gitclient.Interface, dir string, args ...string)
 // readHeadSHA asserts we have the current head sha
 func readHeadSHA(t *testing.T, dir string) string {
 	path := filepath.Join(dir, ".git", "HEAD")
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	require.NoError(t, err, "failed to load file %s", path)
 
 	var sha string
@@ -157,7 +156,7 @@ func readHeadSHA(t *testing.T, dir string) string {
 // readRef reads the commit SHA of the specified ref. Needs to be of the form /refs/heads/<name>.
 func readRef(t *testing.T, repoDir, name string) string {
 	path := filepath.Join(repoDir, ".git", name)
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	require.NoError(t, err, "failed to read path %s", path)
 	return strings.Trim(string(data), "\n")
 }

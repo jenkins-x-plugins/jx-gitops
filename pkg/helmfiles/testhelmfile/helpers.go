@@ -1,7 +1,6 @@
 package testhelmfile
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -27,10 +26,10 @@ func AssertHelmfiles(t *testing.T, expectedDir, outDir string, generateTestOutpu
 			err := os.MkdirAll(dir, files.DefaultDirWritePermissions)
 			require.NoError(t, err, "failed to make dir %s", dir)
 
-			data, err := ioutil.ReadFile(outFile)
+			data, err := os.ReadFile(outFile)
 			require.NoError(t, err, "failed to load %s", outFile)
 
-			err = ioutil.WriteFile(expectedFile, data, 0600)
+			err = os.WriteFile(expectedFile, data, 0o600)
 			require.NoError(t, err, "failed to save file %s", expectedFile)
 			t.Logf("saved %s\n", expectedFile)
 		} else {

@@ -1,7 +1,7 @@
 package deletecmd_test
 
 import (
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -12,10 +12,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var (
-	// generateTestOutput enable to regenerate the expected output
-	generateTestOutput = false
-)
+// generateTestOutput enable to regenerate the expected output
+var generateTestOutput = false
 
 func TestRepositoryDelete(t *testing.T) {
 	testCases := []struct {
@@ -34,8 +32,8 @@ func TestRepositoryDelete(t *testing.T) {
 	}
 	rootTmpDir := t.TempDir()
 
-	err := files.CopyDirOverwrite("test_data", rootTmpDir)
-	require.NoError(t, err, "failed to copy from test_data to %s", rootTmpDir)
+	err := files.CopyDirOverwrite("testdata", rootTmpDir)
+	require.NoError(t, err, "failed to copy from testdata to %s", rootTmpDir)
 
 	ns := "jx"
 	for _, tc := range testCases {
@@ -55,14 +53,14 @@ func TestRepositoryDelete(t *testing.T) {
 		err = o.Run()
 		require.NoError(t, err, "failed to run")
 
-		expectedPath := filepath.Join("test_data", name, "expected.yaml")
+		expectedPath := filepath.Join("testdata", name, "expected.yaml")
 		generatedFile := filepath.Join(tmpDir, ".jx", "gitops", "source-config.yaml")
 
 		if generateTestOutput {
-			data, err := ioutil.ReadFile(generatedFile)
+			data, err := os.ReadFile(generatedFile)
 			require.NoError(t, err, "failed to load %s", generatedFile)
 
-			err = ioutil.WriteFile(expectedPath, data, 0600)
+			err = os.WriteFile(expectedPath, data, 0o600)
 			require.NoError(t, err, "failed to save file %s", expectedPath)
 
 			t.Logf("saved file %s\n", expectedPath)

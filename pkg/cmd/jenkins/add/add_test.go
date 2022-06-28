@@ -21,7 +21,7 @@ import (
 func TestJenkinsAdd(t *testing.T) {
 	tmpDir := t.TempDir()
 
-	srcDir := filepath.Join("test_data")
+	srcDir := "testdata"
 
 	runner := &fakerunner.FakeRunner{}
 

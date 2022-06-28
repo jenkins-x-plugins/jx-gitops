@@ -75,7 +75,7 @@ func (o *Options) Validate() error {
 			},
 		},
 		linter.Linter{
-			Path: filepath.Join(v4beta1.RequirementsConfigFileName),
+			Path: v4beta1.RequirementsConfigFileName,
 			Linter: func(path string, test *linter.Test) error {
 				return o.LintResource(path, test, &v4beta1.Requirements{})
 			},

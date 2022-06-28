@@ -56,7 +56,7 @@ func TestUpdateNamespaceInYamlFiles(t *testing.T) {
 
 		t.Logf("generating output to %s\n", tmpDir)
 
-		o.Dir = filepath.Join("test_data", test.folder)
+		o.Dir = filepath.Join("testdata", test.folder)
 		o.OutputDir = tmpDir
 		o.DirIncludesReleaseName = test.hasReleaseName
 		o.AnnotateReleaseNames = true

@@ -2,7 +2,7 @@ package resolve_test
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -24,10 +24,8 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-var (
-	// generateTestOutput enable to regenerate the expected output
-	generateTestOutput = false
-)
+// generateTestOutput enable to regenerate the expected output
+var generateTestOutput = false
 
 func TestStepHelmfileResolve(t *testing.T) {
 	tests := []struct {
@@ -103,7 +101,7 @@ func TestStepHelmfileResolve(t *testing.T) {
 
 		tmpDir := t.TempDir()
 
-		srcDir := filepath.Join("test_data", name)
+		srcDir := filepath.Join("testdata", name)
 		require.DirExists(t, srcDir)
 
 		err = files.CopyDirOverwrite(srcDir, tmpDir)
@@ -125,7 +123,7 @@ func TestStepHelmfileResolve(t *testing.T) {
 				}
 				t.Logf("running command %s in dir %s\n", c.CLI(), c.Dir)
 				if c.Name == "kpt" {
-					return fakekpt.FakeKpt(t, c, filepath.Join("test_data", "input", "versionStream"), tmpDir)
+					return fakekpt.FakeKpt(t, c, filepath.Join("testdata", "input", "versionStream"), tmpDir)
 				}
 				return "", nil
 			},
@@ -173,14 +171,14 @@ func TestStepHelmfileResolve(t *testing.T) {
 		for _, ns := range test.namespaces {
 			expectedHelmfile := fmt.Sprintf("expected-%s-helmfile.yaml", ns)
 
-			expectedPath := filepath.Join("test_data", name, expectedHelmfile)
+			expectedPath := filepath.Join("testdata", name, expectedHelmfile)
 			generatedFile := filepath.Join(tmpDir, "helmfiles", ns, "helmfile.yaml")
 
 			if generateTestOutput {
-				data, err := ioutil.ReadFile(generatedFile)
+				data, err := os.ReadFile(generatedFile)
 				require.NoError(t, err, "failed to load %s", generatedFile)
 
-				err = ioutil.WriteFile(expectedPath, data, 0600)
+				err = os.WriteFile(expectedPath, data, 0o600)
 				require.NoError(t, err, "failed to save file %s", expectedPath)
 
 				t.Logf("saved file %s\n", expectedPath)

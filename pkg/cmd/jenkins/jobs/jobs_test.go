@@ -21,7 +21,7 @@ const jenkinsName = "myjenkins"
 func TestJenkinsJobs(t *testing.T) {
 	tmpDir := t.TempDir()
 
-	srcDir := filepath.Join("test_data", "hasjobs")
+	srcDir := filepath.Join("testdata", "hasjobs")
 
 	err := files.CopyDirOverwrite(srcDir, tmpDir)
 	require.NoError(t, err, "failed to copy from %s to %s", srcDir, tmpDir)
@@ -36,7 +36,7 @@ func TestJenkinsJobs(t *testing.T) {
 func TestJenkinsJobsForExistingJenkins(t *testing.T) {
 	tmpDir := t.TempDir()
 
-	srcDir := filepath.Join("test_data", "hasjobs")
+	srcDir := filepath.Join("testdata", "hasjobs")
 
 	err := files.CopyDirOverwrite(srcDir, tmpDir)
 	require.NoError(t, err, "failed to copy from %s to %s", srcDir, tmpDir)
@@ -102,7 +102,7 @@ func TestNoJenkinsJobs(t *testing.T) {
 
 	_, o := jobs.NewCmdJenkinsJobs()
 	o.OutDir = tmpDir
-	o.Dir = filepath.Join("test_data", "nojobs")
+	o.Dir = filepath.Join("testdata", "nojobs")
 
 	err := o.Run()
 	require.NoError(t, err, "failed to run the command in dir %s", tmpDir)

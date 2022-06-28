@@ -3,7 +3,6 @@ package release
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -195,7 +194,7 @@ func (o *Options) Validate() error {
 			return errors.Wrapf(err, "failed to check for file %s", o.VersionFile)
 		}
 		if exists {
-			data, err := ioutil.ReadFile(o.VersionFile)
+			data, err := os.ReadFile(o.VersionFile)
 			if err != nil {
 				return errors.Wrapf(err, "failed to read version file %s", o.VersionFile)
 			}
@@ -250,7 +249,7 @@ func (o *Options) Run() error {
 		log.Logger().Infof("no charts dir: %s", dir)
 		return nil
 	}
-	fileSlice, err := ioutil.ReadDir(dir)
+	fileSlice, err := os.ReadDir(dir)
 	if err != nil {
 		return errors.Wrapf(err, "failed to read dir %s", dir)
 	}
@@ -423,7 +422,7 @@ func (o *Options) ChartPageRegistry(repoURL, chartDir, name string) error {
 	}
 
 	// lets copy files
-	fs, err := ioutil.ReadDir(chartDir)
+	fs, err := os.ReadDir(chartDir)
 	if err != nil {
 		return errors.Wrapf(err, "failed to read chart dir %s", chartDir)
 	}
@@ -460,7 +459,7 @@ func (o *Options) ChartPageRegistry(repoURL, chartDir, name string) error {
 	}
 	if !exists {
 		readmeText := fmt.Sprintf(defaultReadMe, o.GithubPagesURL)
-		err = ioutil.WriteFile(readmePath, []byte(readmeText), files.DefaultFileWritePermissions)
+		err = os.WriteFile(readmePath, []byte(readmeText), files.DefaultFileWritePermissions)
 		if err != nil {
 			return errors.Wrapf(err, "failed to save %s", readmePath)
 		}

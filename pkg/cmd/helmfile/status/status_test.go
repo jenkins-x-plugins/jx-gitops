@@ -9,7 +9,7 @@ import (
 
 func TestHemlfileStatus(t *testing.T) {
 	_, o := status.NewCmdHelmfileStatus()
-	o.Dir = "test_data"
+	o.Dir = "testdata"
 	o.TestGitToken = "faketoken"
 	err := o.Run()
 	require.NoError(t, err, "failed to run")

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/annotate"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
@@ -86,7 +86,7 @@ func (o *Options) Run() error {
 			log.Logger().Warnf("the file to hash %s does not exist so ignoring it from the hash calculation", s)
 			continue
 		}
-		data, err := ioutil.ReadFile(s)
+		data, err := os.ReadFile(s)
 		if err != nil {
 			return errors.Wrapf(err, "failed to load source file %s", s)
 		}

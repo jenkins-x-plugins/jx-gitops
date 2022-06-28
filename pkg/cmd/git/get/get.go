@@ -3,7 +3,6 @@ package get
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -115,7 +114,7 @@ func (o *Options) Run() error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to create dir %s", dir)
 	}
-	err = ioutil.WriteFile(to, c.Data, files.DefaultFileWritePermissions)
+	err = os.WriteFile(to, c.Data, files.DefaultFileWritePermissions)
 	if err != nil {
 		return errors.Wrapf(err, "failed to save file %s", to)
 	}

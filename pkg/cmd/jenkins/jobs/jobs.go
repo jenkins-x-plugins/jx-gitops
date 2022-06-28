@@ -2,7 +2,6 @@ package jobs
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -227,7 +226,7 @@ func (o *Options) Run() error {
 			buf.WriteString(indent + "\n")
 		}
 
-		err = ioutil.WriteFile(path, []byte(buf.String()), files.DefaultFileWritePermissions)
+		err = os.WriteFile(path, []byte(buf.String()), files.DefaultFileWritePermissions)
 		if err != nil {
 			return errors.Wrapf(err, "failed to save file %s", path)
 		}
@@ -303,7 +302,7 @@ func (o *Options) processJenkinsServerJobTemplate(server, key, jobTemplatePath s
 	if !exists {
 		return errors.Errorf("the jobTemplate file %s does not exist", jobTemplate)
 	}
-	data, err := ioutil.ReadFile(jobTemplate)
+	data, err := os.ReadFile(jobTemplate)
 	if err != nil {
 		return errors.Wrapf(err, "failed to load file %s", jobTemplate)
 	}

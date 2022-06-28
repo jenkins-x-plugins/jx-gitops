@@ -51,7 +51,7 @@ func TestStepHelmfileStructure(t *testing.T) {
 
 		tmpDir := t.TempDir()
 
-		srcDir := filepath.Join("test_data", tc.testFolder)
+		srcDir := filepath.Join("testdata", tc.testFolder)
 		require.DirExists(t, srcDir)
 
 		err := files.CopyDirOverwrite(srcDir, tmpDir)
@@ -67,5 +67,4 @@ func TestStepHelmfileStructure(t *testing.T) {
 			require.Errorf(t, err, "error expected")
 		}
 	}
-
 }

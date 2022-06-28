@@ -1,3 +1,4 @@
+//go:build unit
 // +build unit
 
 package edit_test
@@ -27,7 +28,7 @@ func TestCmdRequirementsEdit(t *testing.T) {
 		initialFile string
 	}
 
-	gitOpsEnabled := filepath.Join("test_data", "gitops-enabled.yml")
+	gitOpsEnabled := filepath.Join("testdata", "gitops-enabled.yml")
 	tests := []testData{
 		{
 			name: "bbs",

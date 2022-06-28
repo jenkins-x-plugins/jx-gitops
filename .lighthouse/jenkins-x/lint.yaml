@@ -2,16 +2,16 @@ apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
   creationTimestamp: null
-  name: pullrequest
+  name: lint
 spec:
   pipelineSpec:
     tasks:
-    - name: from-build-pack
+    - name: jx-gitops-lint
       resources: {}
       taskSpec:
         metadata: {}
         stepTemplate:
-          image: uses:jenkins-x/jx3-pipeline-catalog/tasks/go-plugin/pullrequest.yaml@versionStream
+          image: uses:jenkins-x/jx3-pipeline-catalog/tasks/go/pullrequest.yaml@versionStream
           name: ""
           resources: {}
           workingDir: /workspace/source
@@ -19,15 +19,9 @@ spec:
         - image: uses:jenkins-x/jx3-pipeline-catalog/tasks/git-clone/git-clone-pr.yaml@versionStream
           name: ""
           resources: {}
-        - name: jx-variables
-          resources: {}
-        - name: build-make-linux
-          resources: {}
-        - name: build-make-test
-          resources: {}
-        - name: build-container-build
+        - name: make-lint
           resources: {}
   podTemplate: {}
   serviceAccountName: tekton-bot
-  timeout: 240h0m0s
+  timeout: 30m0s
 status: {}

@@ -14,8 +14,8 @@ import (
 func TestRequirementsPublish(t *testing.T) {
 	tmpDir := t.TempDir()
 
-	err := files.CopyDirOverwrite("test_data", tmpDir)
-	require.NoError(t, err, "failed to copy %s to %s", "test_data", tmpDir)
+	err := files.CopyDirOverwrite("testdata", tmpDir)
+	require.NoError(t, err, "failed to copy %s to %s", "testdata", tmpDir)
 
 	_, o := publish.NewCmdRequirementsPublish()
 

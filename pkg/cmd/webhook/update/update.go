@@ -3,7 +3,7 @@ package update
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"strings"
 
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
@@ -317,7 +317,7 @@ func (o *Options) updateRepositoryWebhook(scmClient *scm.Client, owner, repoName
 	if err != nil {
 		status := ""
 		if resp != nil && resp.Body != nil {
-			body, err := ioutil.ReadAll(resp.Body)
+			body, err := io.ReadAll(resp.Body)
 			if err == nil && body != nil {
 				status = " " + string(body)
 			}

@@ -1,7 +1,7 @@
 package v1alpha1
 
 import (
-	"io/ioutil"
+	"os"
 
 	"github.com/jenkins-x/jx-api/v4/pkg/util"
 
@@ -167,7 +167,7 @@ func (c *SecretMapping) SaveConfig(fileName string) error {
 	if err != nil {
 		return err
 	}
-	err = ioutil.WriteFile(fileName, data, util.DefaultWritePermissions)
+	err = os.WriteFile(fileName, data, util.DefaultWritePermissions)
 	if err != nil {
 		return errors.Wrapf(err, "failed to save file %s", fileName)
 	}

@@ -1,7 +1,7 @@
 package create_test
 
 import (
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -17,7 +17,7 @@ import (
 var generateTestOutput = false
 
 func TestCreateRepositorySourceDir(t *testing.T) {
-	sourceData := filepath.Join("test_data", "input")
+	sourceData := filepath.Join("testdata", "input")
 
 	tmpDir := t.TempDir()
 
@@ -32,7 +32,7 @@ func TestCreateRepositorySourceDir(t *testing.T) {
 	err = o.Run()
 	require.NoError(t, err, "failed to run the command in dir %s", tmpDir)
 
-	expectedDir := filepath.Join("test_data", "expected", "config-root", "namespaces", "jx", "source-repositories")
+	expectedDir := filepath.Join("testdata", "expected", "config-root", "namespaces", "jx", "source-repositories")
 	genDir := filepath.Join(tmpDir, "config-root", "namespaces", "jx", "source-repositories")
 
 	for _, name := range []string{"jenkins-x-jx-cli.yaml", "jenkins-x-jx-gitops.yaml", "mygitlaborg-somegitlab.yaml", "jx-gitlab-test-cluster-gitlab-import-test-1.yaml"} {
@@ -42,10 +42,10 @@ func TestCreateRepositorySourceDir(t *testing.T) {
 		if generateTestOutput {
 			generatedFile := genFile
 			expectedPath := expectedFile
-			data, err := ioutil.ReadFile(generatedFile)
+			data, err := os.ReadFile(generatedFile)
 			require.NoError(t, err, "failed to load %s", generatedFile)
 
-			err = ioutil.WriteFile(expectedPath, data, 0600)
+			err = os.WriteFile(expectedPath, data, 0o600)
 			require.NoError(t, err, "failed to save file %s", expectedPath)
 
 			t.Logf("saved file %s\n", expectedPath)
@@ -57,7 +57,7 @@ func TestCreateRepositorySourceDir(t *testing.T) {
 		t.Logf("generated expected file %s\n", genFile)
 
 		target := &v1.SourceRepository{}
-		data, err := ioutil.ReadFile(genFile)
+		data, err := os.ReadFile(genFile)
 		require.NoError(t, err, "failed to read file %s", genFile)
 
 		results, err := util.ValidateYaml(target, data)
