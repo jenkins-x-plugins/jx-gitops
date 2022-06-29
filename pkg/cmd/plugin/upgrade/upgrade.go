@@ -78,7 +78,8 @@ func (o *Options) Run() error {
 		log.Logger().Infof("checking binary jx plugin %s version %s is installed", termcolor.ColorInfo(p.Name), termcolor.ColorInfo(p.Spec.Version))
 		fileName, err := extensions.EnsurePluginInstalled(p, pluginBinDir)
 		if err != nil {
-			return errors.Wrapf(err, "failed to ensure plugin is installed %s", p.Name)
+			log.Logger().Errorf("failed to ensure plugin is installed %s: %v", p.Name, err)
+			continue
 		}
 
 		if o.Path != "" {
@@ -101,9 +102,8 @@ func (o *Options) Run() error {
 		}
 
 		goarch := strings.ToLower(runtime.GOARCH)
-		if p.Name == plugins.HelmPluginName && goarch != "arm" && !strings.HasPrefix(goarch, "arm") {
+		if p.Name == plugins.HelmPluginName {
 			log.Logger().Infof("checking if we have installed the helm plugin helm-x on OS %s arch: %s", runtime.GOOS, goarch)
-			// we can't install helm-x or helm-s3 on ARM yet
 			for _, h := range plugins.HelmPlugins {
 				installHelmPlugin := &cmdrunner.Command{
 					Name: fileName,
@@ -118,10 +118,10 @@ func (o *Options) Run() error {
 						}
 						_, err = o.CommandRunner(updateHelmPlugin)
 						if err != nil {
-							return errors.Wrapf(err, "failed to update helm plugin %s", h.Name)
+							log.Logger().Errorf("failed to update helm plugin %s: %v", h.Name, err)
 						}
 					} else {
-						return errors.Wrapf(err, "failed to install helm plugin %s", h.Name)
+						log.Logger().Errorf("failed to install helm plugin %s: %v", h.Name, err)
 					}
 				}
 			}
