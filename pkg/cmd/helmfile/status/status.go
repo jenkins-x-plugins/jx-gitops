@@ -43,6 +43,7 @@ type Options struct {
 	scmhelpers.Factory
 	Dir               string
 	FailOnError       bool
+	AutoInactive      bool
 	SourceConfig      *v1alpha1.SourceConfig
 	NamespaceReleases []*releasereport.NamespaceReleases
 	Requirements      *jxcore.Requirements
@@ -67,6 +68,7 @@ func NewCmdHelmfileStatus() (*cobra.Command, *Options) {
 	}
 	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the directory that contains the content")
 	cmd.Flags().BoolVarP(&o.FailOnError, "fail", "f", false, "if enabled then fail the boot pipeline if we cannot report the deployment status")
+	cmd.Flags().BoolVarP(&o.AutoInactive, "auto-inactive", "a", true, "if enabled then the the status of previous deployments will be set to inactive (Default: true)")
 	return cmd, o
 }
 
@@ -233,7 +235,7 @@ func (o *Options) updateStatus(group *v1alpha1.RepositoryGroup, repo *v1alpha1.R
 				Description:     description,
 				Environment:     environment,
 				EnvironmentLink: environmentLink,
-				AutoInactive:    false,
+				AutoInactive:    o.AutoInactive,
 			}
 			status, _, err := scmClient.Deployments.CreateStatus(ctx, fullName, deployment.ID, deploymentStatusInput)
 			if err != nil {
