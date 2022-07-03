@@ -2,6 +2,7 @@ package variables_test
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -86,7 +87,7 @@ func TestCmdVariables(t *testing.T) {
 		o.GitBranch = "mybranch"
 		o.DashboardURL = "https://dashboard-mydomain.com"
 
-		if name == "empty" {
+		if name == "empty" || name == "nested" {
 			o.Requirements = &requirements.Spec
 		}
 
@@ -105,9 +106,14 @@ func TestCmdVariables(t *testing.T) {
 		)
 		o.Options.Owner = "MyOwner"
 		o.Options.Repository = "myrepo"
+		if name == "nested" {
+			o.Options.Repository = "cluster/print-go"
+		}
 		o.Options.Branch = "PR-23"
 		o.Options.SourceURL = "https://github.com/" + o.Options.Owner + "/" + o.Options.Repository
 		o.Options.ScmClient = scmFake
+
+		fmt.Println(o.Options.SourceURL)
 
 		err = o.Run()
 
