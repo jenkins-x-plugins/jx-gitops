@@ -106,7 +106,8 @@ func (o *Options) Run() error {
 				ns = "jx-" + e.Key
 			}
 		}
-		o.EnvironmentNames[ns] = strings.Title(e.Key)
+		// ToDo: Replace once we upgrade to go1.18
+		o.EnvironmentNames[ns] = strings.Title(e.Key) //nolint:staticcheck
 
 		envURL := requirements.EnvironmentGitURL(&o.Requirements.Spec, e.Key)
 		o.EnvironmentURLs[ns] = envURL
