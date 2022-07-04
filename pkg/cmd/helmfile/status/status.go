@@ -134,7 +134,7 @@ func (o *Options) Run() error {
 				return errors.Wrapf(err, "failed to default SourceConfig")
 			}
 
-			err = o.updateStatus(group, repo)
+			err = o.updateStatuses(group, repo)
 			if err != nil {
 				if o.FailOnError {
 					return errors.Wrapf(err, "failed to update status for repository %s/%s", group.Owner, repo.Name)
@@ -146,126 +146,152 @@ func (o *Options) Run() error {
 	return nil
 }
 
-func (o *Options) updateStatus(group *v1alpha1.RepositoryGroup, repo *v1alpha1.Repository) error {
+func (o *Options) updateStatuses(group *v1alpha1.RepositoryGroup, repo *v1alpha1.Repository) error {
 	ctx := context.Background()
-
-	owner := group.Owner
-	server := group.Provider
-
-	repoName := repo.Name
-	fullName := scm.Join(owner, repoName)
-
 	for _, nsr := range o.NamespaceReleases {
 		for _, release := range nsr.Releases {
-
 			// TODO could use source of the release to match on to reduce name clashes?
 			if release.Name != repo.Name {
 				continue
 			}
 
-			version := release.Version
-			releaseNS := nsr.Namespace
-			environment := o.EnvironmentNames[releaseNS]
-			if environment == "" {
-				environment = releaseNS
+			env := &environment{
+				name: o.EnvironmentNames[nsr.Namespace],
+				url:  o.EnvironmentURLs[nsr.Namespace],
 			}
 
-			appName := repoName
-			targetLink := release.ApplicationURL
-			logLink := release.LogsURL
-			description := fmt.Sprintf("Deployment %s", strings.TrimPrefix(version, "v"))
-
-			environmentLink := o.EnvironmentURLs[releaseNS]
-			if environmentLink == "" {
-				environmentLink = o.EnvironmentURLs["dev"]
+			if env.name == "" {
+				env.name = nsr.Namespace
+			}
+			if env.url == "" {
+				env.url = o.EnvironmentURLs["dev"]
 			}
 
-			if version == "" {
-				log.Logger().Warnf("missing version for release %s in environment %s", appName, environment)
-				continue
-			}
-			ref := "v" + version
-
-			scmClient, err := o.CreateScmClient(group, repo)
+			err := o.CreateNewScmClient(group)
 			if err != nil {
-				return errors.Wrapf(err, "failed to create scm client for repository %s/%s", owner, repoName)
+				return errors.Wrapf(err, "failed to create scm client for repository %s/%s", group.Owner, repo.Name)
 			}
 
-			if scmClient.Deployments == nil {
-				log.Logger().Warnf("cannot update deployment status of release %s as the git server %s does not support Deployments", fullName, server)
-				return nil
-			}
-
-			// lets try find the existing deployment if it exists
-			deployments, _, err := scmClient.Deployments.List(ctx, fullName, scm.ListOptions{})
-			if err != nil && !scmhelpers.IsScmNotFound(err) {
+			err = o.updateStatus(ctx, env, repo, group, release)
+			if err != nil {
 				return err
 			}
-			var deployment *scm.Deployment
-			for _, d := range deployments {
-				if d.Ref == ref && d.Environment == environment {
-					log.Logger().Infof("found existing deployment %s", d.Link)
-					deployment = d
-					break
-				}
-			}
-
-			if deployment == nil {
-				deploymentInput := &scm.DeploymentInput{
-					Ref:                   ref,
-					Task:                  "deploy",
-					Environment:           environment,
-					Description:           fmt.Sprintf("release %s for version %s", appName, version),
-					RequiredContexts:      nil,
-					AutoMerge:             false,
-					TransientEnvironment:  false,
-					ProductionEnvironment: strings.Contains(strings.ToLower(environment), "prod"),
-				}
-				deployment, _, err = scmClient.Deployments.Create(ctx, fullName, deploymentInput)
-				if err != nil {
-					return errors.Wrapf(err, "failed to create Deployment for repository %s and ref %s", fullName, ref)
-				}
-				log.Logger().Infof("created Deployment for release %s at %s", fullName, deployment.Link)
-			}
-
-			deploymentStatusInput := &scm.DeploymentStatusInput{
-				State:           "success",
-				TargetLink:      targetLink,
-				LogLink:         logLink,
-				Description:     description,
-				Environment:     environment,
-				EnvironmentLink: environmentLink,
-				AutoInactive:    o.AutoInactive,
-			}
-			status, _, err := scmClient.Deployments.CreateStatus(ctx, fullName, deployment.ID, deploymentStatusInput)
-			if err != nil {
-				return errors.Wrapf(err, "failed to create DeploymentStatus for repository %s and ref %s", fullName, ref)
-			}
-			log.Logger().Infof("created DeploymentStatus for repository %s ref %s at %s with Logs URL %s and Target URL %s", fullName, ref, status.ID, logLink, targetLink)
 		}
 	}
 	return nil
 }
 
-func (o *Options) CreateScmClient(group *v1alpha1.RepositoryGroup, repo *v1alpha1.Repository) (*scm.Client, error) {
+type environment struct {
+	name string
+	url  string
+}
+
+func (o *Options) updateStatus(ctx context.Context, env *environment, repo *v1alpha1.Repository, group *v1alpha1.RepositoryGroup, release *releasereport.ReleaseInfo) error {
+	if release.Version == "" {
+		log.Logger().Warnf("missing version for release %s in environment %s", repo.Name, env.name)
+		return nil
+	}
+
+	fullRepoName := scm.Join(group.Owner, repo.Name)
+	if o.ScmClient.Deployments == nil {
+		log.Logger().Warnf("cannot update deployment status of release %s as the git server %s does not support Deployments", fullRepoName, group.Provider)
+		return nil
+	}
+
+	deployment, err := o.FindExistingDeploymentInEnvironment(ctx, fullRepoName, env.name)
+	if err != nil {
+		return err
+	}
+
+	ref := "v" + release.Version
+
+	if deployment == nil {
+		deployment, err = o.CreateNewDeployment(ctx, ref, env.name, fullRepoName)
+		if err != nil {
+			return err
+		}
+
+	} else if ref == deployment.Ref {
+		// We should ignore releases that are the same as the current deployment
+		log.Logger().Infof("existing deployment for %s is the same version as release (%s). Skipping deployment", fullRepoName, ref)
+		return nil
+	}
+
+	deploymentStatusInput := &scm.DeploymentStatusInput{
+		State:           "success",
+		TargetLink:      release.ApplicationURL,
+		LogLink:         release.LogsURL,
+		Description:     fmt.Sprintf("Deployment %s", strings.TrimPrefix(release.Version, "v")),
+		Environment:     env.name,
+		EnvironmentLink: env.url,
+		AutoInactive:    o.AutoInactive,
+	}
+
+	status, _, err := o.ScmClient.Deployments.CreateStatus(ctx, fullRepoName, deployment.ID, deploymentStatusInput)
+	if err != nil {
+		return errors.Wrapf(err, "failed to create DeploymentStatus for repository %s and ref %s", fullRepoName, ref)
+	}
+	log.Logger().Infof("created DeploymentStatus for repository %s ref %s at %s with Logs URL %s and Target URL %s", fullRepoName, ref, status.ID, release.LogsURL, release.ApplicationURL)
+	return nil
+}
+
+func (o *Options) CreateNewDeployment(ctx context.Context, ref string, environment string, fullRepoName string) (*scm.Deployment, error) {
+	_, name := scm.Split(fullRepoName)
+	deploymentInput := &scm.DeploymentInput{
+		Ref:                   ref,
+		Task:                  "deploy",
+		Environment:           environment,
+		Description:           fmt.Sprintf("release %s for version %s", name, strings.TrimPrefix(ref, "v")),
+		RequiredContexts:      nil,
+		AutoMerge:             false,
+		TransientEnvironment:  false,
+		ProductionEnvironment: strings.Contains(strings.ToLower(environment), "prod"),
+	}
+
+	deployment, _, err := o.ScmClient.Deployments.Create(ctx, fullRepoName, deploymentInput)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to create Deployment for repository %s and ref %s", fullRepoName, ref)
+	}
+	log.Logger().Infof("created Deployment for release %s at %s", fullRepoName, deployment.Link)
+	return deployment, nil
+}
+
+func (o *Options) FindExistingDeploymentInEnvironment(ctx context.Context, fullRepoName string, environment string) (*scm.Deployment, error) {
+	_, name := scm.Split(fullRepoName)
+	// lets try find the existing deployment if it exists
+	deployments, _, err := o.ScmClient.Deployments.List(ctx, fullRepoName, scm.ListOptions{})
+	if err != nil && !scmhelpers.IsScmNotFound(err) {
+		return nil, err
+	}
+	for _, d := range deployments {
+		if d.Name == name && d.Environment == environment {
+			log.Logger().Infof("found existing deployment %s", d.Link)
+			return d, nil
+		}
+	}
+	return nil, nil
+}
+
+func (o *Options) CreateNewScmClient(group *v1alpha1.RepositoryGroup) error {
 	owner := group.Owner
 	server := group.Provider
 	if server == "" {
-		return nil, errors.Errorf("no provider defined for owner %s", owner)
+		return errors.Errorf("no provider defined for owner %s", owner)
 	}
 	gitKind := group.ProviderKind
 	if gitKind == "" {
 		gitKind = giturl.SaasGitKind(server)
 	}
 	if gitKind == "" {
-		return nil, errors.Errorf("no git provider kind for owner %s", owner)
+		return errors.Errorf("no git provider kind for owner %s", owner)
 	}
 
 	// lets find the credentials from git...
-	f := &scmhelpers.Factory{
+	o.Factory = scmhelpers.Factory{
 		GitKind:      gitKind,
 		GitServerURL: server,
 		GitToken:     o.TestGitToken,
 	}
-	return f.Create()
+	_, err := o.Create()
+	return err
 }
