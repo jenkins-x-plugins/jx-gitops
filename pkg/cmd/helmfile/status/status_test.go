@@ -2,6 +2,9 @@ package status
 
 import (
 	"context"
+	"path/filepath"
+	"testing"
+
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/apis/gitops/v1alpha1"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/releasereport"
 	"github.com/jenkins-x/go-scm/scm"
@@ -9,8 +12,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"helm.sh/helm/v3/pkg/chart"
-	"path/filepath"
-	"testing"
 )
 
 const (
@@ -50,9 +51,8 @@ func TestNewCmdHelmfileStatus_FindExistingDeployment(t *testing.T) {
 	}
 
 	type inputArgs struct {
-		fullRepoName   string
-		deploymentName string
-		environment    string
+		fullRepoName string
+		environment  string
 	}
 
 	testCases := []struct {
