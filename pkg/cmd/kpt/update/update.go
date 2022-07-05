@@ -292,7 +292,7 @@ func (o *Options) Matches(path string) (bool, error) {
 	repoPath := "upstream.git.repo"
 	repo := maps.GetMapValueAsStringViaPath(obj.Object, repoPath)
 	if repo == "" {
-		log.Logger().Warnf("could not find field %s in file %s", repoPath, path)
+		log.Logger().Debugf("could not find field %s in file %s", repoPath, path)
 		return false, nil
 	}
 	if o.RepositoryURL != "" {
