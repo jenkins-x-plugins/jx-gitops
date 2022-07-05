@@ -278,10 +278,6 @@ func (o *Options) handleKptfileConflictsAndContinue(dir string, lines []string) 
 
 // Matches returns true if this kpt file matches the filters
 func (o *Options) Matches(path string) (bool, error) {
-	if o.RepositoryName == "" && o.RepositoryOwner == "" && o.RepositoryURL == "" {
-		return true, nil
-	}
-
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return false, errors.Wrapf(err, "failed to load file %s", path)
