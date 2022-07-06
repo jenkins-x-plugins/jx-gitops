@@ -79,7 +79,7 @@ func NewCmdWebHookDelete() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.Filter, "filter", "", "", "The filter to match the endpoints to delete")
 	cmd.Flags().BoolVarP(&o.AllWebhooks, "all-webhooks", "", false, "WARNING: will delete all webhooks from your source repositories. Do not use lightly.")
 	cmd.Flags().BoolVarP(&o.WarnOnFail, "warn-on-fail", "", false, "If enabled lets just log a warning that we could not update the webhook")
-	cmd.Flags().BoolVarP(&o.DryRun, "dry-run", "", true, "If enabled doesn't actually delete any webhooks, just tells you what it will delete")
+	cmd.Flags().BoolVarP(&o.DryRun, "dry-run", "", false, "If enabled doesn't actually delete any webhooks, just tells you what it will delete")
 
 	o.ScmClientFactory.AddFlags(cmd)
 	o.BaseOptions.AddBaseFlags(cmd)
@@ -127,6 +127,10 @@ func (o *Options) Run() error {
 		return errors.Wrapf(err, "failed to find any SourceRepositories in namespace %s", ns)
 	}
 
+	if len(srList.Items) == 0 {
+		log.Logger().Debugf("No source repositories found in %s namespace", ns)
+	}
+
 	for k := range srList.Items {
 		sourceRepo := srList.Items[k]
 
@@ -154,6 +158,7 @@ func (o *Options) DeleteWebhookFromSourceRepository(sr *v1.SourceRepository, err
 }
 
 func (o *Options) deleteWebhookIfItExists(repository *v1.SourceRepository, filter string) error {
+	var err error
 	spec := repository.Spec
 	gitServerURL := spec.Provider
 	owner := spec.Org
@@ -162,9 +167,12 @@ func (o *Options) deleteWebhookIfItExists(repository *v1.SourceRepository, filte
 	o.ScmClientFactory.GitServerURL = gitServerURL
 	o.ScmClientFactory.GitKind = spec.ProviderKind
 
-	scmClient, err := o.ScmClientFactory.Create()
-	if err != nil {
-		return errors.Wrapf(err, "failed to create Scm client for %s", spec.URL)
+	scmClient := o.ScmClientFactory.ScmClient
+	if scmClient == nil {
+		scmClient, err = o.ScmClientFactory.Create()
+		if err != nil {
+			return errors.Wrapf(err, "failed to create Scm client for %s", spec.URL)
+		}
 	}
 
 	err = o.removeRepositoryWebhook(scmClient, owner, repo, filter)
