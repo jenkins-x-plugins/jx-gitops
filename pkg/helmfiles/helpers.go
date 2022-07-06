@@ -25,6 +25,14 @@ func GatherHelmfiles(helmfile, dir string) ([]Helmfile, error) {
 		helmfile = "helmfile.yaml"
 	}
 	baseParentHelmfileDir := filepath.Dir(helmfile)
+	// Allow resolve to skip a helmfile. Useful if chart has a validation schema so jx-values.yaml shouldn't be added.
+	exists, err := files.FileExists(filepath.Join(baseParentHelmfileDir, ".no-jx-resolve"))
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to check existence of .no-jx-resolve in %s", baseParentHelmfileDir)
+	}
+	if exists {
+		return []Helmfile{}, nil
+	}
 
 	// we need to check if the main helmfile itself is in a subdirectory, if it is then we need to add that to any
 	// nested subfolders we find so we can correctly reference version stream files
@@ -35,7 +43,7 @@ func GatherHelmfiles(helmfile, dir string) ([]Helmfile, error) {
 
 	helmfile = filepath.Join(dir, helmfile)
 	helmState := state.HelmState{}
-	err := yaml2s.LoadFile(helmfile, &helmState)
+	err = yaml2s.LoadFile(helmfile, &helmState)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to load helmfile %s", helmfile)
 	}
@@ -56,7 +64,7 @@ func GatherHelmfiles(helmfile, dir string) ([]Helmfile, error) {
 		// recursively gather nested helmfiles including their relative path so we can add correct location to version stream values files
 		// note: unit tests cover this as it is a complex function however they set a test dir with files copied into it,
 		// when running the resolve command for real the dir is '.' and therefore can take a slightly different route through this
-		// func.  If you change this then its also worth giving a manual test of jx giotops helmfile resolve on a nested helmfile
+		// func.  If you change this then its also worth giving a manual test of jx gitops helmfile resolve on a nested helmfile
 		// and make sure the relative path to version stream values remain the same.
 		nestedHelmfile, err := GatherHelmfiles(filepath.Join(baseParentHelmfileDir, nested.Path), dir)
 		if err != nil {
