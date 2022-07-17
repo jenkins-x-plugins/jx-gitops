@@ -177,16 +177,28 @@ func (o *Options) modifyVariables(text string) error {
 }
 
 func (o *Options) loadPRComments(envVars map[string]string, pr *scm.PullRequest) error {
+	var res *scm.Response
+	var comments []*scm.Comment
+	var allComments []*scm.Comment
+	var err error
+
 	ctx := o.GetContext()
 	prNumber := pr.Number
+	firstRun := true
 	opts := scm.ListOptions{
 		Sort: "asc",
+		Page: 1,
 	}
-	comments, _, err := o.ScmClient.PullRequests.ListComments(ctx, o.FullRepositoryName, prNumber, opts)
-	if err != nil {
-		return errors.Wrapf(err, "failed to list comments of PR %d", prNumber)
+	for firstRun || (res != nil && opts.Page <= res.Page.Last) {
+		comments, res, err = o.ScmClient.PullRequests.ListComments(ctx, o.FullRepositoryName, prNumber, opts)
+		if err != nil {
+			return errors.Wrapf(err, "failed to list comments for PR %d", prNumber)
+		}
+		allComments = append(allComments, comments...)
+		firstRun = false
+		opts.Page++
 	}
-	for _, c := range comments {
+	for _, c := range allComments {
 		o.parseComments(envVars, c)
 	}
 	return nil
