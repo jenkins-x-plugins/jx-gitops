@@ -265,4 +265,4 @@ replace (
 	sigs.k8s.io/kustomize/kyaml => sigs.k8s.io/kustomize/kyaml v0.13.4
 )
 
-go 1.17
+go 1.18
