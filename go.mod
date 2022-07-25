@@ -12,10 +12,10 @@ require (
 	github.com/imdario/mergo v0.3.12
 	github.com/jenkins-x-plugins/jx-charter v0.0.28
 	github.com/jenkins-x/go-scm v1.11.15
-	github.com/jenkins-x/jx-api/v4 v4.3.5
-	github.com/jenkins-x/jx-helpers/v3 v3.2.5
-	github.com/jenkins-x/jx-kube-client/v3 v3.0.2
-	github.com/jenkins-x/jx-logging/v3 v3.0.6
+	github.com/jenkins-x/jx-api/v4 v4.5.1
+	github.com/jenkins-x/jx-helpers/v3 v3.4.0
+	github.com/jenkins-x/jx-kube-client/v3 v3.0.4
+	github.com/jenkins-x/jx-logging/v3 v3.0.9
 	github.com/jenkins-x/lighthouse-client v0.0.438
 	github.com/pborman/uuid v1.2.0
 	github.com/pkg/errors v0.9.1
@@ -27,8 +27,8 @@ require (
 	github.com/tektoncd/pipeline v0.26.0
 	gopkg.in/validator.v2 v2.0.0-20200605151824-2b28d334fa05
 	helm.sh/helm/v3 v3.6.3
-	k8s.io/api v0.21.0
-	k8s.io/apimachinery v0.21.0
+	k8s.io/api v0.21.4
+	k8s.io/apimachinery v0.21.4
 	k8s.io/client-go v11.0.1-0.20190805182717-6502b5e7b1b5+incompatible
 	sigs.k8s.io/kustomize/api v0.8.7
 	sigs.k8s.io/kustomize/kyaml v0.10.17
@@ -39,6 +39,7 @@ require (
 	cloud.google.com/go v0.81.0 // indirect
 	cloud.google.com/go/storage v1.11.0 // indirect
 	code.gitea.io/sdk/gitea v0.14.0 // indirect
+	github.com/AlecAivazis/survey/v2 v2.3.4 // indirect
 	github.com/Azure/azure-sdk-for-go v43.0.0+incompatible // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78 // indirect
 	github.com/Azure/go-autorest v14.2.0+incompatible // indirect
@@ -93,7 +94,7 @@ require (
 	github.com/go-openapi/jsonreference v0.19.5 // indirect
 	github.com/go-openapi/spec v0.20.2 // indirect
 	github.com/go-openapi/swag v0.19.15 // indirect
-	github.com/go-stack/stack v1.8.0 // indirect
+	github.com/go-stack/stack v1.8.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
@@ -130,7 +131,7 @@ require (
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/itchyny/gojq v0.9.0 // indirect
-	github.com/jenkins-x/logrus-stackdriver-formatter v0.2.3 // indirect
+	github.com/jenkins-x/logrus-stackdriver-formatter v0.2.4 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.11 // indirect
@@ -212,7 +213,6 @@ require (
 	google.golang.org/genproto v0.0.0-20210602131652-f16073e35f0c // indirect
 	google.golang.org/grpc v1.38.0 // indirect
 	google.golang.org/protobuf v1.26.0 // indirect
-	gopkg.in/AlecAivazis/survey.v1 v1.8.8 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.62.0 // indirect
 	gopkg.in/robfig/cron.v2 v2.0.0-20150107220207-be2e0b0deed5 // indirect
@@ -228,7 +228,7 @@ require (
 	k8s.io/kube-openapi v0.0.0-20210305001622-591a79e4bda7 // indirect
 	k8s.io/utils v0.0.0-20210111153108-fddb29f9d009 // indirect
 	knative.dev/pkg v0.0.0-20210730172132-bb4aaf09c430 // indirect
-	sigs.k8s.io/structured-merge-diff/v4 v4.1.0 // indirect
+	sigs.k8s.io/structured-merge-diff/v4 v4.1.2 // indirect
 )
 
 replace (
