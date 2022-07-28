@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
@@ -12,6 +13,7 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/cli"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/kube"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
@@ -26,7 +28,7 @@ var (
 	cmdLong = templates.LongDesc(`
 		Performs a gitops regeneration and apply on a cluster git repository
 
-		If the last commit was a merge from a pull request the regeneration is skipped.
+		If the last commit was a merge from a pull request the regeneration is skipped, unless the cluster is new.
 
 		Also the process detects if an ingress has changed (or similar changes) and retriggers another regeneration which typically is only required when installing for the first time or if no explicit domain name is being used and the LoadBalancer service has been removed.
 `)
@@ -44,6 +46,7 @@ type Options struct {
 	GitClient        gitclient.Interface
 	CommandRunner    cmdrunner.CommandRunner
 	GitCommandRunner cmdrunner.CommandRunner
+	IsNewCluster     bool
 }
 
 // NewCmdApply creates a command object for the command
@@ -73,6 +76,7 @@ func (o *Options) Validate() error {
 	if o.GitClient == nil {
 		o.GitClient = cli.NewCLIClient("", o.CommandRunner)
 	}
+	o.IsNewCluster = o.isNewCluster()
 	return nil
 }
 
@@ -90,7 +94,7 @@ func (o *Options) Run() error {
 	lastCommitMessage = strings.TrimSpace(lastCommitMessage)
 	log.Logger().Infof("found last commit message: %s", termcolor.ColorStatus(lastCommitMessage))
 
-	if strings.Contains(lastCommitMessage, "/pipeline cancel") {
+	if strings.Contains(lastCommitMessage, "/pipeline cancel") && !o.IsNewCluster {
 		log.Logger().Infof("last commit disabled further processing")
 		return nil
 	}
@@ -107,6 +111,8 @@ func (o *Options) Run() error {
 		}
 		if changedExternalSecret {
 			log.Logger().Infof("last commit changed an ExternalSecret so still performing a full regenerate")
+		} else if o.IsNewCluster {
+			log.Logger().Infof("applying to new cluster so performing a full regenerate")
 		} else {
 			log.Logger().Infof("last commit was a merge pull request without changing an ExternalSecret so not regenerating")
 			regen = false
@@ -122,7 +128,7 @@ func (o *Options) Run() error {
 		c := &cmdrunner.Command{
 			Dir:  o.Dir,
 			Name: "make",
-			Args: []string{"regen-phase-3"},
+			Args: []string{"regen-phase-3", "NEW_CLUSTER=" + strconv.FormatBool(o.IsNewCluster)},
 		}
 		err = o.RunCommand(c)
 		if err != nil {
@@ -152,7 +158,7 @@ func (o *Options) Regenerate() (bool, error) {
 	c := &cmdrunner.Command{
 		Dir:  o.Dir,
 		Name: "make",
-		Args: []string{"regen-phase-1"},
+		Args: []string{"regen-phase-1", "NEW_CLUSTER=" + strconv.FormatBool(o.IsNewCluster)},
 	}
 	err = o.RunCommand(c)
 	if err != nil {
@@ -179,7 +185,7 @@ func (o *Options) Regenerate() (bool, error) {
 	c = &cmdrunner.Command{
 		Dir:  o.Dir,
 		Name: "make",
-		Args: []string{"regen-phase-2"},
+		Args: []string{"regen-phase-2", "NEW_CLUSTER=" + strconv.FormatBool(o.IsNewCluster)},
 	}
 	err = o.RunCommand(c)
 	if err != nil {
@@ -238,4 +244,18 @@ func (o *Options) CheckLastCommitChangedExternalSecret(gitter gitclient.Interfac
 		log.Logger().Debugf("ignoring kind %s in file %s", kind, path)
 	}
 	return false, nil
+}
+
+func (o *Options) isNewCluster() bool {
+	client, err := kube.LazyCreateKubeClientWithMandatory(nil, true)
+	if err != nil {
+		log.Logger().Errorf("Failed to create k8s client: %v", err)
+		return true
+	}
+	resourceList, err := client.Discovery().ServerResourcesForGroupVersion("jenkins.io/v1")
+	if err != nil {
+		log.Logger().Errorf("Failed to list jenkins-x.io/v1: %v", err)
+		return true
+	}
+	return len(resourceList.APIResources) == 0
 }
