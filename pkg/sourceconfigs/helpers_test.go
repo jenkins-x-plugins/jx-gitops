@@ -90,6 +90,8 @@ func TestSourceConfigDefaultValues(t *testing.T) {
 	err := sourceconfigs.DefaultConfigValues(config)
 	require.NoError(t, err)
 
+	assertSlackChannel(t, config, "non-existing-owner", "non-existing-repo", "", v1alpha1.PipelineKindAll, false, false, false)
+
 	assertSlackChannel(t, config, owner, "no-cfg", "default-channel", v1alpha1.PipelineKindRelease, false, true, true)
 	assertSlackChannel(t, config, owner, "override-channel", "new-channel", v1alpha1.PipelineKindAll, false, true, true)
 
