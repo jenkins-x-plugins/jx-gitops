@@ -135,6 +135,19 @@ func DefaultValues(config *v1alpha1.SourceConfig, group *v1alpha1.RepositoryGrou
 	return nil
 }
 
+// GetFilteredGroups get the groups for the given git kind & server URL if specified and owner
+func GetFilteredGroups(groups []v1alpha1.RepositoryGroup, gitKind, gitServerURL, owner string) []v1alpha1.RepositoryGroup {
+	var filteredGroups []v1alpha1.RepositoryGroup
+	for g := range groups {
+		group := &groups[g]
+		if (group.ProviderKind == gitKind || gitKind == "") && (group.Provider == gitServerURL || gitServerURL == "") && strings.EqualFold(group.Owner, owner) {
+			filteredGroups = append(filteredGroups, *group)
+		}
+	}
+
+	return filteredGroups
+}
+
 // GetOrCreateGroup get or create the group for the given name
 func GetOrCreateGroup(config *v1alpha1.SourceConfig, gitKind, gitServerURL, owner string) *v1alpha1.RepositoryGroup {
 	var group *v1alpha1.RepositoryGroup
@@ -169,6 +182,27 @@ func getOrCreateGroup(groups []v1alpha1.RepositoryGroup, gitKind, gitServerURL, 
 func GetOrCreateRepositoryFor(config *v1alpha1.SourceConfig, gitServerURL, owner, repo string) *v1alpha1.Repository {
 	group := GetOrCreateGroup(config, "", gitServerURL, owner)
 	return GetOrCreateRepository(group, repo)
+}
+
+// GetRepositoryFor returns the repository for the given git server URL if specified, owner and given repo name
+func GetRepositoryFor(config *v1alpha1.SourceConfig, gitServerURL, owner, repo string) *v1alpha1.Repository {
+	groups := GetFilteredGroups(config.Spec.Groups, "", gitServerURL, owner)
+	return GetRepository(groups, repo)
+}
+
+// GetRepository get the repository for the given name
+func GetRepository(groups []v1alpha1.RepositoryGroup, repoName string) *v1alpha1.Repository {
+	for g := range groups {
+		group := &groups[g]
+		for r := range group.Repositories {
+			repo := &group.Repositories[r]
+			if repo.Name == repoName {
+				return repo
+			}
+		}
+	}
+
+	return nil
 }
 
 // GetOrCreateRepository get or create the repository for the given name
