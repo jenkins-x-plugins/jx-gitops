@@ -1,4 +1,4 @@
-package wpool
+package template
 
 import (
 	"context"

@@ -67,6 +67,7 @@ require (
 	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/bluekeyes/go-gitdiff v0.4.0 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
+	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/containerd/cgroups v0.0.0-20200531161412-0dbf7f05ba59 // indirect
 	github.com/containerd/containerd v1.4.4 // indirect
@@ -243,6 +244,8 @@ replace (
 	// override the go-scm from tekton
 	github.com/jenkins-x/go-scm => github.com/jenkins-x/go-scm v1.11.5
 
+	github.com/jenkins-x/jx-helpers => /Users/rochana/Code/Devops/repos/jx-helpers
+
 	// for the PipelineRun debug fix see: https://github.com/tektoncd/pipeline/pull/4145
 	github.com/tektoncd/pipeline => github.com/jstrachan/pipeline v0.21.1-0.20210811150720-45a86a5488af
 
@@ -253,8 +256,6 @@ replace (
 	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20210113233702-8566a335510f
 	sigs.k8s.io/kustomize/api => sigs.k8s.io/kustomize/api v0.8.7
 	sigs.k8s.io/kustomize/kyaml => sigs.k8s.io/kustomize/kyaml v0.10.17
-	
-	github.com/jenkins-x/jx-helpers => /Users/rochana/Code/Devops/repos/jx-helpers
 )
 
 go 1.17

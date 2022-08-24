@@ -1,10 +1,11 @@
 package template
 
 import (
+	"context"
 	"fmt"
-	"sync"
 	"time"
 
+	"github.com/cenkalti/backoff"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/options"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
@@ -21,7 +22,12 @@ import (
 )
 
 const (
-	useHelmfileRepos = false
+	useHelmfileRepos        = false
+	testInitialInterval     = 500 * time.Millisecond
+	testRandomizationFactor = 0.1
+	testMultiplier          = 2.0
+	testMaxInterval         = 5 * time.Second
+	testMaxElapsedTime      = 15 * time.Minute
 )
 
 var (
@@ -46,6 +52,7 @@ type Options struct {
 	BatchMode         bool
 	CommandRunner     cmdrunner.CommandRunner
 	Sequencial        bool
+	ValidateRelease   bool
 	Dir               string
 	IncludeCRDs       bool
 	OutputDirTemplate string
@@ -86,6 +93,7 @@ func (o *Options) AddFlags(cmd *cobra.Command, prefix string) {
 	cmd.Flags().StringVarP(&o.OutputDirTemplate, "output-dir-template", "", "/tmp/generate/{{.Release.Namespace}}/{{.Release.Name}}", "")
 	cmd.Flags().BoolVarP(&o.IncludeCRDs, "include-crds", "", true, "if CRDs should be included in the output")
 	cmd.Flags().BoolVarP(&o.Sequencial, "sequential", "", false, "if run command sequentially")
+	cmd.Flags().BoolVarP(&o.ValidateRelease, "validate", "", false, "if run command sequentially")
 	cmd.Flags().StringVarP(&o.Helmfile, "helmfile", "", "", "the helmfile to resolve. If not specified defaults to 'helmfile.yaml' in the dir")
 	cmd.Flags().StringVarP(&o.Concurrency, "concurrency", "", "", "the helmfile to resolve. If not specified defaults to 'helmfile.yaml' in the dir")
 
@@ -132,6 +140,9 @@ func (o *Options) Validate() error {
 
 // Run implements the command
 func (o *Options) Run() error {
+	ctx, cancel := context.WithCancel(context.TODO())
+	defer cancel()
+
 	err := o.Validate()
 	if err != nil {
 		return errors.Wrapf(err, "failed to ")
@@ -139,7 +150,8 @@ func (o *Options) Run() error {
 
 	if o.Sequencial {
 		log.Logger().Infof(termcolor.ColorStatus("------- sequential -----------"))
-		result, err := o.runCommand(o.Helmfile)
+		command := o.buildCommand(o.Helmfile)
+		result, err := o.CommandRunner(command)
 		if err != nil {
 			return errors.Wrapf(err, "failed to run command")
 		}
@@ -150,99 +162,42 @@ func (o *Options) Run() error {
 	}
 	log.Logger().Infof(termcolor.ColorStatus("------- parrallel -----------"))
 
-	// MD5All closes the done channel when it returns; it may do so before
-	// receiving all the values from c and errc.
-	done := make(chan struct{})
-	defer close(done)
-	errc := make(chan error, 1)
+	commands := []*cmdrunner.Command{}
 
-	helmfilesc := o.getHelmFiles(done)
+	for _, helmfile := range o.Helmfiles[1:] {
+		commands = append(commands, o.buildCommand(helmfile.Filepath))
 
-	// Start a fixed number of goroutines to read and digest files.
-	c := make(chan string) // HLc
-	var wg sync.WaitGroup
-	const numDigesters = 5
-	wg.Add(numDigesters)
-	for i := 0; i < numDigesters; i++ {
-		go func() {
-			o.digester(done, helmfilesc, c, errc) // HLc
-			wg.Done()
-			fmt.Println("******  returned *********")
-		}()
 	}
-	go func() {
-		wg.Wait()
-		close(c) // HLc
-	}()
-	// End of pipeline. OMIT
+	cr := NewCommandRunners(10, commandRunner)
+	go cr.GenerateFrom(commands)
 
-	go func(c <-chan string) {
+	go cr.Run(ctx)
 
+	for {
 		select {
-		case r := <-c: // HL
-			log.Logger().Infof(termcolor.ColorStatus(r))
-		case <-done: // HL
-			return
-		}
+		case r, ok := <-cr.Results():
+			if !ok {
+				continue
+			}
+			log.Logger().Infof(termcolor.ColorStatus(r.Attempts))
 
-	}(c)
+			if r.Value != "" {
+				log.Logger().Infof(termcolor.ColorStatus(r.Value))
+			}
+			if r.Err != nil {
+				return errors.Wrapf(r.Err, "failed to run command")
+				// log.Logger().Infof(termcolor.ColorStatus(r.Err))
 
-	// Check whether the Walk failed.
+			}
 
-	if err := <-errc; err != nil { // HLerrc
-		return err
-	}
-
-	return nil
-}
-
-func (o *Options) getHelmFiles(done <-chan struct{}) <-chan helmfiles.Helmfile {
-	paths := make(chan helmfiles.Helmfile)
-
-	go func() { // HL
-
-		// Close the paths channel after Walk returns.
-		defer close(paths) // HL
-		// No select needed for this send, since errc is buffered.
-
-		// Start sending jobs to the thread channel
-		for _, helmfile := range o.Helmfiles {
-			func(helmfile helmfiles.Helmfile) {
-
-				select {
-				case paths <- helmfile: // HL
-				case <-done: // HL
-					fmt.Println("--------- exiting get helmflies -----------")
-					return
-				}
-			}(helmfile)
-
-		}
-	}()
-	return paths
-
-}
-
-// digester reads path names from paths and sends digests of the corresponding
-// files on c until either paths or done is closed.
-func (o *Options) digester(done <-chan struct{}, paths <-chan helmfiles.Helmfile, c chan<- string, errc chan<- error) {
-	for path := range paths { // HLpaths
-		// result, err := o.runCommand(path.Filepath)
-		result := path.Filepath
-		// err := nil
-		// if err != nil {
-		// 	errc <- err
-		// 	return
-		// }
-		select {
-		case c <- result:
-		case <-done:
-			return
+		case <-cr.Done:
+			return nil
 		}
 	}
+
 }
 
-func (o *Options) runCommand(helmfile string) (string, error) {
+func (o *Options) buildCommand(helmfile string) *cmdrunner.Command {
 	args := []string{}
 	if o.HelmBinary != "" {
 		args = append(args, "--helm-binary", o.HelmBinary)
@@ -251,7 +206,6 @@ func (o *Options) runCommand(helmfile string) (string, error) {
 		args = append(args, "--file", helmfile)
 	}
 	args = append(args, "template")
-	// args = append(args, "--validate")
 	if o.IncludeCRDs {
 		args = append(args, "--include-crds")
 	}
@@ -261,19 +215,26 @@ func (o *Options) runCommand(helmfile string) (string, error) {
 	if o.Concurrency != "" {
 		args = append(args, "--concurrency", o.Concurrency)
 	}
+	if o.ValidateRelease {
+		args = append(args, "--validate")
+	}
+
+	exp := backoff.NewExponentialBackOff()
+	exp.InitialInterval = testInitialInterval
+	exp.RandomizationFactor = testRandomizationFactor
+	exp.Multiplier = testMultiplier
+	exp.MaxInterval = testMaxInterval
+	exp.MaxElapsedTime = testMaxElapsedTime
+	exp.Reset()
 
 	c := &cmdrunner.Command{
-		Dir:     o.Dir,
-		Name:    o.HelmfileBinary,
-		Args:    args,
-		Timeout: 10 * time.Second,
-	}
-	result, err := commandRunner(c)
-	if err != nil {
-		return "", errors.Wrapf(err, "failed to run command %s in dir %s", c.CLI(), o.Dir)
+		Dir:                o.Dir,
+		Name:               o.HelmfileBinary,
+		Args:               args,
+		ExponentialBackOff: exp,
 	}
 
-	return result, nil
+	return c
 }
 func commandRunner(c *cmdrunner.Command) (string, error) {
 	if c.Dir == "" {

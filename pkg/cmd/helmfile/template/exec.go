@@ -1,4 +1,4 @@
-package wpool
+package template
 
 import (
 	"context"
@@ -9,8 +9,9 @@ import (
 )
 
 type Result struct {
-	Value interface{}
-	Err   error
+	Attempts int
+	Value    string
+	Err      error
 }
 
 type CommandRunners struct {
@@ -57,9 +58,7 @@ func (cr CommandRunners) worker(ctx context.Context, wg *sync.WaitGroup, command
 			}
 			// fan-in job execution multiplexing results into the results channel
 			result, err := cr.commandRunner(command)
-			fmt.Print(command.Attempts())
-			fmt.Println(err)
-			results <- Result{result, err}
+			results <- Result{command.Attempts(), result, err}
 		case <-ctx.Done():
 			fmt.Printf("cancelled worker. Error detail: %v\n", ctx.Err())
 			results <- Result{
