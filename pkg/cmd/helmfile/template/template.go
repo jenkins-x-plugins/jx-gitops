@@ -3,7 +3,6 @@ package template
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/cenkalti/backoff"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/options"
@@ -22,12 +21,7 @@ import (
 )
 
 const (
-	useHelmfileRepos        = false
-	testInitialInterval     = 500 * time.Millisecond
-	testRandomizationFactor = 0.1
-	testMultiplier          = 2.0
-	testMaxInterval         = 5 * time.Second
-	testMaxElapsedTime      = 15 * time.Minute
+	useHelmfileRepos = false
 )
 
 var (
@@ -219,19 +213,11 @@ func (o *Options) buildCommand(helmfile string) *cmdrunner.Command {
 		args = append(args, "--validate")
 	}
 
-	exp := backoff.NewExponentialBackOff()
-	exp.InitialInterval = testInitialInterval
-	exp.RandomizationFactor = testRandomizationFactor
-	exp.Multiplier = testMultiplier
-	exp.MaxInterval = testMaxInterval
-	exp.MaxElapsedTime = testMaxElapsedTime
-	exp.Reset()
-
 	c := &cmdrunner.Command{
 		Dir:                o.Dir,
 		Name:               o.HelmfileBinary,
 		Args:               args,
-		ExponentialBackOff: exp,
+		ExponentialBackOff: backoff.NewExponentialBackOff(),
 	}
 
 	return c
