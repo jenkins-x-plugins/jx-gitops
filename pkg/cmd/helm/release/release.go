@@ -464,7 +464,10 @@ func (o *Options) ChartPageRegistry(repoURL, chartDir, name string) error {
 			return errors.Wrapf(err, "failed to save %s", readmePath)
 		}
 	}
-	_, err = gitclient.AddAndCommitFiles(o.GitClient, o.GitHubPagesDir, "chore: add helm chart")
+
+	// lets add a helpful commit message and commit
+	commitMessage := fmt.Sprintf("chore: add helm chart for %s v%s", name, o.Version)
+	_, err = gitclient.AddAndCommitFiles(o.GitClient, o.GitHubPagesDir, commitMessage)
 	if err != nil {
 		return errors.Wrapf(err, "failed to add helm chart to git")
 	}

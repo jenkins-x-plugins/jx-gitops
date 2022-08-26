@@ -182,7 +182,7 @@ func TestStepHelmReleaseWithChartPages(t *testing.T) {
 			CLI: "git status -s",
 		},
 		fakerunner.FakeResult{
-			CLI: "git commit -m chore: add helm chart",
+			CLI: "git commit -m chore: add helm chart for myapp v1.2.3",
 		},
 		fakerunner.FakeResult{
 			CLI: "git push --set-upstream origin gh-pages",
