@@ -1,5 +1,5 @@
 //nolint
-// +build !windows
+//go:build !windows
 
 package app
 

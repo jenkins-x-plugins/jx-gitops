@@ -427,12 +427,12 @@ func (o *Options) ChartPageRegistry(repoURL, chartDir, name string) error {
 		return errors.Wrapf(err, "failed to read chart dir %s", chartDir)
 	}
 	for _, f := range fs {
-		name := f.Name()
-		if f.IsDir() || !strings.HasSuffix(name, ".tgz") {
+		fileName := f.Name()
+		if f.IsDir() || !strings.HasSuffix(fileName, ".tgz") {
 			continue
 		}
-		path := filepath.Join(chartDir, name)
-		tofile := filepath.Join(o.GitHubPagesDir, name)
+		path := filepath.Join(chartDir, fileName)
+		tofile := filepath.Join(o.GitHubPagesDir, fileName)
 
 		err = files.CopyFile(path, tofile)
 		if err != nil {
