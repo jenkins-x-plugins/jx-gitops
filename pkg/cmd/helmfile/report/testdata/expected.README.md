@@ -72,7 +72,7 @@
 	    </tr>
     <tr>
 	      <td>jx-pipelines-visualizer</td>
-	      <td><a href='https://github.com/jenkins-x/jx-pipelines-visualizer' title='Web UI for Jenkins X, with a clear goal - visualize the pipelines - and their logs.'> <img src='' width='24px' height='24px'> jx-pipelines-visualizer </a></td>
+	      <td><a href='https://github.com/jenkins-x/jx-pipelines-visualizer' title='Web UI for Jenkins X, with a clear goal - visualize the pipelines - and their logs.'> jx-pipelines-visualizer </a></td>
 	      <td>0.0.61</td>
 	      <td><a href='http://dashboard-jx.34.105.246.143.xip.io'>view</a></td>
 	      <td><a href='https://github.com/jenkins-x/jx-pipelines-visualizer'>source</a></td>
@@ -126,7 +126,7 @@
 	    </tr>
     <tr>
 	      <td>jenkins-resources</td>
-	      <td><a href='' title=''> <img src='' width='24px' height='24px'> jenkins-resources </a></td>
+	      <td><a href='' title=''> jenkins-resources </a></td>
 	      <td></td>
 	      <td></td>
 	      <td></td>
@@ -146,14 +146,14 @@
 		    </tr>
 	    <tr>
 	      <td>kubernetes-external-secrets</td>
-	      <td><a href='https://github.com/godaddy/kubernetes-external-secrets' title='Kubernetes External Secrets CustomResourceDefinition'> <img src='' width='24px' height='24px'> kubernetes-external-secrets </a></td>
+	      <td><a href='https://github.com/godaddy/kubernetes-external-secrets' title='Kubernetes External Secrets CustomResourceDefinition'> kubernetes-external-secrets </a></td>
 	      <td>6.0.0</td>
 	      <td></td>
 	      <td><a href='https://github.com/godaddy/kubernetes-external-secrets'>source</a></td>
 	    </tr>
     <tr>
 	      <td>pusher-wave</td>
-	      <td><a href='https://github.com/pusher/wave' title='wave chart that runs on kubernetes'> <img src='' width='24px' height='24px'> pusher-wave </a></td>
+	      <td><a href='https://github.com/pusher/wave' title='wave chart that runs on kubernetes'> pusher-wave </a></td>
 	      <td>0.4.12</td>
 	      <td></td>
 	      <td><a href='https://github.com/pusher/wave'>source</a></td>

@@ -2,6 +2,7 @@ module github.com/jenkins-x-plugins/jx-gitops
 
 require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
+	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535
 	github.com/cpuguy83/go-md2man v1.0.10
 	github.com/davecgh/go-spew v1.1.1
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
