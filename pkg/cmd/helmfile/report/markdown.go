@@ -6,6 +6,7 @@ import (
 	"io"
 	"strings"
 
+	"github.com/asaskevich/govalidator"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/releasereport"
@@ -73,14 +74,18 @@ func WriteChart(w io.StringWriter, ch *releasereport.ReleaseInfo) {
 		sourceLink = fmt.Sprintf("<a href='%s'>source</a>", ch.Home)
 	}
 
+	icon := ""
+	if govalidator.IsRequestURL(ch.Icon) {
+		icon = fmt.Sprintf(" <img src='%s' width='24px' height='24px'>", ch.Icon)
+	}
 	_, err := w.WriteString(fmt.Sprintf(`    <tr>
 	      <td>%s</td>
-	      <td><a href='%s' title='%s'> <img src='%s' width='24px' height='24px'> %s </a></td>
+	      <td><a href='%s' title='%s'>%s %s </a></td>
 	      <td>%s</td>
 	      <td>%s</td>
 	      <td>%s</td>
 	    </tr>
-`, ch.ReleaseName, ch.Home, description, ch.Icon, ch.Name, ch.Version, viewLink, sourceLink))
+`, ch.ReleaseName, ch.Home, description, icon, ch.Name, ch.Version, viewLink, sourceLink))
 	if err != nil {
 		log.Logger().Warn(err)
 	}
