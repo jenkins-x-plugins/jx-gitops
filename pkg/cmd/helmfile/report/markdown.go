@@ -70,22 +70,31 @@ func WriteChart(w io.StringWriter, ch *releasereport.ReleaseInfo) {
 		viewLink = fmt.Sprintf("<a href='%s'>view</a>", ch.ApplicationURL)
 	}
 	sourceLink := ""
-	if ch.Home != "" {
-		sourceLink = fmt.Sprintf("<a href='%s'>source</a>", ch.Home)
+	if len(ch.Sources) == 1 {
+		sourceLink = fmt.Sprintf("<a href='%s'>source</a>", ch.Sources[0])
+	} else if len(ch.Sources) > 1 {
+		for i := range ch.Sources {
+			sourceLink += fmt.Sprintf("<a href='%s'>%d</a> ", ch.Sources[i], i)
+		}
 	}
 
 	icon := ""
 	if govalidator.IsRequestURL(ch.Icon) {
 		icon = fmt.Sprintf(" <img src='%s' width='24px' height='24px'>", ch.Icon)
 	}
+	name := fmt.Sprintf("%s %s", icon, ch.Name)
+	if ch.Home != "" {
+		name = fmt.Sprintf("<a href='%s'>%s</a>", ch.Home, name)
+	}
+
 	_, err := w.WriteString(fmt.Sprintf(`    <tr>
 	      <td>%s</td>
-	      <td><a href='%s' title='%s'>%s %s </a></td>
+	      <td title='%s'>%s</td>
 	      <td>%s</td>
 	      <td>%s</td>
 	      <td>%s</td>
 	    </tr>
-`, ch.ReleaseName, ch.Home, description, icon, ch.Name, ch.Version, viewLink, sourceLink))
+`, ch.ReleaseName, description, name, ch.Version, viewLink, sourceLink))
 	if err != nil {
 		log.Logger().Warn(err)
 	}
