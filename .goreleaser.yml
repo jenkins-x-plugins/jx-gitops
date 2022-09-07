@@ -71,3 +71,5 @@ release:
   # Default is `{{.Tag}}`
   name_template: "{{.Env.VERSION}}"
 
+sboms:
+  - artifacts: archive
