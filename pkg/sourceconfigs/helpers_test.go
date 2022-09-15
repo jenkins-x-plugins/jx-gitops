@@ -138,6 +138,16 @@ func TestSourceConfigGlobalDefaultValues(t *testing.T) {
 						},
 					},
 				},
+				{
+					Provider:     gitServer,
+					ProviderKind: "gitlab",
+					Owner:        owner,
+					Repositories: []v1alpha1.Repository{
+						{
+							Name: "subgroup/myrepo2",
+						},
+					},
+				},
 			},
 			Slack: &v1alpha1.SlackNotify{
 				Channel:  "my-channel",
@@ -151,6 +161,7 @@ func TestSourceConfigGlobalDefaultValues(t *testing.T) {
 
 	assertSlackChannel(t, nonGroupConfig, "", "", "", v1alpha1.PipelineKindAll, false, false, false)
 	assertSlackChannel(t, config, owner, "myrepo2", "my-channel", v1alpha1.PipelineKindAll, false, false, true)
+	assertSlackChannel(t, config, owner, "subgroup-myrepo2", "my-channel", v1alpha1.PipelineKindAll, false, false, true)
 }
 
 func assertSlackChannel(t *testing.T, config *v1alpha1.SourceConfig, owner, repoName, expectedChannel string, expectedPipeline v1alpha1.PipelineKind, expectedDirectMessage, expectedNotifyReviewers, expectedRepo bool) {
