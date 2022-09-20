@@ -3,6 +3,7 @@ package template
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/cenkalti/backoff"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/options"
@@ -213,6 +214,9 @@ func (o *Options) buildCommand(helmfile string) *cmdrunner.Command {
 	if o.ValidateRelease {
 		args = append(args, "--validate")
 	}
+
+	expBackOff :=  backoff.NewExponentialBackOff()
+	expBackOff.MaxInterval = 5 * time.Minute
 
 	c := &cmdrunner.Command{
 		Dir:                o.Dir,
