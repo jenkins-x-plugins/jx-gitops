@@ -163,7 +163,7 @@ func (o *Options) Run() error {
 		commands = append(commands, o.buildCommand(helmfile.Filepath))
 
 	}
-	cr := NewCommandRunners(10)
+	cr := NewCommandRunners(20)
 	cr.CommandRunner = o.CommandRunner
 	go cr.GenerateFrom(commands)
 
@@ -215,14 +215,12 @@ func (o *Options) buildCommand(helmfile string) *cmdrunner.Command {
 		args = append(args, "--validate")
 	}
 
-	expBackOff :=  backoff.NewExponentialBackOff()
-	expBackOff.MaxInterval = 5 * time.Minute
-
 	c := &cmdrunner.Command{
 		Dir:                o.Dir,
 		Name:               o.HelmfileBinary,
 		Args:               args,
-		ExponentialBackOff: backoff.NewExponentialBackOff(),
+		ExponentialBackOff: backoff.NewwExponentialBackOff(),
+		Timeout: 5 * time.Minute
 	}
 
 	return c
