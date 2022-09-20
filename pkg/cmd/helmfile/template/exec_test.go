@@ -13,7 +13,7 @@ const (
 )
 
 func TestWorkerPool(t *testing.T) {
-	cr := NewCommandRunners(workerCount, cmdrunner.DefaultCommandRunner)
+	cr := NewCommandRunners(workerCount)
 
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()

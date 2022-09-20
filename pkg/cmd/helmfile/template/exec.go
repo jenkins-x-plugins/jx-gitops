@@ -15,16 +15,16 @@ type Result struct {
 }
 
 type CommandRunners struct {
-	commandRunner cmdrunner.CommandRunner
+	CommandRunner cmdrunner.CommandRunner
 	runnersCount  int
 	commands      chan *cmdrunner.Command
 	results       chan Result
 	Done          chan struct{}
 }
 
-func NewCommandRunners(count int, commandRunner cmdrunner.CommandRunner) CommandRunners {
+func NewCommandRunners(count int) CommandRunners {
 	return CommandRunners{
-		commandRunner: commandRunner,
+		CommandRunner: cmdrunner.DefaultCommandRunner,
 		runnersCount:  count,
 		commands:      make(chan *cmdrunner.Command, count),
 		results:       make(chan Result, count),
@@ -57,7 +57,7 @@ func (cr CommandRunners) worker(ctx context.Context, wg *sync.WaitGroup, command
 				return
 			}
 			// fan-in job execution multiplexing results into the results channel
-			result, err := cr.commandRunner(command)
+			result, err := cr.CommandRunner(command)
 			results <- Result{command.Attempts(), result, err}
 		case <-ctx.Done():
 			fmt.Printf("cancelled worker. Error detail: %v\n", ctx.Err())

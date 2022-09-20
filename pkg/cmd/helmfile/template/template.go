@@ -162,7 +162,8 @@ func (o *Options) Run() error {
 		commands = append(commands, o.buildCommand(helmfile.Filepath))
 
 	}
-	cr := NewCommandRunners(10, commandRunner)
+	cr := NewCommandRunners(10)
+	cr.CommandRunner = o.CommandRunner
 	go cr.GenerateFrom(commands)
 
 	go cr.Run(ctx)
