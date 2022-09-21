@@ -45,6 +45,7 @@ type Options struct {
 	Namespace        string
 	KubeClient       kubernetes.Interface
 	JXClient         jxc.Interface
+	Fast             bool
 }
 
 var (
@@ -88,6 +89,7 @@ func NewCmdWebHookVerify() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.HMAC, "hmac", "", "", "Don't use the HMAC token from the cluster, use the provided token")
 	cmd.Flags().StringVarP(&o.Endpoint, "endpoint", "", "", "Don't use the endpoint from the cluster, use the provided endpoint")
 	cmd.Flags().BoolVarP(&o.WarnOnFail, "warn-on-fail", "", false, "If enabled lets just log a warning that we could not update the webhook")
+	cmd.Flags().BoolVarP(&o.Fast, "fast", "", false, "If annotation webhook.jenkins-x.io is true on SourceConfig don't check with git provider")
 
 	o.ScmClientFactory.AddFlags(cmd)
 	o.BaseOptions.AddBaseFlags(cmd)
@@ -137,13 +139,12 @@ func (o *Options) Run() error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to find any SourceRepositories in namespace %s", ns)
 	}
-	envMap, _, err := jxenv.GetEnvironments(jxClient, ns)
-	if err != nil {
-		return errors.Wrapf(err, "Failed to get environments in %s namespace", ns)
-	}
 
 	for k := range srList.Items {
 		sourceRepo := srList.Items[k]
+		if o.Fast && sourceRepo.Annotations != nil && sourceRepo.Annotations[WebHookAnnotation] == "true" {
+			continue
+		}
 
 		// hmac isn't supported on bitbucketcloud
 		if sourceRepo.Spec.ProviderKind != "bitbucketcloud" && o.HMAC == "" {
@@ -153,7 +154,7 @@ func (o *Options) Run() error {
 			}
 		}
 
-		_, err2 := o.UpdateWebhookForSourceRepository(&sourceRepo, envMap, o.Endpoint, o.HMAC)
+		_, err2 := o.UpdateWebhookForSourceRepository(&sourceRepo, o.Endpoint, o.HMAC)
 		if err2 != nil {
 			return err2
 		}
@@ -192,7 +193,7 @@ func (o *Options) GetHMACTokenFromSecret() (string, error) {
 }
 
 // UpdateWebhookForSourceRepository updates the webhook for the given source repository
-func (o *Options) UpdateWebhookForSourceRepository(sr *v1.SourceRepository, envMap map[string]*v1.Environment, webhookURL, hmacToken string) (bool, error) {
+func (o *Options) UpdateWebhookForSourceRepository(sr *v1.SourceRepository, webhookURL, hmacToken string) (bool, error) {
 	if !o.matchesRepository(sr) {
 		return false, nil
 	}
