@@ -195,12 +195,8 @@ func TestStepHelmReleaseWithOCI(t *testing.T) {
 	helmBin := "helm"
 
 	ns := "jx2"
-<<<<<<< HEAD
 	OCIRegistry := "oci://registry"
 	chartVersion := "1.2.3"
-=======
-	OCIRegistry := "oci://registry/"
->>>>>>> db7718c0 (chore: helm release, test for OCI registry)
 	devEnv := jxenv.CreateDefaultDevEnvironment(ns)
 	devEnv.Namespace = ns
 	devEnv.Spec.Source.URL = "https://github.com/jx3-gitops-repositories/jx3-kubernetes.git"
@@ -208,12 +204,7 @@ func TestStepHelmReleaseWithOCI(t *testing.T) {
 	requirements := jxcore.NewRequirementsConfig()
 	requirements.Spec.Cluster.Registry = OCIRegistry
 	requirements.Spec.Cluster.ChartRepository = OCIRegistry
-<<<<<<< HEAD
 	requirements.Spec.Repository = "OCI"
-=======
-	requirements.Spec.Repository = "none"
-	requirements.Spec.Cluster.ChartRepository = "oci://registry/"
->>>>>>> db7718c0 (chore: helm release, test for OCI registry)
 
 	// doesn't do anything
 	requirements.Spec.Cluster.ChartKind = "oci"
@@ -229,7 +220,6 @@ func TestStepHelmReleaseWithOCI(t *testing.T) {
 	o.ChartsDir = filepath.Join("testdata", "charts")
 	o.JXClient = jxClient
 	o.Namespace = ns
-<<<<<<< HEAD
 	o.GitHubPagesDir = ""
 	o.GithubPagesURL = ""
 	o.GithubPagesBranch = ""
@@ -244,15 +234,6 @@ func TestStepHelmReleaseWithOCI(t *testing.T) {
 	o.ContainerRegistryOrg = "myorg"
 	err = o.OCIRegistry(OCIRegistry, "testdata", "charts")
 	require.NoError(t, err, "failed to run the OCIRegistry command")
-=======
-	o.Version = "1.2.3"
-	//force ChartOCI to true
-	o.ChartOCI = true
-	// fake OCI registry vars
-	o.ContainerRegistryOrg = "myorg"
-	o.OCIRegistry(OCIRegistry, "ocitestdata", "charts")
-
->>>>>>> db7718c0 (chore: helm release, test for OCI registry)
 	err = o.Run()
 	require.NoError(t, err, "failed to run the command")
 
@@ -262,17 +243,13 @@ func TestStepHelmReleaseWithOCI(t *testing.T) {
 
 	assert.Equal(t, o.ReleasedCharts, 1, "should have released 1 chart")
 
-<<<<<<< HEAD
 	/* these tests do not work due to some weirdness with the fakerunner
-=======
->>>>>>> db7718c0 (chore: helm release, test for OCI registry)
 	runner.ExpectResults(t,
 		fakerunner.FakeResult{
 			// workaround for dynamically generated git clone destination folder
 			CLI: runner.OrderedCommands[0].Name + " " + strings.Join(runner.OrderedCommands[0].Args, " "),
 		},
 		fakerunner.FakeResult{
-<<<<<<< HEAD
 			CLI: "helm registry login " + OCIRegistry + " --username  --password ",
 		},
 		fakerunner.FakeResult{
@@ -280,25 +257,4 @@ func TestStepHelmReleaseWithOCI(t *testing.T) {
 		},
 	)
 	*/
-=======
-			CLI: "helm dependency build .",
-		},
-		fakerunner.FakeResult{
-			CLI: "helm lint",
-		},
-		fakerunner.FakeResult{
-			CLI: "helm package .",
-		},
-		fakerunner.FakeResult{
-			CLI: "helm repo index .",
-		},
-		fakerunner.FakeResult{
-			CLI: "git clone ",
-		},
-		fakerunner.FakeResult{
-			CLI: "helm chart push " + OCIRegistry + "ocitestdata/charts/myapp-1.2.3.tgz",
-		},
-	)
-
->>>>>>> db7718c0 (chore: helm release, test for OCI registry)
 }
