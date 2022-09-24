@@ -1,8 +1,8 @@
 kind: Kustomization
 apiVersion: kustomize.config.k8s.io/v1beta1
 resources:
-    - godemo48/deployment.yaml
-    - godemo48/service.yaml
-    - myapp/deployment.yaml
-    - myapp/ingress.yaml
-    - myapp/service.yaml
+- godemo48/deployment.yaml
+- godemo48/service.yaml
+- myapp/deployment.yaml
+- myapp/ingress.yaml
+- myapp/service.yaml

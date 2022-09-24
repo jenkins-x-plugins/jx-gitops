@@ -15,8 +15,8 @@ metadata:
     beer: 'stella'
     wine: 'merlot'
 rules:
-  - # Used for leader election by the controller
-    # TODO: refine the permission to *just* the leader election configmap
-    apiGroups: [""]
-    resources: ["configmaps"]
-    verbs: ["get", "create", "update", "patch"]
+- # Used for leader election by the controller
+  # TODO: refine the permission to *just* the leader election configmap
+  apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "create", "update", "patch"]
