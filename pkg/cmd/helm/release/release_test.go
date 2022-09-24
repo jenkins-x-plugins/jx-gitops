@@ -195,7 +195,7 @@ func TestStepHelmReleaseWithOCI(t *testing.T) {
 	helmBin := "helm"
 
 	ns := "jx2"
-	OCIRegistry := "oci://registry/"
+	OCIRegistry := "oci://registry"
 	devEnv := jxenv.CreateDefaultDevEnvironment(ns)
 	devEnv.Namespace = ns
 	devEnv.Spec.Source.URL = "https://github.com/jx3-gitops-repositories/jx3-kubernetes.git"
@@ -204,7 +204,7 @@ func TestStepHelmReleaseWithOCI(t *testing.T) {
 	requirements.Spec.Cluster.Registry = OCIRegistry
 	requirements.Spec.Cluster.ChartRepository = OCIRegistry
 	requirements.Spec.Repository = "none"
-	requirements.Spec.Cluster.ChartRepository = "oci://registry/"
+
 
 	// doesn't do anything
 	requirements.Spec.Cluster.ChartKind = "oci"
