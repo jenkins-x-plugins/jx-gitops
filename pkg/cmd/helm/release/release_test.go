@@ -196,6 +196,7 @@ func TestStepHelmReleaseWithOCI(t *testing.T) {
 
 	ns := "jx2"
 	OCIRegistry := "oci://registry"
+	chartVersion := "1.2.3"
 	devEnv := jxenv.CreateDefaultDevEnvironment(ns)
 	devEnv.Namespace = ns
 	devEnv.Spec.Source.URL = "https://github.com/jx3-gitops-repositories/jx3-kubernetes.git"
@@ -203,8 +204,7 @@ func TestStepHelmReleaseWithOCI(t *testing.T) {
 	requirements := jxcore.NewRequirementsConfig()
 	requirements.Spec.Cluster.Registry = OCIRegistry
 	requirements.Spec.Cluster.ChartRepository = OCIRegistry
-	requirements.Spec.Repository = "none"
-
+	requirements.Spec.Repository = "OCI"
 
 	// doesn't do anything
 	requirements.Spec.Cluster.ChartKind = "oci"
@@ -220,12 +220,19 @@ func TestStepHelmReleaseWithOCI(t *testing.T) {
 	o.ChartsDir = filepath.Join("testdata", "charts")
 	o.JXClient = jxClient
 	o.Namespace = ns
-	o.Version = "1.2.3"
+	o.GitHubPagesDir = ""
+	o.GithubPagesURL = ""
+	o.GithubPagesBranch = ""
+
+	o.Version = chartVersion
 	//force ChartOCI to true
 	o.ChartOCI = true
+	o.ChartPages = false
+	o.RepositoryURL = OCIRegistry
+
 	// fake OCI registry vars
 	o.ContainerRegistryOrg = "myorg"
-	o.OCIRegistry(OCIRegistry, "ocitestdata", "charts")
+	o.OCIRegistry(OCIRegistry, "testdata", "charts")
 
 	err = o.Run()
 	require.NoError(t, err, "failed to run the command")
@@ -235,29 +242,19 @@ func TestStepHelmReleaseWithOCI(t *testing.T) {
 	}
 
 	assert.Equal(t, o.ReleasedCharts, 1, "should have released 1 chart")
-
 	runner.ExpectResults(t,
 		fakerunner.FakeResult{
 			// workaround for dynamically generated git clone destination folder
 			CLI: runner.OrderedCommands[0].Name + " " + strings.Join(runner.OrderedCommands[0].Args, " "),
 		},
 		fakerunner.FakeResult{
-			CLI: "helm dependency build .",
+			CLI: "helm registry login " + OCIRegistry + " --username  --password ",
 		},
 		fakerunner.FakeResult{
-			CLI: "helm lint",
+			CLI: "helm chart save . " + OCIRegistry + "/charts:" + chartVersion,
 		},
 		fakerunner.FakeResult{
-			CLI: "helm package .",
-		},
-		fakerunner.FakeResult{
-			CLI: "helm repo index .",
-		},
-		fakerunner.FakeResult{
-			CLI: "git clone ",
-		},
-		fakerunner.FakeResult{
-			CLI: "helm chart push " + OCIRegistry + "ocitestdata/charts/myapp-1.2.3.tgz",
+			CLI: "helm chart push " + OCIRegistry + "/charts:" + chartVersion,
 		},
 	)
 
