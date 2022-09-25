@@ -225,7 +225,11 @@ func TestStepHelmReleaseWithOCI(t *testing.T) {
 	o.GithubPagesBranch = ""
 
 	o.Version = chartVersion
+<<<<<<< HEAD
 	// force ChartOCI to true
+=======
+	//force ChartOCI to true
+>>>>>>> c1256033 (test: oci registry test)
 	o.ChartOCI = true
 	o.ChartPages = false
 	o.RepositoryURL = OCIRegistry
@@ -253,7 +257,14 @@ func TestStepHelmReleaseWithOCI(t *testing.T) {
 			CLI: "helm registry login " + OCIRegistry + " --username  --password ",
 		},
 		fakerunner.FakeResult{
+<<<<<<< HEAD
 			CLI: "helm push " + OCIRegistry + "/charts:" + chartVersion,
+=======
+			CLI: "helm chart save . " + OCIRegistry + "/charts:" + chartVersion,
+		},
+		fakerunner.FakeResult{
+			CLI: "helm chart push " + OCIRegistry + "/charts:" + chartVersion,
+>>>>>>> c1256033 (test: oci registry test)
 		},
 	)
 	*/
