@@ -1,6 +1,7 @@
 package namespace_test
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -64,8 +65,9 @@ func TestUpdateNamespaceInYamlFiles(t *testing.T) {
 
 		result := strings.TrimSpace(string(resultData))
 		expectedText := strings.TrimSpace(string(expectData))
+		fmt.Println(expectedText)
 		if d := cmp.Diff(result, expectedText); d != "" {
-			t.Errorf("Generated Pipeline did not match expected: %s", d)
+			t.Errorf("Generated Pipeline for sourcefile %s did not match expected: %s", tc.SourceFile, d)
 		}
 		t.Logf("generated for file %s file %s\n", tc.SourceFile, result)
 	}

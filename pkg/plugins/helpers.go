@@ -82,7 +82,7 @@ func CreateHelmfilePlugin(version string) jenkinsv1.Plugin {
 		if p.IsWindows() {
 			ext = ".exe"
 		}
-		return fmt.Sprintf("https://github.com/roboll/helmfile/releases/download/v%s/helmfile_%s_%s%s", version, strings.ToLower(p.Goos), strings.ToLower(p.Goarch), ext)
+		return fmt.Sprintf("https://github.com/helmfile/helmfile/releases/download/v%s/helmfile_%s_%s%s", version, strings.ToLower(p.Goos), strings.ToLower(p.Goarch), ext)
 	})
 
 	plugin := jenkinsv1.Plugin{

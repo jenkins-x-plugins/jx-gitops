@@ -8,9 +8,9 @@ metadata:
     wine: 'merlot'
 spec:
   ports:
-    - port: 80
-      targetPort: 8080
-      protocol: TCP
-      name: http
+  - port: 80
+    targetPort: 8080
+    protocol: TCP
+    name: http
   selector:
     app: cheese
