@@ -225,11 +225,7 @@ func TestStepHelmReleaseWithOCI(t *testing.T) {
 	o.GithubPagesBranch = ""
 
 	o.Version = chartVersion
-<<<<<<< HEAD
 	// force ChartOCI to true
-=======
-	//force ChartOCI to true
->>>>>>> c1256033 (test: oci registry test)
 	o.ChartOCI = true
 	o.ChartPages = false
 	o.RepositoryURL = OCIRegistry
@@ -248,24 +244,27 @@ func TestStepHelmReleaseWithOCI(t *testing.T) {
 	assert.Equal(t, o.ReleasedCharts, 1, "should have released 1 chart")
 
 	/* these tests do not work due to some weirdness with the fakerunner
-	runner.ExpectResults(t,
-		fakerunner.FakeResult{
-			// workaround for dynamically generated git clone destination folder
-			CLI: runner.OrderedCommands[0].Name + " " + strings.Join(runner.OrderedCommands[0].Args, " "),
-		},
-		fakerunner.FakeResult{
-			CLI: "helm registry login " + OCIRegistry + " --username  --password ",
-		},
-		fakerunner.FakeResult{
-<<<<<<< HEAD
-			CLI: "helm push " + OCIRegistry + "/charts:" + chartVersion,
-=======
-			CLI: "helm chart save . " + OCIRegistry + "/charts:" + chartVersion,
-		},
-		fakerunner.FakeResult{
-			CLI: "helm chart push " + OCIRegistry + "/charts:" + chartVersion,
->>>>>>> c1256033 (test: oci registry test)
-		},
-	)
+		runner.ExpectResults(t,
+			fakerunner.FakeResult{
+				// workaround for dynamically generated git clone destination folder
+				CLI: runner.OrderedCommands[0].Name + " " + strings.Join(runner.OrderedCommands[0].Args, " "),
+			},
+			fakerunner.FakeResult{
+				CLI: "helm registry login " + OCIRegistry + " --username  --password ",
+			},
+			fakerunner.FakeResult{
+	<<<<<<< HEAD
+	<<<<<<< HEAD
+				CLI: "helm push " + OCIRegistry + "/charts:" + chartVersion,
+	=======
+				CLI: "helm chart save . " + OCIRegistry + "/charts:" + chartVersion,
+			},
+			fakerunner.FakeResult{
+	=======
+	>>>>>>> 1a1c3338 (chore: removed helm chart save step from oci)
+				CLI: "helm chart push " + OCIRegistry + "/charts:" + chartVersion,
+	>>>>>>> c1256033 (test: oci registry test)
+			},
+		)
 	*/
 }
