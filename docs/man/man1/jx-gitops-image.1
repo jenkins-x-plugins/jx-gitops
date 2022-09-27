@@ -54,6 +54,10 @@ Updates images in the kubernetes resources from the version stream
     adds Kubernetes label selector to filter on, e.g. \-s app=pusher\-wave,heritage=Helm
 
 .PP
+\fB\-\-selector\-target\fP=""
+    sets which path in the Kubernetes resources to select on instead of metadata.labels.
+
+.PP
 \fB\-s\fP, \fB\-\-source\-dir\fP="content\-root"
     the directory to recursively look for the *.yaml files to modify
 
