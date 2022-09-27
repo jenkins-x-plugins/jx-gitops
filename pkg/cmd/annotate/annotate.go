@@ -50,7 +50,7 @@ func NewCmdUpdateAnnotate() (*cobra.Command, *Options) {
 		},
 	}
 	cmd.Flags().StringVarP(&o.Dir, "dir", "", ".", "the directory to recursively look for the *.yaml or *.yml files")
-	cmd.Flags().BoolVarP(&o.PodSpec, "pod-spec", "p", false, "annotate the PodSpec in spec.templates.metadata.annotations rather than the top level annotations")
+	cmd.Flags().BoolVarP(&o.PodSpec, "pod-spec", "p", false, "annotate the PodSpec in spec.template.metadata.annotations rather than the top level annotations")
 	o.Filter.AddFlags(cmd)
 	return cmd, o
 }
