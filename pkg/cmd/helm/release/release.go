@@ -327,18 +327,6 @@ func (o *Options) OCIRegistry(repoURL, chartDir, name string) error {
 			return errors.Wrapf(err, "failed to login to registry %s for user %s", repoURL, o.RepositoryUsername)
 		}
 	}
-	c = &cmdrunner.Command{
-		Dir:  chartDir,
-		Name: o.HelmBinary,
-		Env: map[string]string{
-			"HELM_EXPERIMENTAL_OCI": "1",
-		},
-		Args: []string{"chart", "save", ".", qualifiedChartName},
-	}
-	_, err = o.CommandRunner(c)
-	if err != nil {
-		return errors.Wrapf(err, "failed to save chart %s in %s", qualifiedChartName, chartDir)
-	}
 
 	if o.NoRelease {
 		log.Logger().Infof("disabling the chart publish")
