@@ -225,7 +225,7 @@ func TestStepHelmReleaseWithOCI(t *testing.T) {
 	o.GithubPagesBranch = ""
 
 	o.Version = chartVersion
-	//force ChartOCI to true
+	// force ChartOCI to true
 	o.ChartOCI = true
 	o.ChartPages = false
 	o.RepositoryURL = OCIRegistry
