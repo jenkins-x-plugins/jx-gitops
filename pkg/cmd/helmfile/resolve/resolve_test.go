@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/helmfile/helmfile/pkg/state"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/helmfile/resolve"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/fakekpt"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/pipelinecatalogs"
@@ -18,7 +19,6 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/maps"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/testhelpers"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"
-	"github.com/roboll/helmfile/pkg/state"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"k8s.io/client-go/rest"

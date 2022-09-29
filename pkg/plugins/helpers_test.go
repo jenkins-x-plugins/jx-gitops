@@ -63,7 +63,7 @@ func TestHelmfilePlugin(t *testing.T) {
 		case "arm64":
 			if b.Goos == "Linux" {
 				foundArm = true
-				assert.Equal(t, "https://github.com/roboll/helmfile/releases/download/v"+plugins.HelmfileVersion+"/helmfile_linux_arm64", b.URL, "URL for linux arm binary")
+				assert.Equal(t, "https://github.com/helmfile/helmfile/releases/download/v"+plugins.HelmfileVersion+"/helmfile_"+plugins.HelmfileVersion+"_linux_arm64.tar.gz", b.URL, "URL for linux arm binary")
 				t.Logf("found linux binary URL %s", b.URL)
 			}
 
@@ -71,15 +71,15 @@ func TestHelmfilePlugin(t *testing.T) {
 			switch b.Goos {
 			case "Darwin":
 				foundMac = true
-				assert.Equal(t, "https://github.com/roboll/helmfile/releases/download/v"+plugins.HelmfileVersion+"/helmfile_darwin_amd64", b.URL, "URL for linux binary")
+				assert.Equal(t, "https://github.com/helmfile/helmfile/releases/download/v"+plugins.HelmfileVersion+"/helmfile_"+plugins.HelmfileVersion+"_darwin_amd64.tar.gz", b.URL, "URL for linux binary")
 				t.Logf("found mac binary URL %s", b.URL)
 			case "Linux":
 				foundLinux = true
-				assert.Equal(t, "https://github.com/roboll/helmfile/releases/download/v"+plugins.HelmfileVersion+"/helmfile_linux_amd64", b.URL, "URL for linux binary")
+				assert.Equal(t, "https://github.com/helmfile/helmfile/releases/download/v"+plugins.HelmfileVersion+"/helmfile_"+plugins.HelmfileVersion+"_linux_amd64.tar.gz", b.URL, "URL for linux binary")
 				t.Logf("found linux binary URL %s", b.URL)
 			case "Windows":
 				foundWindows = true
-				assert.Equal(t, "https://github.com/roboll/helmfile/releases/download/v"+plugins.HelmfileVersion+"/helmfile_windows_amd64.exe", b.URL, "URL for windows binary")
+				assert.Equal(t, "https://github.com/helmfile/helmfile/releases/download/v"+plugins.HelmfileVersion+"/helmfile_"+plugins.HelmfileVersion+"_windows_amd64.tar.gz", b.URL, "URL for windows binary")
 				t.Logf("found windows binary URL %s", b.URL)
 			}
 		}

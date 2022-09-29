@@ -4,6 +4,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/helmfile/helmfile/pkg/state"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/jenkins/add"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/jenkins/jobs"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
@@ -11,7 +12,6 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/maps"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/yaml2s"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"
-	"github.com/roboll/helmfile/pkg/state"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

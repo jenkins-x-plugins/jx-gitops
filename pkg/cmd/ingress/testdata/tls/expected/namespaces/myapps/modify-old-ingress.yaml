@@ -12,6 +12,7 @@ spec:
     http:
       paths:
       - backend: {}
+        pathType: null
   tls:
   - hosts:
     - godemo48.my.domain.com

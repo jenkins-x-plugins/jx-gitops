@@ -16,5 +16,6 @@ spec:
             name: godemo48
             port:
               number: 80
+        pathType: null
 status:
   loadBalancer: {}

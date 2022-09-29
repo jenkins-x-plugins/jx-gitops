@@ -12,5 +12,6 @@ spec:
     http:
       paths:
       - backend: {}
+        pathType: null
 status:
   loadBalancer: {}

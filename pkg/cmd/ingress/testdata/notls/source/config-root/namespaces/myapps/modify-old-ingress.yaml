@@ -12,6 +12,7 @@ spec:
       - backend:
           serviceName: godemo48
           servicePort: 80
+        pathType: null
     host: godemo48.cluster.local
   tls:
   - hosts:

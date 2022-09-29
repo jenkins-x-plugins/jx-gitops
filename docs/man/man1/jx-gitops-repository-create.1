@@ -50,6 +50,10 @@ Creates any missing SourceRepository resources
     adds Kubernetes label selector to filter on, e.g. \-s app=pusher\-wave,heritage=Helm
 
 .PP
+\fB\-\-selector\-target\fP=""
+    sets which path in the Kubernetes resources to select on instead of metadata.labels.
+
+.PP
 \fB\-s\fP, \fB\-\-source\-dir\fP=""
     the directory to look for and generate the SourceConfig files
 

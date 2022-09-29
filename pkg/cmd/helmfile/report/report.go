@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/helmfile/helmfile/pkg/state"
 	charter "github.com/jenkins-x-plugins/jx-charter/pkg/apis/chart/v1alpha1"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/helmfiles"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/helmhelpers"
@@ -27,7 +28,6 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/pkg/errors"
-	"github.com/roboll/helmfile/pkg/state"
 	"github.com/spf13/cobra"
 	"helm.sh/helm/v3/pkg/chart"
 	nv1 "k8s.io/api/networking/v1"
