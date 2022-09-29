@@ -232,8 +232,8 @@ func TestStepHelmReleaseWithOCI(t *testing.T) {
 
 	// fake OCI registry vars
 	o.ContainerRegistryOrg = "myorg"
-	o.OCIRegistry(OCIRegistry, "testdata", "charts")
-
+	err = o.OCIRegistry(OCIRegistry, "testdata", "charts")
+	require.NoError(t, err, "failed to run the OCIRegistry command")
 	err = o.Run()
 	require.NoError(t, err, "failed to run the command")
 
