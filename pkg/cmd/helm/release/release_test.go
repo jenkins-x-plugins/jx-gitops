@@ -231,7 +231,7 @@ func TestStepHelmReleaseWithOCI(t *testing.T) {
 	)
 }
 
-func TestStepHelmReleaseWithOCI_NoOCILogin(t *testing.T) {
+func TestStepHelmReleaseWithOCINoOCILogin(t *testing.T) {
 	runner, OCIRegistry, chartVersion, o, err := setupReleaseOCI(t)
 	require.NoError(t, err, "failed to run the command")
 	o.NoOCILogin = true
