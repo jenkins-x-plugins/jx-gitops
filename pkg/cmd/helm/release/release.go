@@ -309,9 +309,14 @@ func (o *Options) Run() error {
 }
 
 func (o *Options) OCIRegistry(repoURL, chartDir, name string) error {
-	qualifiedChartName := fmt.Sprintf("%s/%s:%s", repoURL, name, o.Version)
+
+	chartPackageName := fmt.Sprintf("%s-%s.tgz", name, o.Version)
+	qualifiedChartName := fmt.Sprintf("%s/%s", repoURL, name)
 	var c *cmdrunner.Command
-	var err error
+	err := o.BuildAndPackage(chartDir)
+	if err != nil {
+		return errors.Wrapf(err, "failed to package chart")
+	}
 
 	if !o.NoOCILogin {
 		c = &cmdrunner.Command{
@@ -327,18 +332,6 @@ func (o *Options) OCIRegistry(repoURL, chartDir, name string) error {
 			return errors.Wrapf(err, "failed to login to registry %s for user %s", repoURL, o.RepositoryUsername)
 		}
 	}
-	c = &cmdrunner.Command{
-		Dir:  chartDir,
-		Name: o.HelmBinary,
-		Env: map[string]string{
-			"HELM_EXPERIMENTAL_OCI": "1",
-		},
-		Args: []string{"chart", "save", ".", qualifiedChartName},
-	}
-	_, err = o.CommandRunner(c)
-	if err != nil {
-		return errors.Wrapf(err, "failed to save chart %s in %s", qualifiedChartName, chartDir)
-	}
 
 	if o.NoRelease {
 		log.Logger().Infof("disabling the chart publish")
@@ -351,7 +344,7 @@ func (o *Options) OCIRegistry(repoURL, chartDir, name string) error {
 		Env: map[string]string{
 			"HELM_EXPERIMENTAL_OCI": "1",
 		},
-		Args: []string{"chart", "push", qualifiedChartName},
+		Args: []string{"push", chartPackageName, repoURL},
 	}
 	_, err = o.CommandRunner(c)
 	if err != nil {
