@@ -27,7 +27,7 @@ func LoadPipelineCatalogs(dir string) (*v1alpha1.PipelineCatalog, string, error)
 			pipelineCatalog.Spec.Repositories = append(pipelineCatalog.Spec.Repositories, v1alpha1.PipelineCatalogSource{
 				ID:     "jx3-pipeline-catalog",
 				Label:  "JX3 Pipeline Catalog",
-				GitURL: "https://github.com/jstrachan/jx3-pipeline-catalog",
+				GitURL: "https://github.com/jenkins-x/jx3-pipeline-catalog",
 				GitRef: "master",
 			})
 		}
