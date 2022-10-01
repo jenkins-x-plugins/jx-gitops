@@ -319,18 +319,26 @@ func (o *Options) OCIRegistry(repoURL, chartDir, name string) error {
 	}
 
 	if !o.NoOCILogin {
-		c = &cmdrunner.Command{
-			Dir:  chartDir,
-			Name: o.HelmBinary,
-			Env: map[string]string{
-				"HELM_EXPERIMENTAL_OCI": "1",
-			},
-			Args: []string{"registry", "login", repoURL, "--username", o.RepositoryUsername, "--password", o.RepositoryPassword},
+		if o.RepositoryUsername != "" {
+			c = &cmdrunner.Command{
+				Dir:  chartDir,
+				Name: o.HelmBinary,
+				Args: []string{"registry", "login", repoURL, "--username", o.RepositoryUsername, "--password", o.RepositoryPassword},
+			}
+
+		} else {
+			c = &cmdrunner.Command{
+				Dir:  chartDir,
+				Name: o.HelmBinary,
+				Args: []string{"registry", "login", repoURL},
+			}
+
 		}
 		_, err := o.CommandRunner(c)
 		if err != nil {
 			return errors.Wrapf(err, "failed to login to registry %s for user %s", repoURL, o.RepositoryUsername)
 		}
+
 	}
 
 	if o.NoRelease {

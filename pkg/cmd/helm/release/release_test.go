@@ -223,7 +223,49 @@ func TestStepHelmReleaseWithOCI(t *testing.T) {
 			CLI: helmPackage,
 		},
 		fakerunner.FakeResult{
-			CLI: "helm registry login " + OCIRegistry + " --username  --password ",
+			//	CLI: "helm registry login " + OCIRegistry + " --username  --password ",
+			CLI: "helm registry login " + OCIRegistry,
+		},
+		fakerunner.FakeResult{
+			CLI: "helm push myapp-" + chartVersion + ".tgz " + OCIRegistry,
+		},
+	)
+}
+
+func TestStepHelmReleaseWithOCIUsingUserName(t *testing.T) {
+	// force ChartOCI to true
+	// fake OCI registry vars
+	runner, OCIRegistry, chartVersion, o, err := setupReleaseOCI(t)
+	repoUserName := "Bob"
+	repoPassword := "the Builder"
+	o.RepositoryUsername = repoUserName
+	o.RepositoryPassword = repoPassword
+	require.NoError(t, err, "failed to run the command")
+	err = o.Run()
+	require.NoError(t, err, "failed to run the command")
+
+	for _, c := range runner.OrderedCommands {
+		t.Logf("ran: %s\n", c.CLI())
+	}
+
+	assert.Equal(t, o.ReleasedCharts, 1, "should have released 1 chart")
+
+	runner.ExpectResults(t,
+		fakerunner.FakeResult{
+			// workaround for dynamically generated git clone destination folder
+			CLI: runner.OrderedCommands[0].Name + " " + strings.Join(runner.OrderedCommands[0].Args, " "),
+		},
+		fakerunner.FakeResult{
+			CLI: helmDependencyBuild,
+		},
+		fakerunner.FakeResult{
+			CLI: helmLint,
+		},
+		fakerunner.FakeResult{
+			CLI: helmPackage,
+		},
+		fakerunner.FakeResult{
+			CLI: "helm registry login " + OCIRegistry + " --username " + repoUserName + " --password " + repoPassword,
 		},
 		fakerunner.FakeResult{
 			CLI: "helm push myapp-" + chartVersion + ".tgz " + OCIRegistry,
