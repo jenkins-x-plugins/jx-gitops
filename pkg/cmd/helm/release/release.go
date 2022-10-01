@@ -322,9 +322,6 @@ func (o *Options) OCIRegistry(repoURL, chartDir, name string) error {
 		c = &cmdrunner.Command{
 			Dir:  chartDir,
 			Name: o.HelmBinary,
-			Env: map[string]string{
-				"HELM_EXPERIMENTAL_OCI": "1",
-			},
 			Args: []string{"registry", "login", repoURL, "--username", o.RepositoryUsername, "--password", o.RepositoryPassword},
 		}
 		_, err := o.CommandRunner(c)
@@ -341,9 +338,6 @@ func (o *Options) OCIRegistry(repoURL, chartDir, name string) error {
 	c = &cmdrunner.Command{
 		Dir:  chartDir,
 		Name: o.HelmBinary,
-		Env: map[string]string{
-			"HELM_EXPERIMENTAL_OCI": "1",
-		},
 		Args: []string{"push", chartPackageName, repoURL},
 	}
 	_, err = o.CommandRunner(c)
