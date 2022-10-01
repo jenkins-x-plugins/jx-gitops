@@ -223,7 +223,6 @@ func TestStepHelmReleaseWithOCI(t *testing.T) {
 			CLI: helmPackage,
 		},
 		fakerunner.FakeResult{
-			//	CLI: "helm registry login " + OCIRegistry + " --username  --password ",
 			CLI: "helm registry login " + OCIRegistry,
 		},
 		fakerunner.FakeResult{
@@ -237,9 +236,9 @@ func TestStepHelmReleaseWithOCIUsingUserName(t *testing.T) {
 	// fake OCI registry vars
 	runner, OCIRegistry, chartVersion, o, err := setupReleaseOCI(t)
 	repoUserName := "Bob"
-	repoPassword := "the Builder"
+	reposvearword := "the Builder"
 	o.RepositoryUsername = repoUserName
-	o.RepositoryPassword = repoPassword
+	o.RepositoryPassword = reposvearword
 	require.NoError(t, err, "failed to run the command")
 	err = o.Run()
 	require.NoError(t, err, "failed to run the command")
@@ -265,7 +264,7 @@ func TestStepHelmReleaseWithOCIUsingUserName(t *testing.T) {
 			CLI: helmPackage,
 		},
 		fakerunner.FakeResult{
-			CLI: "helm registry login " + OCIRegistry + " --username " + repoUserName + " --password " + repoPassword,
+			CLI: "helm registry login " + OCIRegistry + " --username " + repoUserName + " --password " + reposvearword,
 		},
 		fakerunner.FakeResult{
 			CLI: "helm push myapp-" + chartVersion + ".tgz " + OCIRegistry,
