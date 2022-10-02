@@ -223,7 +223,7 @@ func TestStepHelmReleaseWithOCI(t *testing.T) {
 			CLI: helmPackage,
 		},
 		fakerunner.FakeResult{
-			CLI: "helm registry login " + OCIRegistry + " --username  --password ",
+			CLI: "helm registry login " + OCIRegistry + " --username " + o.RepositoryUsername + " --password " + o.RepositoryPassword,
 		},
 		fakerunner.FakeResult{
 			CLI: "helm push myapp-" + chartVersion + ".tgz " + OCIRegistry,
