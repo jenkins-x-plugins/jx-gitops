@@ -319,24 +319,28 @@ func (o *Options) OCIRegistry(repoURL, chartDir, name string) error {
 	}
 
 	if !o.NoOCILogin {
-		if o.RepositoryUsername != "" {
-			c = &cmdrunner.Command{
-				Dir:  chartDir,
-				Name: o.HelmBinary,
-				Args: []string{"registry", "login", repoURL, "--username", o.RepositoryUsername, "--password", o.RepositoryPassword},
-			}
-
+		loginCmd := []string{"registry", "login", repoURL}
+		if o.RepositoryUsername != "" || o.RepositoryPassword != "" {
+			loginCmd = append(loginCmd, "--username", o.RepositoryUsername, "--password", o.RepositoryPassword)
 		} else {
-			c = &cmdrunner.Command{
-				Dir:  chartDir,
-				Name: o.HelmBinary,
-				Args: []string{"registry", "login", repoURL},
+			curdir, err := os.Getwd()
+			if err != nil {
+				log.Logger().Errorf(err.Error())
 			}
-
+			registryFile := curdir + "/.config/helm/registry/config.json"
+			exists, err := files.FileExists(registryFile)
+			if !exists || err != nil {
+				return errors.Wrapf(errors.New("No registry auth file"), "Failed to find registry auth config file %s. Please see https://helm.sh/docs/helm/helm_registry_login/", registryFile)
+			}
+		}
+		c = &cmdrunner.Command{
+			Dir:  chartDir,
+			Name: o.HelmBinary,
+			Args: loginCmd,
 		}
 		_, err := o.CommandRunner(c)
 		if err != nil {
-			return errors.Wrapf(err, "failed to login to registry %s for user %s", repoURL, o.RepositoryUsername)
+			return errors.Wrapf(err, "failed to login to registry %s for user %s ", repoURL, o.RepositoryUsername)
 		}
 
 	}
@@ -349,9 +353,6 @@ func (o *Options) OCIRegistry(repoURL, chartDir, name string) error {
 	c = &cmdrunner.Command{
 		Dir:  chartDir,
 		Name: o.HelmBinary,
-		Env: map[string]string{
-			"HELM_EXPERIMENTAL_OCI": "1",
-		},
 		Args: []string{"push", chartPackageName, repoURL},
 	}
 	_, err = o.CommandRunner(c)
