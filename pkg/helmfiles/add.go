@@ -95,18 +95,18 @@ func (o *ChartDetails) Add(helmState *state.HelmState) (bool, error) {
 	}
 	if repository != "" && prefix != "" {
 		// lets ensure we've got a repository for this URL in the apps file
-		found = false
+		foundRepo := false
 		for k := range helmState.Repositories {
 			r := helmState.Repositories[k]
 			if r.Name == prefix {
 				if r.URL != repository {
 					return false, errors.Errorf("release %s has prefix %s for repository URL %s which is also mapped to prefix %s", o.Chart, prefix, r.URL, r.Name)
 				}
-				found = true
+				foundRepo = true
 				break
 			}
 		}
-		if !found {
+		if !foundRepo {
 			helmState.Repositories = append(helmState.Repositories, state.RepositorySpec{
 				Name: prefix,
 				URL:  repository,
