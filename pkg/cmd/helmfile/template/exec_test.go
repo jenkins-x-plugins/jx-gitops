@@ -8,8 +8,7 @@ import (
 )
 
 const (
-	jobsCount   = 10
-	workerCount = 2
+	workerCount = 3
 )
 
 func TestWorkerPool(t *testing.T) {
@@ -23,10 +22,6 @@ func TestWorkerPool(t *testing.T) {
 	commands = append(commands, &cmdrunner.Command{
 		Name: "echo",
 		Args: []string{"hello"},
-	})
-	commands = append(commands, &cmdrunner.Command{
-		Name: "echo",
-		Args: []string{"world"},
 	})
 	go cr.GenerateFrom(commands)
 
@@ -43,6 +38,44 @@ func TestWorkerPool(t *testing.T) {
 			if val != "hello" {
 				t.Fatalf("wrong value %v; expected %v", val, "hello")
 			}
+		case <-cr.Done:
+			return
+		default:
+		}
+	}
+}
+
+func BenchmarkWorkerPool(b *testing.B) {
+	cr := NewCommandRunners(workerCount)
+
+	ctx, cancel := context.WithCancel(context.TODO())
+	defer cancel()
+
+	commands := []*cmdrunner.Command{}
+
+	commands = append(commands, &cmdrunner.Command{
+		Name: "sleep",
+		Args: []string{"5"},
+	})
+	commands = append(commands, &cmdrunner.Command{
+		Name: "sleep",
+		Args: []string{"10"},
+	})
+	commands = append(commands, &cmdrunner.Command{
+		Name: "sleep",
+		Args: []string{"15"},
+	})
+	go cr.GenerateFrom(commands)
+
+	go cr.Run(ctx)
+	b.ResetTimer()
+	for {
+		select {
+		case _, ok := <-cr.Results():
+			if !ok {
+				continue
+			}
+
 		case <-cr.Done:
 			return
 		default:
