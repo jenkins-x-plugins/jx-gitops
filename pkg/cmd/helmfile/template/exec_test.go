@@ -83,7 +83,7 @@ func BenchmarkWorkerPool(b *testing.B) {
 	}
 }
 
- func TestWorkerPool_TimeOut(t *testing.T) {
+ func TestWorkerPoolTimeOut(t *testing.T) {
 	cr := NewCommandRunners(workerCount)
 
 	
@@ -112,7 +112,7 @@ func BenchmarkWorkerPool(b *testing.B) {
  	}
  }
 
-func TestWorkerPool_Cancel(t *testing.T) {
+func TestWorkerPoolCancel(t *testing.T) {
  	cr := NewCommandRunners(workerCount)
 
  	ctx, cancel := context.WithCancel(context.TODO())
