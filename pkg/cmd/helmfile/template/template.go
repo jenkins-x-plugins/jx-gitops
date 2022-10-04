@@ -144,7 +144,6 @@ func (o *Options) Run() error {
 	}
 
 	if o.Parallel != 0 {
-			log.Logger().Infof(termcolor.ColorStatus("------- parrallel -----------"))
 
 	commands := []*cmdrunner.Command{}
 
@@ -181,7 +180,6 @@ func (o *Options) Run() error {
 	}
 	}
 
-		log.Logger().Infof(termcolor.ColorStatus("------- sequential -----------"))
 		command := o.buildCommand(o.Helmfile)
 		result, err := o.CommandRunner(command)
 		if err != nil {
