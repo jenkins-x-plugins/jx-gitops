@@ -283,7 +283,6 @@ func (o *Options) Run() error {
 				return errors.Wrapf(err, "failed to find chart repository URL")
 			}
 		}
-
 		if o.ChartPages {
 			err = o.ChartPageRegistry(repoURL, chartDir, name)
 			if err != nil {
@@ -319,30 +318,19 @@ func (o *Options) OCIRegistry(repoURL, chartDir, name string) error {
 	}
 
 	if !o.NoOCILogin {
-		loginCmd := []string{"registry", "login", repoURL}
-		if o.RepositoryUsername != "" || o.RepositoryPassword != "" {
-			loginCmd = append(loginCmd, "--username", o.RepositoryUsername, "--password", o.RepositoryPassword)
-		} else {
-			curdir, err := os.Getwd()
-			if err != nil {
-				log.Logger().Errorf(err.Error())
-			}
-			registryFile := curdir + "/.config/helm/registry/config.json"
-			exists, err := files.FileExists(registryFile)
-			if !exists || err != nil {
-				return errors.Wrapf(errors.New("No registry auth file"), "Failed to find registry auth config file %s. Please see https://helm.sh/docs/helm/helm_registry_login/", registryFile)
-			}
+		loginCmd, err := OCILoginCommand(repoURL, o)
+		if err != nil {
+			return err
 		}
 		c = &cmdrunner.Command{
 			Dir:  chartDir,
 			Name: o.HelmBinary,
 			Args: loginCmd,
 		}
-		_, err := o.CommandRunner(c)
+		_, err = o.CommandRunner(c)
 		if err != nil {
 			return errors.Wrapf(err, "failed to login to registry %s for user %s ", repoURL, o.RepositoryUsername)
 		}
-
 	}
 
 	if o.NoRelease {
@@ -360,6 +348,24 @@ func (o *Options) OCIRegistry(repoURL, chartDir, name string) error {
 		return errors.Wrapf(err, "failed to push chart %s", qualifiedChartName)
 	}
 	return nil
+}
+
+func OCILoginCommand(repoURL string, o *Options) ([]string, error) {
+	loginCmd := []string{"registry", "login", repoURL}
+	if o.RepositoryUsername != "" || o.RepositoryPassword != "" {
+		loginCmd = append(loginCmd, "--username", o.RepositoryUsername, "--password", o.RepositoryPassword)
+	} else {
+		curdir, err := os.Getwd()
+		if err != nil {
+			log.Logger().Errorf(err.Error())
+		}
+		registryFile := curdir + "~/.config/helm/registry/config.json"
+		exists, err := files.FileExists(registryFile)
+		if !exists || err != nil {
+			return nil, errors.Wrapf(errors.New("No registry auth file"), "Failed to find registry auth config file %s. Please see https://helm.sh/docs/helm/helm_registry_login/", registryFile)
+		}
+	}
+	return loginCmd, nil
 }
 
 func (o *Options) ChartPageRegistry(repoURL, chartDir, name string) error {

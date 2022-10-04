@@ -195,10 +195,9 @@ func TestStepHelmReleaseWithChartPages(t *testing.T) {
 }
 
 func TestStepHelmReleaseWithOCI(t *testing.T) {
-	// force ChartOCI to true
-	// fake OCI registry vars
 	runner, OCIRegistry, chartVersion, o, err := setupReleaseOCI(t)
 	require.NoError(t, err, "failed to run the command")
+	o.RepositoryPassword = ""
 	err = o.Run()
 	require.NoError(t, err, "failed to run the command")
 
