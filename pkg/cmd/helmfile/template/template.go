@@ -209,7 +209,7 @@ func (o *Options) buildCommand(helmfile string) *cmdrunner.Command {
 		args = append(args, "--output-dir-template", o.OutputDirTemplate)
 	}
 	if o.Concurrency != 0 {
-		args = append(args, "--concurrency", string(o.Concurrency))
+		args = append(args, "--concurrency", fmt.Sprint(o.Concurrency))
 	}
 	if o.ValidateRelease {
 		args = append(args, "--validate")
