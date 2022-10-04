@@ -359,7 +359,7 @@ func OCILoginCommand(repoURL string, o *Options) ([]string, error) {
 		if err != nil {
 			log.Logger().Errorf(err.Error())
 		}
-		registryFile := curdir + "~/.config/helm/registry/config.json"
+		registryFile := curdir + "/.config/helm/registry/config.json"
 		exists, err := files.FileExists(registryFile)
 		if !exists || err != nil {
 			return nil, errors.Wrapf(errors.New("No registry auth file"), "Failed to find registry auth config file %s. Please see https://helm.sh/docs/helm/helm_registry_login/", registryFile)
