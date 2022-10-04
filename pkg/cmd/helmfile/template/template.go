@@ -46,12 +46,12 @@ type Options struct {
 	HelmBinary        string
 	BatchMode         bool
 	CommandRunner     cmdrunner.CommandRunner
-	Sequencial        bool
+	Parallel		  int
 	ValidateRelease   bool
 	Dir               string
 	IncludeCRDs       bool
 	OutputDirTemplate string
-	Concurrency       string
+	Concurrency       int
 	TestOutOfCluster  bool
 	Results           Results
 }
@@ -87,10 +87,10 @@ func NewCmdHelmfileTemplate() (*cobra.Command, *Options) {
 func (o *Options) AddFlags(cmd *cobra.Command, prefix string) {
 	cmd.Flags().StringVarP(&o.OutputDirTemplate, "output-dir-template", "", "/tmp/generate/{{.Release.Namespace}}/{{.Release.Name}}", "")
 	cmd.Flags().BoolVarP(&o.IncludeCRDs, "include-crds", "", true, "if CRDs should be included in the output")
-	cmd.Flags().BoolVarP(&o.Sequencial, "sequential", "", false, "if run command sequentially")
-	cmd.Flags().BoolVarP(&o.ValidateRelease, "validate", "", false, "if run command sequentially")
+	cmd.Flags().IntVarP(&o.Parallel, "parallel", "", 0, "number of parallel templating done for helmfiles in root helmfile")
+	cmd.Flags().BoolVarP(&o.ValidateRelease, "validate", "", false, "validate your manifests against the Kubernetes cluster you are currently pointing at. Note that this requires access to a Kubernetes cluster to obtain information necessary for validating, like the template of available API versions")
 	cmd.Flags().StringVarP(&o.Helmfile, "helmfile", "", "", "the helmfile to resolve. If not specified defaults to 'helmfile.yaml' in the dir")
-	cmd.Flags().StringVarP(&o.Concurrency, "concurrency", "", "", "the helmfile to resolve. If not specified defaults to 'helmfile.yaml' in the dir")
+	cmd.Flags().IntVarP(&o.Concurrency, "concurrency", "", 0, "maximum number of concurrent helm processes to run, 0 is unlimited")
 
 }
 
@@ -143,19 +143,8 @@ func (o *Options) Run() error {
 		return errors.Wrapf(err, "failed to ")
 	}
 
-	if o.Sequencial {
-		log.Logger().Infof(termcolor.ColorStatus("------- sequential -----------"))
-		command := o.buildCommand(o.Helmfile)
-		result, err := o.CommandRunner(command)
-		if err != nil {
-			return errors.Wrapf(err, "failed to run command")
-		}
-		if result != "" {
-			log.Logger().Infof(termcolor.ColorStatus(result))
-		}
-		return nil
-	}
-	log.Logger().Infof(termcolor.ColorStatus("------- parrallel -----------"))
+	if o.Parallel != 0 {
+			log.Logger().Infof(termcolor.ColorStatus("------- parrallel -----------"))
 
 	commands := []*cmdrunner.Command{}
 
@@ -163,7 +152,7 @@ func (o *Options) Run() error {
 		commands = append(commands, o.buildCommand(helmfile.Filepath))
 
 	}
-	cr := NewCommandRunners(10)
+	cr := NewCommandRunners(o.Parallel)
 	cr.CommandRunner = o.CommandRunner
 	go cr.GenerateFrom(commands)
 
@@ -190,6 +179,19 @@ func (o *Options) Run() error {
 			return nil
 		}
 	}
+	}
+
+		log.Logger().Infof(termcolor.ColorStatus("------- sequential -----------"))
+		command := o.buildCommand(o.Helmfile)
+		result, err := o.CommandRunner(command)
+		if err != nil {
+			return errors.Wrapf(err, "failed to run command")
+		}
+		if result != "" {
+			log.Logger().Infof(termcolor.ColorStatus(result))
+		}
+		return nil
+
 
 }
 
@@ -208,8 +210,8 @@ func (o *Options) buildCommand(helmfile string) *cmdrunner.Command {
 	if o.OutputDirTemplate != "" {
 		args = append(args, "--output-dir-template", o.OutputDirTemplate)
 	}
-	if o.Concurrency != "" {
-		args = append(args, "--concurrency", o.Concurrency)
+	if o.Concurrency != 0 {
+		args = append(args, "--concurrency", string(o.Concurrency))
 	}
 	if o.ValidateRelease {
 		args = append(args, "--validate")

@@ -244,7 +244,6 @@ replace (
 	// override the go-scm from tekton
 	github.com/jenkins-x/go-scm => github.com/jenkins-x/go-scm v1.11.5
 
-	github.com/jenkins-x/jx-helpers => /Users/rochana/Code/Devops/repos/jx-helpers
 
 	// for the PipelineRun debug fix see: https://github.com/tektoncd/pipeline/pull/4145
 	github.com/tektoncd/pipeline => github.com/jstrachan/pipeline v0.21.1-0.20210811150720-45a86a5488af

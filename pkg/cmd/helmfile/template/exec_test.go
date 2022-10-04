@@ -3,7 +3,7 @@ package template
 import (
 	"context"
 	"testing"
-
+	"time"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner"
 )
 
@@ -83,60 +83,61 @@ func BenchmarkWorkerPool(b *testing.B) {
 	}
 }
 
-// func TestWorkerPool_TimeOut(t *testing.T) {
-// 	wp := New(workerCount)
+ func TestWorkerPool_TimeOut(t *testing.T) {
+	cr := NewCommandRunners(workerCount)
 
-// 	ctx, cancel := context.WithTimeout(context.TODO(), time.Nanosecond*10)
-// 	defer cancel()
+	
+ 	ctx, cancel := context.WithTimeout(context.TODO(), time.Nanosecond*10)
+	defer cancel()
 
-// 	go wp.Run(ctx)
+	commands := []*cmdrunner.Command{}
+	commands = append(commands, &cmdrunner.Command{
+		Name: "sleep",
+		Args: []string{"5"},
+	})
 
-// 	for {
-// 		select {
-// 		case r := <-wp.Results():
-// 			if r.Err != nil && r.Err != context.DeadlineExceeded {
-// 				t.Fatalf("expected error: %v; got: %v", context.DeadlineExceeded, r.Err)
-// 			}
-// 		case <-wp.Done:
-// 			return
-// 		default:
-// 		}
-// 	}
-// }
+	go cr.GenerateFrom(commands)
 
-// func TestWorkerPool_Cancel(t *testing.T) {
-// 	wp := New(workerCount)
+	go cr.Run(ctx)
+ 	for {
+ 		select {
+ 		case r := <-cr.Results():
+ 			if r.Err != nil && r.Err != context.DeadlineExceeded {
+ 				t.Fatalf("expected error: %v; got: %v", context.DeadlineExceeded, r.Err)
+ 			}
+ 		case <-cr.Done:
+ 			return
+ 		default:
+ 		}
+ 	}
+ }
 
-// 	ctx, cancel := context.WithCancel(context.TODO())
+func TestWorkerPool_Cancel(t *testing.T) {
+ 	cr := NewCommandRunners(workerCount)
 
-// 	go wp.Run(ctx)
-// 	cancel()
+ 	ctx, cancel := context.WithCancel(context.TODO())
+	
 
-// 	for {
-// 		select {
-// 		case r := <-wp.Results():
-// 			if r.Err != nil && r.Err != context.Canceled {
-// 				t.Fatalf("expected error: %v; got: %v", context.Canceled, r.Err)
-// 			}
-// 		case <-wp.Done:
-// 			return
-// 		default:
-// 		}
-// 	}
-// }
+ 	commands := []*cmdrunner.Command{}
+	commands = append(commands, &cmdrunner.Command{
+		Name: "sleep",
+		Args: []string{"5"},
+	})
+	 
+	go cr.GenerateFrom(commands)
 
-// func testJobs() []Job {
-// 	jobs := make([]Job, jobsCount)
-// 	for i := 0; i < jobsCount; i++ {
-// 		jobs[i] = Job{
-// 			Descriptor: JobDescriptor{
-// 				ID:       JobID(fmt.Sprintf("%v", i)),
-// 				JType:    "anyType",
-// 				Metadata: nil,
-// 			},
-// 			ExecFn: execFn,
-// 			Args:   i,
-// 		}
-// 	}
-// 	return jobs
-// }
+	go cr.Run(ctx)
+	cancel()
+ 	for {
+ 		select {
+ 		case r := <-cr.Results():
+ 			if r.Err != nil && r.Err != context.Canceled {
+ 				t.Fatalf("expected error: %v; got: %v", context.Canceled, r.Err)
+ 			}
+ 		case <-cr.Done:
+ 			return
+ 		default:
+ 		}
+ 	}
+
+}
