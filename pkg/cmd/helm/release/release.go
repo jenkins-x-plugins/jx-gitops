@@ -92,6 +92,7 @@ type Options struct {
 	Version              string
 	VersionFile          string
 	Namespace            string
+	RegistryConfigFile   string
 	ContainerRegistryOrg string
 	GitHubPagesDir       string
 	IgnoreChartNames     []string
@@ -128,12 +129,14 @@ func NewCmdHelmRelease() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.VersionFile, "version-file", "", "VERSION", "the file to load the version from if not specified directly or via a $VERSION environment variable")
 	cmd.Flags().StringVarP(&o.Namespace, "namespace", "", "", "the namespace to look for the dev Environment. Defaults to the current namespace")
 	cmd.Flags().StringVarP(&o.GithubPagesBranch, "repository-branch", "", "gh-pages", "the branch used if using GitHub Pages for the helm chart")
+	cmd.Flags().StringVarP(&o.RegistryConfigFile, "registry-config", "", "/tekton/creds-secrets/tekton-container-registry-auth/.dockerconfigjson", "the path to the registry config for OCI login")
 	cmd.Flags().StringVarP(&o.GithubPagesURL, "ghpage-url", "", "", "the github pages URL used if creating the first README.md in the github pages branch so we can link to how to add a chart repository")
 	cmd.Flags().StringArrayVarP(&o.IgnoreChartNames, "ignore", "I", []string{"preview"}, "the names of helm charts to not release")
 	cmd.Flags().BoolVarP(&o.ChartPages, "pages", "", false, "use github pages to release charts")
 	cmd.Flags().BoolVarP(&o.ChartOCI, "oci", "", false, "treat the repository as an OCI container registry. If not specified its defaulted from the cluster.chartOCI flag on the 'jx-requirements.yml' file")
 	cmd.Flags().BoolVarP(&o.Artifactory, "artifactory", "", false, "use artifactory mode for publishing the chart which involves using an artifactory header and -T for pushing the chart")
 	cmd.Flags().BoolVarP(&o.NoOCILogin, "no-oci-login", "", false, "disables using the 'helm registry login' command when using OCI")
+
 	cmd.Flags().BoolVarP(&o.NoRelease, "no-release", "", false, "disables publishing the release. Useful for a Pull Request pipeline")
 	cmd.Flags().BoolVarP(&o.UseHelmPlugin, "use-helm-plugin", "", false, "uses the jx binary plugin for helm rather than whatever helm is on the $PATH")
 	return cmd, o
@@ -355,15 +358,11 @@ func OCILoginCommand(repoURL string, o *Options) ([]string, error) {
 	if o.RepositoryUsername != "" || o.RepositoryPassword != "" {
 		loginCmd = append(loginCmd, "--username", o.RepositoryUsername, "--password", o.RepositoryPassword)
 	} else {
-		curdir, err := os.Getwd()
-		if err != nil {
-			log.Logger().Errorf(err.Error())
-		}
-		registryFile := curdir + "/.config/helm/registry/config.json"
-		exists, err := files.FileExists(registryFile)
+		exists, err := files.FileExists(o.RegistryConfigFile)
 		if !exists || err != nil {
-			return nil, errors.Wrapf(errors.New("No registry auth file"), "Failed to find registry auth config file %s. Please see https://helm.sh/docs/helm/helm_registry_login/", registryFile)
+			return nil, errors.Wrapf(errors.New("No registry auth file"), "Failed to find registry auth config file %s. Please see https://helm.sh/docs/helm/helm_registry_login/", o.RegistryConfigFile)
 		}
+		loginCmd = append(loginCmd, "--registry-config", o.RegistryConfigFile)
 	}
 	return loginCmd, nil
 }

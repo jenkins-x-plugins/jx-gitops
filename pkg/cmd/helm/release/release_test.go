@@ -194,42 +194,6 @@ func TestStepHelmReleaseWithChartPages(t *testing.T) {
 	)
 }
 
-func TestStepHelmReleaseWithOCI(t *testing.T) {
-	runner, OCIRegistry, chartVersion, o, err := setupReleaseOCI(t)
-	require.NoError(t, err, "failed to run the command")
-	o.RepositoryPassword = ""
-	err = o.Run()
-	require.NoError(t, err, "failed to run the command")
-
-	for _, c := range runner.OrderedCommands {
-		t.Logf("ran: %s\n", c.CLI())
-	}
-
-	assert.Equal(t, o.ReleasedCharts, 1, "should have released 1 chart")
-
-	runner.ExpectResults(t,
-		fakerunner.FakeResult{
-			// workaround for dynamically generated git clone destination folder
-			CLI: runner.OrderedCommands[0].Name + " " + strings.Join(runner.OrderedCommands[0].Args, " "),
-		},
-		fakerunner.FakeResult{
-			CLI: helmDependencyBuild,
-		},
-		fakerunner.FakeResult{
-			CLI: helmLint,
-		},
-		fakerunner.FakeResult{
-			CLI: helmPackage,
-		},
-		fakerunner.FakeResult{
-			CLI: "helm registry login " + OCIRegistry,
-		},
-		fakerunner.FakeResult{
-			CLI: "helm push myapp-" + chartVersion + ".tgz " + OCIRegistry,
-		},
-	)
-}
-
 func TestStepHelmReleaseWithOCIUsingUserName(t *testing.T) {
 	// force ChartOCI to true
 	// fake OCI registry vars
@@ -277,6 +241,7 @@ func TestStepHelmReleaseWithOCIUsingRegistryConfig(t *testing.T) {
 	runner, OCIRegistry, chartVersion, o, err := setupReleaseOCI(t)
 	require.NoError(t, err, "failed to run the command")
 	o.NoOCILogin = false
+	o.RegistryConfigFile = "testdata/helmregistry/config.json"
 	err = o.Run()
 	require.NoError(t, err, "failed to run the command")
 
@@ -301,7 +266,7 @@ func TestStepHelmReleaseWithOCIUsingRegistryConfig(t *testing.T) {
 			CLI: helmPackage,
 		},
 		fakerunner.FakeResult{
-			CLI: "helm registry login " + OCIRegistry,
+			CLI: "helm registry login " + OCIRegistry + " --registry-config " + o.RegistryConfigFile,
 		},
 		fakerunner.FakeResult{
 			CLI: "helm push myapp-" + chartVersion + ".tgz " + OCIRegistry,
