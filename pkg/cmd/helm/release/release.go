@@ -292,7 +292,7 @@ func (o *Options) Run() error {
 				return errors.Wrapf(err, "failed to create chart pages release in dir %s", chartDir)
 			}
 		} else if o.ChartOCI {
-			err = o.OCIRegistry(repoURL, chartDir, name)
+			err = o.oCIRegistry(repoURL, chartDir, name)
 			if err != nil {
 				return errors.Wrapf(err, "failed to create OCI chart release in dir %s", chartDir)
 			}
@@ -310,7 +310,7 @@ func (o *Options) Run() error {
 	return nil
 }
 
-func (o *Options) OCIRegistry(repoURL, chartDir, name string) error {
+func (o *Options) oCIRegistry(repoURL, chartDir, name string) error {
 
 	chartPackageName := fmt.Sprintf("%s-%s.tgz", name, o.Version)
 	qualifiedChartName := fmt.Sprintf("%s/%s", repoURL, name)
