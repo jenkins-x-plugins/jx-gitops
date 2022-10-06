@@ -64,6 +64,10 @@ Generate the kubernetes resources from a helm chart
     use github pages to release charts
 
 .PP
+\fB\-\-registry\-config\fP="/tekton/creds\-secrets/tekton\-container\-registry\-auth/.dockerconfigjson"
+    the path to the registry config for OCI login
+
+.PP
 \fB\-n\fP, \fB\-\-repo\-name\fP="release\-repo"
     the name of the helm chart to release to. If not specified uses JX\_CHART\_REPOSITORY environment variable
 
