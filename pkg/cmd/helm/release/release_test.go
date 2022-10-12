@@ -202,6 +202,7 @@ func TestStepHelmReleaseWithOCIUsingUserName(t *testing.T) {
 	reposvearword := "the Builder"
 	o.RepositoryUsername = repoUserName
 	o.RepositoryPassword = reposvearword
+	o.Dir = "testdata"
 	require.NoError(t, err, "failed to run the command")
 	err = o.Run()
 	require.NoError(t, err, "failed to run the command")
@@ -230,7 +231,7 @@ func TestStepHelmReleaseWithOCIUsingUserName(t *testing.T) {
 			CLI: "helm registry login " + OCIRegistry + " --username " + o.RepositoryUsername + " --password " + o.RepositoryPassword,
 		},
 		fakerunner.FakeResult{
-			CLI: "helm push myapp-" + chartVersion + ".tgz " + OCIRegistry,
+			CLI: "helm push myapp-" + chartVersion + ".tgz " + OCIRegistry + " --registry-config /tekton/creds-secrets/tekton-container-registry-auth/.dockerconfigjson",
 		},
 	)
 }
@@ -240,7 +241,7 @@ func TestStepHelmReleaseWithOCIUsingRegistryConfig(t *testing.T) {
 	// fake OCI registry vars
 	runner, OCIRegistry, chartVersion, o, err := setupReleaseOCI(t)
 	require.NoError(t, err, "failed to run the command")
-	o.NoOCILogin = false
+	o.NoOCILogin = true
 	o.RegistryConfigFile = "testdata/helmregistry/config.json"
 	err = o.Run()
 	require.NoError(t, err, "failed to run the command")
@@ -265,11 +266,9 @@ func TestStepHelmReleaseWithOCIUsingRegistryConfig(t *testing.T) {
 		fakerunner.FakeResult{
 			CLI: helmPackage,
 		},
+
 		fakerunner.FakeResult{
-			CLI: "helm registry login " + OCIRegistry + " --registry-config " + o.RegistryConfigFile,
-		},
-		fakerunner.FakeResult{
-			CLI: "helm push myapp-" + chartVersion + ".tgz " + OCIRegistry,
+			CLI: "helm push myapp-" + chartVersion + ".tgz " + OCIRegistry + " --registry-config " + o.RegistryConfigFile,
 		},
 	)
 }
@@ -303,7 +302,7 @@ func TestStepHelmReleaseWithOCINoOCILogin(t *testing.T) {
 		},
 
 		fakerunner.FakeResult{
-			CLI: "helm push myapp-" + chartVersion + ".tgz " + OCIRegistry,
+			CLI: "helm push myapp-" + chartVersion + ".tgz " + OCIRegistry + " --registry-config /tekton/creds-secrets/tekton-container-registry-auth/.dockerconfigjson",
 		},
 	)
 
@@ -323,8 +322,8 @@ func setupReleaseOCI(t *testing.T) (*fakerunner.FakeRunner, string, string, *rel
 	requirements := jxcore.NewRequirementsConfig()
 	requirements.Spec.Cluster.Registry = OCIRegistry
 	requirements.Spec.Cluster.ChartRepository = OCIRegistry
-	requirements.Spec.Repository = "OCI"
-	requirements.Spec.Cluster.ChartKind = "oci"
+	requirements.Spec.Repository = "notOci"
+	requirements.Spec.Cluster.ChartKind = "pages"
 	data, err := yaml.Marshal(requirements)
 	require.NoError(t, err, "failed to marshal requirements")
 
@@ -334,18 +333,12 @@ func setupReleaseOCI(t *testing.T) (*fakerunner.FakeRunner, string, string, *rel
 	o.HelmBinary = helmBin
 	o.CommandRunner = runner.Run
 	o.ChartsDir = filepath.Join("testdata", "charts")
+	o.Dir = "testdata"
 	o.JXClient = jxClient
 	o.Namespace = ns
-	o.GitHubPagesDir = ""
-	o.GithubPagesURL = ""
-	o.GithubPagesBranch = ""
-
 	o.Version = chartVersion
 
 	o.ChartOCI = true
-	o.ChartPages = false
 	o.RepositoryURL = OCIRegistry
-
-	o.ContainerRegistryOrg = "myorg"
 	return runner, OCIRegistry, chartVersion, o, err
 }
