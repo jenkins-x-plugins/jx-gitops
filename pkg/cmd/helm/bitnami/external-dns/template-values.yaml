@@ -3,4 +3,4 @@ jxRequirements:
     domain: cluster.local
     namespaceSubDomain: "."
     tls:
-      enabled: true 
+      enabled: true

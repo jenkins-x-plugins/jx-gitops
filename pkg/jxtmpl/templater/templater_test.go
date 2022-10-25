@@ -1,7 +1,7 @@
 package templater_test
 
 import (
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -13,7 +13,7 @@ import (
 )
 
 func TestTemplater(t *testing.T) {
-	tmpFile, err := ioutil.TempFile("", "values.yaml-")
+	tmpFile, err := os.CreateTemp("", "values.yaml-")
 	require.NoError(t, err, "failed to create temp file")
 	tmpFileName := tmpFile.Name()
 

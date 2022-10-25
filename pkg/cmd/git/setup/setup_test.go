@@ -1,7 +1,7 @@
 package setup_test
 
 import (
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -56,7 +56,7 @@ func TestGitSetup(t *testing.T) {
 				},
 			},
 		)
-		tmpFile, err := ioutil.TempFile("", "")
+		tmpFile, err := os.CreateTemp("", "")
 		require.NoError(t, err, "failed to create temp flie")
 		o.OutputFile = tmpFile.Name()
 
@@ -105,7 +105,7 @@ func TestGitSetupWithOperatorNamespace(t *testing.T) {
 			},
 		},
 	)
-	tmpFile, err := ioutil.TempFile("", "")
+	tmpFile, err := os.CreateTemp("", "")
 	require.NoError(t, err, "failed to create temp flie")
 	o.OutputFile = tmpFile.Name()
 

@@ -5,31 +5,29 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         include:
-          - os: ubuntu-latest
-            TARGET: linux
-            BINARY: jx-gitops
-          - os: macos-latest
-            TARGET: darwin
-            BINARY: jx-gitops
-          - os: windows-latest
-            TARGET: win
-            BINARY: jx-gitops-windows-amd64.exe
-
+        - os: ubuntu-latest
+          TARGET: linux
+          BINARY: jx-gitops
+        - os: macos-latest
+          TARGET: darwin
+          BINARY: jx-gitops
+        - os: windows-latest
+          TARGET: win
+          BINARY: jx-gitops-windows-amd64.exe
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-go@v2
-        with:
-          go-version: '1.18.6'
-      - run: make ${{ matrix.target }}
-      - run: |
-          ./build/${{ matrix.target }}/${{ matrix.binary }} version
-          ./build/${{ matrix.target }}/${{ matrix.binary }} plugin upgrade
-          ./build/${{ matrix.target }}/${{ matrix.binary }} --help
-      - run: ls -al ~/.jx3/plugins/bin
-        if: ${{ runner.os != 'Windows' }}
-      - run: dir ~\.jx3\plugins\bin
-        if: ${{ runner.os == 'Windows' }}
-
+    - uses: actions/checkout@v2
+    - uses: actions/setup-go@v2
+      with:
+        go-version: '1.18.6'
+    - run: make ${{ matrix.target }}
+    - run: |
+        ./build/${{ matrix.target }}/${{ matrix.binary }} version
+        ./build/${{ matrix.target }}/${{ matrix.binary }} plugin upgrade
+        ./build/${{ matrix.target }}/${{ matrix.binary }} --help
+    - run: ls -al ~/.jx3/plugins/bin
+      if: ${{ runner.os != 'Windows' }}
+    - run: dir ~\.jx3\plugins\bin
+      if: ${{ runner.os == 'Windows' }}
 on:
   pull_request:
     branches:

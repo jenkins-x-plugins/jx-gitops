@@ -5,6 +5,9 @@ import (
 	"sort"
 	"strings"
 
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
@@ -35,13 +38,13 @@ type Options struct {
 }
 
 // NewCmdUpdateTag creates a command object for the command
-func NewCmdUpdateTag(tagVerb string, tagType string) (*cobra.Command, *Options) {
+func NewCmdUpdateTag(tagVerb, tagType string) (*cobra.Command, *Options) {
 	o := &Options{}
-
+	caser := cases.Title(language.English)
 	cmd := &cobra.Command{
 		Use:     tagVerb,
-		Short:   fmt.Sprintf("%s all kubernetes resources in the given directory tree", strings.Title(tagVerb)),
-		Long:    fmt.Sprintf(tagLong, strings.Title(tagVerb)),
+		Short:   fmt.Sprintf("%s all kubernetes resources in the given directory tree", caser.String(tagVerb)),
+		Long:    fmt.Sprintf(tagLong, caser.String(tagVerb)),
 		Example: fmt.Sprintf(tagExample, tagVerb, rootcmd.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
 			err := UpdateTagInYamlFiles(o.Dir, tagType, args, o.Filter, o.PodSpec)

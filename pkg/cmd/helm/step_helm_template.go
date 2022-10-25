@@ -2,7 +2,6 @@ package helm
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -141,14 +140,14 @@ func (o *TemplateOptions) Run() error {
 		return errors.Wrapf(err, "failed to ensure output directory exists %s", outDir)
 	}
 
-	tmpDir, err := ioutil.TempDir("", "")
+	tmpDir, err := os.MkdirTemp("", "")
 	if err != nil {
 		return errors.Wrap(err, "failed to create temporary directory")
 	}
 
 	tmpChartDir := ""
 	if o.Repository != "" {
-		tmpChartDir, err = ioutil.TempDir("", "")
+		tmpChartDir, err = os.MkdirTemp("", "")
 		if err != nil {
 			return errors.Wrap(err, "failed to create temporary chart directory")
 		}

@@ -3,7 +3,6 @@ package merge
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -178,7 +177,7 @@ func (o *Options) loadRequirementsFileFromConfigMap() (string, error) {
 		return "", nil
 	}
 
-	tmpFile, err := ioutil.TempFile("", "")
+	tmpFile, err := os.CreateTemp("", "")
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to create a temporaray file")
 	}

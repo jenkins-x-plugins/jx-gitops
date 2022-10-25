@@ -1,7 +1,6 @@
 package ghpages
 
 import (
-	"io/ioutil"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -13,7 +12,7 @@ import (
 
 // CloneGitHubPagesToDir clones the github pages repository to a directory
 func CloneGitHubPagesToDir(g gitclient.Interface, repoURL, branch, username, password string) (string, error) {
-	dir, err := ioutil.TempDir("", "gh-pages-tmp-")
+	dir, err := os.MkdirTemp("", "gh-pages-tmp-")
 	if err != nil {
 		return dir, errors.Wrapf(err, "failed to create temp dir")
 	}

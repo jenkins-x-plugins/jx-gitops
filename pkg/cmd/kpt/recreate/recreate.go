@@ -2,7 +2,6 @@ package recreate
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -75,7 +74,7 @@ func (o *Options) Run() error {
 	}
 
 	if o.OutDir == "" {
-		o.OutDir, err = ioutil.TempDir("", "")
+		o.OutDir, err = os.MkdirTemp("", "")
 		if err != nil {
 			return errors.Wrap(err, "failed to create temp dir")
 		}

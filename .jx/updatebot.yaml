@@ -2,11 +2,11 @@ apiVersion: updatebot.jenkins-x.io/v1alpha1
 kind: UpdateConfig
 spec:
   rules:
-    - urls:
-        - https://github.com/jenkins-x/jx
-      changes:
-        - regex:
-            pattern: |
-              \s+GitOpsVersion = "(.*)"
-            files:
-              - "pkg/plugins/versions.go"
+  - urls:
+    - https://github.com/jenkins-x/jx
+    changes:
+    - regex:
+        pattern: |
+          \s+GitOpsVersion = "(.*)"
+        files:
+        - "pkg/plugins/versions.go"

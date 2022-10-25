@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-//  FindPipelineKind finds the pipeline kind
+// FindPipelineKind finds the pipeline kind
 func FindPipelineKind(branch string) (string, error) {
 	jobType := os.Getenv("JOB_TYPE")
 	prNumber := os.Getenv("PULL_NUMBER")
