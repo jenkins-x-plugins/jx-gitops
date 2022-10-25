@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/label"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/tagging"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kyamls"
 	"github.com/stretchr/testify/assert"
@@ -56,7 +56,7 @@ func TestUpdateLabelsInYamlFiles(t *testing.T) {
 			})
 
 		}
-		err = label.UpdateLabelInYamlFiles(tmpDir, args, kyamls.Filter{})
+		err = tagging.UpdateTagInYamlFiles(tmpDir, "labels", args, kyamls.Filter{}, false)
 		require.NoError(t, err, "failed to update namespace in dir %s for args %#v", tmpDir, args)
 
 		for _, tc := range testCases {

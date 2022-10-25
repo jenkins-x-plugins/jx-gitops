@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/annotate"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/tagging"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
@@ -97,7 +97,7 @@ func (o *Options) Run() error {
 	}
 	hashBytes := sha256.Sum256(buff.Bytes())
 	annotationExpression := fmt.Sprintf("%s=%x", o.Annotation, hashBytes)
-	err := annotate.UpdateAnnotateInYamlFiles(o.Dir, []string{annotationExpression}, o.Filter, o.PodSpec)
+	err := tagging.UpdateTagInYamlFiles(o.Dir, "annotations", []string{annotationExpression}, o.Filter, o.PodSpec)
 	if err != nil {
 		return errors.Wrapf(err, "failed to annotate files in dir %s", o.Dir)
 	}

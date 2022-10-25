@@ -1,7 +1,7 @@
 # Make does not offer a recursive wildcard function, so here's one:
 rwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
 
-SHELL := /bin/bash
+SHELL := /bin/sh
 NAME := jx-gitops
 BUILD_TARGET = build
 MAIN_SRC_FILE=cmd/main.go
