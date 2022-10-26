@@ -7,5 +7,5 @@ import (
 
 // NewCmdUpdateLabel creates a command object for the command annotate
 func NewCmdUpdateLabel() (*cobra.Command, *tagging.Options) {
-	return tagging.NewCmdUpdateTag("label", "labels")
+	return tagging.NewCmdUpdateTag("label", "label")
 }

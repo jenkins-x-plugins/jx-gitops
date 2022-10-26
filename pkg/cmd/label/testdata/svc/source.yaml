@@ -4,6 +4,7 @@ metadata:
   name: cheese
   labels:
     chart: cheese
+    wine: reisling
 spec:
   ports:
   - port: 80

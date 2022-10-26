@@ -97,7 +97,7 @@ func (o *Options) Run() error {
 	}
 	hashBytes := sha256.Sum256(buff.Bytes())
 	annotationExpression := fmt.Sprintf("%s=%x", o.Annotation, hashBytes)
-	err := tagging.UpdateTagInYamlFiles(o.Dir, "annotations", []string{annotationExpression}, o.Filter, o.PodSpec)
+	err := tagging.UpdateTagInYamlFiles(o.Dir, "annotations", []string{annotationExpression}, o.Filter, o.PodSpec, true)
 	if err != nil {
 		return errors.Wrapf(err, "failed to annotate files in dir %s", o.Dir)
 	}

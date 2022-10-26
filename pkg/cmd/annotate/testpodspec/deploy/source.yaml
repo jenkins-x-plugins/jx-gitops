@@ -1,0 +1,104 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/instance: external-dns
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: external-dns
+    gitops.jenkins-x.io/pipeline: namespaces
+    helm.sh/chart: external-dns-6.8.2
+  name: external-dns
+  namespace: jx
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: external-dns
+      app.kubernetes.io/name: external-dns
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: "7979"
+        prometheus.io/scrape: "true"
+        wine: "riesling"
+      labels:
+        app.kubernetes.io/instance: external-dns
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: external-dns
+        helm.sh/chart: external-dns-6.8.2
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/instance: external-dns
+                  app.kubernetes.io/name: external-dns
+              namespaces:
+              - jx
+              topologyKey: kubernetes.io/hostname
+            weight: 1
+      containers:
+      - args:
+        - --metrics-address=:7979
+        - --log-level=debug
+        - --log-format=text
+        - --domain-filter=aws.ticket.se
+        - --policy=sync
+        - --provider=aws
+        - --registry=txt
+        - --interval=1m
+        - --source=ingress
+        - --source=service
+        - --aws-api-retries=3
+        - --aws-zone-type=
+        - --aws-batch-change-size=1000
+        env:
+        - name: AWS_DEFAULT_REGION
+          value: eu-north-1
+        image: docker.io/bitnami/external-dns:0.12.2-debian-11-r14
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 2
+          httpGet:
+            path: /healthz
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        name: external-dns
+        ports:
+        - containerPort: 7979
+          name: http
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 6
+          httpGet:
+            path: /healthz
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        fsGroup: 65534
+        runAsUser: 1001
+      serviceAccount: external-dns
+      serviceAccountName: external-dns
+      terminationGracePeriodSeconds: 30

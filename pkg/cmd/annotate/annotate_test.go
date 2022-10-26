@@ -14,8 +14,15 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestUpdateAnnotatesInYamlFiles(t *testing.T) {
-	sourceData := "testdata"
+func TestUpdateAnnotations(t *testing.T) {
+	testUpdateAnnotationsInYamlFiles(t, "testdata", false)
+}
+
+func TestUpdatePodSpecAnnotations(t *testing.T) {
+	testUpdateAnnotationsInYamlFiles(t, "testpodspec", true)
+}
+
+func testUpdateAnnotationsInYamlFiles(t *testing.T, sourceData string, podSpec bool) {
 	fileNames, err := os.ReadDir(sourceData)
 	assert.NoError(t, err)
 
@@ -55,7 +62,7 @@ func TestUpdateAnnotatesInYamlFiles(t *testing.T) {
 			})
 
 		}
-		err = tagging.UpdateTagInYamlFiles(tmpDir, "annotations", args, kyamls.Filter{}, false)
+		err = tagging.UpdateTagInYamlFiles(tmpDir, "annotations", args, kyamls.Filter{}, podSpec, true)
 		require.NoError(t, err, "failed to update namespace in dir %s for args %#v", tmpDir, args)
 
 		for _, tc := range testCases {
