@@ -50,7 +50,7 @@ func NewCmdUpdateTag(tagVerb, tagType string) (*cobra.Command, *Options) {
 		Long:    fmt.Sprintf(tagLong, caser.String(tagVerb)),
 		Example: fmt.Sprintf(tagExample, tagVerb, rootcmd.BinaryName, tagType),
 		Run: func(cmd *cobra.Command, args []string) {
-			err := UpdateTagInYamlFiles(o.Dir, tagType+"s", args, o.Filter, o.PodSpec, o.Overwrite)
+			err := o.UpdateTagInYamlFiles(tagType+"s", args)
 			helper.CheckErr(err)
 		},
 	}
@@ -63,65 +63,90 @@ func NewCmdUpdateTag(tagVerb, tagType string) (*cobra.Command, *Options) {
 }
 
 // UpdateTagInYamlFiles updates the annotations in yaml files
-func UpdateTagInYamlFiles(dir string, tagType string, tags []string, filter kyamls.Filter, podSpec bool, override bool) error { //nolint:gocritic
+func (o *Options) UpdateTagInYamlFiles(tagType string, tags []string) error {
 	modifyFn := func(node *yaml.RNode, path string) (bool, error) {
 		sort.Strings(tags)
-		pathArray := []string{"metadata", tagType}
-		if podSpec {
-			pathArray = append([]string{"spec", "template"}, pathArray...)
-			if kyamls.GetKind(node, path) == "CronJob" {
-				pathArray = append([]string{"spec", "jobTemplate"}, pathArray...)
-			}
-		}
-		pathNode, err := node.Pipe(yaml.PathGetter{Path: pathArray, Create: yaml.MappingNode})
+		tagNode, err := getTagNode(node, path, tagType, o)
 		if err != nil {
-			return false, errors.Wrapf(err, "failed to get %v", pathArray)
+			return false, err
 		}
 
 		var modified bool
 		for _, a := range tags {
 			paths := strings.SplitN(a, "=", 2)
-			k := paths[0]
-			v := ""
+			key := paths[0]
+			value := ""
 			if len(paths) > 1 {
-				v = paths[1]
-			} else if strings.HasSuffix(k, "-") {
-				rNode, err := pathNode.Pipe(yaml.Clear(strings.TrimSuffix(k, "-")))
+				value = paths[1]
+			} else if strings.HasSuffix(key, "-") {
+				modified, err = removeTag(tagNode, key, modified)
 				if err != nil {
 					return modified, err
 				}
-				modified = rNode != nil
 				continue
 			}
-			vn := yaml.NewScalarRNode(v)
-			vn.YNode().Tag = yaml.NodeTagString
-			vn.YNode().Style = yaml.SingleQuotedStyle
 
-			field, err := pathNode.Pipe(yaml.FieldMatcher{Name: k})
+			field, err := tagNode.Pipe(yaml.FieldMatcher{Name: key})
 			if err != nil {
-				return modified, errors.Wrapf(err, "failed to match %s", k)
+				return modified, errors.Wrapf(err, "failed to match %s", key)
 			}
+			valueNode := createValueNode(value)
 			if field != nil {
-				if !override {
+				if !o.Overwrite {
 					continue
 				}
-				// need to def ref the Node since field is ephemeral
-				field.SetYNode(vn.YNode())
+				field.SetYNode(valueNode)
 				modified = true
 			} else {
-				// create the field
-				pathNode.YNode().Content = append(
-					pathNode.Content(),
-					&yaml.Node{
-						Kind:  yaml.ScalarNode,
-						Value: k,
-					},
-					vn.YNode())
+				addField(tagNode, key, valueNode)
 				modified = true
 			}
 		}
 		return modified, nil
 	}
 
-	return kyamls.ModifyFiles(dir, modifyFn, filter)
+	return kyamls.ModifyFiles(o.Dir, modifyFn, o.Filter)
+}
+
+func getTagNode(node *yaml.RNode, path, tagType string, o *Options) (*yaml.RNode, error) {
+	pathArray := []string{"metadata", tagType}
+	if o.PodSpec {
+		pathArray = append([]string{"spec", "template"}, pathArray...)
+		if kyamls.GetKind(node, path) == "CronJob" {
+			pathArray = append([]string{"spec", "jobTemplate"}, pathArray...)
+		}
+	}
+	pathNode, err := node.Pipe(yaml.PathGetter{Path: pathArray, Create: yaml.MappingNode})
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get %v", pathArray)
+	}
+	return pathNode, nil
+}
+
+func addField(pathNode *yaml.RNode, key string, valueNode *yaml.Node) {
+	pathNode.YNode().Content = append(
+		pathNode.Content(),
+		&yaml.Node{
+			Kind:  yaml.ScalarNode,
+			Value: key,
+		},
+		valueNode)
+}
+
+func createValueNode(value string) *yaml.Node {
+	return &yaml.Node{
+		Kind:  yaml.ScalarNode,
+		Value: value,
+		Tag:   yaml.NodeTagString,
+		Style: yaml.SingleQuotedStyle,
+	}
+}
+
+func removeTag(pathNode *yaml.RNode, k string, modified bool) (bool, error) {
+	rNode, err := pathNode.Pipe(yaml.Clear(strings.TrimSuffix(k, "-")))
+	if err != nil {
+		return modified, err
+	}
+	modified = rNode != nil || modified
+	return modified, nil
 }

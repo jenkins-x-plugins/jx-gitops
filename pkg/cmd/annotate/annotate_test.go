@@ -62,7 +62,13 @@ func testUpdateAnnotationsInYamlFiles(t *testing.T, sourceData string, podSpec b
 			})
 
 		}
-		err = tagging.UpdateTagInYamlFiles(tmpDir, "annotations", args, kyamls.Filter{}, podSpec, true)
+		options := tagging.Options{
+			Filter:    kyamls.Filter{},
+			Dir:       tmpDir,
+			PodSpec:   podSpec,
+			Overwrite: true,
+		}
+		err = options.UpdateTagInYamlFiles("annotations", args)
 		require.NoError(t, err, "failed to update namespace in dir %s for args %#v", tmpDir, args)
 
 		for _, tc := range testCases {

@@ -68,9 +68,21 @@ func TestUpdateLabelsInYamlFiles(t *testing.T) {
 			})
 
 		}
-		err = tagging.UpdateTagInYamlFiles(tmpDir, "labels", args, kyamls.Filter{}, false, true)
+		optionsOverwrite := tagging.Options{
+			Filter:    kyamls.Filter{},
+			Dir:       tmpDir,
+			PodSpec:   false,
+			Overwrite: true,
+		}
+		err = optionsOverwrite.UpdateTagInYamlFiles("labels", args)
 		require.NoError(t, err, "failed to update namespace in dir %s for args %#v", tmpDir, args)
-		err = tagging.UpdateTagInYamlFiles(tmpDirNotOverride, "labels", args, kyamls.Filter{}, false, false)
+		options := tagging.Options{
+			Filter:    kyamls.Filter{},
+			Dir:       tmpDirNotOverride,
+			PodSpec:   false,
+			Overwrite: false,
+		}
+		err = options.UpdateTagInYamlFiles("labels", args)
 		require.NoError(t, err, "failed to update namespace in dir %s for args %#v", tmpDir, args)
 
 		for _, tc := range testCases {
