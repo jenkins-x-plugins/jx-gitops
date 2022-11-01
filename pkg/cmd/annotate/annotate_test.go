@@ -7,15 +7,22 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/annotate"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/tagging"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kyamls"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestUpdateAnnotatesInYamlFiles(t *testing.T) {
-	sourceData := "testdata"
+func TestUpdateAnnotations(t *testing.T) {
+	testUpdateAnnotationsInYamlFiles(t, "testdata", false)
+}
+
+func TestUpdatePodSpecAnnotations(t *testing.T) {
+	testUpdateAnnotationsInYamlFiles(t, "testpodspec", true)
+}
+
+func testUpdateAnnotationsInYamlFiles(t *testing.T, sourceData string, podSpec bool) {
 	fileNames, err := os.ReadDir(sourceData)
 	assert.NoError(t, err)
 
@@ -55,7 +62,13 @@ func TestUpdateAnnotatesInYamlFiles(t *testing.T) {
 			})
 
 		}
-		err = annotate.UpdateAnnotateInYamlFiles(tmpDir, args, kyamls.Filter{}, false)
+		options := tagging.Options{
+			Filter:    kyamls.Filter{},
+			Dir:       tmpDir,
+			PodSpec:   podSpec,
+			Overwrite: true,
+		}
+		err = options.UpdateTagInYamlFiles("annotations", args)
 		require.NoError(t, err, "failed to update namespace in dir %s for args %#v", tmpDir, args)
 
 		for _, tc := range testCases {

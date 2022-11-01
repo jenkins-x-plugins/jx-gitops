@@ -2,7 +2,7 @@ package validate
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -59,7 +59,7 @@ func (o *Options) Validate() error {
 		o.Helmfile = filepath.Join(o.Dir, "helmfile.yaml")
 	}
 	if o.OutputDir == "" {
-		o.OutputDir, err = ioutil.TempDir("", "")
+		o.OutputDir, err = os.MkdirTemp("", "")
 		if err != nil {
 			return errors.Wrapf(err, "failed to create temporary output directory")
 		}

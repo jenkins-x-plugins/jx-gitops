@@ -6,12 +6,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/annotate"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/tagging"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/kyamls"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/options"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/pkg/errors"
@@ -34,11 +33,9 @@ var (
 
 // AnnotateOptions the options for the command
 type Options struct {
-	Dir         string
+	tagging.Options
 	Annotation  string
-	PodSpec     bool
 	SourceFiles []string
-	Filter      kyamls.Filter
 }
 
 // NewCmdHashAnnotate creates a command object for the command
@@ -76,6 +73,7 @@ func (o *Options) Run() error {
 	if len(o.SourceFiles) == 0 {
 		return options.MissingOption("source")
 	}
+	o.Overwrite = true
 	buff := bytes.Buffer{}
 	for _, s := range o.SourceFiles {
 		exists, err := files.FileExists(s)
@@ -97,7 +95,7 @@ func (o *Options) Run() error {
 	}
 	hashBytes := sha256.Sum256(buff.Bytes())
 	annotationExpression := fmt.Sprintf("%s=%x", o.Annotation, hashBytes)
-	err := annotate.UpdateAnnotateInYamlFiles(o.Dir, []string{annotationExpression}, o.Filter, o.PodSpec)
+	err := o.UpdateTagInYamlFiles("annotations", []string{annotationExpression})
 	if err != nil {
 		return errors.Wrapf(err, "failed to annotate files in dir %s", o.Dir)
 	}

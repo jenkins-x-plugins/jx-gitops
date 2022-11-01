@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: cheese
   labels:
-    wine: 'merlot'
+    wine: reisling
     beer: 'stella'
 spec:
   ports:

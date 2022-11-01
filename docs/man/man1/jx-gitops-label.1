@@ -5,7 +5,7 @@
 
 .SH NAME
 .PP
-jx\-gitops\-label \- Updates all kubernetes resources in the given directory tree to add/override the given label
+jx\-gitops\-label \- Labels all kubernetes resources in the given directory tree
 
 
 .SH SYNOPSIS
@@ -15,7 +15,7 @@ jx\-gitops\-label \- Updates all kubernetes resources in the given directory tre
 
 .SH DESCRIPTION
 .PP
-Updates all kubernetes resources in the given directory tree to add/override the given label
+Labels all kubernetes resources in the given directory tree
 
 
 .SH OPTIONS
@@ -42,6 +42,14 @@ Updates all kubernetes resources in the given directory tree to add/override the
 \[la]https://github.com/jenkins-x/jx-helpers/v3/tree/master/docs/kind_filters.md\[ra]
 
 .PP
+\fB\-\-overwrite\fP[=true]
+    Set to false to not overwrite any existing value
+
+.PP
+\fB\-p\fP, \fB\-\-pod\-spec\fP[=false]
+    label the PodSpec in spec.template.metadata.labels (or spec.jobTemplate.spec.template.metadata.labels for CronJobs) rather than the top level labels
+
+.PP
 \fB\-\-selector\fP=[]
     adds Kubernetes label selector to filter on, e.g. \-s app=pusher\-wave,heritage=Helm
 
@@ -56,6 +64,8 @@ Updates all kubernetes resources in the given directory tree to add/override the
   jx\-gitops label mylabel=cheese another=thing
   # updates recursively all resources
   jx\-gitops label \-\-dir myresource\-dir foo=bar
+  # remove labels
+  jx\-gitops label mylabel\- another\-
 
 
 .SH SEE ALSO

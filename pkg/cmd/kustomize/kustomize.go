@@ -2,7 +2,6 @@ package kustomize
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
@@ -88,7 +87,7 @@ func (o *Options) Run() error {
 			return errors.Wrapf(err, "failed to create dir %s", o.OutputDir)
 		}
 	} else {
-		o.OutputDir, err = ioutil.TempDir("", "")
+		o.OutputDir, err = os.MkdirTemp("", "")
 		if err != nil {
 			return errors.Wrapf(err, "failed to create a temp dir")
 		}

@@ -1,0 +1,44 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: jx-gcactivities
+  namespace: jx
+spec:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: gcactivities
+            release: jxboot-helmfile-resources
+        spec:
+          containers:
+          - args:
+            - gitops
+            - gc
+            - activities
+            command:
+            - jx
+            env:
+            - name: JX_LOG_FORMAT
+              value: json
+            - name: JX_LOG_LEVEL
+              value: info
+            - name: PIPELINE_KIND
+              value: dummy
+            image: ghcr.io/jenkins-x/jx-boot:3.7.8
+            imagePullPolicy: IfNotPresent
+            name: gcactivities
+            terminationMessagePath: /dev/termination-log
+            terminationMessagePolicy: File
+          dnsPolicy: ClusterFirst
+          restartPolicy: Never
+          schedulerName: default-scheduler
+          serviceAccountName: jx-gcactivities
+          terminationGracePeriodSeconds: 30
+  schedule: 0/30 */3 * * *
+  startingDeadlineSeconds: 4000
+  successfulJobsHistoryLimit: 3
+  suspend: false

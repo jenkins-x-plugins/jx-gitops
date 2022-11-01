@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-//  FindVersion finds the version name
+// FindVersion finds the version name
 func FindVersion(versionFile, branch, buildNumber string) (string, error) {
 	version := ""
 	if versionFile != "" {
