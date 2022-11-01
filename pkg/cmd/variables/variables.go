@@ -103,6 +103,7 @@ func NewCmdVariables() (*cobra.Command, *Options) {
 	}
 	o.DiscoverFromGit = true
 	cmd.Flags().StringVarP(&o.File, "file", "f", filepath.Join(".jx", "variables.sh"), "the default variables file to lazily create or enrich")
+	cmd.Flags().StringVarP(&o.Repository, "app", "", "", "Name of the app or repository")
 	cmd.Flags().StringVarP(&o.RepositoryName, "repo-name", "n", "release-repo", "the name of the helm chart to release to. If not specified uses JX_CHART_REPOSITORY environment variable")
 	cmd.Flags().StringVarP(&o.RepositoryURL, "repo-url", "u", "", "the URL to release to")
 	cmd.Flags().StringVarP(&o.GitCommitUsername, "git-user-name", "", "", "the user name to git commit")

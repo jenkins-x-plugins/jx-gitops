@@ -78,7 +78,7 @@ func TestCmdVariables(t *testing.T) {
 		jxClient := jxfake.NewSimpleClientset(devEnv)
 		scmFake, _ := scmfake.NewDefault()
 
-		_, o := variables.NewCmdVariables()
+		cmd, o := variables.NewCmdVariables()
 		o.Dir = runDir
 		o.CommandRunner = runner.Run
 		o.JXClient = jxClient
@@ -108,6 +108,11 @@ func TestCmdVariables(t *testing.T) {
 		o.Options.Repository = "myrepo"
 		if name == "nested" {
 			o.Options.Repository = "cluster/print-go"
+		}
+		if name == "app_name_override" {
+			args := []string{"--app", "overridden-app-name"}
+			err = cmd.ParseFlags(args)
+			require.NoError(t, err, "failed to parse arguments %#v for test %", args, name)
 		}
 		o.Options.Branch = "PR-23"
 		o.Options.SourceURL = "https://github.com/" + o.Options.Owner + "/" + o.Options.Repository
