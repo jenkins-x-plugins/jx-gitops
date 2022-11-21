@@ -195,14 +195,15 @@ func TestStepHelmReleaseWithChartPages(t *testing.T) {
 }
 
 func TestStepHelmReleaseWithOCIUsingUserName(t *testing.T) {
-	// force ChartOCI to true
-	// fake OCI registry vars
+
 	runner, OCIRegistry, chartVersion, o, err := setupReleaseOCI(t)
+	require.NoError(t, err, "failed to setup command")
 	repoUserName := "Bob"
 	reposvearword := "the Builder"
 	o.RepositoryUsername = repoUserName
 	o.RepositoryPassword = reposvearword
-	require.NoError(t, err, "failed to run the command")
+	o.Dir = "testdata"
+
 	err = o.Run()
 	require.NoError(t, err, "failed to run the command")
 
@@ -230,7 +231,7 @@ func TestStepHelmReleaseWithOCIUsingUserName(t *testing.T) {
 			CLI: "helm registry login " + OCIRegistry + " --username " + o.RepositoryUsername + " --password " + o.RepositoryPassword,
 		},
 		fakerunner.FakeResult{
-			CLI: "helm push myapp-" + chartVersion + ".tgz " + OCIRegistry,
+			CLI: "helm push myapp-" + chartVersion + ".tgz " + OCIRegistry + " --registry-config " + o.RegistryConfigFile,
 		},
 	)
 }
@@ -239,8 +240,8 @@ func TestStepHelmReleaseWithOCIUsingRegistryConfig(t *testing.T) {
 	// force ChartOCI to true
 	// fake OCI registry vars
 	runner, OCIRegistry, chartVersion, o, err := setupReleaseOCI(t)
-	require.NoError(t, err, "failed to run the command")
-	o.NoOCILogin = false
+	require.NoError(t, err, "failed to setup commands")
+	o.NoOCILogin = true
 	o.RegistryConfigFile = "testdata/helmregistry/config.json"
 	err = o.Run()
 	require.NoError(t, err, "failed to run the command")
@@ -265,11 +266,9 @@ func TestStepHelmReleaseWithOCIUsingRegistryConfig(t *testing.T) {
 		fakerunner.FakeResult{
 			CLI: helmPackage,
 		},
+
 		fakerunner.FakeResult{
-			CLI: "helm registry login " + OCIRegistry + " --registry-config " + o.RegistryConfigFile,
-		},
-		fakerunner.FakeResult{
-			CLI: "helm push myapp-" + chartVersion + ".tgz " + OCIRegistry,
+			CLI: "helm push myapp-" + chartVersion + ".tgz " + OCIRegistry + " --registry-config " + o.RegistryConfigFile,
 		},
 	)
 }
@@ -303,9 +302,8 @@ func TestStepHelmReleaseWithOCINoOCILogin(t *testing.T) {
 		},
 
 		fakerunner.FakeResult{
-			CLI: "helm push myapp-" + chartVersion + ".tgz " + OCIRegistry,
-		},
-	)
+			CLI: "helm push myapp-" + chartVersion + ".tgz " + OCIRegistry + " --registry-config " + o.RegistryConfigFile,
+		})
 
 }
 
@@ -314,7 +312,7 @@ func setupReleaseOCI(t *testing.T) (*fakerunner.FakeRunner, string, string, *rel
 	helmBin := "helm"
 
 	ns := "jx2"
-	OCIRegistry := "oci://registry"
+	OCIRegistry := "ociregistry"
 	chartVersion := "1.2.3"
 	devEnv := jxenv.CreateDefaultDevEnvironment(ns)
 	devEnv.Namespace = ns
@@ -322,9 +320,11 @@ func setupReleaseOCI(t *testing.T) (*fakerunner.FakeRunner, string, string, *rel
 
 	requirements := jxcore.NewRequirementsConfig()
 	requirements.Spec.Cluster.Registry = OCIRegistry
+
 	requirements.Spec.Cluster.ChartRepository = OCIRegistry
-	requirements.Spec.Repository = "OCI"
-	requirements.Spec.Cluster.ChartKind = "oci"
+	requirements.Spec.Repository = "notOci"
+	// setting the default chartkind to pages, to test that it is overridden
+	requirements.Spec.Cluster.ChartKind = "pages"
 	data, err := yaml.Marshal(requirements)
 	require.NoError(t, err, "failed to marshal requirements")
 
@@ -334,18 +334,24 @@ func setupReleaseOCI(t *testing.T) (*fakerunner.FakeRunner, string, string, *rel
 	o.HelmBinary = helmBin
 	o.CommandRunner = runner.Run
 	o.ChartsDir = filepath.Join("testdata", "charts")
+	o.Dir = "testdata"
 	o.JXClient = jxClient
 	o.Namespace = ns
-	o.GitHubPagesDir = ""
-	o.GithubPagesURL = ""
-	o.GithubPagesBranch = ""
-
 	o.Version = chartVersion
-
 	o.ChartOCI = true
-	o.ChartPages = false
 	o.RepositoryURL = OCIRegistry
+	o.KubeClient = fake.NewSimpleClientset(
+		&corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      kube.SecretJenkinsChartMuseum,
+				Namespace: ns,
+			},
+			Data: map[string][]byte{
+				"BASIC_AUTH_USER": []byte("myuser"),
+				"BASIC_AUTH_PASS": []byte("mypwd"),
+			},
+		},
+	)
 
-	o.ContainerRegistryOrg = "myorg"
 	return runner, OCIRegistry, chartVersion, o, err
 }

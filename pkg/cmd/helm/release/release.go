@@ -220,8 +220,21 @@ func (o *Options) Validate() error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to load requirements")
 	}
+
 	if requirements != nil {
 		o.Requirements = requirements
+		if o.ContainerRegistryOrg == "" {
+			o.ContainerRegistryOrg = requirements.Cluster.DockerRegistryOrg
+		}
+		// if OCI flag already set, do not let cluster config override it
+		if o.ChartOCI {
+			o.ChartPages = false
+			return nil
+		}
+		if o.ChartPages {
+			o.ChartOCI = false
+			return nil
+		}
 		switch requirements.Cluster.ChartKind {
 		case jxcore.ChartRepositoryTypeOCI:
 			o.ChartOCI = true
@@ -230,9 +243,7 @@ func (o *Options) Validate() error {
 			o.ChartOCI = false
 			o.ChartPages = true
 		}
-		if o.ContainerRegistryOrg == "" {
-			o.ContainerRegistryOrg = requirements.Cluster.DockerRegistryOrg
-		}
+
 	}
 	return nil
 }
@@ -321,18 +332,14 @@ func (o *Options) oCIRegistry(repoURL, chartDir, name string) error {
 	}
 
 	if !o.NoOCILogin {
-		loginCmd, err := OCILoginCommand(repoURL, o)
-		if err != nil {
-			return err
-		}
 		c = &cmdrunner.Command{
 			Dir:  chartDir,
 			Name: o.HelmBinary,
-			Args: loginCmd,
+			Args: []string{"registry", "login", repoURL, "--username", o.RepositoryUsername, "--password", o.RepositoryPassword},
 		}
 		_, err = o.CommandRunner(c)
 		if err != nil {
-			return errors.Wrapf(err, "failed to login to registry %s for user %s ", repoURL, o.RepositoryUsername)
+			return errors.Wrapf(err, "failed to login to registry %s for user %s", repoURL, o.RepositoryUsername)
 		}
 	}
 
@@ -344,27 +351,13 @@ func (o *Options) oCIRegistry(repoURL, chartDir, name string) error {
 	c = &cmdrunner.Command{
 		Dir:  chartDir,
 		Name: o.HelmBinary,
-		Args: []string{"push", chartPackageName, repoURL},
+		Args: []string{"push", chartPackageName, repoURL, "--registry-config", o.RegistryConfigFile},
 	}
 	_, err = o.CommandRunner(c)
 	if err != nil {
 		return errors.Wrapf(err, "failed to push chart %s", qualifiedChartName)
 	}
 	return nil
-}
-
-func OCILoginCommand(repoURL string, o *Options) ([]string, error) {
-	loginCmd := []string{"registry", "login", repoURL}
-	if o.RepositoryUsername != "" || o.RepositoryPassword != "" {
-		loginCmd = append(loginCmd, "--username", o.RepositoryUsername, "--password", o.RepositoryPassword)
-	} else {
-		exists, err := files.FileExists(o.RegistryConfigFile)
-		if !exists || err != nil {
-			return nil, errors.Wrapf(errors.New("No registry auth file"), "Failed to find registry auth config file %s. Please see https://helm.sh/docs/helm/helm_registry_login/", o.RegistryConfigFile)
-		}
-		loginCmd = append(loginCmd, "--registry-config", o.RegistryConfigFile)
-	}
-	return loginCmd, nil
 }
 
 func (o *Options) ChartPageRegistry(repoURL, chartDir, name string) error {
