@@ -220,7 +220,6 @@ func (o *Options) Validate() error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to load requirements")
 	}
-
 	if requirements != nil {
 		o.Requirements = requirements
 		if o.ContainerRegistryOrg == "" {
@@ -540,21 +539,24 @@ func (o *Options) BuildAndPackage(chartDir string) error {
 		if err != nil {
 			return errors.Wrapf(err, "failed to load Chart.yaml")
 		}
-
-		for i, dependency := range chartDef.Dependencies {
-			log.Logger().Infof("Adding repository for dependency %s", dependency.Name)
-			if dependency.Repository != "" {
-				c := &cmdrunner.Command{
-					Dir:  chartDir,
-					Name: o.HelmBinary,
-					Args: []string{"repo", "add", strconv.Itoa(i), dependency.Repository},
+		if o.ChartOCI {
+			log.Logger().Info("Not adding dependency repository for OCI charts")
+		} else {
+			for i, dependency := range chartDef.Dependencies {
+				log.Logger().Infof("Adding  dependency %s", dependency.Name)
+				if dependency.Repository != "" {
+					c := &cmdrunner.Command{
+						Dir:  chartDir,
+						Name: o.HelmBinary,
+						Args: []string{"repo", "add", strconv.Itoa(i), dependency.Repository},
+					}
+					_, err = o.CommandRunner(c)
+					if err != nil {
+						return errors.Wrapf(err, "failed to add repository")
+					}
+				} else {
+					log.Logger().Infof("Skipping local dependency %s", dependency.Name)
 				}
-				_, err = o.CommandRunner(c)
-				if err != nil {
-					return errors.Wrapf(err, "failed to add repository")
-				}
-			} else {
-				log.Logger().Infof("Skipping local dependency %s", dependency.Name)
 			}
 		}
 	}

@@ -39,6 +39,7 @@ type Options struct {
 	UseHelmPlugin bool
 	HelmBinary    string
 	ChartsDir     string
+	NoHelmRepoAdd bool
 	CommandRunner cmdrunner.CommandRunner
 }
 
@@ -59,6 +60,8 @@ func NewCmdHelmBuild() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.ChartsDir, "charts-dir", "c", "charts", "the directory to look for helm charts to release")
 	cmd.Flags().StringVarP(&o.HelmBinary, "binary", "n", "", "specifies the helm binary location to use. If not specified defaults to 'helm' on the $PATH")
 	cmd.Flags().BoolVarP(&o.UseHelmPlugin, "use-helm-plugin", "", false, "uses the jx binary plugin for helm rather than whatever helm is on the $PATH")
+	cmd.Flags().BoolVarP(&o.NoHelmRepoAdd, "no-helm-repo-add", "", false, "disables using the 'helm repo add' command")
+
 	return cmd, o
 }
 

@@ -168,6 +168,9 @@ func TestStepHelmReleaseWithChartPages(t *testing.T) {
 			CLI: runner.OrderedCommands[0].Name + " " + strings.Join(runner.OrderedCommands[0].Args, " "),
 		},
 		fakerunner.FakeResult{
+			CLI: "helm repo add 0 file://../myapp-common",
+		},
+		fakerunner.FakeResult{
 			CLI: "git sparse-checkout set --no-cone jx-requirements.yml .jx/gitops/source-config.yaml",
 		},
 		fakerunner.FakeResult{
