@@ -564,7 +564,7 @@ func (o *Options) BuildAndPackage(chartDir string) error {
 	c := &cmdrunner.Command{
 		Dir:  chartDir,
 		Name: o.HelmBinary,
-		Args: []string{"dependency", "build", "."},
+		Args: []string{"dependency", "build", ".", "--registry-config", o.RegistryConfigFile},
 	}
 	_, err = o.CommandRunner(c)
 	if err != nil {
