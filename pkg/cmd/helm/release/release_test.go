@@ -21,7 +21,7 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-const helmDependencyBuild = "helm dependency build ."
+const helmDependencyBuild = "helm dependency build . --registry-config "
 const helmLint = "helm lint"
 const helmPackage = "helm package ."
 
@@ -171,7 +171,7 @@ func TestStepHelmReleaseWithChartPages(t *testing.T) {
 			CLI: "helm repo add 0 file://../myapp-common",
 		},
 		fakerunner.FakeResult{
-			CLI: helmDependencyBuild,
+			CLI: helmDependencyBuild + o.RegistryConfigFile,
 		},
 		fakerunner.FakeResult{
 			CLI: helmLint,
@@ -222,7 +222,7 @@ func TestStepHelmReleaseWithOCIUsingUserName(t *testing.T) {
 			CLI: runner.OrderedCommands[0].Name + " " + strings.Join(runner.OrderedCommands[0].Args, " "),
 		},
 		fakerunner.FakeResult{
-			CLI: helmDependencyBuild,
+			CLI: helmDependencyBuild + o.RegistryConfigFile,
 		},
 		fakerunner.FakeResult{
 			CLI: helmLint,
@@ -261,7 +261,7 @@ func TestStepHelmReleaseWithOCIUsingRegistryConfig(t *testing.T) {
 			CLI: runner.OrderedCommands[0].Name + " " + strings.Join(runner.OrderedCommands[0].Args, " "),
 		},
 		fakerunner.FakeResult{
-			CLI: helmDependencyBuild,
+			CLI: helmDependencyBuild + o.RegistryConfigFile,
 		},
 		fakerunner.FakeResult{
 			CLI: helmLint,
@@ -295,7 +295,7 @@ func TestStepHelmReleaseWithOCINoOCILogin(t *testing.T) {
 			CLI: runner.OrderedCommands[0].Name + " " + strings.Join(runner.OrderedCommands[0].Args, " "),
 		},
 		fakerunner.FakeResult{
-			CLI: helmDependencyBuild,
+			CLI: helmDependencyBuild + o.RegistryConfigFile,
 		},
 		fakerunner.FakeResult{
 			CLI: helmLint,
@@ -315,7 +315,7 @@ func setupReleaseOCI(t *testing.T) (*fakerunner.FakeRunner, string, string, *rel
 	helmBin := "helm"
 
 	ns := "jx2"
-	OCIRegistry := "ociregistry"
+	OCIRegistry := "oci://ociregistry"
 	chartVersion := "1.2.3"
 	devEnv := jxenv.CreateDefaultDevEnvironment(ns)
 	devEnv.Namespace = ns
