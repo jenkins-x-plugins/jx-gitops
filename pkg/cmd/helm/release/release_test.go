@@ -168,7 +168,7 @@ func TestStepHelmReleaseWithChartPages(t *testing.T) {
 			CLI: runner.OrderedCommands[0].Name + " " + strings.Join(runner.OrderedCommands[0].Args, " "),
 		},
 		fakerunner.FakeResult{
-			CLI: "helm repo add 0 file://../myapp-common",
+			CLI: "helm repo add 0 file://myapp-common",
 		},
 		fakerunner.FakeResult{
 			CLI: helmDependencyBuild + o.RegistryConfigFile,
@@ -222,6 +222,9 @@ func TestStepHelmReleaseWithOCIUsingUserName(t *testing.T) {
 			CLI: runner.OrderedCommands[0].Name + " " + strings.Join(runner.OrderedCommands[0].Args, " "),
 		},
 		fakerunner.FakeResult{
+			CLI: "helm repo add 0 file://myapp-common",
+		},
+		fakerunner.FakeResult{
 			CLI: helmDependencyBuild + o.RegistryConfigFile,
 		},
 		fakerunner.FakeResult{
@@ -261,6 +264,9 @@ func TestStepHelmReleaseWithOCIUsingRegistryConfig(t *testing.T) {
 			CLI: runner.OrderedCommands[0].Name + " " + strings.Join(runner.OrderedCommands[0].Args, " "),
 		},
 		fakerunner.FakeResult{
+			CLI: "helm repo add 0 file://myapp-common",
+		},
+		fakerunner.FakeResult{
 			CLI: helmDependencyBuild + o.RegistryConfigFile,
 		},
 		fakerunner.FakeResult{
@@ -293,6 +299,9 @@ func TestStepHelmReleaseWithOCINoOCILogin(t *testing.T) {
 		fakerunner.FakeResult{
 			// workaround for dynamically generated git clone destination folder
 			CLI: runner.OrderedCommands[0].Name + " " + strings.Join(runner.OrderedCommands[0].Args, " "),
+		},
+		fakerunner.FakeResult{
+			CLI: "helm repo add 0 file://myapp-common",
 		},
 		fakerunner.FakeResult{
 			CLI: helmDependencyBuild + o.RegistryConfigFile,
