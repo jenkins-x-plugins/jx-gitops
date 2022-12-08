@@ -22,14 +22,13 @@ func TestStepHelmBuildWithCharts(t *testing.T) {
 	o.HelmBinary = helmBin
 	o.CommandRunner = runner.Run
 	o.ChartsDir = filepath.Join(path, "charts")
-	o.Version = "0.2"
 
 	err := o.Run()
 	require.NoError(t, err, "failed to run the command")
 
 	runner.ExpectResults(t,
 		fakerunner.FakeResult{
-			CLI: "helm repo add 0 file://../myapp-common",
+			CLI: "helm repo add 0 file://myapp-common",
 		},
 
 		fakerunner.FakeResult{
@@ -39,7 +38,7 @@ func TestStepHelmBuildWithCharts(t *testing.T) {
 			CLI: "helm dependency build .",
 		},
 		fakerunner.FakeResult{
-			CLI: "helm package . --version " + o.Version,
+			CLI: "helm package .",
 		},
 	)
 
@@ -57,7 +56,6 @@ func TestStepHelmBuildWithChartsOCI(t *testing.T) {
 	o.HelmBinary = helmBin
 	o.CommandRunner = runner.Run
 	o.ChartsDir = filepath.Join(path, "charts")
-	o.Version = "0.2"
 	o.OCI = true
 
 	err := o.Run()
@@ -65,13 +63,16 @@ func TestStepHelmBuildWithChartsOCI(t *testing.T) {
 
 	runner.ExpectResults(t,
 		fakerunner.FakeResult{
+			CLI: "helm repo add 0 file://myapp-common",
+		},
+		fakerunner.FakeResult{
 			CLI: "helm lint",
 		},
 		fakerunner.FakeResult{
 			CLI: "helm dependency build . --registry-config " + o.RegistryConfigFile,
 		},
 		fakerunner.FakeResult{
-			CLI: "helm package . --version " + o.Version + " --registry-config " + o.RegistryConfigFile,
+			CLI: "helm package . --registry-config " + o.RegistryConfigFile,
 		},
 	)
 
@@ -89,7 +90,6 @@ func TestStepHelmBuildWithChartsOCIPassword(t *testing.T) {
 	o.HelmBinary = helmBin
 	o.CommandRunner = runner.Run
 	o.ChartsDir = filepath.Join(path, "charts")
-	o.Version = "0.2"
 	o.OCI = true
 	o.RepositoryPassword = "xxx"
 	o.RepositoryUsername = "fish"
@@ -98,6 +98,9 @@ func TestStepHelmBuildWithChartsOCIPassword(t *testing.T) {
 	require.NoError(t, err, "failed to run the command")
 
 	runner.ExpectResults(t,
+		fakerunner.FakeResult{
+			CLI: "helm repo add 0 file://myapp-common",
+		},
 		fakerunner.FakeResult{
 			CLI: "helm lint",
 		},
@@ -109,7 +112,7 @@ func TestStepHelmBuildWithChartsOCIPassword(t *testing.T) {
 			CLI: "helm dependency build .",
 		},
 		fakerunner.FakeResult{
-			CLI: "helm package . --version " + o.Version,
+			CLI: "helm package .",
 		},
 	)
 
