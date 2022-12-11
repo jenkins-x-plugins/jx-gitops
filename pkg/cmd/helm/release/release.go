@@ -350,7 +350,7 @@ func (o *Options) oCIRegistry(repoURL, chartDir, name string) error {
 	c = &cmdrunner.Command{
 		Dir:  chartDir,
 		Name: o.HelmBinary,
-		Args: []string{"push", chartPackageName, repoURL, "--registry-config", o.RegistryConfigFile},
+		Args: []string{"push", chartPackageName, "oci://" + repoURL, "--registry-config", o.RegistryConfigFile},
 	}
 	_, err = o.CommandRunner(c)
 	if err != nil {
