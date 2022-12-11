@@ -249,7 +249,7 @@ func TestStepHelmReleaseWithOCIUsingUserName(t *testing.T) {
 			CLI: "helm registry login " + OCIRegistry + " --username " + o.RepositoryUsername + " --password " + o.RepositoryPassword,
 		},
 		fakerunner.FakeResult{
-			CLI: "helm push myapp-" + chartVersion + ".tgz " + OCIRegistry + " --registry-config " + o.RegistryConfigFile,
+			CLI: "helm push myapp-" + chartVersion + ".tgz oci://" + OCIRegistry + " --registry-config " + o.RegistryConfigFile,
 		},
 	)
 }
@@ -295,7 +295,7 @@ func TestStepHelmReleaseWithOCIUsingRegistryConfig(t *testing.T) {
 		},
 
 		fakerunner.FakeResult{
-			CLI: "helm push myapp-" + chartVersion + ".tgz " + OCIRegistry + " --registry-config " + o.RegistryConfigFile,
+			CLI: "helm push myapp-" + chartVersion + ".tgz " + "oci://" + OCIRegistry + " --registry-config " + o.RegistryConfigFile,
 		},
 	)
 }
@@ -338,7 +338,7 @@ func TestStepHelmReleaseWithOCINoOCILogin(t *testing.T) {
 		},
 
 		fakerunner.FakeResult{
-			CLI: "helm push myapp-" + chartVersion + ".tgz " + OCIRegistry + " --registry-config " + o.RegistryConfigFile,
+			CLI: "helm push myapp-" + chartVersion + ".tgz " + "oci://" + OCIRegistry + " --registry-config " + o.RegistryConfigFile,
 		})
 
 }
@@ -348,7 +348,7 @@ func setupReleaseOCI(t *testing.T) (*fakerunner.FakeRunner, string, string, *rel
 	helmBin := "helm"
 
 	ns := "jx2"
-	OCIRegistry := "oci://ociregistry"
+	OCIRegistry := "ociregistry"
 	chartVersion := "1.2.3"
 	devEnv := jxenv.CreateDefaultDevEnvironment(ns)
 	devEnv.Namespace = ns
