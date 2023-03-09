@@ -286,18 +286,13 @@ func (o *Options) saveNamespaceJXValuesFile(helmfileDir, ns string) error {
 	subDomain := strings.ReplaceAll(requirements.Ingress.NamespaceSubDomain, "jx", ns)
 	requirements.Ingress.NamespaceSubDomain = subDomain
 
-	// TODO should we add a Namespace into the requirements.environments structures?
-	// lets assume either the key is the namespace or the namespace is "jx-${envKey}"
 	envKey := ""
 	for k := range requirements.Environments {
 		e := requirements.Environments[k]
-		if ns == e.Key {
-			envKey = ns
+		if (ns == e.Namespace) || (strings.TrimPrefix(ns, "jx-") == e.Key) {
+			envKey = e.Key
 			break
 		}
-	}
-	if envKey == "" {
-		envKey = strings.TrimPrefix(ns, "jx-")
 	}
 
 	// lets see if there is a custom ingress value for this namespace

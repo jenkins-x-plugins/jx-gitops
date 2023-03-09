@@ -1,5 +1,7 @@
 filepath: ""
 helmfiles:
+- path: helmfiles/custom1/helmfile.yaml
+- path: helmfiles/custom2/helmfile.yaml
 - path: helmfiles/foo/helmfile.yaml
 - path: helmfiles/jx/helmfile.yaml
 - path: helmfiles/jx-production/helmfile.yaml

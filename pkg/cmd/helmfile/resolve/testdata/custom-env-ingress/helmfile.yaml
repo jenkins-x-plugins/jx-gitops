@@ -12,6 +12,10 @@ releases:
     namespace: jx-staging
   - chart: doesnotexist/myapp
     namespace: jx-production
+  - chart: doesnotexist/myapp
+    namespace: custom1
+  - chart: doesnotexist/myapp
+    namespace: custom2
   - chart: bitnami/external-dns
     namespace: foo
   # test using a local repo prefix and URL

@@ -237,6 +237,16 @@ func TestStepHelmfileResolve(t *testing.T) {
 					domain:    "myprod.com",
 				},
 				{
+					namespace: "custom1",
+					subdomain: "testing.",
+					domain:    "mycustom.com",
+				},
+				{
+					namespace: "custom2",
+					subdomain: "testing.",
+					domain:    "defaultdomain.com",
+				},
+				{
 					namespace: "tekton-pipelines",
 					subdomain: "-tekton-pipelines.",
 					domain:    "defaultdomain.com",

@@ -19,6 +19,15 @@ spec:
     ingress:
       domain: "myprod.com"
       namespaceSubDomain: "."
+  - key: custom-namespace1
+    ingress:
+      domain: "mycustom.com"
+      namespaceSubDomain: "testing."
+    namespace: custom1
+  - key: custom-namespace2
+    ingress:
+      namespaceSubDomain: "testing."
+    namespace: custom2
   ingress:
     domain: "defaultdomain.com"
     externalDNS: false
