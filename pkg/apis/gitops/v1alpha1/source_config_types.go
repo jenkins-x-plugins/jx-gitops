@@ -147,8 +147,11 @@ type RepositoryGroup struct {
 	// Slack optional slack notification configuration
 	Slack *SlackNotify `json:"slack,omitempty"`
 
-	// Settings optional settinsg for repositories in this group
+	// Settings optional settings for repositories in this group
 	Settings *v4beta1.SettingsConfig `json:"settings,omitempty"`
+
+	// Name optional field to distinguish repository groups between for example different teams. Not used by jx gitops
+	Name string `json:"name,omitempty"`
 }
 
 // Repository the name of the repository to import and the optional scheduler
