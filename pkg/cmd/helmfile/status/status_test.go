@@ -4,6 +4,7 @@ import (
 	"context"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/apis/gitops/v1alpha1"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/releasereport"
@@ -30,7 +31,11 @@ func TestHemlfileStatus(t *testing.T) {
 	_, o := NewCmdHelmfileStatus()
 	o.Dir = "testdata"
 	o.TestGitToken = "faketoken"
-	err := o.Run()
+	o.DeployOffset = ""
+	cutoff, err := time.Parse(time.RFC3339, "2023-01-25T08:38:47Z")
+	require.NoError(t, err, "failed to parse time")
+	o.DeployCutoff = cutoff
+	err = o.Run()
 	require.NoError(t, err, "failed to run")
 }
 

@@ -56,6 +56,8 @@ type Options struct {
 	TestGitToken      string
 	EnvironmentNames  map[string]string
 	EnvironmentURLs   map[string]string
+	DeployOffset      string
+	DeployCutoff      time.Time
 }
 
 // NewCmdHelmfileStatus creates a command object for the command
@@ -74,7 +76,8 @@ func NewCmdHelmfileStatus() (*cobra.Command, *Options) {
 	}
 	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the directory that contains the content")
 	cmd.Flags().BoolVarP(&o.FailOnError, "fail", "f", false, "if enabled then fail the boot pipeline if we cannot report the deployment status")
-	cmd.Flags().BoolVarP(&o.AutoInactive, "auto-inactive", "a", true, "if enabled then the the status of previous deployments will be set to inactive (Default: true)")
+	cmd.Flags().BoolVarP(&o.AutoInactive, "auto-inactive", "a", true, "if enabled then the the status of previous deployments will be set to inactive")
+	cmd.Flags().StringVarP(&o.DeployOffset, "deploy-offset", "", "2h", "releases deployed after this time offset will have their deployments updated. Set to empty to update all. Format is a golang duration string")
 	return cmd, o
 }
 
@@ -127,16 +130,22 @@ func (o *Options) Run() error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to load source config from dir %s", o.Dir)
 	}
+	if o.DeployOffset != "" {
+		dur, err := time.ParseDuration(o.DeployOffset)
+		if err != nil {
+			return errors.Wrapf(err, "failed to parse time offset %s", o.DeployOffset)
+		}
+		o.DeployCutoff = time.Now().Add(dur)
+	}
 	if len(o.SourceConfig.Spec.Groups) == 0 {
 		log.Logger().Warnf("no source config found in dir %s. Will assume all repos are in the current organisation as gitops repo", o.Dir)
 		ctx := context.Background()
 
 		c := o.Requirements.Spec.Cluster
 		gitServer := stringhelpers.FirstNotEmptyString(c.GitServer, giturl.GitHubURL)
-		twoHoursAgo := time.Now().Add(-2 * time.Hour)
 		for _, nsr := range o.NamespaceReleases {
 			for _, release := range nsr.Releases {
-				if twoHoursAgo.Before(release.LastDeployed.Time) {
+				if o.DeployCutoff.IsZero() || release.LastDeployed == nil || o.DeployCutoff.Before(release.LastDeployed.Time) {
 					continue
 				}
 
@@ -196,14 +205,13 @@ func (o *Options) getEnvForNamespace(ns string) *environment {
 
 func (o *Options) updateStatuses(group *v1alpha1.RepositoryGroup, repo *v1alpha1.Repository) error {
 	ctx := context.Background()
-	twoHoursAgo := time.Now().Add(-2 * time.Hour)
 	for _, nsr := range o.NamespaceReleases {
 		for _, release := range nsr.Releases {
 			// TODO could use source of the release to match on to reduce name clashes?
 			if release.Name != repo.Name {
 				continue
 			}
-			if twoHoursAgo.Before(release.LastDeployed.Time) {
+			if o.DeployCutoff.IsZero() || release.LastDeployed == nil || o.DeployCutoff.Before(release.LastDeployed.Time) {
 				continue
 			}
 
