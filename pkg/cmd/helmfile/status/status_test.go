@@ -247,7 +247,7 @@ func TestNewCmdHelmfileStatus_UpdateStatus(t *testing.T) {
 		data.Deployments[fullRepoName] = tt.initialDeployments
 
 		t.Run(tt.name, func(t *testing.T) {
-			err := testOpts.updateStatus(context.TODO(), tt.inputArgs.env, tt.inputArgs.repo, tt.inputArgs.group, tt.inputArgs.release)
+			err := testOpts.updateStatus(context.TODO(), tt.inputArgs.env, tt.inputArgs.group.Provider, tt.inputArgs.group.Owner, tt.inputArgs.repo.Name, tt.inputArgs.release)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatuses, data.DeploymentStatus)
 			assert.Equal(t, tt.expectedDeployments, data.Deployments[fullRepoName])
