@@ -236,7 +236,7 @@ func (o *Options) updateStatus(ctx context.Context, env *environment, repo *v1al
 	return nil
 }
 
-func (o *Options) CreateNewDeployment(ctx context.Context, ref string, environment string, fullRepoName string) (*scm.Deployment, error) {
+func (o *Options) CreateNewDeployment(ctx context.Context, ref, environment, fullRepoName string) (*scm.Deployment, error) {
 	_, name := scm.Split(fullRepoName)
 	deploymentInput := &scm.DeploymentInput{
 		Ref:                   ref,
@@ -257,7 +257,7 @@ func (o *Options) CreateNewDeployment(ctx context.Context, ref string, environme
 	return deployment, nil
 }
 
-func (o *Options) FindExistingDeploymentInEnvironment(ctx context.Context, fullRepoName string, environment string) (*scm.Deployment, error) {
+func (o *Options) FindExistingDeploymentInEnvironment(ctx context.Context, fullRepoName, environment string) (*scm.Deployment, error) {
 	_, name := scm.Split(fullRepoName)
 	// lets try find the existing deployment if it exists
 	deployments, _, err := o.ScmClient.Deployments.List(ctx, fullRepoName, scm.ListOptions{})
