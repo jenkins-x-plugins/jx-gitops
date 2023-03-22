@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/apis/gitops/v1alpha1"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/releasereport"
@@ -132,8 +133,12 @@ func (o *Options) Run() error {
 
 		c := o.Requirements.Spec.Cluster
 		gitServer := stringhelpers.FirstNotEmptyString(c.GitServer, giturl.GitHubURL)
+		twoHoursAgo := time.Now().Add(-2 * time.Hour)
 		for _, nsr := range o.NamespaceReleases {
 			for _, release := range nsr.Releases {
+				if twoHoursAgo.Before(release.LastDeployed.Time) {
+					continue
+				}
 
 				env := o.getEnvForNamespace(nsr.Namespace)
 
@@ -191,10 +196,14 @@ func (o *Options) getEnvForNamespace(ns string) *environment {
 
 func (o *Options) updateStatuses(group *v1alpha1.RepositoryGroup, repo *v1alpha1.Repository) error {
 	ctx := context.Background()
+	twoHoursAgo := time.Now().Add(-2 * time.Hour)
 	for _, nsr := range o.NamespaceReleases {
 		for _, release := range nsr.Releases {
 			// TODO could use source of the release to match on to reduce name clashes?
 			if release.Name != repo.Name {
+				continue
+			}
+			if twoHoursAgo.Before(release.LastDeployed.Time) {
 				continue
 			}
 
