@@ -461,7 +461,7 @@ func (o *Options) discoverIngress(ci *releasereport.ReleaseInfo, rel *state.Rele
 			continue
 		}
 		apiVersion := obj.GetAPIVersion()
-		if apiVersion != "networking.k8s.io/v1beta1" && apiVersion != "extensions/v1beta1" {
+		if apiVersion != "networking.k8s.io/v1beta1" && apiVersion != "extensions/v1beta1" && apiVersion != "networking.k8s.io/v1" {
 			log.Logger().Infof("ignoring Ingress in file %s with api version %s", path, apiVersion)
 			continue
 		}
