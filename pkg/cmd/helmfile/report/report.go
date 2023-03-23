@@ -271,11 +271,11 @@ func (o *Options) processHelmfile(helmfile helmfiles.Helmfile) (*releasereport.N
 }
 
 func (o *Options) createReleaseInfo(helmState *state.HelmState, ns string, rel *state.ReleaseSpec) (*releasereport.ReleaseInfo, error) {
-	chart := rel.Chart
-	if chart == "" {
+	chartName := rel.Chart
+	if chartName == "" {
 		return nil, nil
 	}
-	paths := strings.SplitN(chart, "/", 2)
+	paths := strings.SplitN(chartName, "/", 2)
 	answer := &releasereport.ReleaseInfo{}
 	answer.Version = rel.Version
 	switch len(paths) {
@@ -306,7 +306,7 @@ func (o *Options) createReleaseInfo(helmState *state.HelmState, ns string, rel *
 		return answer, errors.Wrapf(err, "failed to discover resources for %s", answer.String())
 	}
 
-	if !helmhelpers.IsChartNameRelative(chart) && !helmhelpers.IsChartRemote(chart) {
+	if !helmhelpers.IsChartNameRelative(chartName) && !helmhelpers.IsChartRemote(chartName) {
 		if answer.FirstDeployed == nil {
 			answer.FirstDeployed = createNow()
 		}
