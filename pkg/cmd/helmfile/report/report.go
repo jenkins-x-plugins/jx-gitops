@@ -327,16 +327,19 @@ func (o *Options) enrichChartMetadata(i *releasereport.ReleaseInfo, repo *state.
 			continue
 		}
 		for _, ch := range nc.Releases {
-			if ch.Name == localChartName && ch.Version == rel.Version {
-				*i = *ch
-				// lets clear the old ingress/app URLs
-				i.ApplicationURL = ""
-				i.Ingresses = nil
-				return nil
+			if ch.Name == localChartName {
+				if ch.Version == rel.Version {
+					*i = *ch
+					// lets clear the old ingress/app URLs
+					i.ApplicationURL = ""
+					i.Ingresses = nil
+					return nil
+				} else {
+					i.FirstDeployed = ch.LastDeployed
+				}
 			}
 		}
 	}
-
 	version := i.Version
 	name := i.Name
 	repoURL := repo.URL
