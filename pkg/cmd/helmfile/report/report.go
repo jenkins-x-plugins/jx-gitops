@@ -335,15 +335,18 @@ func (o *Options) enrichChartMetadata(i *releasereport.ReleaseInfo, repo *state.
 	// lets see if we can find the previous data in the previous release
 	localChartName := localName(rel.Chart)
 
-	ch := o.PreviousNamespaceCharts[ns][localChartName]
-	if ch.Version == rel.Version {
-		*i = *ch
-		// let's clear the old ingress/app URLs
-		i.ApplicationURL = ""
-		i.Ingresses = nil
-		return nil
-	} else {
-		i.FirstDeployed = ch.LastDeployed
+	if nsMap, found := o.PreviousNamespaceCharts[ns]; found {
+		ch := nsMap[localChartName]
+		if ch != nil {
+			if ch.Version == rel.Version {
+				*i = *ch
+				// let's clear the old ingress/app URLs
+				i.ApplicationURL = ""
+				i.Ingresses = nil
+				return nil
+			}
+			i.FirstDeployed = ch.LastDeployed
+		}
 	}
 
 	version := i.Version
