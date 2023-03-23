@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/apis/gitops/v1alpha1"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/releasereport"
@@ -18,11 +19,14 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/giturl"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/requirements"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/scmhelpers"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/stringhelpers"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 var (
@@ -36,6 +40,8 @@ var (
 		# update the status in git after a release
 		%s helmfile status
 	`)
+
+	titleCaser = cases.Title(language.English)
 )
 
 // Options the options for viewing running PRs
@@ -50,6 +56,8 @@ type Options struct {
 	TestGitToken      string
 	EnvironmentNames  map[string]string
 	EnvironmentURLs   map[string]string
+	DeployOffset      string
+	DeployCutoff      time.Time
 }
 
 // NewCmdHelmfileStatus creates a command object for the command
@@ -68,7 +76,8 @@ func NewCmdHelmfileStatus() (*cobra.Command, *Options) {
 	}
 	cmd.Flags().StringVarP(&o.Dir, "dir", "d", ".", "the directory that contains the content")
 	cmd.Flags().BoolVarP(&o.FailOnError, "fail", "f", false, "if enabled then fail the boot pipeline if we cannot report the deployment status")
-	cmd.Flags().BoolVarP(&o.AutoInactive, "auto-inactive", "a", true, "if enabled then the the status of previous deployments will be set to inactive (Default: true)")
+	cmd.Flags().BoolVarP(&o.AutoInactive, "auto-inactive", "a", true, "if enabled then the the status of previous deployments will be set to inactive")
+	cmd.Flags().StringVarP(&o.DeployOffset, "deploy-offset", "", "2h", "releases deployed after this time offset will have their deployments updated. Set to empty to update all. Format is a golang duration string")
 	return cmd, o
 }
 
@@ -108,8 +117,7 @@ func (o *Options) Run() error {
 				ns = "jx-" + e.Key
 			}
 		}
-		// ToDo: Replace once we upgrade to go1.18
-		o.EnvironmentNames[ns] = strings.Title(e.Key) //nolint:staticcheck
+		o.EnvironmentNames[ns] = titleCaser.String(e.Key)
 
 		envURL := requirements.EnvironmentGitURL(&o.Requirements.Spec, e.Key)
 		o.EnvironmentURLs[ns] = envURL
@@ -122,29 +130,77 @@ func (o *Options) Run() error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to load source config from dir %s", o.Dir)
 	}
-	if o.SourceConfig == nil {
-		return errors.Errorf("no source config found in dir %s", o.Dir)
+	if o.DeployOffset != "" {
+		dur, err := time.ParseDuration(o.DeployOffset)
+		if err != nil {
+			return errors.Wrapf(err, "failed to parse time offset %s", o.DeployOffset)
+		}
+		o.DeployCutoff = time.Now().Add(dur)
 	}
+	if len(o.SourceConfig.Spec.Groups) == 0 {
+		log.Logger().Warnf("no source config found in dir %s. Will assume all repos are in the current organisation as gitops repo", o.Dir)
+		ctx := context.Background()
 
-	for i := range o.SourceConfig.Spec.Groups {
-		group := &o.SourceConfig.Spec.Groups[i]
-		for j := range group.Repositories {
-			repo := &group.Repositories[j]
-			err = sourceconfigs.DefaultValues(o.SourceConfig, group, repo)
-			if err != nil {
-				return errors.Wrapf(err, "failed to default SourceConfig")
-			}
-
-			err = o.updateStatuses(group, repo)
-			if err != nil {
-				if o.FailOnError {
-					return errors.Wrapf(err, "failed to update status for repository %s/%s", group.Owner, repo.Name)
+		c := o.Requirements.Spec.Cluster
+		gitServer := stringhelpers.FirstNotEmptyString(c.GitServer, giturl.GitHubURL)
+		for _, nsr := range o.NamespaceReleases {
+			for _, release := range nsr.Releases {
+				if o.DeployCutoff.IsZero() || release.LastDeployed == nil || o.DeployCutoff.Before(release.LastDeployed.Time) {
+					continue
 				}
-				log.Logger().Warnf("failed to update status for repository %s/%s : %s", group.Owner, repo.Name, err.Error())
+
+				env := o.getEnvForNamespace(nsr.Namespace)
+
+				err = o.CreateNewScmClient(c.EnvironmentGitOwner, gitServer, c.GitKind)
+				if err != nil {
+					return errors.Wrapf(err, "failed to create scm client for owner %s", c.EnvironmentGitOwner)
+				}
+
+				err = o.updateStatus(ctx, env, gitServer, c.EnvironmentGitOwner, release.Name, release)
+				if err != nil {
+					if o.FailOnError {
+						return errors.Wrapf(err, "failed to update status for repository %s/%s", c.EnvironmentGitOwner, release.Name)
+					}
+					log.Logger().Warnf("failed to update status for repository %s/%s : %s", c.EnvironmentGitOwner, release.Name, err.Error())
+				}
+			}
+		}
+	} else {
+		for i := range o.SourceConfig.Spec.Groups {
+			group := &o.SourceConfig.Spec.Groups[i]
+			for j := range group.Repositories {
+				repo := &group.Repositories[j]
+				err = sourceconfigs.DefaultValues(o.SourceConfig, group, repo)
+				if err != nil {
+					return errors.Wrapf(err, "failed to default SourceConfig")
+				}
+
+				err = o.updateStatuses(group, repo)
+				if err != nil {
+					if o.FailOnError {
+						return errors.Wrapf(err, "failed to update status for repository %s/%s", group.Owner, repo.Name)
+					}
+					log.Logger().Warnf("failed to update status for repository %s/%s : %s", group.Owner, repo.Name, err.Error())
+				}
 			}
 		}
 	}
 	return nil
+}
+
+func (o *Options) getEnvForNamespace(ns string) *environment {
+	env := &environment{
+		name: o.EnvironmentNames[ns],
+		url:  o.EnvironmentURLs[ns],
+	}
+
+	if env.name == "" {
+		env.name = titleCaser.String(strings.TrimPrefix(ns, "jx-"))
+	}
+	if env.url == "" {
+		env.url = o.EnvironmentURLs["dev"]
+	}
+	return env
 }
 
 func (o *Options) updateStatuses(group *v1alpha1.RepositoryGroup, repo *v1alpha1.Repository) error {
@@ -155,25 +211,18 @@ func (o *Options) updateStatuses(group *v1alpha1.RepositoryGroup, repo *v1alpha1
 			if release.Name != repo.Name {
 				continue
 			}
-
-			env := &environment{
-				name: o.EnvironmentNames[nsr.Namespace],
-				url:  o.EnvironmentURLs[nsr.Namespace],
+			if o.DeployCutoff.IsZero() || release.LastDeployed == nil || o.DeployCutoff.Before(release.LastDeployed.Time) {
+				continue
 			}
 
-			if env.name == "" {
-				env.name = nsr.Namespace
-			}
-			if env.url == "" {
-				env.url = o.EnvironmentURLs["dev"]
-			}
+			env := o.getEnvForNamespace(nsr.Namespace)
 
-			err := o.CreateNewScmClient(group)
+			err := o.CreateNewScmClient(group.Owner, group.Provider, group.ProviderKind)
 			if err != nil {
 				return errors.Wrapf(err, "failed to create scm client for repository %s/%s", group.Owner, repo.Name)
 			}
 
-			err = o.updateStatus(ctx, env, repo, group, release)
+			err = o.updateStatus(ctx, env, group.Provider, group.Owner, repo.Name, release)
 			if err != nil {
 				return err
 			}
@@ -187,15 +236,15 @@ type environment struct {
 	url  string
 }
 
-func (o *Options) updateStatus(ctx context.Context, env *environment, repo *v1alpha1.Repository, group *v1alpha1.RepositoryGroup, release *releasereport.ReleaseInfo) error {
+func (o *Options) updateStatus(ctx context.Context, env *environment, provider, owner, repoName string, release *releasereport.ReleaseInfo) error {
 	if release.Version == "" {
-		log.Logger().Warnf("missing version for release %s in environment %s", repo.Name, env.name)
+		log.Logger().Warnf("missing version for release %s in environment %s", repoName, env.name)
 		return nil
 	}
 
-	fullRepoName := scm.Join(group.Owner, repo.Name)
+	fullRepoName := scm.Join(owner, repoName)
 	if o.ScmClient.Deployments == nil {
-		log.Logger().Warnf("cannot update deployment status of release %s as the git server %s does not support Deployments", fullRepoName, group.Provider)
+		log.Logger().Warnf("cannot update deployment status of release %s as the git server %s does not support Deployments", fullRepoName, provider)
 		return nil
 	}
 
@@ -273,13 +322,10 @@ func (o *Options) FindExistingDeploymentInEnvironment(ctx context.Context, fullR
 	return nil, nil
 }
 
-func (o *Options) CreateNewScmClient(group *v1alpha1.RepositoryGroup) error {
-	owner := group.Owner
-	server := group.Provider
+func (o *Options) CreateNewScmClient(owner, server, gitKind string) error {
 	if server == "" {
 		return errors.Errorf("no provider defined for owner %s", owner)
 	}
-	gitKind := group.ProviderKind
 	if gitKind == "" {
 		gitKind = giturl.SaasGitKind(server)
 	}
