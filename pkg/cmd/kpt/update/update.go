@@ -48,6 +48,8 @@ var (
 	`)
 
 	info = termcolor.ColorInfo
+
+	defaultContainer = "docker"
 )
 
 // Options the options for the command
@@ -61,6 +63,7 @@ type Options struct {
 	KptBinary              string
 	Strategy               string
 	IgnoreYamlContentError bool
+	ContainerTool          string
 	GitClient              gitclient.Interface
 	CommandRunner          cmdrunner.CommandRunner
 }
@@ -94,6 +97,7 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&o.RepositoryName, "repo", "r", "", "filter on the Kptfile repository name  for which packages to update")
 	cmd.Flags().StringVarP(&o.KptBinary, "bin", "", "", "the 'kpt' binary name to use. If not specified this command will download the jx binary plugin into ~/.jx3/plugins/bin and use that")
 	cmd.Flags().StringVarP(&o.Strategy, "strategy", "s", "resource-merge", "the 'kpt' strategy to use. To see available strategies type 'kpt pkg update --help'. Typical values are: resource-merge, fast-forward, force-delete-replace")
+	cmd.Flags().StringVarP(&o.ContainerTool, "container-tool", "c", defaultContainer, "the underlying container tool for kpt to use")
 
 	cmd.Flags().BoolVarP(&o.IgnoreYamlContentError, "ignore-yaml-error", "", false, "ignore kpt errors of the form: yaml: did not find expected node content")
 }
@@ -201,6 +205,11 @@ func (o *Options) Run() error {
 					}
 				}
 			}
+		}
+
+		// if it's the default, we don't want to mess if people have already configured
+		if o.ContainerTool != defaultContainer {
+			os.Setenv("KPT_FN_RUNTIME", o.ContainerTool)
 		}
 
 		args := []string{"pkg", "update", folderExpression, "--strategy", strategy}
