@@ -14,6 +14,7 @@
     maintainers:
     - email: james@jetstack.io
       name: munnerz
+    lastDeployed: "2023-01-25T09:38:47Z"
     name: cert-manager
     repositoryName: jetstack
     repositoryUrl: https://charts.jetstack.io
@@ -30,6 +31,7 @@
     ingresses:
     - name: nodey560
       url: http://nodey560-jx-production.34.89.8.12.nip.io
+    lastDeployed: "2023-01-25T09:38:47Z"
     name: nodey560
     repositoryName: dev
     repositoryUrl: http://jenkins-x-chartmuseum.jx.svc.cluster.local:8080
@@ -45,6 +47,7 @@
     ingresses:
     - name: nodey560
       url: http://nodey560-jx-staging.34.89.8.12.nip.io
+    lastDeployed: "2023-01-25T09:38:47Z"
     name: nodey560
     repositoryName: dev
     repositoryUrl: http://jenkins-x-chartmuseum.jx.svc.cluster.local:8080
@@ -57,6 +60,7 @@
     ingresses:
     - name: nodey554
       url: http://nodey554-jx-staging.34.89.8.12.nip.io
+    lastDeployed: "2023-01-25T09:38:47Z"
     name: nodey554
     repositoryName: dev
     repositoryUrl: http://jenkins-x-chartmuseum.jx.svc.cluster.local:8080
@@ -85,6 +89,7 @@
     maintainers:
     - email: containers@bitnami.com
       name: Bitnami
+    lastDeployed: "2023-01-25T09:38:47Z"
     name: external-dns
     repositoryName: bitnami
     repositoryUrl: https://charts.bitnami.com/bitnami
@@ -96,6 +101,7 @@
   - apiVersion: v1
     description: Acme
     icon: https://avatars2.githubusercontent.com/u/35583233?s=200&v=4
+    lastDeployed: "2023-01-25T09:38:47Z"
     name: acme
     repositoryName: jx3
     repositoryUrl: https://storage.googleapis.com/jenkinsxio/charts
@@ -111,6 +117,7 @@
       url: http://hook-jx.34.89.8.12.nip.io/hook
     - name: nexus
       url: http://nexus-jx.34.89.8.12.nip.io/
+    lastDeployed: "2023-01-25T09:38:47Z"
     name: jxboot-helmfile-resources
     repositoryName: jx3
     repositoryUrl: https://storage.googleapis.com/jenkinsxio/charts
@@ -120,6 +127,7 @@
     appVersion: 3.0.5
     description: Custom Resource Definitions for Jenkins X
     icon: https://raw.githubusercontent.com/jenkins-x/jenkins-x-platform/d273e09/images/go.png
+    lastDeployed: "2023-01-25T09:38:47Z"
     name: jenkins-x-crds
     repositoryName: jx3
     repositoryUrl: https://storage.googleapis.com/jenkinsxio/charts
@@ -134,6 +142,7 @@
     ingresses:
     - name: jx-pipelines-visualizer
       url: http://dashboard-jx.34.89.8.12.nip.io
+    lastDeployed: "2023-01-25T09:38:47Z"
     name: jx-pipelines-visualizer
     repositoryName: jx3
     repositoryUrl: https://storage.googleapis.com/jenkinsxio/charts
@@ -146,6 +155,7 @@
       This chart installs the jx-preview CRD and garbagecollection job
     home: https://github.com/jenkins-x/jx-preview
     icon: https://raw.githubusercontent.com/jenkins-x/jenkins-x-website/master/images/logo/jenkinsx-icon-color.svg
+    lastDeployed: "2023-01-25T09:38:47Z"
     name: jx-preview
     repositoryName: jxgh
     repositoryUrl: https://jenkins-x-charts.github.io/repo
@@ -157,6 +167,7 @@
       This chart bootstraps installation of [Lighthouse](https://github.com/jenkins-x/lighthouse).
     home: https://github.com/jenkins-x/lighthouse
     icon: https://raw.githubusercontent.com/jenkins-x/jenkins-x-website/master/images/logo/jenkinsx-icon-color.svg
+    lastDeployed: "2023-01-25T09:38:47Z"
     name: lighthouse
     repositoryName: jenkins-x
     repositoryUrl: https://storage.googleapis.com/chartmuseum.jenkins-x.io
@@ -166,6 +177,7 @@
     description: A Helm chart for Kubernetes
     home: https://github.com/jenkins-x-charts/nexus
     icon: https://raw.githubusercontent.com/jenkins-x/jenkins-x-platform/master/jenkins-x-platform/images/nexus.png
+    lastDeployed: "2023-01-25T09:38:47Z"
     name: nexus
     repositoryName: jenkins-x
     repositoryUrl: https://storage.googleapis.com/chartmuseum.jenkins-x.io
@@ -181,6 +193,7 @@
     - chartmuseum
     - helm
     - charts repo
+    lastDeployed: "2023-01-25T09:38:47Z"
     name: chartmuseum
     repositoryName: stable
     repositoryUrl: https://charts.helm.sh/stable
@@ -218,6 +231,7 @@
     kubeVersion: '>=1.16.0-0'
     maintainers:
     - name: ChiefAlexander
+    lastDeployed: "2022-01-25T09:38:47Z"
     name: ingress-nginx
     repositoryName: ingress-nginx
     repositoryUrl: https://kubernetes.github.io/ingress-nginx
@@ -239,6 +253,7 @@
     maintainers:
     - name: external-secrets
       url: https://github.com/external-secrets
+    lastDeployed: "2022-01-25T09:38:47Z"
     name: kubernetes-external-secrets
     repositoryName: external-secrets
     repositoryUrl: https://external-secrets.github.io/kubernetes-external-secrets
@@ -253,6 +268,7 @@
     keywords:
     - wave
     - kubernetes
+    lastDeployed: "2022-01-25T09:38:47Z"
     name: pusher-wave
     repositoryName: jx3
     repositoryUrl: https://storage.googleapis.com/jenkinsxio/charts
