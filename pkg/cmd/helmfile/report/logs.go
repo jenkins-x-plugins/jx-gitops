@@ -16,7 +16,7 @@ func getLogURL(requirements *jxcore.RequirementsConfig, ns, containerName string
 	if envExists {
 		t, err := template.New("logsURL").Parse(logsURL)
 		if err != nil {
-			log.Logger().Warn("failed to parse environment variable JX_LOGS_URL (%s) as template: %v", logsURL, err)
+			log.Logger().Warnf("failed to parse environment variable JX_LOGS_URL (%s) as template: %v", logsURL, err)
 		} else {
 			data := map[string]interface{}{
 				"requirements": requirements,
@@ -26,7 +26,7 @@ func getLogURL(requirements *jxcore.RequirementsConfig, ns, containerName string
 			var tpl bytes.Buffer
 			err := t.Execute(&tpl, data)
 			if err != nil {
-				log.Logger().Warn("failed to execute template %s with values: %v\nerror: %v", logsURL, data, err)
+				log.Logger().Warnf("failed to execute template %s with values: %v\nerror: %v", logsURL, data, err)
 			} else {
 				return tpl.String()
 			}
