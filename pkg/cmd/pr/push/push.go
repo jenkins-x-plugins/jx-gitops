@@ -111,7 +111,7 @@ func (o *Options) pushToPullRequestBranch(branch string) error {
 
 	args := []string{"push"}
 	if o.Force {
-		args = append(args, "--force")
+		args = append(args, "--force-if-includes", "--force-with-lease")
 	}
 	args = append(args, "origin", localBranch+":"+branch)
 	c := &cmdrunner.Command{
