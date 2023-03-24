@@ -243,6 +243,39 @@ func (o *Options) updateStatus(ctx context.Context, env *environment, provider, 
 	}
 
 	fullRepoName := scm.Join(owner, repoName)
+	// Check if there is an alternative repo in release.Sources. This would be useful if the chart doesn't have the same name as the repo
+	if len(release.Sources) > 0 {
+		repoInSources := false
+		var alternativeRepoInOwner *giturl.GitRepository
+		var alternativeRepo *giturl.GitRepository
+		for _, source := range release.Sources {
+			gitinfo, err := giturl.ParseGitURL(source)
+			if err != nil {
+				log.Logger().Warnf("failed to parse git URL %s from Chart source", source)
+				continue
+			}
+			// We can only update the status deployment in current provider
+			if strings.Contains(provider, gitinfo.Host) {
+				// If the assumed repo name is in the sources, that confirms that we can use it
+				if strings.Contains(source, fullRepoName) {
+					repoInSources = true
+				} else if gitinfo.Organisation == owner {
+					alternativeRepoInOwner = gitinfo
+				} else {
+					alternativeRepo = gitinfo
+				}
+			}
+		}
+		// Prefer the repo in the same owner
+		if !repoInSources {
+			if alternativeRepoInOwner != nil {
+				alternativeRepo = alternativeRepoInOwner
+			}
+			if alternativeRepo != nil {
+				fullRepoName = scm.Join(alternativeRepo.Organisation, alternativeRepo.Name)
+			}
+		}
+	}
 	if o.ScmClient.Deployments == nil {
 		log.Logger().Warnf("cannot update deployment status of release %s as the git server %s does not support Deployments", fullRepoName, provider)
 		return nil
