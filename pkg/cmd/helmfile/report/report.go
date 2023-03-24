@@ -67,7 +67,7 @@ type Options struct {
 	HelmClient              helmer.Helmer
 	Requirements            *jxcore.Requirements
 	NamespaceCharts         []*releasereport.NamespaceReleases
-	PreviousNamespaceCharts []*releasereport.NamespaceReleases
+	PreviousNamespaceCharts map[string]map[string]*releasereport.ReleaseInfo
 }
 
 // NewCmdHelmfileReport creates a command object for the command
@@ -156,10 +156,23 @@ func (o *Options) Run() error {
 		return errors.Wrapf(err, "failed to check file exists %s", path)
 	}
 	if exists {
-		err = releasereport.LoadReleases(path, &o.PreviousNamespaceCharts)
+		var previousNamespaceCharts []*releasereport.NamespaceReleases
+		err = releasereport.LoadReleases(path, &previousNamespaceCharts)
 		if err != nil {
 			return err
 		}
+		chartMap := map[string]map[string]*releasereport.ReleaseInfo{}
+		for _, nc := range previousNamespaceCharts {
+			nsMap, found := chartMap[nc.Namespace]
+			if !found {
+				nsMap = map[string]*releasereport.ReleaseInfo{}
+				chartMap[nc.Namespace] = nsMap
+			}
+			for _, ri := range nc.Releases {
+				nsMap[ri.Name] = ri
+			}
+		}
+		o.PreviousNamespaceCharts = chartMap
 	}
 
 	for _, hf := range o.Helmfiles {
@@ -258,11 +271,11 @@ func (o *Options) processHelmfile(helmfile helmfiles.Helmfile) (*releasereport.N
 }
 
 func (o *Options) createReleaseInfo(helmState *state.HelmState, ns string, rel *state.ReleaseSpec) (*releasereport.ReleaseInfo, error) {
-	chart := rel.Chart
-	if chart == "" {
+	chartName := rel.Chart
+	if chartName == "" {
 		return nil, nil
 	}
-	paths := strings.SplitN(chart, "/", 2)
+	paths := strings.SplitN(chartName, "/", 2)
 	answer := &releasereport.ReleaseInfo{}
 	answer.Version = rel.Version
 	switch len(paths) {
@@ -293,7 +306,7 @@ func (o *Options) createReleaseInfo(helmState *state.HelmState, ns string, rel *
 		return answer, errors.Wrapf(err, "failed to discover resources for %s", answer.String())
 	}
 
-	if !helmhelpers.IsChartNameRelative(chart) && !helmhelpers.IsChartRemote(chart) {
+	if !helmhelpers.IsChartNameRelative(chartName) && !helmhelpers.IsChartRemote(chartName) {
 		if answer.FirstDeployed == nil {
 			answer.FirstDeployed = createNow()
 		}
@@ -322,18 +335,17 @@ func (o *Options) enrichChartMetadata(i *releasereport.ReleaseInfo, repo *state.
 	// lets see if we can find the previous data in the previous release
 	localChartName := localName(rel.Chart)
 
-	for _, nc := range o.PreviousNamespaceCharts {
-		if nc.Namespace != ns {
-			continue
-		}
-		for _, ch := range nc.Releases {
-			if ch.Name == localChartName && ch.Version == rel.Version {
+	if nsMap, found := o.PreviousNamespaceCharts[ns]; found {
+		ch := nsMap[localChartName]
+		if ch != nil {
+			if ch.Version == rel.Version {
 				*i = *ch
-				// lets clear the old ingress/app URLs
+				// let's clear the old ingress/app URLs
 				i.ApplicationURL = ""
 				i.Ingresses = nil
 				return nil
 			}
+			i.FirstDeployed = ch.LastDeployed
 		}
 	}
 
@@ -461,7 +473,7 @@ func (o *Options) discoverIngress(ci *releasereport.ReleaseInfo, rel *state.Rele
 			continue
 		}
 		apiVersion := obj.GetAPIVersion()
-		if apiVersion != "networking.k8s.io/v1beta1" && apiVersion != "extensions/v1beta1" {
+		if apiVersion != "networking.k8s.io/v1beta1" && apiVersion != "extensions/v1beta1" && apiVersion != "networking.k8s.io/v1" {
 			log.Logger().Infof("ignoring Ingress in file %s with api version %s", path, apiVersion)
 			continue
 		}

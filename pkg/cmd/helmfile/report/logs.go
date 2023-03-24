@@ -1,12 +1,37 @@
 package report
 
 import (
+	"bytes"
+	"os"
+	"text/template"
+
 	jxcore "github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1"
 	"github.com/jenkins-x/jx-api/v4/pkg/cloud"
+	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 )
 
 func getLogURL(requirements *jxcore.RequirementsConfig, ns, containerName string) string {
 	c := &requirements.Cluster
+	logsURL, envExists := os.LookupEnv("JX_LOGS_URL")
+	if envExists {
+		t, err := template.New("logsURL").Parse(logsURL)
+		if err != nil {
+			log.Logger().Warnf("failed to parse environment variable JX_LOGS_URL (%s) as template: %v", logsURL, err)
+		} else {
+			data := map[string]interface{}{
+				"requirements": requirements,
+				"ns":           ns,
+				"container":    containerName,
+			}
+			var tpl bytes.Buffer
+			err := t.Execute(&tpl, data)
+			if err != nil {
+				log.Logger().Warnf("failed to execute template %s with values: %v\nerror: %v", logsURL, data, err)
+			} else {
+				return tpl.String()
+			}
+		}
+	}
 	if c.Provider == cloud.GKE {
 		return logsURLForGCP(c.ProjectID, c.ClusterName, ns, containerName)
 	}
