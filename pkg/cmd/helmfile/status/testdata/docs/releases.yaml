@@ -47,7 +47,7 @@
     ingresses:
     - name: nodey560
       url: http://nodey560-jx-staging.34.89.8.12.nip.io
-    lastDeployed: "2023-01-25T09:38:47Z"
+    lastDeployed: "2023-01-25T07:38:47Z"
     name: nodey560
     repositoryName: dev
     repositoryUrl: http://jenkins-x-chartmuseum.jx.svc.cluster.local:8080
