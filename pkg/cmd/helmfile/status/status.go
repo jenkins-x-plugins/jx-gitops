@@ -152,7 +152,7 @@ func (o *Options) Run() error {
 
 				env := o.getEnvForNamespace(nsr.Namespace)
 
-				err = o.CreateNewScmClient(c.EnvironmentGitOwner, gitServer, c.GitKind)
+				err = o.EnsureScmClient(c.EnvironmentGitOwner, gitServer, c.GitKind)
 				if err != nil {
 					return errors.Wrapf(err, "failed to create scm client for owner %s", c.EnvironmentGitOwner)
 				}
@@ -218,7 +218,7 @@ func (o *Options) updateStatuses(group *v1alpha1.RepositoryGroup, repo *v1alpha1
 
 			env := o.getEnvForNamespace(nsr.Namespace)
 
-			err := o.CreateNewScmClient(group.Owner, group.Provider, group.ProviderKind)
+			err := o.EnsureScmClient(group.Owner, group.Provider, group.ProviderKind)
 			if err != nil {
 				return errors.Wrapf(err, "failed to create scm client for repository %s/%s", group.Owner, repo.Name)
 			}
@@ -356,9 +356,13 @@ func (o *Options) FindExistingDeploymentInEnvironment(ctx context.Context, fullR
 	return nil, nil
 }
 
-func (o *Options) CreateNewScmClient(owner, server, gitKind string) error {
+func (o *Options) EnsureScmClient(owner, server, gitKind string) error {
 	if server == "" {
 		return errors.Errorf("no provider defined for owner %s", owner)
+	}
+	if o.ScmClient != nil && o.Factory.GitServerURL == server {
+		// let's reuse the existing client
+		return nil
 	}
 	if gitKind == "" {
 		gitKind = giturl.SaasGitKind(server)

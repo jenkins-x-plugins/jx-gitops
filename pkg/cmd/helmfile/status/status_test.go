@@ -27,7 +27,7 @@ const (
 
 var fullRepoName = filepath.Join(repoOwner, repoName)
 
-func TestHemlfileStatus(t *testing.T) {
+func TestHemlfileStatus_WithEarlyCutoff(t *testing.T) {
 	_, o := NewCmdHelmfileStatus()
 	o.Dir = "testdata"
 	o.TestGitToken = "faketoken"
@@ -37,6 +37,27 @@ func TestHemlfileStatus(t *testing.T) {
 	o.DeployCutoff = cutoff
 	err = o.Run()
 	require.NoError(t, err, "failed to run")
+	testFullRepoName := filepath.Join("jstrachan", "nodey560")
+	deployments, _, _ := o.ScmClient.Deployments.List(context.Background(), testFullRepoName, scm.ListOptions{})
+	require.Len(t, deployments, 1)
+	require.Equal(t, "Production", deployments[0].Environment)
+}
+
+func TestHemlfileStatus_WithLateCutoff(t *testing.T) {
+	_, o := NewCmdHelmfileStatus()
+	o.Dir = "testdata"
+	o.TestGitToken = "faketoken"
+	o.DeployOffset = ""
+	cutoff, err := time.Parse(time.RFC3339, "2023-01-25T06:38:47Z")
+	require.NoError(t, err, "failed to parse time")
+	o.DeployCutoff = cutoff
+	err = o.Run()
+	require.NoError(t, err, "failed to run")
+	testFullRepoName := filepath.Join("jstrachan", "nodey560")
+	deployments, _, _ := o.ScmClient.Deployments.List(context.Background(), testFullRepoName, scm.ListOptions{})
+	require.Len(t, deployments, 2)
+	require.Equal(t, "Production", deployments[0].Environment)
+	require.Equal(t, "Staging", deployments[1].Environment)
 }
 
 func TestNewCmdHelmfileStatus_FindExistingDeployment(t *testing.T) {
