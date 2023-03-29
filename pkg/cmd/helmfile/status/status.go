@@ -282,23 +282,21 @@ func (o *Options) updateStatus(ctx context.Context, env *environment, provider, 
 		return nil
 	}
 
-	deployment, err := o.FindExistingDeploymentInEnvironment(ctx, fullRepoName, env.name)
+	ref := "v" + release.Version
+	deployment, err := o.FindExistingDeploymentInEnvironment(ctx, ref, env.name, fullRepoName)
 	if err != nil {
 		return err
 	}
 
-	ref := "v" + release.Version
-
-	if deployment == nil {
-		deployment, err = o.CreateNewDeployment(ctx, ref, env.name, fullRepoName)
-		if err != nil {
-			return err
-		}
-
-	} else if ref == deployment.Ref {
+	if deployment != nil {
 		// We should ignore releases that are the same as the current deployment
 		log.Logger().Infof("existing deployment for %s is the same version as release (%s). Skipping deployment", fullRepoName, ref)
 		return nil
+	}
+
+	deployment, err = o.CreateNewDeployment(ctx, ref, env.name, fullRepoName)
+	if err != nil {
+		return err
 	}
 
 	deploymentStatusInput := &scm.DeploymentStatusInput{
@@ -340,15 +338,14 @@ func (o *Options) CreateNewDeployment(ctx context.Context, ref, environment, ful
 	return deployment, nil
 }
 
-func (o *Options) FindExistingDeploymentInEnvironment(ctx context.Context, fullRepoName, environment string) (*scm.Deployment, error) {
-	_, name := scm.Split(fullRepoName)
+func (o *Options) FindExistingDeploymentInEnvironment(ctx context.Context, ref, environment, fullRepoName string) (*scm.Deployment, error) {
 	// lets try find the existing deployment if it exists
 	deployments, _, err := o.ScmClient.Deployments.List(ctx, fullRepoName, scm.ListOptions{})
 	if err != nil && !scmhelpers.IsScmNotFound(err) {
 		return nil, err
 	}
 	for _, d := range deployments {
-		if d.Name == name && d.Environment == environment {
+		if d.Ref == ref && d.Environment == environment {
 			log.Logger().Infof("found existing deployment %s", d.Link)
 			return d, nil
 		}
