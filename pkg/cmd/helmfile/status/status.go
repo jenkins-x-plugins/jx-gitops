@@ -146,7 +146,7 @@ func (o *Options) Run() error {
 		gitServer := stringhelpers.FirstNotEmptyString(c.GitServer, giturl.GitHubURL)
 		for _, nsr := range o.NamespaceReleases {
 			for _, release := range nsr.Releases {
-				if !(o.DeployCutoff.IsZero() || release.LastDeployed == nil || o.DeployCutoff.Before(release.LastDeployed.Time)) {
+				if release.LastDeployed == nil || !(o.DeployCutoff.IsZero() || o.DeployCutoff.Before(release.LastDeployed.Time)) {
 					continue
 				}
 
