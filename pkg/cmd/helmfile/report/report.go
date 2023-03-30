@@ -169,7 +169,7 @@ func (o *Options) Run() error {
 				chartMap[nc.Namespace] = nsMap
 			}
 			for _, ri := range nc.Releases {
-				nsMap[ri.Name] = ri
+				nsMap[ri.ReleaseName] = ri
 			}
 		}
 		o.PreviousNamespaceCharts = chartMap
@@ -320,23 +320,13 @@ func (o *Options) createReleaseInfo(helmState *state.HelmState, ns string, rel *
 	return answer, nil
 }
 
-func localName(chartName string) string {
-	paths := strings.SplitN(chartName, "/", 2)
-	if len(paths) == 2 {
-		return paths[1]
-	}
-	return chartName
-}
-
 func (o *Options) enrichChartMetadata(i *releasereport.ReleaseInfo, repo *state.RepositorySpec, rel *state.ReleaseSpec, ns string) error {
 	if repo.OCI {
 		return nil
 	}
 	// lets see if we can find the previous data in the previous release
-	localChartName := localName(rel.Chart)
-
 	if nsMap, found := o.PreviousNamespaceCharts[ns]; found {
-		ch := nsMap[localChartName]
+		ch := nsMap[rel.Name]
 		if ch != nil {
 			if ch.Version == rel.Version {
 				*i = *ch
