@@ -65,20 +65,24 @@ func TestNewCmdHelmfileStatus_FindExistingDeployment(t *testing.T) {
 		{
 			Name:        repoName,
 			Environment: prod,
+			Ref:         "v1.0.0",
 		},
 		{
 			Name:        repoName,
 			Environment: preProd,
+			Ref:         "v1.5.0",
 		},
 		{
 			Name:        repoName,
 			Environment: staging,
+			Ref:         "v2.0.1",
 		},
 	}
 
 	type inputArgs struct {
 		fullRepoName string
 		environment  string
+		ref          string
 	}
 
 	testCases := []struct {
@@ -92,10 +96,12 @@ func TestNewCmdHelmfileStatus_FindExistingDeployment(t *testing.T) {
 			testArgs: inputArgs{
 				fullRepoName: fullRepoName,
 				environment:  prod,
+				ref:          "v1.0.0",
 			},
 			expectedDeployment: &scm.Deployment{
 				Name:        repoName,
 				Environment: prod,
+				Ref:         "v1.0.0",
 			},
 		},
 		{
@@ -124,7 +130,7 @@ func TestNewCmdHelmfileStatus_FindExistingDeployment(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			actualDeployment, err := testOpts.FindExistingDeploymentInEnvironment(context.TODO(), tt.testArgs.fullRepoName, tt.testArgs.environment)
+			actualDeployment, err := testOpts.FindExistingDeploymentInEnvironment(context.TODO(), tt.testArgs.ref, tt.testArgs.environment, tt.testArgs.fullRepoName)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedDeployment, actualDeployment)
 		})
@@ -147,7 +153,7 @@ func TestNewCmdHelmfileStatus_UpdateStatus(t *testing.T) {
 		expectedStatuses    map[string][]*scm.DeploymentStatus
 	}{
 		{
-			name: "existing deployment (create new status)",
+			name: "add deployment (other ref exists)",
 			inputArgs: inputArgs{
 				env:     &environment{name: prod},
 				repo:    &v1alpha1.Repository{Name: repoName},
@@ -159,6 +165,7 @@ func TestNewCmdHelmfileStatus_UpdateStatus(t *testing.T) {
 					Name:        repoName,
 					Environment: prod,
 					ID:          "deployment-1",
+					Ref:         "v0",
 				},
 			},
 			expectedDeployments: []*scm.Deployment{
@@ -166,10 +173,23 @@ func TestNewCmdHelmfileStatus_UpdateStatus(t *testing.T) {
 					Name:        repoName,
 					Environment: prod,
 					ID:          "deployment-1",
+					Ref:         "v0",
+				},
+				{
+					ID:                    "deployment-2",
+					Namespace:             repoOwner,
+					Name:                  repoName,
+					Ref:                   "v1",
+					Task:                  "deploy",
+					Description:           "release fakeRepo for version 1",
+					OriginalEnvironment:   "prod",
+					Environment:           prod,
+					ProductionEnvironment: true,
+					Payload:               "",
 				},
 			},
 			expectedStatuses: map[string][]*scm.DeploymentStatus{
-				fullRepoName + "/deployment-1": {
+				fullRepoName + "/deployment-2": {
 					{
 						ID:          "status-1",
 						State:       "success",
@@ -192,6 +212,7 @@ func TestNewCmdHelmfileStatus_UpdateStatus(t *testing.T) {
 					Name:        repoName,
 					Environment: preProd,
 					ID:          "deployment-1",
+					Ref:         "v0",
 				},
 			},
 			expectedDeployments: []*scm.Deployment{
@@ -199,6 +220,7 @@ func TestNewCmdHelmfileStatus_UpdateStatus(t *testing.T) {
 					Name:        repoName,
 					Environment: preProd,
 					ID:          "deployment-1",
+					Ref:         "v0",
 				},
 				{
 					Name:                  repoName,
