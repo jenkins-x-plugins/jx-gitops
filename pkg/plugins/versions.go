@@ -30,8 +30,8 @@ const (
 	// KptVersion the default version of kpt to use
 	KptVersion = "1.0.0-beta.17"
 
-	// KubectlVersion the default version of kpt to use
-	KubectlVersion = "1.21.0"
+	// KubectlVersion the default version of kubectl to use
+	KubectlVersion = "1.24.9"
 
 	// KappVersion the default version of kapp to use
 	KappVersion = "0.35.1-cmfork"
