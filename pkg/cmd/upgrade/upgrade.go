@@ -1,6 +1,11 @@
 package upgrade
 
 import (
+	"os"
+	"path/filepath"
+	"strings"
+
+	markdown "github.com/MichaelMure/go-term-markdown"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/helmfile/resolve"
 	kptupdate "github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/kpt/update"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/plugins"
@@ -10,6 +15,7 @@ import (
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
 )
 
 // ShowOptions the options for viewing running PRs
@@ -57,7 +63,13 @@ func (o *Options) Run() error {
 		}
 	}
 
-	return o.doTerraformUpgrade()
+	err = o.doTerraformUpgrade()
+	if err != nil {
+		return errors.Wrapf(err, "failed to upgrade terraform configuration")
+	}
+
+	o.DisplayReleaseNotes()
+	return nil
 }
 
 func (o *Options) doHelmfileUpgrade() error {
@@ -91,4 +103,32 @@ func (o *Options) doTerraformUpgrade() error {
 		return errors.Wrapf(err, "failed to upgrade terraform git repository versions")
 	}
 	return nil
+}
+
+// DisplayReleaseNotes Display untracked (new) files in notes directory
+func (o *Options) DisplayReleaseNotes() {
+	newNotes, err := o.GitClient.Command(o.Dir, "ls-files", "--exclude-standard", "--others", "versionStream/release-notes")
+	if err != nil {
+		log.Logger().Warnf("failed to find release notes: %s", err)
+		return
+	}
+	if newNotes != "" {
+		noteFiles := strings.Split(newNotes, "\n")
+		for _, noteFile := range noteFiles {
+			// Notes files in markdown and text format are supported. If suffix isn't .md text format is assumed.
+			fileContent, err := os.ReadFile(filepath.Join(o.Dir, noteFile))
+			if err != nil {
+				log.Logger().Warnf("failed to load release notes file %s: %s", noteFile, err)
+				continue
+			}
+			if strings.HasSuffix(noteFile, ".md") {
+				width, _, err := term.GetSize(int(os.Stdout.Fd()))
+				if err != nil || width > 115 {
+					width = 115
+				}
+				fileContent = markdown.Render(string(fileContent), width, 0)
+			}
+			log.Logger().Infof("\n%s\n", fileContent)
+		}
+	}
 }
