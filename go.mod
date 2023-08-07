@@ -16,7 +16,7 @@ require (
 	github.com/jenkins-x-plugins/jx-charter v0.0.28
 	github.com/jenkins-x/go-scm v1.11.15
 	github.com/jenkins-x/jx-api/v4 v4.5.1
-	github.com/jenkins-x/jx-helpers/v3 v3.4.2
+	github.com/jenkins-x/jx-helpers/v3 v3.4.12
 	github.com/jenkins-x/jx-kube-client/v3 v3.0.4
 	github.com/jenkins-x/jx-logging/v3 v3.0.9
 	github.com/jenkins-x/lighthouse-client v0.0.438
@@ -226,7 +226,7 @@ require (
 	go.uber.org/goleak v1.1.12 // indirect
 	go.uber.org/multierr v1.7.0 // indirect
 	go.uber.org/zap v1.23.0 // indirect
-	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e // indirect
+	golang.org/x/crypto v0.1.0 // indirect
 	golang.org/x/image v0.0.0-20191206065243-da761ea9ff43 // indirect
 	golang.org/x/net v0.7.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
