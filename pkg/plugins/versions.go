@@ -31,7 +31,7 @@ const (
 	KptVersion = "1.0.0-beta.17"
 
 	// KubectlVersion the default version of kubectl to use
-	KubectlVersion = "1.24.9"
+	KubectlVersion = "1.25.13"
 
 	// KappVersion the default version of kapp to use
 	KappVersion = "0.35.1-cmfork"
