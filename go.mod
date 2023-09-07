@@ -15,7 +15,7 @@ require (
 	github.com/imdario/mergo v0.3.13
 	github.com/jenkins-x-plugins/jx-charter v0.0.28
 	github.com/jenkins-x/go-scm v1.11.15
-	github.com/jenkins-x/jx-api/v4 v4.5.1
+	github.com/jenkins-x/jx-api/v4 v4.7.4
 	github.com/jenkins-x/jx-helpers/v3 v3.4.12
 	github.com/jenkins-x/jx-kube-client/v3 v3.0.4
 	github.com/jenkins-x/jx-logging/v3 v3.0.9
