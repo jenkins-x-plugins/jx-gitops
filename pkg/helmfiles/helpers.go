@@ -1,13 +1,11 @@
 package helmfiles
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/helmfile/helmfile/pkg/state"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/yaml2s"
 	"github.com/pkg/errors"
 )
@@ -45,7 +43,6 @@ func GatherHelmfiles(helmfile, dir string) ([]Helmfile, error) {
 	helmfiles := []Helmfile{
 		{helmfile, relativePath},
 	}
-	parentHelmfileDir := filepath.Dir(helmfile)
 
 	for _, nested := range helmState.Helmfiles {
 		// lets ignore remote helmfiles
@@ -63,19 +60,6 @@ func GatherHelmfiles(helmfile, dir string) ([]Helmfile, error) {
 			return nil, errors.Wrapf(err, "failed to get nested helmnfiles %s in %s", nested.Path, dir)
 		}
 		helmfiles = append(helmfiles, nestedHelmfile...)
-
-		nestedHelmfileDepth := len(strings.Split(filepath.Dir(nested.Path), pathSeparator))
-		relativePath := strings.Repeat("../", parentHelmfileDepth+nestedHelmfileDepth)
-
-		fileLocation := filepath.Join(parentHelmfileDir, nested.Path)
-		exists, err := files.FileExists(fileLocation)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to check for nested helmfile %s", fileLocation)
-		}
-		if !exists {
-			return nil, fmt.Errorf("failed to find nested helmfile %s", fileLocation)
-		}
-		helmfiles = append(helmfiles, Helmfile{fileLocation, relativePath})
 	}
 	return helmfiles, nil
 }
