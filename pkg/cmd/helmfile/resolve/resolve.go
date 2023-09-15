@@ -983,31 +983,8 @@ func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
 		}
 	}
 
-	// lets remove any unused jx3 repo
-	for i := range helmstate.Repositories {
-		repo := &helmstate.Repositories[i]
-		if repo.Name == "jx3" || repo.Name == "jenkins-x" {
-			// lets check if we have a jx3 release
-			found := false
-			prefix := repo.Name + "/"
-			for j := range helmstate.Releases {
-				release := &helmstate.Releases[j]
-				if strings.HasPrefix(release.Chart, prefix) {
-					found = true
-					break
-				}
-			}
-
-			if !found {
-				repos := helmstate.Repositories[0:i]
-				if i+1 < len(helmstate.Repositories) {
-					repos = append(repos, helmstate.Repositories[i+1:]...)
-				}
-				helmstate.Repositories = repos
-			}
-			break
-		}
-	}
+	// let's remove any unused jx3 repo
+	removeRedundantRepositories(helmstate)
 
 	// TODO lets remove the jx-labs repository if its no longer referenced...
 	if o.AddEnvironmentPipelines {
@@ -1045,6 +1022,23 @@ func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
 		}
 	}
 	return nil
+}
+
+// removeRedundantRepositories removes any repositories from a state.HelmState that are not referenced by any releases
+func removeRedundantRepositories(helmstate *state.HelmState) {
+	requiredRepositories := make(map[string]bool)
+	for i := range helmstate.Releases {
+		repoName := strings.SplitN(helmstate.Releases[i].Chart, "/", 2)[0]
+		requiredRepositories[repoName] = true
+	}
+
+	var cleanedRepositories []state.RepositorySpec
+	for i := range helmstate.Repositories {
+		if requiredRepositories[helmstate.Repositories[i].Name] {
+			cleanedRepositories = append(cleanedRepositories, helmstate.Repositories[i])
+		}
+	}
+	helmstate.Repositories = cleanedRepositories
 }
 
 func (o *Options) migrateRequirementsToV4() error {
