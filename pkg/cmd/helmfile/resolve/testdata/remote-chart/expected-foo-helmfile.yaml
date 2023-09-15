@@ -5,7 +5,6 @@ environments:
     - jx-values.yaml
 namespace: foo
 repositories:
-- {}
 - name: bitnami
   url: https://charts.bitnami.com/bitnami
 releases:
