@@ -1,11 +1,13 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  labels: &test_labels
+  labels:
     app.kubernetes.io/instance: external-dns
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: external-dns
     helm.sh/chart: external-dns-6.8.2
+    beer: 'stella'
+    wine: 'merlot'
   name: external-dns
   namespace: jx
 spec:
@@ -26,7 +28,11 @@ spec:
       annotations:
         prometheus.io/port: "7979"
         prometheus.io/scrape: "true"
-      labels: *test_labels
+      labels:
+        app.kubernetes.io/instance: external-dns
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: external-dns
+        helm.sh/chart: external-dns-6.8.2
     spec:
       affinity:
         podAntiAffinity:
