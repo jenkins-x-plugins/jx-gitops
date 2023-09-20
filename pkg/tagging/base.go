@@ -65,6 +65,11 @@ func NewCmdUpdateTag(tagVerb, tagType string) (*cobra.Command, *Options) {
 // UpdateTagInYamlFiles updates the annotations in yaml files
 func (o *Options) UpdateTagInYamlFiles(tagType string, tags []string) error {
 	modifyFn := func(node *yaml.RNode, path string) (bool, error) {
+		// The FieldMatcher assumes MappingNode notAliasNode, so need to DeAnchor before going on
+		err := node.DeAnchor()
+		if err != nil {
+			return false, err
+		}
 		sort.Strings(tags)
 		tagNode, err := getTagNode(node, path, tagType, o)
 		if err != nil {
