@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/helmfile/helmfile/pkg/state"
@@ -66,7 +68,6 @@ type Options struct {
 	CommandRunner           cmdrunner.CommandRunner
 	HelmClient              helmer.Helmer
 	Requirements            *jxcore.Requirements
-	NamespaceCharts         []*releasereport.NamespaceReleases
 	PreviousNamespaceCharts map[string]map[string]*releasereport.ReleaseInfo
 }
 
@@ -175,33 +176,36 @@ func (o *Options) Run() error {
 		o.PreviousNamespaceCharts = chartMap
 	}
 
+	var wg sync.WaitGroup
+	var namespaceCharts []*releasereport.NamespaceReleases
 	for _, hf := range o.Helmfiles {
-		charts, err := o.processHelmfile(hf)
-		if err != nil {
-			return errors.Wrapf(err, "failed to process helmfile %s", hf.Filepath)
-		}
-		if charts != nil {
-			for i, nc := range o.NamespaceCharts {
-				// lets remove the old entry for the namespace
-				if nc.Namespace == charts.Namespace {
-					s := o.NamespaceCharts[0:i]
-					if i+1 < len(o.NamespaceCharts) {
-						s = append(s, o.NamespaceCharts[i+1:]...)
-					}
-					o.NamespaceCharts = s
-				}
+		wg.Add(1)
+		go func(hf helmfiles.Helmfile) {
+			defer wg.Done()
+			charts, err := o.processHelmfile(hf)
+			if err != nil {
+				log.Logger().Errorf("failed to process helmfile %s: %v", hf.Filepath, err)
+				return
 			}
-			o.NamespaceCharts = append(o.NamespaceCharts, charts)
-		}
+			if charts == nil {
+				return
+			}
+			namespaceCharts = append(namespaceCharts, charts)
+		}(hf)
 	}
 
-	err = yamls.SaveFile(o.NamespaceCharts, path)
+	wg.Wait()
+
+	// We should sort the charts to avoid unnecessary diffs in the generated YAML
+	sortCharts(namespaceCharts)
+
+	err = yamls.SaveFile(namespaceCharts, path)
 	if err != nil {
 		return errors.Wrapf(err, "failed to save %s", path)
 	}
 	log.Logger().Infof("saved %s", info(path))
 
-	md, err := ToMarkdown(o.NamespaceCharts)
+	md, err := ToMarkdown(namespaceCharts)
 	if err != nil {
 		return errors.Wrap(err, "failed to convert charts to markdown")
 	}
@@ -212,7 +216,7 @@ func (o *Options) Run() error {
 	}
 	log.Logger().Infof("saved %s", info(path))
 
-	return o.generateChartCRDs()
+	return o.generateChartCRDs(namespaceCharts)
 }
 
 func (o *Options) processHelmfile(helmfile helmfiles.Helmfile) (*releasereport.NamespaceReleases, error) {
@@ -237,8 +241,6 @@ func (o *Options) processHelmfile(helmfile helmfiles.Helmfile) (*releasereport.N
 	}
 	answer.Namespace = ns
 	answer.Path = helmfile.Filepath
-
-	log.Logger().Infof("namespace %s", ns)
 
 	for i := range helmState.Releases {
 		rel := &helmState.Releases[i]
@@ -266,7 +268,6 @@ func (o *Options) processHelmfile(helmfile helmfiles.Helmfile) (*releasereport.N
 		answer.Releases = append(answer.Releases, ci)
 		log.Logger().Infof("found %s", ci.String())
 	}
-	log.Logger().Infof("")
 	return answer, nil
 }
 
@@ -492,11 +493,11 @@ func (o *Options) discoverIngress(ci *releasereport.ReleaseInfo, rel *state.Rele
 	return nil
 }
 
-func (o *Options) generateChartCRDs() error {
+func (o *Options) generateChartCRDs(namespaceCharts []*releasereport.NamespaceReleases) error {
 	// lets check if we have installed the jx-charter chart which if not we don't generate Chart CRDs
 	// as we need the CRD to know if we should create them....
 	found := false
-	for _, nc := range o.NamespaceCharts {
+	for _, nc := range namespaceCharts {
 		for _, r := range nc.Releases {
 			if r.Name == "jx-charter" {
 				found = true
@@ -508,7 +509,7 @@ func (o *Options) generateChartCRDs() error {
 		return nil
 	}
 
-	for _, nc := range o.NamespaceCharts {
+	for _, nc := range namespaceCharts {
 		for _, r := range nc.Releases {
 			ns := nc.Namespace
 			name := r.Name
@@ -588,4 +589,16 @@ func (o *Options) verifyReleaseExists(ns string, r *state.ReleaseSpec) (bool, er
 		return false, errors.Wrapf(err, "failed to check if directory exist %s", path)
 	}
 	return exists, nil
+}
+
+// sortCharts sorts the charts by namespace and then sorts the releases by name
+func sortCharts(namespaceCharts []*releasereport.NamespaceReleases) {
+	sort.SliceStable(namespaceCharts, func(i, j int) bool {
+		return namespaceCharts[i].Namespace < namespaceCharts[j].Namespace
+	})
+	for idx := range namespaceCharts {
+		sort.SliceStable(namespaceCharts[idx].Releases, func(i, j int) bool {
+			return namespaceCharts[idx].Releases[i].Name < namespaceCharts[idx].Releases[j].Name
+		})
+	}
 }
