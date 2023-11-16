@@ -14,6 +14,8 @@ type testcase struct {
 	PullRequest bool
 	ShouldRegen bool
 	Merge       bool
+	NewCluster  bool
+	NoRegen2    bool
 }
 
 /*
@@ -26,6 +28,7 @@ func TestRun(t *testing.T) {
 	var testcases = map[string]testcase{
 		"4d028367b24b7809480ba827a758b4c75d1085ad": {
 			ShouldRegen: true,
+			NewCluster:  true,
 		},
 		"7c6e4dd1482d4c1965b73bfc9aecbe2ed61f9213": {
 			ShouldRegen: true,
@@ -87,7 +90,11 @@ func TestRun(t *testing.T) {
 			ShouldRegen: true,
 			Merge:       true,
 		},
-		"f1dcbd3f834b40a3cd597278475c6d26645d4b34": {},
+		"f1dcbd3f834b40a3cd597278475c6d26645d4b34": {
+			ShouldRegen: true,
+			NewCluster:  true,
+			NoRegen2:    true,
+		},
 		"f0873b49e8bf96c13368e2ecf773ac4195d4afa5": {
 			PullRequest: true,
 			ShouldRegen: true,
@@ -143,7 +150,7 @@ func TestRun(t *testing.T) {
 				Dir:           dir,
 				PullRequest:   test.PullRequest,
 				CommandRunner: fakeRunner.Run,
-				IsNewCluster:  false,
+				IsNewCluster:  test.NewCluster,
 				repo:          r,
 			}
 			err = o.Run()
@@ -155,13 +162,17 @@ func TestRun(t *testing.T) {
 					assert.NotEmpty(t, fakeRunner.OrderedCommands[0].Args)
 					assert.Equal(t, "pr-regen", fakeRunner.OrderedCommands[0].Args[0])
 				} else {
-					assert.Len(t, fakeRunner.OrderedCommands, 3)
-					assert.NotEmpty(t, fakeRunner.OrderedCommands[0].Args)
-					assert.Equal(t, "regen-phase-1", fakeRunner.OrderedCommands[0].Args[0])
-					assert.NotEmpty(t, fakeRunner.OrderedCommands[1].Args)
-					assert.Equal(t, "regen-phase-2", fakeRunner.OrderedCommands[1].Args[0])
-					assert.NotEmpty(t, fakeRunner.OrderedCommands[2].Args)
-					assert.Equal(t, "regen-phase-3", fakeRunner.OrderedCommands[2].Args[0])
+					i := 0
+					assert.NotEmpty(t, fakeRunner.OrderedCommands[i].Args)
+					assert.Equal(t, "regen-phase-1", fakeRunner.OrderedCommands[i].Args[0])
+					i++
+					if !test.NoRegen2 {
+						assert.NotEmpty(t, fakeRunner.OrderedCommands[i].Args)
+						assert.Equal(t, "regen-phase-2", fakeRunner.OrderedCommands[i].Args[0])
+						i++
+					}
+					assert.NotEmpty(t, fakeRunner.OrderedCommands[i].Args)
+					assert.Equal(t, "regen-phase-3", fakeRunner.OrderedCommands[i].Args[0])
 				}
 			} else if test.Merge {
 				assert.Len(t, fakeRunner.OrderedCommands, 1)
