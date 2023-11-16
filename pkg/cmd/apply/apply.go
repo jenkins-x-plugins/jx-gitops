@@ -269,6 +269,9 @@ func (o *Options) CheckLastCommitChangedExternalSecret(commit *object.Commit, di
 }
 
 func (o *Options) isNewCluster() bool {
+	if o.IsNewCluster {
+		return true
+	}
 	if kube.IsNoKubernetes() {
 		log.Logger().Infof("Not executing with k8s cluster. Assuming generation for existing cluster.")
 		return false
