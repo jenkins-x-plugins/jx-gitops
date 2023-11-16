@@ -117,6 +117,7 @@ func (o *Options) Run() error {
 	if !regen {
 		if o.IsNewCluster {
 			log.Logger().Infof("applying to new cluster so performing a full regenerate")
+			regen = true
 		} else {
 			err := verifyRegenerated(headCommit, &object.Commit{})
 			if err != nil {
