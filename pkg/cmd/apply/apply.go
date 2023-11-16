@@ -7,13 +7,14 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/cli"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"
@@ -43,12 +44,11 @@ var (
 
 // Options the options for the command
 type Options struct {
-	Dir              string
-	PullRequest      bool
-	GitClient        gitclient.Interface
-	CommandRunner    cmdrunner.CommandRunner
-	GitCommandRunner cmdrunner.CommandRunner
-	IsNewCluster     bool
+	Dir           string
+	PullRequest   bool
+	CommandRunner cmdrunner.CommandRunner
+	IsNewCluster  bool
+	repo          *git.Repository
 }
 
 // NewCmdApply creates a command object for the command
@@ -75,9 +75,6 @@ func (o *Options) Validate() error {
 	if o.CommandRunner == nil {
 		o.CommandRunner = cmdrunner.QuietCommandRunner
 	}
-	if o.GitClient == nil {
-		o.GitClient = cli.NewCLIClient("", o.CommandRunner)
-	}
 	o.IsNewCluster = o.isNewCluster()
 	return nil
 }
@@ -89,40 +86,53 @@ func (o *Options) Run() error {
 		return errors.Wrapf(err, "failed to validate")
 	}
 
-	lastCommitMessage, err := gitclient.GetLatestCommitMessage(o.GitClient, o.Dir)
+	if o.repo == nil {
+		o.repo, err = git.PlainOpen(o.Dir)
+		if err != nil {
+			return errors.Wrapf(err, "failed to open git repository")
+		}
+	}
+	head, err := o.repo.Head()
 	if err != nil {
-		return errors.Wrapf(err, "failed to get last commit message")
+		return errors.Wrapf(err, "failed to find git head")
 	}
-	lastCommitMessage = strings.TrimSpace(lastCommitMessage)
-	log.Logger().Infof("found last commit message: %s", termcolor.ColorStatus(lastCommitMessage))
-
-	if strings.Contains(lastCommitMessage, "/pipeline cancel") && !o.IsNewCluster {
-		log.Logger().Infof("last commit disabled further processing")
-		return nil
+	headCommit, err := object.GetCommit(o.repo.Storer, head.Hash())
+	if err != nil {
+		return errors.Wrapf(err, "failed to get head commit")
 	}
 
-	if o.PullRequest {
-		return o.pullRequest()
-	}
-
-	regen := true
-	if strings.HasPrefix(lastCommitMessage, "Merge pull request") || strings.HasPrefix(lastCommitMessage, "Merge branch") {
-		changedExternalSecret, err := o.CheckLastCommitChangedExternalSecret(o.GitClient, o.Dir)
+	regen := false
+	merge := false
+	if headCommit.NumParents() > 1 {
+		merge = true
+		changedExternalSecret, err := o.CheckLastCommitChangedExternalSecret(headCommit, o.Dir)
 		if err != nil {
 			return errors.Wrapf(err, "failed to check if last commit changed external secret")
 		}
 		if changedExternalSecret {
 			log.Logger().Infof("last commit changed an ExternalSecret so still performing a full regenerate")
-		} else if o.IsNewCluster {
+			regen = true
+		}
+	}
+	if !regen {
+		if o.IsNewCluster {
 			log.Logger().Infof("applying to new cluster so performing a full regenerate")
 		} else {
-			log.Logger().Infof("last commit was a merge pull request without changing an ExternalSecret so not regenerating")
-			regen = false
+			err := verifyRegenerated(headCommit, &object.Commit{})
+			if err != nil {
+				log.Logger().WithError(err).Infof("all changes may not have been regenerated")
+				regen = true
+			} else {
+				log.Logger().Infof("all changes are already regenerated")
+			}
 		}
 	}
 
 	if regen {
-		_, err := o.Regenerate()
+		if o.PullRequest {
+			return o.pullRequest()
+		}
+		_, err := o.Regenerate(o.repo, headCommit)
 		if err != nil {
 			return errors.Wrapf(err, "failed to regenerate")
 		}
@@ -136,7 +146,7 @@ func (o *Options) Run() error {
 		if err != nil {
 			return errors.Wrapf(err, "failed to regenerate phase 3")
 		}
-	} else {
+	} else if merge {
 		c := &cmdrunner.Command{
 			Dir:  o.Dir,
 			Name: "make",
@@ -151,28 +161,29 @@ func (o *Options) Run() error {
 }
 
 // Regenerate regenerates the kubernetes resources
-func (o *Options) Regenerate() (bool, error) {
-	firstSha, err := gitclient.GetLatestCommitSha(o.GitClient, o.Dir)
-	if err != nil {
-		return false, errors.Wrapf(err, "failed to get the last commit sha")
-	}
+func (o *Options) Regenerate(repo *git.Repository, headCommit *object.Commit) (bool, error) {
+	firstSha := headCommit.Hash.String()
 
 	c := &cmdrunner.Command{
 		Dir:  o.Dir,
 		Name: "make",
 		Args: []string{"regen-phase-1", "NEW_CLUSTER=" + strconv.FormatBool(o.IsNewCluster)},
 	}
-	err = o.RunCommand(c)
+	err := o.RunCommand(c)
 	if err != nil {
 		return false, errors.Wrapf(err, "failed to regenerate phase 1")
 	}
-
-	secondSha, err := gitclient.GetLatestCommitSha(o.GitClient, o.Dir)
+	head, err := repo.Head()
 	if err != nil {
-		return false, errors.Wrapf(err, "failed to get the last commit sha")
+		return false, errors.Wrapf(err, "failed to find git head")
 	}
+	secondSha := head.Hash().String()
 
-	lastCommitMessage, err := gitclient.GetLatestCommitMessage(o.GitClient, o.Dir)
+	headCommit, err = object.GetCommit(repo.Storer, head.Hash())
+	if err != nil {
+		return false, errors.Wrapf(err, "failed to get head commit")
+	}
+	lastCommitMessage := headCommit.Message
 	if err != nil {
 		return false, errors.Wrapf(err, "failed to get last commit message")
 	}
@@ -218,21 +229,29 @@ func (o *Options) pullRequest() error {
 	return nil
 }
 
-func (o *Options) CheckLastCommitChangedExternalSecret(gitter gitclient.Interface, dir string) (bool, error) {
-	text, err := gitter.Command(dir, "log", "-m", "-1", "--name-only", "--pretty=format:")
+func (o *Options) CheckLastCommitChangedExternalSecret(commit *object.Commit, dir string) (bool, error) {
+	next, err := commit.Parents().Next()
+	if err != nil {
+		return false, err
+	}
+	patch, err := next.Patch(commit)
 	if err != nil {
 		return false, errors.Wrapf(err, "failed to get file changes")
 	}
-	text = strings.TrimSpace(text)
-	lines := strings.Split(text, "\n")
-	for _, line := range lines {
-		line = strings.TrimSpace(line)
-		if line == "" || !strings.HasSuffix(line, ".yaml") || !strings.HasPrefix(line, "config-root") {
+
+	for _, pat := range patch.FilePatches() {
+		_, to := pat.Files()
+		if to == nil {
+			continue
+		}
+		fileName := to.Path()
+
+		if !strings.HasSuffix(fileName, ".yaml") || !strings.HasPrefix(fileName, "config-root") {
 			continue
 		}
 
 		u := unstructured.Unstructured{}
-		path := filepath.Join(dir, line)
+		path := filepath.Join(dir, fileName)
 		err := yamls.LoadFile(path, &u)
 		if err != nil {
 			log.Logger().Warnf("failed to read YAML file %s", path)
@@ -249,9 +268,13 @@ func (o *Options) CheckLastCommitChangedExternalSecret(gitter gitclient.Interfac
 }
 
 func (o *Options) isNewCluster() bool {
+	if kube.IsNoKubernetes() {
+		log.Logger().Infof("Not executing with k8s cluster. Assuming generation for existing cluster.")
+		return false
+	}
 	client, err := kube.LazyCreateKubeClientWithMandatory(nil, true)
 	if err != nil {
-		log.Logger().Errorf("Failed to create k8s client. Assuming this is a neww cluster: %v", err)
+		log.Logger().Errorf("Failed to create k8s client. Assuming this is a new cluster: %v", err)
 		return true
 	}
 	// If label team=jx is not set on namespace jx the cluster is considered new, as in that the jx-boot job has not run
@@ -270,4 +293,43 @@ func (o *Options) isNewCluster() bool {
 		return true
 	}
 	return false
+}
+
+func verifyRegenerated(commit, latestRegen *object.Commit) error {
+	if strings.Contains(commit.Message, "/pipeline cancel") {
+		// latestRegen.NumParents() is 0 when latestRegen is uninitialized
+		if latestRegen.NumParents() != 1 {
+			*latestRegen = *commit
+		}
+		return nil
+	}
+	// If commit is done 20 minutes before the latest regen we assume it's part of the regen
+	if latestRegen.NumParents() == 1 &&
+		commit.Committer.When.Add(20*time.Minute).Before(latestRegen.Committer.When) {
+		return nil
+	}
+	if commit.NumParents() < 2 {
+		if commit.NumParents() == 1 {
+			// If commit is ancestor of a regen we don't need to regen again
+			isAncestorOfRegen := func(commit *object.Commit) error {
+				ancestor, err := commit.IsAncestor(latestRegen)
+				if err != nil {
+					return err
+				}
+				if ancestor {
+					return nil
+				}
+				return fmt.Errorf("commit %s has not been regenerated", commit.Message)
+			}
+			err := isAncestorOfRegen(commit)
+			if err != nil {
+				return err
+			}
+			return commit.Parents().ForEach(isAncestorOfRegen)
+		}
+		return fmt.Errorf("commit %s has not been regenerated", commit.Message)
+	}
+	return commit.Parents().ForEach(func(commit *object.Commit) error {
+		return verifyRegenerated(commit, latestRegen)
+	})
 }
