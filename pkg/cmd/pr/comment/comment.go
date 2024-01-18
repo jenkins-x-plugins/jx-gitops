@@ -76,9 +76,15 @@ func (o *Options) commentPullRequest(pr *scm.PullRequest) error {
 	o.Result = pr
 
 	ctx := context.Background()
+
+	prName := "#" + strconv.Itoa(o.Number)
+
+	if err := o.managePreviousCommentsPullRequest(ctx); err != nil {
+		log.Logger().Errorf("failed to manage previous comments on pull request %s on repository %s: %v", prName, o.FullRepositoryName, err)
+	}
+
 	comment := &scm.CommentInput{Body: o.Comment}
 	_, _, err := o.ScmClient.PullRequests.CreateComment(ctx, o.FullRepositoryName, o.Number, comment)
-	prName := "#" + strconv.Itoa(o.Number)
 	if err != nil {
 		return errors.Wrapf(err, "failed to comment on pull request %s on repository %s", prName, o.FullRepositoryName)
 	}
@@ -86,4 +92,22 @@ func (o *Options) commentPullRequest(pr *scm.PullRequest) error {
 
 	return nil
 
+}
+
+func (o *Options) managePreviousCommentsPullRequest(ctx context.Context) error {
+	comments, _, err := o.ScmClient.PullRequests.ListComments(ctx, o.FullRepositoryName, o.Number, scm.ListOptions{})
+	if err != nil {
+		return errors.Wrapf(err, "failed to list comments")
+	}
+
+	for _, c := range comments {
+		if c.Body == o.Comment {
+			_, err := o.ScmClient.PullRequests.DeleteComment(ctx, o.FullRepositoryName, o.Number, c.ID)
+			if err != nil {
+				return errors.Wrapf(err, "failed to delete comment with ID %d", c.ID)
+			}
+		}
+	}
+
+	return nil
 }
