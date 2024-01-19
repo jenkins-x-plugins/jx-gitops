@@ -147,7 +147,7 @@ func (o *Options) createIfNotExists(ctx context.Context, pr *scm.PullRequest) er
 
 	for i := range existingComments {
 		comment := existingComments[i]
-		if comment.Body == o.Comment {
+		if o.ScmClient.Username == comment.Author.Login && comment.Body == o.Comment {
 			log.Logger().Infof("Similar comment already exists on pull request #%d on repository %s", o.Number, o.FullRepositoryName)
 			return nil
 		}
@@ -165,7 +165,7 @@ func (o *Options) deleteAndCreate(ctx context.Context, pr *scm.PullRequest) erro
 	similarComments := make([]*scm.Comment, 0)
 	for i := range existingComments {
 		comment := existingComments[i]
-		if comment.Body == o.Comment {
+		if o.ScmClient.Username == comment.Author.Login && comment.Body == o.Comment {
 			similarComments = append(similarComments, comment)
 		}
 	}

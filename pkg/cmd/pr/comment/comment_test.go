@@ -15,28 +15,95 @@ import (
 func TestPullRequestCommentStrategies(t *testing.T) {
 	scenarios := []struct {
 		name                 string
+		author               string
 		strategy             string
 		newCommentText       string
 		existingCommentsText []string
 		expectedCommentCount int
 	}{
-		{name: "CreateCommentStrategy-Existing", strategy: comment.CreateCommentStrategy, newCommentText: "comment for CreateCommentStrategy", existingCommentsText: []string{"comment for CreateCommentStrategy"}, expectedCommentCount: 2},
-		{name: "CreateCommentStrategy-NotExisting", strategy: comment.CreateCommentStrategy, newCommentText: "new-comment for CreateCommentStrategy", existingCommentsText: []string{"comment for CreateCommentStrategy"}, expectedCommentCount: 2},
-		{name: "CreateIfNotExistsCommentStrategy-Existing", strategy: comment.CreateIfNotExistsCommentStrategy, newCommentText: "existing-comment for CreateIfNotExistsCommentStrategy", existingCommentsText: []string{"existing-comment for CreateIfNotExistsCommentStrategy"}, expectedCommentCount: 1},
-		{name: "CreateIfNotExistsCommentStrategy-NotExisting", strategy: comment.CreateIfNotExistsCommentStrategy, newCommentText: "new-comment for CreateIfNotExistsCommentStrategy", existingCommentsText: []string{"existing-comment for CreateIfNotExistsCommentStrategy"}, expectedCommentCount: 2},
-		{name: "DeleteAndCreateCommentStrategy-Existing", strategy: comment.DeleteAndCreateCommentStrategy, newCommentText: "comment for DeleteAndCreateCommentStrategy", existingCommentsText: []string{"comment for DeleteAndCreateCommentStrategy", "existing-comment for DeleteAndCreateCommentStrategy"}, expectedCommentCount: 2},
-		{name: "DeleteAndCreateCommentStrategy-NotExisting", strategy: comment.DeleteAndCreateCommentStrategy, newCommentText: "comment for DeleteAndCreateCommentStrategy", existingCommentsText: []string{"existing-comment for DeleteAndCreateCommentStrategy"}, expectedCommentCount: 2},
+		{
+			name:                 "CreateCommentStrategy-Existing-DifferentUser",
+			author:               "CreateCommentStrategy-Existing-DifferentUser",
+			strategy:             comment.CreateCommentStrategy,
+			newCommentText:       "comment for CreateCommentStrategy",
+			existingCommentsText: []string{"comment for CreateCommentStrategy"},
+			expectedCommentCount: 2,
+		},
+		{
+			name:                 "CreateIfNotExistsCommentStrategy-Existing-DifferentUser",
+			author:               "CreateIfNotExistsCommentStrategy-Existing-DifferentUser",
+			strategy:             comment.CreateIfNotExistsCommentStrategy,
+			newCommentText:       "comment for CreateIfNotExistsCommentStrategy",
+			existingCommentsText: []string{"comment for CreateIfNotExistsCommentStrategy"},
+			expectedCommentCount: 2,
+		},
+		{
+			name:                 "DeleteAndCreateCommentStrategy-Existing-DifferentUser",
+			author:               "DeleteAndCreateCommentStrategy-Existing-DifferentUser",
+			strategy:             comment.DeleteAndCreateCommentStrategy,
+			newCommentText:       "comment for DeleteAndCreateCommentStrategy",
+			existingCommentsText: []string{"comment for DeleteAndCreateCommentStrategy"},
+			expectedCommentCount: 2,
+		},
+		{
+			name:                 "CreateCommentStrategy-Existing-SimilarUser",
+			author:               "",
+			strategy:             comment.CreateCommentStrategy,
+			newCommentText:       "comment for CreateCommentStrategy",
+			existingCommentsText: []string{"comment for CreateCommentStrategy"},
+			expectedCommentCount: 2,
+		},
+		{
+			name:                 "CreateCommentStrategy-NotExisting-SimilarUser",
+			author:               "",
+			strategy:             comment.CreateCommentStrategy,
+			newCommentText:       "new-comment for CreateCommentStrategy",
+			existingCommentsText: []string{"comment for CreateCommentStrategy"},
+			expectedCommentCount: 2,
+		},
+		{
+			name:                 "CreateIfNotExistsCommentStrategy-Existing-SimilarUser",
+			author:               "",
+			strategy:             comment.CreateIfNotExistsCommentStrategy,
+			newCommentText:       "existing-comment for CreateIfNotExistsCommentStrategy",
+			existingCommentsText: []string{"existing-comment for CreateIfNotExistsCommentStrategy"},
+			expectedCommentCount: 1,
+		},
+		{
+			name:                 "CreateIfNotExistsCommentStrategy-NotExisting-SimilarUser",
+			author:               "",
+			strategy:             comment.CreateIfNotExistsCommentStrategy,
+			newCommentText:       "new-comment for CreateIfNotExistsCommentStrategy",
+			existingCommentsText: []string{"existing-comment for CreateIfNotExistsCommentStrategy"},
+			expectedCommentCount: 2,
+		},
+		{
+			name:                 "DeleteAndCreateCommentStrategy-Existing-SimilarUser",
+			author:               "",
+			strategy:             comment.DeleteAndCreateCommentStrategy,
+			newCommentText:       "comment for DeleteAndCreateCommentStrategy",
+			existingCommentsText: []string{"comment for DeleteAndCreateCommentStrategy", "existing-comment for DeleteAndCreateCommentStrategy"},
+			expectedCommentCount: 2,
+		},
+		{
+			name:                 "DeleteAndCreateCommentStrategy-NotExisting-SimilarUser",
+			author:               "",
+			strategy:             comment.DeleteAndCreateCommentStrategy,
+			newCommentText:       "comment for DeleteAndCreateCommentStrategy",
+			existingCommentsText: []string{"existing-comment for DeleteAndCreateCommentStrategy"},
+			expectedCommentCount: 2,
+		},
 	}
 
 	for _, scenario := range scenarios {
 		t.Run(scenario.name, func(t *testing.T) {
-			o := setupOptionsAndData(scenario.strategy, scenario.newCommentText, scenario.existingCommentsText)
+			o := setupOptionsAndData(scenario.strategy, scenario.newCommentText, scenario.existingCommentsText, scenario.author)
 			testCommentStrategy(t, o, scenario.expectedCommentCount)
 		})
 	}
 }
 
-func setupOptionsAndData(strategy string, newCommentText string, existingCommentsText []string) *comment.Options {
+func setupOptionsAndData(strategy string, newCommentText string, existingCommentsText []string, author string) *comment.Options {
 	_, o := comment.NewCmdPullRequestComment()
 
 	prNumber := 123
@@ -52,6 +119,10 @@ func setupOptionsAndData(strategy string, newCommentText string, existingComment
 	o.Strategy = strategy
 
 	scmClient, fakeData := fake.NewDefault()
+	if author != "" {
+		fakeData.CurrentUser.Name = author
+		fakeData.CurrentUser.Login = author
+	}
 	o.ScmClient = scmClient
 
 	fakeData.PullRequests[prNumber] = &scm.PullRequest{
@@ -63,6 +134,10 @@ func setupOptionsAndData(strategy string, newCommentText string, existingComment
 	// Add existing comments to the pull request
 	for _, existingCommentText := range existingCommentsText {
 		fakeData.PullRequestComments[prNumber] = append(fakeData.PullRequestComments[prNumber], &scm.Comment{
+			Author: scm.User{
+				Login: fakeData.CurrentUser.Name,
+				Name:  fakeData.CurrentUser.Name,
+			},
 			Body: existingCommentText,
 		})
 	}
