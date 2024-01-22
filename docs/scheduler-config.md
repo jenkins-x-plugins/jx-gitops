@@ -130,8 +130,8 @@ Postsubmits
 <td>
 <code>queries</code></br>
 <em>
-<a href="#scheduler.jenkins-x.io/v1alpha1.*github.com/jenkins-x-plugins/jx-gitops/pkg/apis/scheduler/v1alpha1.Query">
-[]*github.com/jenkins-x-plugins/jx-gitops/pkg/apis/scheduler/v1alpha1.Query
+<a href="#scheduler.jenkins-x.io/v1alpha1.Query">
+[]Query
 </a>
 </em>
 </td>
@@ -268,8 +268,8 @@ ConfigUpdater
 <td>
 <code>welcome</code></br>
 <em>
-<a href="#scheduler.jenkins-x.io/v1alpha1.*github.com/jenkins-x-plugins/jx-gitops/pkg/apis/scheduler/v1alpha1.Welcome">
-[]*github.com/jenkins-x-plugins/jx-gitops/pkg/apis/scheduler/v1alpha1.Welcome
+<a href="#scheduler.jenkins-x.io/v1alpha1.Welcome">
+[]Welcome
 </a>
 </em>
 </td>
@@ -292,8 +292,8 @@ Periodics
 <td>
 <code>attachments</code></br>
 <em>
-<a href="#scheduler.jenkins-x.io/v1alpha1.*github.com/jenkins-x-plugins/jx-gitops/pkg/apis/scheduler/v1alpha1.Attachment">
-[]*github.com/jenkins-x-plugins/jx-gitops/pkg/apis/scheduler/v1alpha1.Attachment
+<a href="#scheduler.jenkins-x.io/v1alpha1.Attachment">
+[]Attachment
 </a>
 </em>
 </td>
@@ -387,6 +387,10 @@ bool
 </table>
 <h3 id="scheduler.jenkins-x.io/v1alpha1.Attachment">Attachment
 </h3>
+<p>
+(<em>Appears on:</em>
+<a href="#scheduler.jenkins-x.io/v1alpha1.SchedulerSpec">SchedulerSpec</a>)
+</p>
 <p>
 </p>
 <table>
@@ -563,7 +567,7 @@ namespace provided, or the default if it is not set.</p>
 <code>map</code></br>
 <em>
 <a href="#scheduler.jenkins-x.io/v1alpha1.ConfigMapSpec">
-map[string]github.com/jenkins-x-plugins/jx-gitops/pkg/apis/scheduler/v1alpha1.ConfigMapSpec
+map[string]./pkg/apis/scheduler/v1alpha1.ConfigMapSpec
 </a>
 </em>
 </td>
@@ -610,6 +614,7 @@ ConfigMapSpec
 <p>
 (<em>Appears on:</em>
 <a href="#scheduler.jenkins-x.io/v1alpha1.Merger">Merger</a>, 
+<a href="#scheduler.jenkins-x.io/v1alpha1.ReplaceableMapOfStringContextPolicy">ReplaceableMapOfStringContextPolicy</a>, 
 <a href="#scheduler.jenkins-x.io/v1alpha1.RepoContextPolicy">RepoContextPolicy</a>)
 </p>
 <p>
@@ -685,6 +690,10 @@ bool
 </table>
 <h3 id="scheduler.jenkins-x.io/v1alpha1.ExternalPlugin">ExternalPlugin
 </h3>
+<p>
+(<em>Appears on:</em>
+<a href="#scheduler.jenkins-x.io/v1alpha1.ReplaceableSliceOfExternalPlugins">ReplaceableSliceOfExternalPlugins</a>)
+</p>
 <p>
 <p>ExternalPlugin holds configuration for registering an external
 plugin.</p>
@@ -1011,7 +1020,7 @@ define their own options in case branch protection is not used.</p>
 <td>
 <code>entries</code></br>
 <em>
-[]*github.com/jenkins-x/lighthouse-client/pkg/config/job.Periodic
+[]github.com/jenkins-x/lighthouse-client/pkg/config/job.Periodic
 </em>
 </td>
 <td>
@@ -1053,7 +1062,7 @@ configurations in the parent scheduler</p>
 <td>
 <code>entries</code></br>
 <em>
-[]*github.com/jenkins-x/lighthouse-client/pkg/config/job.Postsubmit
+[]github.com/jenkins-x/lighthouse-client/pkg/config/job.Postsubmit
 </em>
 </td>
 <td>
@@ -1095,7 +1104,7 @@ configurations in the parent scheduler</p>
 <td>
 <code>entries</code></br>
 <em>
-[]*github.com/jenkins-x/lighthouse-client/pkg/config/job.Presubmit
+[]github.com/jenkins-x/lighthouse-client/pkg/config/job.Presubmit
 </em>
 </td>
 <td>
@@ -1160,8 +1169,8 @@ bool
 <td>
 <code>entries</code></br>
 <em>
-<a href="#scheduler.jenkins-x.io/v1alpha1.*github.com/jenkins-x-plugins/jx-gitops/pkg/apis/scheduler/v1alpha1.ProtectionPolicy">
-map[string]*github.com/jenkins-x-plugins/jx-gitops/pkg/apis/scheduler/v1alpha1.ProtectionPolicy
+<a href="#scheduler.jenkins-x.io/v1alpha1.ProtectionPolicy">
+map[string]*./pkg/apis/scheduler/v1alpha1.ProtectionPolicy
 </a>
 </em>
 </td>
@@ -1260,6 +1269,10 @@ perform
 </p>
 <h3 id="scheduler.jenkins-x.io/v1alpha1.Query">Query
 </h3>
+<p>
+(<em>Appears on:</em>
+<a href="#scheduler.jenkins-x.io/v1alpha1.SchedulerSpec">SchedulerSpec</a>)
+</p>
 <p>
 <p>Query is turned into a Git Provider search query. See the docs for details:
 <a href="https://help.github.com/articles/searching-issues-and-pull-requests/">https://help.github.com/articles/searching-issues-and-pull-requests/</a></p>
@@ -1374,8 +1387,8 @@ bool
 <td>
 <code>Items</code></br>
 <em>
-<a href="#scheduler.jenkins-x.io/v1alpha1.*github.com/jenkins-x-plugins/jx-gitops/pkg/apis/scheduler/v1alpha1.ContextPolicy">
-map[string]*github.com/jenkins-x-plugins/jx-gitops/pkg/apis/scheduler/v1alpha1.ContextPolicy
+<a href="#scheduler.jenkins-x.io/v1alpha1.ContextPolicy">
+map[string]*./pkg/apis/scheduler/v1alpha1.ContextPolicy
 </a>
 </em>
 </td>
@@ -1416,8 +1429,8 @@ bool
 <td>
 <code>entries</code></br>
 <em>
-<a href="#scheduler.jenkins-x.io/v1alpha1.*github.com/jenkins-x-plugins/jx-gitops/pkg/apis/scheduler/v1alpha1.ExternalPlugin">
-[]*github.com/jenkins-x-plugins/jx-gitops/pkg/apis/scheduler/v1alpha1.ExternalPlugin
+<a href="#scheduler.jenkins-x.io/v1alpha1.ExternalPlugin">
+[]ExternalPlugin
 </a>
 </em>
 </td>
@@ -1727,8 +1740,8 @@ Postsubmits
 <td>
 <code>queries</code></br>
 <em>
-<a href="#scheduler.jenkins-x.io/v1alpha1.*github.com/jenkins-x-plugins/jx-gitops/pkg/apis/scheduler/v1alpha1.Query">
-[]*github.com/jenkins-x-plugins/jx-gitops/pkg/apis/scheduler/v1alpha1.Query
+<a href="#scheduler.jenkins-x.io/v1alpha1.Query">
+[]Query
 </a>
 </em>
 </td>
@@ -1865,8 +1878,8 @@ ConfigUpdater
 <td>
 <code>welcome</code></br>
 <em>
-<a href="#scheduler.jenkins-x.io/v1alpha1.*github.com/jenkins-x-plugins/jx-gitops/pkg/apis/scheduler/v1alpha1.Welcome">
-[]*github.com/jenkins-x-plugins/jx-gitops/pkg/apis/scheduler/v1alpha1.Welcome
+<a href="#scheduler.jenkins-x.io/v1alpha1.Welcome">
+[]Welcome
 </a>
 </em>
 </td>
@@ -1889,8 +1902,8 @@ Periodics
 <td>
 <code>attachments</code></br>
 <em>
-<a href="#scheduler.jenkins-x.io/v1alpha1.*github.com/jenkins-x-plugins/jx-gitops/pkg/apis/scheduler/v1alpha1.Attachment">
-[]*github.com/jenkins-x-plugins/jx-gitops/pkg/apis/scheduler/v1alpha1.Attachment
+<a href="#scheduler.jenkins-x.io/v1alpha1.Attachment">
+[]Attachment
 </a>
 </em>
 </td>
@@ -1994,6 +2007,10 @@ that could run but do not run.</p>
 <h3 id="scheduler.jenkins-x.io/v1alpha1.Welcome">Welcome
 </h3>
 <p>
+(<em>Appears on:</em>
+<a href="#scheduler.jenkins-x.io/v1alpha1.SchedulerSpec">SchedulerSpec</a>)
+</p>
+<p>
 <p>Welcome welcome plugin config</p>
 </p>
 <table>
@@ -2019,5 +2036,5 @@ string
 <hr/>
 <p><em>
 Generated with <code>gen-crd-api-reference-docs</code>
-on git commit <code>b14de9e2</code>.
+on git commit <code>100093a8</code>.
 </em></p>
