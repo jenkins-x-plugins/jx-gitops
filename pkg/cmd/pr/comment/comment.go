@@ -178,21 +178,3 @@ func (o *Options) deleteAndCreate(ctx context.Context) error {
 
 	return o.create(ctx)
 }
-
-func (o *Options) managePreviousCommentsPullRequest(ctx context.Context) error {
-	comments, _, err := o.ScmClient.PullRequests.ListComments(ctx, o.FullRepositoryName, o.Number, scm.ListOptions{})
-	if err != nil {
-		return errors.Wrapf(err, "failed to list comments")
-	}
-
-	for _, c := range comments {
-		if c.Body == o.Comment {
-			_, err := o.ScmClient.PullRequests.DeleteComment(ctx, o.FullRepositoryName, o.Number, c.ID)
-			if err != nil {
-				return errors.Wrapf(err, "failed to delete comment with ID %d", c.ID)
-			}
-		}
-	}
-
-	return nil
-}
