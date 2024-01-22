@@ -20,6 +20,14 @@ Updates the git deployment status after a release
 
 .SH OPTIONS
 .PP
+\fB\-a\fP, \fB\-\-auto\-inactive\fP[=true]
+    if enabled then the the status of previous deployments will be set to inactive
+
+.PP
+\fB\-\-deploy\-offset\fP="\-2h"
+    releases deployed after this time offset will have their deployments updated. Set to empty to update all. Format is a golang duration string
+
+.PP
 \fB\-d\fP, \fB\-\-dir\fP="."
     the directory that contains the content
 
