@@ -97,13 +97,13 @@ func TestPullRequestCommentStrategies(t *testing.T) {
 
 	for _, scenario := range scenarios {
 		t.Run(scenario.name, func(t *testing.T) {
-			o := setupOptionsAndData(scenario.strategy, scenario.newCommentText, scenario.existingCommentsText, scenario.author)
+			o := setupOptionsAndData(scenario.strategy, scenario.author, scenario.newCommentText, scenario.existingCommentsText)
 			testCommentStrategy(t, o, scenario.expectedCommentCount)
 		})
 	}
 }
 
-func setupOptionsAndData(strategy string, newCommentText string, existingCommentsText []string, author string) *comment.Options {
+func setupOptionsAndData(strategy, author, newCommentText string, existingCommentsText []string) *comment.Options {
 	_, o := comment.NewCmdPullRequestComment()
 
 	prNumber := 123

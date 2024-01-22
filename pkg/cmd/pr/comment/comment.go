@@ -86,26 +86,26 @@ func (o *Options) Run() error {
 	if pr == nil {
 		return errors.Errorf("no Pull Request could be found for %d in repository %s", o.Number, o.Repository)
 	}
-	return o.commentPullRequestWithStrategy(context.Background(), pr)
+	return o.commentPullRequestWithStrategy(context.Background())
 }
 
-func (o *Options) commentPullRequestWithStrategy(ctx context.Context, pr *scm.PullRequest) error {
+func (o *Options) commentPullRequestWithStrategy(ctx context.Context) error {
 	switch o.Strategy {
 	case CreateCommentStrategy:
-		return o.create(ctx, pr)
+		return o.create(ctx)
 
 	case CreateIfNotExistsCommentStrategy:
-		return o.createIfNotExists(ctx, pr)
+		return o.createIfNotExists(ctx)
 
 	case DeleteAndCreateCommentStrategy:
-		return o.deleteAndCreate(ctx, pr)
+		return o.deleteAndCreate(ctx)
 
 	default:
-		return o.create(ctx, pr)
+		return o.create(ctx)
 	}
 }
 
-func (o *Options) create(ctx context.Context, pr *scm.PullRequest) error {
+func (o *Options) create(ctx context.Context) error {
 	prName := "#" + strconv.Itoa(o.Number)
 	comment := &scm.CommentInput{Body: o.Comment}
 	_, _, err := o.ScmClient.PullRequests.CreateComment(ctx, o.FullRepositoryName, o.Number, comment)
@@ -116,7 +116,7 @@ func (o *Options) create(ctx context.Context, pr *scm.PullRequest) error {
 	return nil
 }
 
-func (o *Options) list(ctx context.Context, pr *scm.PullRequest) ([]*scm.Comment, error) {
+func (o *Options) list(ctx context.Context) ([]*scm.Comment, error) {
 	comments, _, err := o.ScmClient.PullRequests.ListComments(ctx, o.FullRepositoryName, o.Number, scm.ListOptions{})
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to list comments on pull request #%d on repository %s", o.Number, o.FullRepositoryName)
@@ -125,7 +125,7 @@ func (o *Options) list(ctx context.Context, pr *scm.PullRequest) ([]*scm.Comment
 	return comments, nil
 }
 
-func (o *Options) delete(ctx context.Context, pr *scm.PullRequest, comments []*scm.Comment) error {
+func (o *Options) delete(ctx context.Context, comments []*scm.Comment) error {
 	prName := "#" + strconv.Itoa(o.Number)
 
 	for _, comment := range comments {
@@ -139,8 +139,8 @@ func (o *Options) delete(ctx context.Context, pr *scm.PullRequest, comments []*s
 	return nil
 }
 
-func (o *Options) createIfNotExists(ctx context.Context, pr *scm.PullRequest) error {
-	existingComments, err := o.list(ctx, pr)
+func (o *Options) createIfNotExists(ctx context.Context) error {
+	existingComments, err := o.list(ctx)
 	if err != nil {
 		return err
 	}
@@ -153,11 +153,11 @@ func (o *Options) createIfNotExists(ctx context.Context, pr *scm.PullRequest) er
 		}
 	}
 
-	return o.create(ctx, pr)
+	return o.create(ctx)
 }
 
-func (o *Options) deleteAndCreate(ctx context.Context, pr *scm.PullRequest) error {
-	existingComments, err := o.list(ctx, pr)
+func (o *Options) deleteAndCreate(ctx context.Context) error {
+	existingComments, err := o.list(ctx)
 	if err != nil {
 		return err
 	}
@@ -171,10 +171,10 @@ func (o *Options) deleteAndCreate(ctx context.Context, pr *scm.PullRequest) erro
 	}
 
 	if len(similarComments) > 0 {
-		if err := o.delete(ctx, pr, similarComments); err != nil {
+		if err := o.delete(ctx, similarComments); err != nil {
 			return err
 		}
 	}
 
-	return o.create(ctx, pr)
+	return o.create(ctx)
 }
