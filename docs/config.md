@@ -1379,7 +1379,18 @@ github.com/jenkins-x/jx-api/v4/pkg/apis/core/v4beta1.SettingsConfig
 </em>
 </td>
 <td>
-<p>Settings optional settinsg for repositories in this group</p>
+<p>Settings optional settings for repositories in this group</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>name</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Name optional field to distinguish repository groups between for example different teams. Not used by jx gitops</p>
 </td>
 </tr>
 </tbody>
@@ -1736,5 +1747,5 @@ string
 <hr/>
 <p><em>
 Generated with <code>gen-crd-api-reference-docs</code>
-on git commit <code>b14de9e2</code>.
+on git commit <code>100093a8</code>.
 </em></p>
