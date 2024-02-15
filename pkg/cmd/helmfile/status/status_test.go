@@ -181,7 +181,7 @@ func TestNewCmdHelmfileStatus_UpdateStatus(t *testing.T) {
 					Name:                  repoName,
 					Ref:                   "v1",
 					Task:                  "deploy",
-					Description:           "release fakeRepo for version 1",
+					Description:           "release fakeRepo for reference 1",
 					OriginalEnvironment:   "prod",
 					Environment:           prod,
 					ProductionEnvironment: true,
@@ -229,7 +229,7 @@ func TestNewCmdHelmfileStatus_UpdateStatus(t *testing.T) {
 					Namespace:             repoOwner,
 					Ref:                   "v1",
 					Task:                  "deploy",
-					Description:           "release fakeRepo for version 1",
+					Description:           "release fakeRepo for reference 1",
 					ProductionEnvironment: true,
 					OriginalEnvironment:   prod,
 					Payload:               "",
@@ -283,6 +283,53 @@ func TestNewCmdHelmfileStatus_UpdateStatus(t *testing.T) {
 			initialDeployments:  []*scm.Deployment{},
 			expectedDeployments: []*scm.Deployment{},
 			expectedStatuses:    map[string][]*scm.DeploymentStatus{},
+		},
+		{
+			name: "non standard git reference with no existing deployment (create new deployment & status)",
+			inputArgs: inputArgs{
+				env:     &environment{name: prod},
+				repo:    &v1alpha1.Repository{Name: repoName},
+				group:   &v1alpha1.RepositoryGroup{Owner: repoOwner},
+				release: &releasereport.ReleaseInfo{Metadata: chart.Metadata{Version: "1", Annotations: map[string]string{"gitReference": "fafe062ebf497187b3ce7b47573580b4330f78b4924fb38e4c1e8db128711720"}}},
+			},
+			initialDeployments: []*scm.Deployment{
+				{
+					Name:        repoName,
+					Environment: preProd,
+					ID:          "deployment-1",
+					Ref:         "e8cc95b323e85788dc82398cd37a259aff1a0bf2ca5489d5af4201aa4eca3743",
+				},
+			},
+			expectedDeployments: []*scm.Deployment{
+				{
+					Name:        repoName,
+					Environment: preProd,
+					ID:          "deployment-1",
+					Ref:         "e8cc95b323e85788dc82398cd37a259aff1a0bf2ca5489d5af4201aa4eca3743",
+				},
+				{
+					Name:                  repoName,
+					Environment:           prod,
+					ID:                    "deployment-2",
+					Namespace:             repoOwner,
+					Ref:                   "fafe062ebf497187b3ce7b47573580b4330f78b4924fb38e4c1e8db128711720",
+					Task:                  "deploy",
+					Description:           "release fakeRepo for reference fafe062ebf497187b3ce7b47573580b4330f78b4924fb38e4c1e8db128711720",
+					ProductionEnvironment: true,
+					OriginalEnvironment:   prod,
+					Payload:               "",
+				},
+			},
+			expectedStatuses: map[string][]*scm.DeploymentStatus{
+				fullRepoName + "/deployment-2": {
+					{
+						ID:          "status-1",
+						State:       "success",
+						Description: "Deployment 1",
+						Environment: prod,
+					},
+				},
+			},
 		},
 	}
 

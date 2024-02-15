@@ -33,7 +33,10 @@ var (
 	info = termcolor.ColorInfo
 
 	statusLong = templates.LongDesc(`
-		Updates the git deployment status after a release
+		Updates the git deployment status after a release. 
+
+		By default the version of the release prefixed with v will be used as the git reference. This can be overridden
+		by the annotation gitReference in the Chart.yaml file of the helm chart.
 `)
 
 	statusExample = templates.Examples(`
@@ -282,7 +285,11 @@ func (o *Options) updateStatus(ctx context.Context, env *environment, provider, 
 		return nil
 	}
 
-	ref := "v" + release.Version
+	// Support deployment of other reference than vVersion
+	ref, ok := release.Annotations["gitReference"]
+	if !ok {
+		ref = "v" + release.Version
+	}
 	deployment, err := o.FindExistingDeploymentInEnvironment(ctx, ref, env.name, fullRepoName)
 	if err != nil {
 		return err
@@ -323,7 +330,7 @@ func (o *Options) CreateNewDeployment(ctx context.Context, ref, environment, ful
 		Ref:                   ref,
 		Task:                  "deploy",
 		Environment:           environment,
-		Description:           fmt.Sprintf("release %s for version %s", name, strings.TrimPrefix(ref, "v")),
+		Description:           fmt.Sprintf("release %s for reference %s", name, strings.TrimPrefix(ref, "v")),
 		RequiredContexts:      nil,
 		AutoMerge:             false,
 		TransientEnvironment:  false,
