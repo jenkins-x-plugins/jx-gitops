@@ -197,6 +197,8 @@ type Trigger struct {
 	// ElideSkippedContexts makes trigger not post "Skipped" contexts for jobs
 	// that could run but do not run.
 	ElideSkippedContexts *bool `json:"elide_skipped_contexts,omitempty"`
+	// SkipDraftPR when enabled, skips triggering pipelines for draft PRs, unless /ok-to-test is added.
+	SkipDraftPR *bool `json:"skip_draft_pr,omitempty"`
 }
 
 // Postsubmits is a list of Postsubmit job configurations that can optionally completely replace the Postsubmit job
