@@ -349,41 +349,39 @@ func (o *Options) enrichChartMetadata(i *releasereport.ReleaseInfo, repo *state.
 			i.FirstDeployed = ch.FirstDeployed
 		}
 	}
-	version := i.Version
 	name := i.Name
 	repoURL := repo.URL
-	// Is there any valid case where the repo URL is empty?
-	if repoURL != "" {
-		repoName := repo.Name
-		if i.RepositoryURL == "" {
-			i.RepositoryURL = repoURL
-		}
-		if i.RepositoryName == "" {
-			i.RepositoryName = repoName
-		}
-		indexFile, ok := o.RepositoryInfo[i.RepositoryURL]
-		if !ok {
-			repoName, err = helmer.AddHelmRepoIfMissing(o.HelmClient, repoURL, repoName, repo.Username, repo.Password)
-			if err != nil {
-				return errors.Wrapf(err, "failed to add helm repository %s %s", repo.Name, repoURL)
-			}
-			log.Logger().Debugf("added helm repository %s %s", repo.Name, repoURL)
-			path := filepath.Join(o.HelmSettings.RepositoryCache, helmpath.CacheIndexFile(repoName))
+	repoName := repo.Name
 
-			indexFile, err = helmrepo.LoadIndexFile(path)
-			if err != nil {
-				return errors.Wrapf(err, "failed to open repository index file %s", path)
-			}
-			o.RepositoryInfo[i.RepositoryURL] = indexFile
-		}
-		chartVersion, err := indexFile.Get(name, version)
-		if err != nil {
-			return errors.Wrapf(err, "failed to find chart %s in repository index file for %s", name, i.RepositoryURL)
-		}
-		i.Metadata = *chartVersion.Metadata
-	}
 	i.Name = name
-	i.Version = version
+	i.RepositoryURL = repoURL
+	i.RepositoryName = repoName
+	// Is there any valid case where the repo URL is empty?
+	if repoURL == "" {
+		return nil
+	}
+
+	indexFile, exists := o.RepositoryInfo[i.RepositoryURL]
+	if !exists {
+		repoName, err = helmer.AddHelmRepoIfMissing(o.HelmClient, repoURL, repoName, repo.Username, repo.Password)
+		if err != nil {
+			return errors.Wrapf(err, "failed to add helm repository %s %s", repo.Name, repoURL)
+		}
+		log.Logger().Debugf("added helm repository %s %s", repo.Name, repoURL)
+		path := filepath.Join(o.HelmSettings.RepositoryCache, helmpath.CacheIndexFile(repoName))
+
+		indexFile, err = helmrepo.LoadIndexFile(path)
+		if err != nil {
+			return errors.Wrapf(err, "failed to open repository index file %s", path)
+		}
+		o.RepositoryInfo[i.RepositoryURL] = indexFile
+	}
+	chartVersion, err := indexFile.Get(name, i.Version)
+	if err != nil {
+		return errors.Wrapf(err, "failed to find chart %s in repository index file for %s", name, i.RepositoryURL)
+	}
+	i.Metadata = *chartVersion.Metadata
+	i.Version = chartVersion.Version
 	return nil
 }
 
