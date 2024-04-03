@@ -275,16 +275,11 @@ require (
 )
 
 replace (
-	// helm dependencies
-	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20191216044856-a8371794149d
-	github.com/docker/docker => github.com/moby/moby v17.12.0-ce-rc1.0.20200618181300-9dc6525e6118+incompatible
-	// override the go-scm from tekton
-	github.com/jenkins-x/go-scm => github.com/jenkins-x/go-scm v1.11.15
-
-	// Versions greater than this have gnostic under google namespace, which leads to panic in codebase
-	// the k8s libraries need to be upgraded to 0.24.X to get gnostic from google namespace/org instead of google apis
-	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20220310132336-3f90b8c54bbb
-	sigs.k8s.io/kustomize/kyaml => sigs.k8s.io/kustomize/kyaml v0.13.4
+	// to avoid
+		// knative.dev/pkg/client/injection/kube/client imports
+		// k8s.io/client-go/kubernetes/typed/policy/v1: package k8s.io/client-go/kubernetes/typed/policy/v1
+		// provided by k8s.io/client-go at latest version v0.29.3 but not at required version v11.0.1-0.20190805182717-6502b5e7b1b5+incompatible
+	k8s.io/client-go => k8s.io/client-go v0.25.3
 )
 
 go 1.19
