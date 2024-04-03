@@ -27,14 +27,14 @@ require (
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.0
-	github.com/tektoncd/pipeline v0.32.4
+	github.com/tektoncd/pipeline v0.41.0
 	golang.org/x/term v0.10.0
 	golang.org/x/text v0.11.0
 	gopkg.in/validator.v2 v2.0.0-20200605151824-2b28d334fa05
 	helm.sh/helm/v3 v3.9.4
-	k8s.io/api v0.24.6
-	k8s.io/apimachinery v0.24.6
-	k8s.io/client-go v11.0.1-0.20190805182717-6502b5e7b1b5+incompatible
+	k8s.io/api v0.25.3
+	k8s.io/apimachinery v0.25.3
+	k8s.io/client-go v0.25.3
 	sigs.k8s.io/kustomize/api v0.11.4
 	sigs.k8s.io/kustomize/kyaml v0.13.6
 	sigs.k8s.io/yaml v1.3.0
@@ -280,12 +280,6 @@ replace (
 	github.com/docker/docker => github.com/moby/moby v17.12.0-ce-rc1.0.20200618181300-9dc6525e6118+incompatible
 	// override the go-scm from tekton
 	github.com/jenkins-x/go-scm => github.com/jenkins-x/go-scm v1.11.15
-
-	// Required for tekton 0.32.4
-	k8s.io/api => k8s.io/api v0.22.15
-	k8s.io/apimachinery => k8s.io/apimachinery v0.22.15
-	k8s.io/cli-runtime => k8s.io/cli-runtime v0.22.15
-	k8s.io/client-go => k8s.io/client-go v0.22.15
 
 	// Versions greater than this have gnostic under google namespace, which leads to panic in codebase
 	// the k8s libraries need to be upgraded to 0.24.X to get gnostic from google namespace/org instead of google apis
