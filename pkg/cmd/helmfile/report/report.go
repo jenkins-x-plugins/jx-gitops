@@ -29,7 +29,9 @@ import (
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"helm.sh/helm/v3/pkg/chart"
+	"helm.sh/helm/v3/pkg/cli"
+	"helm.sh/helm/v3/pkg/helmpath"
+	helmrepo "helm.sh/helm/v3/pkg/repo"
 	nv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -68,6 +70,8 @@ type Options struct {
 	Requirements            *jxcore.Requirements
 	NamespaceCharts         []*releasereport.NamespaceReleases
 	PreviousNamespaceCharts map[string]map[string]*releasereport.ReleaseInfo
+	RepositoryInfo          map[string]*helmrepo.IndexFile
+	HelmSettings            *cli.EnvSettings
 }
 
 // NewCmdHelmfileReport creates a command object for the command
@@ -139,6 +143,9 @@ func (o *Options) Validate() error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to load requirements in dir %s", o.Dir)
 	}
+
+	o.HelmSettings = cli.New()
+	o.RepositoryInfo = make(map[string]*helmrepo.IndexFile)
 	return nil
 }
 
@@ -247,11 +254,15 @@ func (o *Options) processHelmfile(helmfile helmfiles.Helmfile) (*releasereport.N
 			return nil, errors.Wrapf(err, "failed to verify if release exists %s in namespace %s", rel.Chart, ns)
 		}
 		if !exists {
-			if rel.Condition == "" {
-				log.Logger().Warnf("ignoring release %s in namespace %s as we cannot find any generated resources but there is no conditional", rel.Chart, ns)
+			if rel.Condition != "" {
+				log.Logger().Infof("ignoring release %s in namespace %s as using conditional %s", info(rel.Chart), info(ns), info(rel.Condition))
 				continue
 			}
-			log.Logger().Infof("ignoring release %s in namespace %s as using conditional %s", info(rel.Chart), info(ns), info(rel.Condition))
+			if rel.Installed != nil && !*rel.Installed {
+				log.Logger().Infof("ignoring release %s in namespace %s as it isn't installed", info(rel.Chart), info(ns))
+				continue
+			}
+			log.Logger().Warnf("ignoring release %s in namespace %s as we cannot find any generated resources but there is no conditional", rel.Chart, ns)
 			continue
 		}
 
@@ -320,7 +331,7 @@ func (o *Options) createReleaseInfo(helmState *state.HelmState, ns string, rel *
 	return answer, nil
 }
 
-func (o *Options) enrichChartMetadata(i *releasereport.ReleaseInfo, repo *state.RepositorySpec, rel *state.ReleaseSpec, ns string) error {
+func (o *Options) enrichChartMetadata(i *releasereport.ReleaseInfo, repo *state.RepositorySpec, rel *state.ReleaseSpec, ns string) (err error) {
 	if repo.OCI {
 		return nil
 	}
@@ -335,13 +346,13 @@ func (o *Options) enrichChartMetadata(i *releasereport.ReleaseInfo, repo *state.
 				i.Ingresses = nil
 				return nil
 			}
-			i.FirstDeployed = ch.LastDeployed
+			i.FirstDeployed = ch.FirstDeployed
 		}
 	}
-
 	version := i.Version
 	name := i.Name
 	repoURL := repo.URL
+	// Is there any valid case where the repo URL is empty?
 	if repoURL != "" {
 		repoName := repo.Name
 		if i.RepositoryURL == "" {
@@ -350,44 +361,27 @@ func (o *Options) enrichChartMetadata(i *releasereport.ReleaseInfo, repo *state.
 		if i.RepositoryName == "" {
 			i.RepositoryName = repoName
 		}
-		_, err := helmer.AddHelmRepoIfMissing(o.HelmClient, repoURL, repoName, repo.Username, repo.Password)
-		if err != nil {
-			return errors.Wrapf(err, "failed to add helm repository %s %s", repoName, repoURL)
+		indexFile, ok := o.RepositoryInfo[i.RepositoryURL]
+		if !ok {
+			repoName, err = helmer.AddHelmRepoIfMissing(o.HelmClient, repoURL, repoName, repo.Username, repo.Password)
+			if err != nil {
+				return errors.Wrapf(err, "failed to add helm repository %s %s", repo.Name, repoURL)
+			}
+			log.Logger().Debugf("added helm repository %s %s", repo.Name, repoURL)
+			path := filepath.Join(o.HelmSettings.RepositoryCache, helmpath.CacheIndexFile(repoName))
+
+			indexFile, err = helmrepo.LoadIndexFile(path)
+			if err != nil {
+				return errors.Wrapf(err, "failed to open repository index file %s", path)
+			}
+			o.RepositoryInfo[i.RepositoryURL] = indexFile
 		}
-		log.Logger().Debugf("added helm repository %s %s", repoName, repoURL)
+		chartVersion, err := indexFile.Get(name, version)
+		if err != nil {
+			return errors.Wrapf(err, "failed to find chart %s in repository index file for %s", name, i.RepositoryURL)
+		}
+		i.Metadata = *chartVersion.Metadata
 	}
-
-	args := []string{"show", "chart"}
-	if version != "" {
-		args = append(args, "--version", version)
-	}
-	if repoURL != "" {
-		args = append(args, "--repo", repoURL)
-	}
-	args = append(args, name)
-
-	c := &cmdrunner.Command{
-		Name: o.HelmBinary,
-		Args: args,
-	}
-	text, err := o.CommandRunner(c)
-	if err != nil {
-		log.Logger().Warnf("failed to run %s", c.CLI())
-		return nil
-	}
-	if strings.TrimSpace(text) == "" {
-		log.Logger().Warnf("no output for %s", c.CLI())
-		return nil
-	}
-
-	m := &chart.Metadata{}
-	err = yaml.UnmarshalStrict([]byte(text), &m)
-	if err != nil {
-		log.Logger().Warnf("failed to parse the output of %s which failed with: %v", c.CLI(), err)
-		log.Logger().Infof("output Chart YAML:\n%s", text)
-		return nil
-	}
-	i.Metadata = *m
 	i.Name = name
 	i.Version = version
 	return nil
