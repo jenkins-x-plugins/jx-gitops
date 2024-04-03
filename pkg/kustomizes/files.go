@@ -15,7 +15,7 @@ func LazyCreate(k *types.Kustomization) *types.Kustomization {
 	if k == nil {
 		k = &types.Kustomization{}
 	}
-	k.FixKustomizationPostUnmarshalling()
+	k.FixKustomization()
 	return k
 }
 
@@ -28,7 +28,7 @@ func LoadKustomization(dir string) (*types.Kustomization, error) {
 	}
 
 	answer := &types.Kustomization{}
-	answer.FixKustomizationPostUnmarshalling()
+	answer.FixKustomization()
 
 	if !exists {
 		return answer, nil

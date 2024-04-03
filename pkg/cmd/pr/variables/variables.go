@@ -188,7 +188,7 @@ func (o *Options) loadPRComments(envVars map[string]string, pr *scm.PullRequest)
 		Page: 1,
 	}
 	for firstRun || (res != nil && opts.Page <= res.Page.Last) {
-		comments, res, err = o.ScmClient.PullRequests.ListComments(ctx, o.FullRepositoryName, prNumber, opts)
+		comments, res, err = o.ScmClient.PullRequests.ListComments(ctx, o.FullRepositoryName, prNumber, &opts)
 		if err != nil {
 			return errors.Wrapf(err, "failed to list comments for PR %d", prNumber)
 		}
