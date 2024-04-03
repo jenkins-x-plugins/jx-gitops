@@ -161,7 +161,7 @@ func (o *Options) Run() error {
 			return errors.Wrapf(err, "failed to save overlay to %s", overlayFile)
 		}
 
-		o.Kustomization.PatchesStrategicMerge = append(o.Kustomization.PatchesStrategicMerge, types.PatchStrategicMerge(rel))
+		o.Kustomization.Patches = append(o.Kustomization.Patches, types.Patch{Path: rel})
 		return nil
 	})
 	if err != nil {

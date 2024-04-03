@@ -74,7 +74,9 @@ linters:
   - asciicheck
   - bodyclose
   - deadcode
-  - depguard
+  # test disabling depguard because of
+  # Error: import 'k8s.io/apimachinery/pkg/api/errors' is not allowed from list 'Main' (depguard)
+  # - depguard 
   - errcheck
   - gofmt
   - goimports

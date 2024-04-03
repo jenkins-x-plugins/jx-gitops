@@ -291,4 +291,4 @@ require (
 // provided by k8s.io/client-go at latest version v0.29.3 but not at required version v11.0.1-0.20190805182717-6502b5e7b1b5+incompatible
 replace k8s.io/client-go => k8s.io/client-go v0.28.4
 
-go 1.21
+go 1.22.1

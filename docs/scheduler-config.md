@@ -2002,6 +2002,17 @@ bool
 that could run but do not run.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>skip_draft_pr</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>SkipDraftPR when enabled, skips triggering pipelines for draft PRs, unless /ok-to-test is added.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="scheduler.jenkins-x.io/v1alpha1.Welcome">Welcome
@@ -2036,5 +2047,5 @@ string
 <hr/>
 <p><em>
 Generated with <code>gen-crd-api-reference-docs</code>
-on git commit <code>100093a8</code>.
+on git commit <code>2befe711</code>.
 </em></p>
