@@ -150,7 +150,7 @@ func testCommentStrategy(t *testing.T, o *comment.Options, expectedCommentCount 
 	require.NoError(t, err, "failed to run ")
 
 	ctx := context.Background()
-	comments, _, err := o.ScmClient.PullRequests.ListComments(ctx, o.Repository, o.Number, scm.ListOptions{})
+	comments, _, err := o.ScmClient.PullRequests.ListComments(ctx, o.Repository, o.Number, &scm.ListOptions{})
 	require.NoError(t, err, "failed to list comments")
 	require.NotEmpty(t, comments, "should have some comments")
 

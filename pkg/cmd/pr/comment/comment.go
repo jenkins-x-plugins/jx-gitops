@@ -117,7 +117,7 @@ func (o *Options) create(ctx context.Context) error {
 }
 
 func (o *Options) list(ctx context.Context) ([]*scm.Comment, error) {
-	comments, _, err := o.ScmClient.PullRequests.ListComments(ctx, o.FullRepositoryName, o.Number, scm.ListOptions{})
+	comments, _, err := o.ScmClient.PullRequests.ListComments(ctx, o.FullRepositoryName, o.Number, &scm.ListOptions{})
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to list comments on pull request #%d on repository %s", o.Number, o.FullRepositoryName)
 	}

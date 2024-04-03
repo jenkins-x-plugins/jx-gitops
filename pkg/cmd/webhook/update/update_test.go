@@ -77,7 +77,7 @@ func TestWebhookVerify(t *testing.T) {
 	err = o.Run()
 	require.NoError(t, err, "failed to run")
 
-	hooks, _, err := o.ScmClientFactory.ScmClient.Repositories.ListHooks(context.Background(), fullName, scm.ListOptions{})
+	hooks, _, err := o.ScmClientFactory.ScmClient.Repositories.ListHooks(context.Background(), fullName, &scm.ListOptions{})
 	require.NoError(t, err, "failed listing webhooks for repo %s", fullName)
 	require.NotEmpty(t, hooks, "should have created a webbook for repository %s", fullName)
 
