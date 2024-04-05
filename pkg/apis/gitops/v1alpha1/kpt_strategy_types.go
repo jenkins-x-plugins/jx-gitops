@@ -25,7 +25,7 @@ type KptStrategies struct {
 type KptStrategyConfig struct {
 	// RelativePath the relative path to the folder the strategy should apply to
 	RelativePath string `json:"relativePath" validate:"nonzero"`
-	// Strategy is the merge strategy kpt will use see https://googlecontainertools.github.io/kpt/reference/pkg/update/#flags
+	// Strategy is the merge strategy kpt will use see https://kpt.dev/reference/cli/pkg/update/?id=flags
 	Strategy string `json:"strategy" validate:"nonzero"`
 }
 
