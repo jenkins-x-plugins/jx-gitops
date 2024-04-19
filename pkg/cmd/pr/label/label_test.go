@@ -21,48 +21,48 @@ func TestPullRequestLabel(t *testing.T) {
 	}{
 		{
 			name: "already has label",
-			init: func(o *label.Options, pr *scm.PullRequest, fakeData *fake.Data) {
+			init: func(o *label.Options, pr *scm.PullRequest, _ *fake.Data) {
 				o.Label = "mylabel"
 				pr.Labels = append(pr.Labels, &scm.Label{
 					Name: "mylabel",
 				})
 			},
-			verify: func(o *label.Options, pr *scm.PullRequest) {
+			verify: func(o *label.Options, _ *scm.PullRequest) {
 				assert.False(t, o.LabelAdded)
 			},
 		},
 		{
 			name: "add label",
-			init: func(o *label.Options, pr *scm.PullRequest, fakeData *fake.Data) {
+			init: func(o *label.Options, _ *scm.PullRequest, _ *fake.Data) {
 				o.Label = "mylabel"
 			},
-			verify: func(o *label.Options, pr *scm.PullRequest) {
+			verify: func(o *label.Options, _ *scm.PullRequest) {
 				assert.True(t, o.LabelAdded)
 			},
 		},
 		{
 			name: "add label if matching",
-			init: func(o *label.Options, pr *scm.PullRequest, fakeData *fake.Data) {
+			init: func(o *label.Options, pr *scm.PullRequest, _ *fake.Data) {
 				o.Label = "mylabel"
 				o.Regex = "env/.*"
 				pr.Labels = append(pr.Labels, &scm.Label{
 					Name: "env/staging",
 				})
 			},
-			verify: func(o *label.Options, pr *scm.PullRequest) {
+			verify: func(o *label.Options, _ *scm.PullRequest) {
 				assert.True(t, o.LabelAdded)
 			},
 		},
 		{
 			name: "not add label as not matching",
-			init: func(o *label.Options, pr *scm.PullRequest, fakeData *fake.Data) {
+			init: func(o *label.Options, pr *scm.PullRequest, _ *fake.Data) {
 				o.Label = "mylabel"
 				o.Regex = "env/.*"
 				pr.Labels = append(pr.Labels, &scm.Label{
 					Name: "somethingElse",
 				})
 			},
-			verify: func(o *label.Options, pr *scm.PullRequest) {
+			verify: func(o *label.Options, _ *scm.PullRequest) {
 				assert.False(t, o.LabelAdded)
 			},
 		},

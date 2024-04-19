@@ -72,7 +72,7 @@ func NewCmdHelmfileStatus() (*cobra.Command, *Options) {
 		Short:   "Updates the git deployment status after a release",
 		Long:    statusLong,
 		Example: fmt.Sprintf(statusExample, rootcmd.BinaryName),
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)
 		},
@@ -347,7 +347,7 @@ func (o *Options) CreateNewDeployment(ctx context.Context, ref, environment, ful
 
 func (o *Options) FindExistingDeploymentInEnvironment(ctx context.Context, ref, environment, fullRepoName string) (*scm.Deployment, error) {
 	// lets try find the existing deployment if it exists
-	deployments, _, err := o.ScmClient.Deployments.List(ctx, fullRepoName, scm.ListOptions{})
+	deployments, _, err := o.ScmClient.Deployments.List(ctx, fullRepoName, &scm.ListOptions{})
 	if err != nil && !scmhelpers.IsScmNotFound(err) {
 		return nil, err
 	}

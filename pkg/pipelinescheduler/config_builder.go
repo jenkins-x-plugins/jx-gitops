@@ -139,6 +139,9 @@ func buildTrigger(answer *plugins.Trigger, trigger *schedulerapi.Trigger, orgNam
 	if trigger.IgnoreOkToTest != nil {
 		answer.IgnoreOkToTest = *trigger.IgnoreOkToTest
 	}
+	if trigger.SkipDraftPR != nil {
+		answer.SkipDraftPR = *trigger.SkipDraftPR
+	}
 	answer.Repos = []string{
 		orgSlashRepo(orgName, repoName),
 	}

@@ -49,7 +49,7 @@ func NewCmdUpdateTag(tagVerb, tagType string) (*cobra.Command, *Options) {
 		Short:   fmt.Sprintf("%ss all kubernetes resources in the given directory tree", caser.String(tagVerb)),
 		Long:    fmt.Sprintf(tagLong, caser.String(tagVerb)),
 		Example: fmt.Sprintf(tagExample, tagVerb, rootcmd.BinaryName, tagType),
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, args []string) {
 			err := o.UpdateTagInYamlFiles(tagType+"s", args)
 			helper.CheckErr(err)
 		},

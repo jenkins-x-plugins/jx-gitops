@@ -90,7 +90,7 @@ func NewCmdHelmfileResolve() (*cobra.Command, *Options) {
 		Short:   "Resolves any missing versions or values files in the helmfile.yaml file from the version stream",
 		Long:    cmdLong,
 		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)
 		},

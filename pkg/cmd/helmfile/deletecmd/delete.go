@@ -53,7 +53,7 @@ func NewCmdHelmfileDelete() (*cobra.Command, *Options) {
 		Short:   "Deletes a chart from the helmfiles in one or all namespaces",
 		Long:    cmdLong,
 		Example: cmdExample,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			return o.Run()
 		},
 	}

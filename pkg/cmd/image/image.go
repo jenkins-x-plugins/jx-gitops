@@ -80,7 +80,7 @@ func NewCmdUpdateImage() (*cobra.Command, *Options) {
 		Short:   "Updates images in the kubernetes resources from the version stream",
 		Long:    cmdLong,
 		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName, rootcmd.BinaryName),
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)
 		},
@@ -195,7 +195,7 @@ func (o *Options) modifyImages(node *yaml.RNode, filePath, jsonPath string, name
 }
 
 // resolveImage resolves the given container image from the version stream
-func (o *Options) resolveImage(image string, names []string, filePath string) (string, error) {
+func (o *Options) resolveImage(image string, _ []string, _ string) (string, error) {
 	resolver := o.VersionStreamer.Resolver
 	if resolver == nil {
 		return "", errors.Errorf("cannot resolve image %s as no VersionResolver configured", image)

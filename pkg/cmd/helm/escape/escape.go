@@ -41,7 +41,7 @@ func NewCmdEscape() (*cobra.Command, *Options) {
 		Short:   "Escapes any {{ or }} characters in the YAML files so they can be included in a helm chart",
 		Long:    cmdLong,
 		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)
 		},

@@ -52,7 +52,7 @@ func NewCmdResolveRepository() (*cobra.Command, *Options) {
 		Short:   "Resolves the git repository URL for the cluster/environment",
 		Long:    labelLong,
 		Example: fmt.Sprintf(labelExample, rootcmd.BinaryName, rootcmd.BinaryName),
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, args []string) {
 			err := o.Run(args)
 			helper.CheckErr(err)
 		},

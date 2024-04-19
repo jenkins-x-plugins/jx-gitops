@@ -53,7 +53,7 @@ func NewCmdPullRequestPush() (*cobra.Command, *Options) {
 		Short:   "Pushes the current git directory to the branch used to create the Pull Request",
 		Long:    cmdLong,
 		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)
 		},

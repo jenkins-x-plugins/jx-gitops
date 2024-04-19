@@ -77,7 +77,7 @@ func NewCmdHelmfileMove() (*cobra.Command, *Options) {
 		Short:   "Moves the generated template files from 'helmfile template' into the right gitops directory",
 		Long:    namespaceLong,
 		Example: fmt.Sprintf(namespaceExample, rootcmd.BinaryName),
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)
 		},

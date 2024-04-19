@@ -68,7 +68,7 @@ func NewCmdRequirementsMerge() (*cobra.Command, *Options) {
 		Short:   "Merges values from the given file to the local jx-requirements.yml file",
 		Long:    cmdLong,
 		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName, rootcmd.BinaryName),
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			return o.Run()
 		},
 	}

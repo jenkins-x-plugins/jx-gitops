@@ -50,7 +50,7 @@ func NewCmdKptRecreate() (*cobra.Command, *Options) {
 		Short:   "Recreates the kpt packages in the given directory",
 		Long:    kptLong,
 		Example: fmt.Sprintf(kptExample, rootcmd.BinaryName),
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)
 		},

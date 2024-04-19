@@ -57,7 +57,7 @@ func NewCmdPullRequestLabel() (*cobra.Command, *Options) {
 		Short:   "Add label to the pull request",
 		Long:    cmdLong,
 		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName, rootcmd.BinaryName),
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)
 		},
@@ -121,7 +121,7 @@ func (o *Options) Run() error {
 		if repoName == "" {
 			repoName = scm.Join(repo.Namespace, repo.Name)
 		}
-		pr.Labels, _, err = o.PullRequestOptions.ScmClient.PullRequests.ListLabels(ctx, repoName, pr.Number, scm.ListOptions{})
+		pr.Labels, _, err = o.PullRequestOptions.ScmClient.PullRequests.ListLabels(ctx, repoName, pr.Number, &scm.ListOptions{})
 		if err != nil {
 			return errors.Wrapf(err, "failed to query Labels for repo %s and PullRequest %d", repoName, pr.Number)
 		}

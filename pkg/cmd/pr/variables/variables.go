@@ -57,7 +57,7 @@ func NewCmdPullRequestVariables() (*cobra.Command, *Options) {
 		Long:    cmdLong,
 		Aliases: []string{"var", "variable"},
 		Example: cmdExample,
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)
 		},
@@ -188,7 +188,7 @@ func (o *Options) loadPRComments(envVars map[string]string, pr *scm.PullRequest)
 		Page: 1,
 	}
 	for firstRun || (res != nil && opts.Page <= res.Page.Last) {
-		comments, res, err = o.ScmClient.PullRequests.ListComments(ctx, o.FullRepositoryName, prNumber, opts)
+		comments, res, err = o.ScmClient.PullRequests.ListComments(ctx, o.FullRepositoryName, prNumber, &opts)
 		if err != nil {
 			return errors.Wrapf(err, "failed to list comments for PR %d", prNumber)
 		}

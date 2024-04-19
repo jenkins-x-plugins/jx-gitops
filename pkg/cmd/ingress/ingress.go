@@ -48,7 +48,7 @@ func NewCmdUpdateIngress() (*cobra.Command, *Options) {
 		Short:   "Updates Ingress resources with the current ingress domain",
 		Long:    ingressLong,
 		Example: fmt.Sprintf(ingressExample, rootcmd.BinaryName),
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)
 		},

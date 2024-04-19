@@ -38,7 +38,7 @@ func TestHemlfileStatus_WithEarlyCutoff(t *testing.T) {
 	err = o.Run()
 	require.NoError(t, err, "failed to run")
 	testFullRepoName := filepath.Join("jstrachan", "nodey560")
-	deployments, _, _ := o.ScmClient.Deployments.List(context.Background(), testFullRepoName, scm.ListOptions{})
+	deployments, _, _ := o.ScmClient.Deployments.List(context.Background(), testFullRepoName, &scm.ListOptions{})
 	require.Len(t, deployments, 1)
 	require.Equal(t, "Production", deployments[0].Environment)
 }
@@ -54,7 +54,7 @@ func TestHemlfileStatus_WithLateCutoff(t *testing.T) {
 	err = o.Run()
 	require.NoError(t, err, "failed to run")
 	testFullRepoName := filepath.Join("jstrachan", "nodey560")
-	deployments, _, _ := o.ScmClient.Deployments.List(context.Background(), testFullRepoName, scm.ListOptions{})
+	deployments, _, _ := o.ScmClient.Deployments.List(context.Background(), testFullRepoName, &scm.ListOptions{})
 	require.Len(t, deployments, 2)
 	require.Equal(t, "Production", deployments[0].Environment)
 	require.Equal(t, "Staging", deployments[1].Environment)

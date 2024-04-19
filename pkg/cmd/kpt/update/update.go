@@ -77,7 +77,7 @@ func NewCmdKptUpdate() (*cobra.Command, *Options) {
 		Short:   "Updates any kpt packages installed in a sub directory",
 		Long:    kptLong,
 		Example: fmt.Sprintf(kptExample, rootcmd.BinaryName),
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)
 		},

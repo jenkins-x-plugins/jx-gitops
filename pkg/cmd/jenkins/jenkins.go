@@ -13,7 +13,7 @@ func NewCmdJenkins() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "jenkins",
 		Short: "Commands for working with Jenkins GitOps configuration",
-		Run: func(command *cobra.Command, args []string) {
+		Run: func(command *cobra.Command, _ []string) {
 			err := command.Help()
 			if err != nil {
 				log.Logger().Errorf(err.Error())

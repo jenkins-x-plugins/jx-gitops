@@ -19,7 +19,7 @@ func NewCmdWebhook() *cobra.Command {
 		Use:     "webhook",
 		Short:   "Commands for working with WebHooks on your source repositories",
 		Aliases: []string{"webhooks", "hook", "hooks"},
-		Run: func(command *cobra.Command, args []string) {
+		Run: func(command *cobra.Command, _ []string) {
 			err := command.Help()
 			if err != nil {
 				log.Logger().Errorf(err.Error())

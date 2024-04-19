@@ -11,9 +11,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRun(t *testing.T) {
-}
-
 func TestMoreThanOneFlagSet(t *testing.T) {
 	o := Options{}
 	assert.False(t, o.moreThanOneFlagSet())

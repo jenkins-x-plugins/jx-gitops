@@ -48,7 +48,7 @@ func NewCmdHelmfileStructure() (*cobra.Command, *Options) {
 		Short:   "Runs 'helmfile structure' on the helmfile in specified directory which will split in to multiple helmfiles based around namespace",
 		Long:    cmdLong,
 		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)
 		},

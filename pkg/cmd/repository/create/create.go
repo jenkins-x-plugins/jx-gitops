@@ -49,7 +49,7 @@ func NewCmdCreateRepository() (*cobra.Command, *Options) {
 		Short:   "Creates any missing SourceRepository resources",
 		Long:    cmdLong,
 		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName, rootcmd.BinaryName),
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)
 		},

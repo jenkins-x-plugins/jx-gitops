@@ -58,7 +58,7 @@ func NewCmdKustomize() (*cobra.Command, *Options) {
 		Short:   "Generates a kustomize layout by comparing a source and target directories",
 		Long:    splitLong,
 		Example: fmt.Sprintf(splitExample, rootcmd.BinaryName),
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)
 		},
@@ -161,7 +161,7 @@ func (o *Options) Run() error {
 			return errors.Wrapf(err, "failed to save overlay to %s", overlayFile)
 		}
 
-		o.Kustomization.PatchesStrategicMerge = append(o.Kustomization.PatchesStrategicMerge, types.PatchStrategicMerge(rel))
+		o.Kustomization.Patches = append(o.Kustomization.Patches, types.Patch{Path: rel})
 		return nil
 	})
 	if err != nil {
@@ -187,7 +187,7 @@ func (o *Options) createOverlay(srcNode, targetNode *yaml.RNode, path string) (*
 	if overlay != nil {
 		count := 0
 		// lets verify we don't only contain mandatory fields
-		err = walkMappingNodes(overlay, "", func(node *yaml.Node, jsonPath string) error {
+		err = walkMappingNodes(overlay, "", func(_ *yaml.Node, jsonPath string) error {
 			if jsonPath != "" && jsonPath != "metadata" && stringhelpers.StringArrayIndex(mandatoryFields, jsonPath) < 0 {
 				if count == 0 {
 					fmt.Printf("path %s has non mandatory path %s\n", path, jsonPath)

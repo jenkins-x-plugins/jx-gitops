@@ -58,7 +58,7 @@ func NewCmdUpdateNamespace() (*cobra.Command, *Options) {
 		Short:   "Updates all kubernetes resources in the given directory to the given namespace",
 		Long:    namespaceLong,
 		Example: fmt.Sprintf(namespaceExample, rootcmd.BinaryName, rootcmd.BinaryName),
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)
 		},

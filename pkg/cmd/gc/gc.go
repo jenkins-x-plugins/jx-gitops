@@ -14,7 +14,7 @@ func NewCmdGC() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "gc",
 		Short: "Commands for garbage collecting resources",
-		Run: func(command *cobra.Command, args []string) {
+		Run: func(command *cobra.Command, _ []string) {
 			err := command.Help()
 			if err != nil {
 				log.Logger().Errorf(err.Error())

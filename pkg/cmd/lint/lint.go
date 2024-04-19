@@ -44,7 +44,7 @@ func NewCmdLint() (*cobra.Command, *Options) {
 		Short:   "Lints the gitops files in the file system",
 		Long:    splitLong,
 		Example: fmt.Sprintf(splitExample, rootcmd.BinaryName),
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)
 		},

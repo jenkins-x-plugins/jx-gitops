@@ -73,7 +73,7 @@ func NewCmdGitMerge() (*cobra.Command, *Options) {
 		Short:   "Merge a number of SHAs into the HEAD of the main branch",
 		Long:    cmdLong,
 		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)
 		},

@@ -69,7 +69,7 @@ func NewCmdWebHookDelete() (*cobra.Command, *Options) {
 		Short:   "deletes the webhooks for all the source repositories optionally filtering by owner and/or repository",
 		Long:    cmdLong,
 		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName, rootcmd.BinaryName, rootcmd.BinaryName),
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			return o.Run()
 		},
 	}
@@ -189,7 +189,7 @@ func (o *Options) removeRepositoryWebhook(scmClient *scm.Client, owner, repoName
 	log.Logger().Debugf("Checking hooks for repository %s", info(fullName))
 
 	ctx := context.Background()
-	hooks, _, err := scmClient.Repositories.ListHooks(ctx, fullName, scm.ListOptions{})
+	hooks, _, err := scmClient.Repositories.ListHooks(ctx, fullName, &scm.ListOptions{})
 	if err != nil {
 		if !scmhelpers.IsScmNotFound(err) {
 			log.Logger().Warnf("failed to find hooks for repository %s: %s", info(fullName), err.Error())

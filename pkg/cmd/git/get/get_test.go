@@ -17,8 +17,7 @@ func TestGitGetFromRepository(t *testing.T) {
 	_, o := get.NewCmdGitGet()
 
 	o.SourceURL = "https://github.com/jenkins-x-plugins/jx-gitops"
-	o.Branch = "master"
-	// ToDo(ankitm123): Rename test_data to testdata after changes are made in go-scm
+	o.Branch = "main"
 	o.ScmClient, _ = fake.NewDefault()
 	o.Dir = tmpDir
 	o.Path = "expected.txt"
@@ -48,7 +47,7 @@ func TestGitGetFromEnvironment(t *testing.T) {
 	_, o := get.NewCmdGitGet()
 
 	o.SourceURL = "https://github.com/jenkins-x-plugins/jx-gitops"
-	o.Branch = "master"
+	o.Branch = "main"
 	o.ScmClient, _ = fake.NewDefault()
 	o.JXClient = jxClient
 	o.Dir = tmpDir

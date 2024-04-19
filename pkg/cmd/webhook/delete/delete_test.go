@@ -113,7 +113,7 @@ func TestWebhookDelete(t *testing.T) {
 		err := cmd.Execute()
 		assert.NoError(t, err)
 		if tc.createhook {
-			hooks, _, err := o.ScmClientFactory.ScmClient.Repositories.ListHooks(context.Background(), scm.Join(testOrg, testRepo), scm.ListOptions{})
+			hooks, _, err := o.ScmClientFactory.ScmClient.Repositories.ListHooks(context.Background(), scm.Join(testOrg, testRepo), &scm.ListOptions{})
 			if err != nil {
 				t.Fatal(err)
 			}

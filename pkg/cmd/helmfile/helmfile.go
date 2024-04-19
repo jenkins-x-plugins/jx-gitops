@@ -20,7 +20,7 @@ func NewCmdHelmfile() *cobra.Command {
 		Use:     "helmfile",
 		Short:   "Commands for working with helmfile",
 		Aliases: []string{"helmfiles"},
-		Run: func(command *cobra.Command, args []string) {
+		Run: func(command *cobra.Command, _ []string) {
 			err := command.Help()
 			if err != nil {
 				log.Logger().Errorf(err.Error())
