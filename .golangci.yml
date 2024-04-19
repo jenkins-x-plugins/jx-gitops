@@ -42,12 +42,16 @@ linters-settings:
   gofmt:
     simplify: true
   gomnd:
-    settings:
-      mnd:
-        # don't include the "operation" and "assign"
-        checks: [argument, case, condition, return]
+    # `linters.gomnd.settings` is deprecated. Please use the options `linters.gomnd.checks`,`linters.gomnd.ignored-numbers`,`linters.gomnd.ignored-files`,`linters.gomnd.ignored-functions`
+    # don't include the "operation" and "assign"
+    checks:
+    - argument
+    - case
+    - condition
+    - return
   govet:
-    check-shadowing: true
+    # `linters.govet.check-shadowing` is deprecated. Please enable `shadow` instead
+    shadow: true
     settings:
       printf:
         funcs:
@@ -73,7 +77,6 @@ linters:
   enable:
   - asciicheck
   - bodyclose
-  - deadcode
   # test disabling depguard because of
   # Error: import 'k8s.io/apimachinery/pkg/api/errors' is not allowed from list 'Main' (depguard)
   # - depguard 
@@ -88,17 +91,18 @@ linters:
   - nakedret
   - rowserrcheck
   - staticcheck
-  - structcheck
   - typecheck
   - unconvert
   - unparam
   - unused
-  - varcheck
   - revive
   - gocritic
   - govet
   - dupl
 issues:
+  # `run.skip-dirs` is deprecated, please use `issues.exclude-dirs`
+  exclude-dirs:
+  - cmd/docs
   # Excluding configuration per-path, per-linter, per-text and per-source
   exclude-rules:
   #    - path: _test\.go
@@ -113,11 +117,9 @@ issues:
   max-same-issues: 0
 run:
   timeout: 30m
-  skip-dirs:
-  - cmd/docs
 # golangci.com configuration
 # https://github.com/golangci/golangci/wiki/Configuration
 service:
-  golangci-lint-version: 1.42.x # use the fixed version to not introduce new linters unexpectedly
+  golangci-lint-version: 1.57.x # use the fixed version to not introduce new linters unexpectedly
   prepare:
   - echo "here I can run custom commands, but no preparation needed for this repo"

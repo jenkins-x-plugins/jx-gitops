@@ -20,10 +20,14 @@ spec:
           name: ""
           resources: {}
         - name: make-lint
+          image: golangci/golangci-lint:v1.57.2
           resources:
             requests:
               cpu: 1600m
               memory: 1400Mi
+          script: |
+            #!/bin/sh
+            golangci-lint run
   podTemplate: {}
   serviceAccountName: tekton-bot
   timeout: 60m0s
