@@ -62,6 +62,9 @@ func TestGitSetup(t *testing.T) {
 
 		t.Logf("creating git credentials file %s", o.OutputFile)
 
+		// Unset GITHUB_TOKEN for the duration of the test
+		os.Unsetenv("GITHUB_TOKEN")
+
 		err = o.Run()
 		require.NoError(t, err, "failed to run git setup")
 
