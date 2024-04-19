@@ -17,7 +17,7 @@ func NewCmdPR() *cobra.Command {
 		Use:     "pr",
 		Short:   "Commands for working with Pull Requests",
 		Aliases: []string{"pullrequest", "pullrequests"},
-		Run: func(command *cobra.Command, args []string) {
+		Run: func(command *cobra.Command, _ []string) {
 			err := command.Help()
 			if err != nil {
 				log.Logger().Errorf(err.Error())

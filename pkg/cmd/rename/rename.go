@@ -42,7 +42,7 @@ func NewCmdRename() (*cobra.Command, *Options) {
 		Short:   "Renames yaml files to use canonical file names based on the resource name and kind",
 		Long:    splitLong,
 		Example: fmt.Sprintf(splitExample, rootcmd.BinaryName),
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)
 		},

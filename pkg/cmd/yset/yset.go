@@ -48,7 +48,7 @@ func NewCmdYSet() (*cobra.Command, *Options) {
 		Short:   "Modifies a value in a YAML file at a given path expression while preserving comments",
 		Long:    annotateLong,
 		Example: fmt.Sprintf(annotateExample, rootcmd.BinaryName, rootcmd.BinaryName),
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, args []string) {
 			o.Args = args
 			err := o.Run()
 			helper.CheckErr(err)

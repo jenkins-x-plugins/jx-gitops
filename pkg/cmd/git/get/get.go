@@ -72,7 +72,7 @@ func NewCmdGitGet() (*cobra.Command, *Options) {
 		Short:   "Gets a file from a git repository or environment git repository",
 		Long:    cmdLong,
 		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)
 		},

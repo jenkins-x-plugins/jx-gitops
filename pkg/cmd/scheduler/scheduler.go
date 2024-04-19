@@ -88,7 +88,7 @@ func NewCmdScheduler() (*cobra.Command, *Options) {
 		Short:   "Generates the Lighthouse configuration from the SourceRepository and Scheduler resources",
 		Long:    cmdLong,
 		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)
 		},
@@ -233,7 +233,7 @@ func (o *Options) Run() error {
 	resources = append(resources, devEnv)
 	jxClient := fake.NewSimpleClientset(resources...)
 
-	loadSchedulers := func(jxClient versioned.Interface, ns string) (map[string]*schedulerapi.Scheduler, *v1.SourceRepositoryList, error) {
+	loadSchedulers := func(_ versioned.Interface, _ string) (map[string]*schedulerapi.Scheduler, *v1.SourceRepositoryList, error) {
 		return schedulerMap, repoList, nil
 	}
 

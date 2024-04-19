@@ -72,7 +72,7 @@ func (f *StringFilter) String() string {
 }
 
 // AddFlags adds cmd flags
-func (f *StringFilter) AddFlags(cmd *cobra.Command, optionPrefix, message string) {
+func (f *StringFilter) AddFlags(cmd *cobra.Command, optionPrefix, _ string) {
 	cmd.Flags().StringVarP(&f.Prefix, optionPrefix+"-prefix", "", "", fmt.Sprintf("matches if %s has the given prefix", optionPrefix))
 	cmd.Flags().StringVarP(&f.Suffix, optionPrefix+"-suffix", "", "", fmt.Sprintf("matches if %s has the given suffix", optionPrefix))
 	cmd.Flags().StringVarP(&f.Contains, optionPrefix+"-contains", "", "", fmt.Sprintf("matches if %s contains the given text", optionPrefix))

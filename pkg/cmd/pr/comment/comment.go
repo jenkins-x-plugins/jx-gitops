@@ -61,7 +61,7 @@ func NewCmdPullRequestComment() (*cobra.Command, *Options) {
 		Short:   "Add comment to the pull request",
 		Long:    cmdLong,
 		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)
 		},

@@ -15,7 +15,7 @@ func NewCmdHelm() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "helm",
 		Short: "Commands for working with helm charts",
-		Run: func(command *cobra.Command, args []string) {
+		Run: func(command *cobra.Command, _ []string) {
 			err := command.Help()
 			if err != nil {
 				log.Logger().Errorf(err.Error())

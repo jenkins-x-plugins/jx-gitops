@@ -55,7 +55,7 @@ func NewCmdAddRepository() (*cobra.Command, *Options) {
 		Short:   "Add one or more git URLs to the source configuration",
 		Long:    cmdLong,
 		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName, rootcmd.BinaryName),
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, args []string) {
 			o.Args = args
 			err := o.Run()
 			helper.CheckErr(err)

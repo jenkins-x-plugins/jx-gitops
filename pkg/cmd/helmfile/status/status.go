@@ -72,7 +72,7 @@ func NewCmdHelmfileStatus() (*cobra.Command, *Options) {
 		Short:   "Updates the git deployment status after a release",
 		Long:    statusLong,
 		Example: fmt.Sprintf(statusExample, rootcmd.BinaryName),
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)
 		},

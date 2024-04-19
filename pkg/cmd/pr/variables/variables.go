@@ -57,7 +57,7 @@ func NewCmdPullRequestVariables() (*cobra.Command, *Options) {
 		Long:    cmdLong,
 		Aliases: []string{"var", "variable"},
 		Example: cmdExample,
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)
 		},

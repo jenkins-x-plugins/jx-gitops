@@ -54,7 +54,7 @@ func NewCmdDeleteRepository() (*cobra.Command, *Options) {
 		Short:   "Deletes a repository from the source configuration",
 		Long:    cmdLong,
 		Example: cmdExample,
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)
 		},

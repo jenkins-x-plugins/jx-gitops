@@ -59,7 +59,7 @@ func NewCmdJenkinsAdd() (*cobra.Command, *Options) {
 		Short:   "Adds a new Jenkins server to the git repository",
 		Long:    cmdLong,
 		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)
 		},

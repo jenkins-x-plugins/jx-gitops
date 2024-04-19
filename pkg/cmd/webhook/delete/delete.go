@@ -69,7 +69,7 @@ func NewCmdWebHookDelete() (*cobra.Command, *Options) {
 		Short:   "deletes the webhooks for all the source repositories optionally filtering by owner and/or repository",
 		Long:    cmdLong,
 		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName, rootcmd.BinaryName, rootcmd.BinaryName),
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			return o.Run()
 		},
 	}

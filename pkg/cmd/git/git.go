@@ -15,7 +15,7 @@ func NewCmdGit() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "git",
 		Short: "Commands for working with Git",
-		Run: func(command *cobra.Command, args []string) {
+		Run: func(command *cobra.Command, _ []string) {
 			err := command.Help()
 			if err != nil {
 				log.Logger().Errorf(err.Error())

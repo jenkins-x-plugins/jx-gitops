@@ -33,7 +33,7 @@ func NewCmdUpgrade() (*cobra.Command, *Options) {
 		Use:     "upgrade",
 		Aliases: []string{"update"},
 		Short:   "Upgrades the GitOps git repository with the latest configuration and versions the Version Stream",
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)
 		},

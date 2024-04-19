@@ -59,7 +59,7 @@ func NewCmdRequirementsResolve() (*cobra.Command, *Options) {
 		Short:   "Resolves any missing values in the jx-requirements.yml which can be detected",
 		Long:    cmdLong,
 		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			return o.Run()
 		},
 	}

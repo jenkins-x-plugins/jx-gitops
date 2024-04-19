@@ -50,7 +50,7 @@ func NewCmdHelmfileAdd() (*cobra.Command, *Options) {
 		Short:   "Adds a chart to the local 'helmfile.yaml' file",
 		Long:    cmdLong,
 		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName, rootcmd.BinaryName),
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)
 		},

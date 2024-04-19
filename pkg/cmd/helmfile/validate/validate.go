@@ -40,7 +40,7 @@ func NewCmdHelmfileValidate() (*cobra.Command, *Options) {
 		Short:   "Validates helmfile.yaml against a jx canonical tree of helmfiles",
 		Long:    cmdLong,
 		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName, rootcmd.BinaryName),
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)
 		},

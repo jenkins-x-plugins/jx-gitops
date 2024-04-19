@@ -80,7 +80,7 @@ func NewCmdJenkinsJobs() (*cobra.Command, *Options) {
 		Short:   "Generates the Jenkins Jobs helm files",
 		Long:    cmdLong,
 		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)
 		},

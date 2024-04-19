@@ -62,7 +62,7 @@ func NewCmdHelmTemplate() (*cobra.Command, *TemplateOptions) {
 		Short:   "Generate the kubernetes resources from a helm chart",
 		Long:    helmTemplateLong,
 		Example: fmt.Sprintf(helmTemplateExample, rootcmd.BinaryName),
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)
 		},

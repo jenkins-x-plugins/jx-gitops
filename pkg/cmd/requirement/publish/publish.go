@@ -50,7 +50,7 @@ func NewCmdRequirementsPublish() (*cobra.Command, *Options) {
 		Short:   "Publishes the current jx-requirements.yml to the dev Environment so it can be easily used in pipelines",
 		Long:    cmdLong,
 		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)
 		},

@@ -17,7 +17,7 @@ func NewCmdRepository() *cobra.Command {
 		Use:     "repository",
 		Short:   "Commands for working with source repositories",
 		Aliases: []string{"repo", "repos", "repositories"},
-		Run: func(command *cobra.Command, args []string) {
+		Run: func(command *cobra.Command, _ []string) {
 			err := command.Help()
 			if err != nil {
 				log.Logger().Errorf(err.Error())

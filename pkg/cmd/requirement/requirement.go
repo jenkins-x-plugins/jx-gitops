@@ -21,7 +21,7 @@ func NewCmdRequirement() *cobra.Command {
 		Use:     "requirement",
 		Short:   "Commands for working with jx-requirements.yml",
 		Aliases: []string{"req", "requirements"},
-		Run: func(command *cobra.Command, args []string) {
+		Run: func(command *cobra.Command, _ []string) {
 			err := command.Help()
 			if err != nil {
 				log.Logger().Errorf(err.Error())
