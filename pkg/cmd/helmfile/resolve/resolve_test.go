@@ -75,6 +75,10 @@ func TestStepHelmfileResolve(t *testing.T) {
 			folder:     "helmfile_multi_subfolder",
 			namespaces: []string{"kuberhealthy", "secret-infra"},
 		},
+		{
+			folder:     "replace-chart",
+			namespaces: []string{"secret-infra"},
+		},
 	}
 
 	// lets find the helm binary on the $PATH or download a plugin if inside CI/CD
