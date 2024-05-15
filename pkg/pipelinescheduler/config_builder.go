@@ -130,6 +130,9 @@ func buildTrigger(answer *plugins.Trigger, trigger *schedulerapi.Trigger, orgNam
 	} else {
 		answer.TrustedOrg = orgName
 	}
+	if trigger.TrustedApps != nil {
+		answer.TrustedApps = trigger.TrustedApps
+	}
 	if trigger.OnlyOrgMembers != nil {
 		answer.OnlyOrgMembers = *trigger.OnlyOrgMembers
 	}
