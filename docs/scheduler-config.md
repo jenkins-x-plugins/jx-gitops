@@ -1955,6 +1955,19 @@ for PRs to the above repos. The default is the PR&rsquo;s org.</p>
 </tr>
 <tr>
 <td>
+<code>trusted_apps</code></br>
+<em>
+[]string
+</em>
+</td>
+<td>
+<p>TrustedApps is the explicit list of GitHub apps whose PRs will be automatically
+considered as trusted. The list should contain usernames of each GitHub App without [bot] suffix.
+By default, trigger will ignore this list.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>join_org_url</code></br>
 <em>
 string

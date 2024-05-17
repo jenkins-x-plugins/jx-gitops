@@ -118,6 +118,9 @@ func applyToTrigger(parent, child *schedulerapi.Trigger) {
 	if child.TrustedOrg == nil {
 		child.TrustedOrg = parent.TrustedOrg
 	}
+	if child.TrustedApps == nil {
+		child.TrustedApps = parent.TrustedApps
+	}
 	if child.SkipDraftPR == nil {
 		child.SkipDraftPR = parent.SkipDraftPR
 	}

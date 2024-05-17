@@ -130,6 +130,9 @@ func buildTrigger(answer *plugins.Trigger, trigger *schedulerapi.Trigger, orgNam
 	} else {
 		answer.TrustedOrg = orgName
 	}
+	if trigger.TrustedApps != nil {
+		answer.TrustedApps = trigger.TrustedApps
+	}
 	if trigger.OnlyOrgMembers != nil {
 		answer.OnlyOrgMembers = *trigger.OnlyOrgMembers
 	}
@@ -479,9 +482,6 @@ func buildPeriodics(answer *config.JobConfig, periodics *schedulerapi.Periodics)
 		if !periodicAlreadyExists {
 			periodic := job.Periodic{
 				Cron: schedulerPeriodic.Cron,
-			}
-			if len(schedulerPeriodic.Tags) > 0 {
-				periodic.Tags = schedulerPeriodic.Tags
 			}
 			buildBase(&periodic.Base, &schedulerPeriodic.Base)
 			answer.Periodics = append(answer.Periodics, periodic)
