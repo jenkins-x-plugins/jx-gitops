@@ -17,7 +17,7 @@ require (
 	github.com/jenkins-x-plugins/jx-charter v0.0.28
 	github.com/jenkins-x/go-scm v1.14.30
 	github.com/jenkins-x/jx-api/v4 v4.7.4
-	github.com/jenkins-x/jx-helpers/v3 v3.4.12
+	github.com/jenkins-x/jx-helpers/v3 v3.7.0
 	github.com/jenkins-x/jx-kube-client/v3 v3.0.4
 	github.com/jenkins-x/jx-logging/v3 v3.0.9
 	github.com/jenkins-x/lighthouse-client v0.0.1109
@@ -168,7 +168,6 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/itchyny/gojq v0.9.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
-	github.com/jenkins-x/gen-crd-api-reference-docs v0.1.7 // indirect
 	github.com/jenkins-x/logrus-stackdriver-formatter v0.2.4 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
@@ -220,7 +219,6 @@ require (
 	github.com/rickar/props v0.0.0-20170718221555-0b06aeb2f037 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/russross/blackfriday v1.6.0 // indirect
-	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
@@ -229,7 +227,6 @@ require (
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/skeema/knownhosts v1.2.1 // indirect
 	github.com/spf13/cast v1.4.1 // indirect
-	github.com/src-d/gcfg v1.4.0 // indirect
 	github.com/tatsushid/go-prettytable v0.0.0-20141013043238-ed2d14c29939 // indirect
 	github.com/ulikunitz/xz v0.5.8 // indirect
 	github.com/variantdev/chartify v0.12.0 // indirect
@@ -271,15 +268,12 @@ require (
 	gopkg.in/ini.v1 v1.66.2 // indirect
 	gopkg.in/robfig/cron.v2 v2.0.0-20150107220207-be2e0b0deed5 // indirect
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
-	gopkg.in/src-d/go-git.v4 v4.13.1 // indirect
 	gopkg.in/urfave/cli.v1 v1.20.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/apiextensions-apiserver v0.25.2 // indirect
 	k8s.io/cli-runtime v0.28.4 // indirect
-	k8s.io/gengo v0.0.0-20230829151522-9cce18d56c01 // indirect
-	k8s.io/klog v1.0.0 // indirect
 	k8s.io/klog/v2 v2.110.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20231010175941-2dd684a91f00 // indirect
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b // indirect

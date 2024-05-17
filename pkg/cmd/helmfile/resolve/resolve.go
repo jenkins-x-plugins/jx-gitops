@@ -470,40 +470,9 @@ func (o *Options) resolveHelmfile(helmState *state.HelmState, helmfile helmfiles
 
 			// lets look for an override version label
 			if stringhelpers.StringArrayIndex(ignoreRepositories, repository) < 0 && !IsLabelValue(&release, helmhelpers.VersionLabel, helmhelpers.LockLabelValue) {
-				// first try and match using the prefix and release name as we might have a version stream folder that uses helm alias
-				versionProperties, err := o.Options.Resolver.StableVersion(versionstream.KindChart, prefix+"/"+release.Name)
+				err = o.updateRelease(helmState, prefix, &release, fullChartName, repository, helmfile)
 				if err != nil {
-					return errors.Wrapf(err, "failed to find version number for chart %s", release.Name)
-				}
-
-				// lets fall back to using the full chart name
-				if versionProperties.Version == "" {
-					versionProperties, err = o.Options.Resolver.StableVersion(versionstream.KindChart, fullChartName)
-					if err != nil {
-						return errors.Wrapf(err, "failed to find version number for chart %s", fullChartName)
-					}
-				}
-
-				version := versionProperties.Version
-
-				if release.Version == "" && version == "" {
-					log.Logger().Debugf("could not find version for chart %s so using latest found in helm repository %s", fullChartName, repository)
-				}
-
-				versionChanged := false
-				if release.Version == "" {
-					release.Version = version
-					versionChanged = true
-				} else if o.UpdateMode && release.Version != version && version != "" {
-					release.Version = version
-					versionChanged = true
-				}
-				if versionChanged {
-					log.Logger().Debugf("resolved chart %s version %s", fullChartName, version)
-				}
-
-				if release.Namespace == "" && helmState.OverrideNamespace == "" && versionProperties.Namespace != "" {
-					release.Namespace = versionProperties.Namespace
+					return err
 				}
 			}
 		}
@@ -575,6 +544,84 @@ func (o *Options) resolveHelmfile(helmState *state.HelmState, helmfile helmfiles
 		helmState.Releases[i] = release
 	}
 
+	return nil
+}
+
+func (o *Options) updateRelease(helmState *state.HelmState, prefix string, release *state.ReleaseSpec, fullChartName, repository string, helmfile helmfiles.Helmfile) error {
+	// first try and match using the prefix and release name as we might have a version stream folder that uses helm alias
+	versionProperties, err := o.Options.Resolver.StableVersion(versionstream.KindChart, prefix+"/"+release.Name)
+	if err != nil {
+		return errors.Wrapf(err, "failed to find version number for chart %s", release.Name)
+	}
+	if versionProperties.ReplacementChart != "" && (release.Version == "" || o.UpdateMode) {
+		release.Name = versionProperties.ReplacementChart
+		if versionProperties.ReplacementChartPrefix != "" {
+			prefix = versionProperties.ReplacementChartPrefix
+			newChart := fmt.Sprintf("%s/%s", prefix, versionProperties.ReplacementChart)
+			// Checking that replacement chart doesn't already exist in helmfile
+			for i := range helmState.Releases {
+				existingRelease := helmState.Releases[i]
+				if existingRelease.Chart == newChart {
+					log.Logger().Warningf("Can't replace %s with %s since %s already exist in helmfile. You should probably remove %s from %s yourself.", release.Chart, newChart, newChart, release.Chart, helmfile.Filepath)
+					return nil
+				}
+			}
+			release.Chart = newChart
+
+			// let's make sure we have the repository
+			found := false
+			for k := range helmState.Repositories {
+				repo := helmState.Repositories[k]
+				if repo.Name == versionProperties.ReplacementChartPrefix {
+					found = true
+					break
+				}
+			}
+			if !found {
+				repository, err = versionstreamer.MatchRepositoryPrefix(o.prefixes, versionProperties.ReplacementChartPrefix)
+				if err != nil {
+					return err
+				}
+				helmState.Repositories = append(helmState.Repositories, state.RepositorySpec{
+					Name: versionProperties.ReplacementChartPrefix,
+					URL:  repository,
+				})
+			}
+		}
+		log.Logger().Debugf("replacing chart %s with %s", fullChartName, release.Chart)
+		return o.updateRelease(helmState, prefix, release, release.Chart, repository, helmfile)
+	}
+
+	// Only falling back if the file for the alias exists, but doesn't contain version. Weird...
+	// lets fall back to using the full chart name
+	if versionProperties.Version == "" {
+		versionProperties, err = o.Options.Resolver.StableVersion(versionstream.KindChart, fullChartName)
+		if err != nil {
+			return errors.Wrapf(err, "failed to find version number for chart %s", fullChartName)
+		}
+	}
+
+	version := versionProperties.Version
+
+	if release.Version == "" && version == "" {
+		log.Logger().Debugf("could not find version for chart %s so using latest found in helm repository %s", fullChartName, repository)
+	}
+
+	versionChanged := false
+	if release.Version == "" {
+		release.Version = version
+		versionChanged = true
+	} else if o.UpdateMode && release.Version != version && version != "" {
+		release.Version = version
+		versionChanged = true
+	}
+	if versionChanged {
+		log.Logger().Debugf("resolved chart %s version %s", fullChartName, version)
+	}
+
+	if release.Namespace == "" && helmState.OverrideNamespace == "" && versionProperties.Namespace != "" {
+		release.Namespace = versionProperties.Namespace
+	}
 	return nil
 }
 

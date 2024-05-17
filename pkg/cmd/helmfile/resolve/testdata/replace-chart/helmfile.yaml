@@ -1,0 +1,7 @@
+releases:
+  - chart: jxgh/pusher-wave
+    name: pusher-wave
+    version: 1.2.3
+repositories:
+  - name: jxgh
+    url: https://jenkins-x-charts.github.io/repo
