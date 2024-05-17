@@ -168,7 +168,6 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/itchyny/gojq v0.9.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
-	github.com/jenkins-x/gen-crd-api-reference-docs v0.1.7 // indirect
 	github.com/jenkins-x/logrus-stackdriver-formatter v0.2.4 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
@@ -220,7 +219,6 @@ require (
 	github.com/rickar/props v0.0.0-20170718221555-0b06aeb2f037 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/russross/blackfriday v1.6.0 // indirect
-	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
@@ -278,8 +276,6 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/apiextensions-apiserver v0.25.2 // indirect
 	k8s.io/cli-runtime v0.28.4 // indirect
-	k8s.io/gengo v0.0.0-20230829151522-9cce18d56c01 // indirect
-	k8s.io/klog v1.0.0 // indirect
 	k8s.io/klog/v2 v2.110.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20231010175941-2dd684a91f00 // indirect
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b // indirect
@@ -295,4 +291,4 @@ require (
 // provided by k8s.io/client-go at latest version v0.29.3 but not at required version v11.0.1-0.20190805182717-6502b5e7b1b5+incompatible
 replace k8s.io/client-go => k8s.io/client-go v0.28.4
 
-go 1.22.1
+go 1.22
