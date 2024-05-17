@@ -21,13 +21,13 @@ spec:
           resources: {}
         - name: jx-variables
           resources: {}
-        - image: golang:1.22.1
+        - image: golang:1.22
           name: build-make-linux
           resources: {}
           script: |
             #!/bin/sh
             make linux
-        - image: golang:1.22.1
+        - image: golang:1.22
           name: build-make-test
           resources: {}
           script: |
