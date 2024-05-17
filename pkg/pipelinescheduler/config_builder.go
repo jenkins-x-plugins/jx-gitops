@@ -480,9 +480,6 @@ func buildPeriodics(answer *config.JobConfig, periodics *schedulerapi.Periodics)
 			periodic := job.Periodic{
 				Cron: schedulerPeriodic.Cron,
 			}
-			if len(schedulerPeriodic.Tags) > 0 {
-				periodic.Tags = schedulerPeriodic.Tags
-			}
 			buildBase(&periodic.Base, &schedulerPeriodic.Base)
 			answer.Periodics = append(answer.Periodics, periodic)
 		}
