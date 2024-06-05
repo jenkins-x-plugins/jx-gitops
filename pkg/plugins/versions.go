@@ -22,7 +22,7 @@ const (
 	KustomizePluginName = "kustomize"
 
 	// HelmVersion the default version of helm to use
-	HelmVersion = "3.13.3"
+	HelmVersion = "3.15.1"
 
 	// HelmfileVersion the default version of helmfile to use
 	HelmfileVersion = "0.149.0"
