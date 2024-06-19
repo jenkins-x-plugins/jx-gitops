@@ -124,6 +124,9 @@ func applyToTrigger(parent, child *schedulerapi.Trigger) {
 	if child.SkipDraftPR == nil {
 		child.SkipDraftPR = parent.SkipDraftPR
 	}
+	if child.SkipReportComment == nil {
+		child.SkipReportComment = parent.SkipReportComment
+	}
 }
 
 func applyToSchedulerAgent(parent, child *schedulerapi.SchedulerAgent) {

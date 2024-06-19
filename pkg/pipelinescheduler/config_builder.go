@@ -145,6 +145,9 @@ func buildTrigger(answer *plugins.Trigger, trigger *schedulerapi.Trigger, orgNam
 	if trigger.SkipDraftPR != nil {
 		answer.SkipDraftPR = *trigger.SkipDraftPR
 	}
+	if trigger.SkipReportComment != nil {
+		answer.SkipReportComment = *trigger.SkipReportComment
+	}
 	answer.Repos = []string{
 		orgSlashRepo(orgName, repoName),
 	}
