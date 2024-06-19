@@ -28,12 +28,7 @@ spec:
         - name: jx-variables
           resources: {}
         - name: release-binary
-          image: golang:1.22
           resources: {}
-          script: |
-            #!/bin/bash
-            source .jx/variables.sh
-            make release
         - image: uses:jenkins-x/jx3-pipeline-catalog/tasks/build-scan-push/build-scan-push.yaml@versionStream
           name: build-container
         - image: uses:jenkins-x/jx3-pipeline-catalog/tasks/build-scan-push/build-scan-push.yaml@versionStream

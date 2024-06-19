@@ -14,10 +14,10 @@ require (
 	github.com/h2non/gock v1.0.9
 	github.com/helmfile/helmfile v0.149.0
 	github.com/imdario/mergo v0.3.15
-	github.com/jenkins-x-plugins/jx-charter v0.0.28
+	github.com/jenkins-x-plugins/jx-charter v0.0.30
 	github.com/jenkins-x/go-scm v1.14.34
 	github.com/jenkins-x/jx-api/v4 v4.7.4
-	github.com/jenkins-x/jx-helpers/v3 v3.7.0
+	github.com/jenkins-x/jx-helpers/v3 v3.7.1
 	github.com/jenkins-x/jx-kube-client/v3 v3.0.4
 	github.com/jenkins-x/jx-logging/v3 v3.0.9
 	github.com/jenkins-x/lighthouse-client v0.0.1191
@@ -289,4 +289,4 @@ require (
 // provided by k8s.io/client-go at latest version v0.29.3 but not at required version v11.0.1-0.20190805182717-6502b5e7b1b5+incompatible
 replace k8s.io/client-go => k8s.io/client-go v0.28.4
 
-go 1.22
+go 1.22.3
