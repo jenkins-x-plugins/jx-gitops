@@ -13,27 +13,24 @@ spec:
         stepTemplate:
           image: uses:jenkins-x/jx3-pipeline-catalog/tasks/go-plugin/pullrequest.yaml@versionStream
           name: ""
-          resources: {}
+          resources:
+            # override limits for all containers here
+            limits: {}
           workingDir: /workspace/source
         steps:
         - image: uses:jenkins-x/jx3-pipeline-catalog/tasks/git-clone/git-clone-pr.yaml@versionStream
           name: ""
           resources: {}
         - name: jx-variables
+          resources:
+            # override requests for the pod here
+            requests:
+              cpu: 400m
+              memory: 600Mi
+        - name: build-make-linux
           resources: {}
-        - image: golang:1.22
-          name: build-make-linux
+        - name: build-make-test
           resources: {}
-          script: |
-            #!/bin/sh
-            make linux
-        - image: golang:1.22
-          name: build-make-test
-          resources: {}
-          script: |
-            #!/bin/bash
-            source .jx/variables.sh
-            make test
         - name: build-container-build
           resources: {}
   podTemplate: {}

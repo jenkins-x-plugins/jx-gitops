@@ -11,23 +11,21 @@ spec:
       taskSpec:
         metadata: {}
         stepTemplate:
-          image: uses:jenkins-x/jx3-pipeline-catalog/tasks/go/pullrequest.yaml@versionStream
+          image: uses:jenkins-x/jx3-pipeline-catalog/tasks/go-plugin/pullrequest.yaml@versionStream
           name: ""
-          resources: {}
+          resources:
+            # override limits for all containers here
+            limits: {}
           workingDir: /workspace/source
         steps:
         - image: uses:jenkins-x/jx3-pipeline-catalog/tasks/git-clone/git-clone-pr.yaml@versionStream
           name: ""
           resources: {}
         - name: make-lint
-          image: golangci/golangci-lint:v1.57.2
           resources:
             requests:
               cpu: 1600m
               memory: 1400Mi
-          script: |
-            #!/bin/sh
-            golangci-lint run
   podTemplate: {}
   serviceAccountName: tekton-bot
   timeout: 60m0s
