@@ -21,7 +21,7 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-const helmDependencyBuild = "helm dependency build ."
+const helmDependencyBuild = "helm dependency build . --registry-config "
 const helmLint = "helm lint"
 const helmPackage = "helm package ."
 
@@ -168,7 +168,10 @@ func TestStepHelmReleaseWithChartPages(t *testing.T) {
 			CLI: runner.OrderedCommands[0].Name + " " + strings.Join(runner.OrderedCommands[0].Args, " "),
 		},
 		fakerunner.FakeResult{
-			CLI: helmDependencyBuild,
+			CLI: "helm repo add 0 file://myapp-common",
+		},
+		fakerunner.FakeResult{
+			CLI: helmDependencyBuild + o.RegistryConfigFile,
 		},
 		fakerunner.FakeResult{
 			CLI: helmLint,
@@ -219,7 +222,10 @@ func TestStepHelmReleaseWithOCIUsingUserName(t *testing.T) {
 			CLI: runner.OrderedCommands[0].Name + " " + strings.Join(runner.OrderedCommands[0].Args, " "),
 		},
 		fakerunner.FakeResult{
-			CLI: helmDependencyBuild,
+			CLI: "helm repo add 0 file://myapp-common",
+		},
+		fakerunner.FakeResult{
+			CLI: helmDependencyBuild + o.RegistryConfigFile,
 		},
 		fakerunner.FakeResult{
 			CLI: helmLint,
@@ -231,7 +237,7 @@ func TestStepHelmReleaseWithOCIUsingUserName(t *testing.T) {
 			CLI: "helm registry login " + OCIRegistry + " --username " + o.RepositoryUsername + " --password " + o.RepositoryPassword,
 		},
 		fakerunner.FakeResult{
-			CLI: "helm push myapp-" + chartVersion + ".tgz " + OCIRegistry + " --registry-config " + o.RegistryConfigFile,
+			CLI: "helm push myapp-" + chartVersion + ".tgz oci://" + OCIRegistry + " --registry-config " + o.RegistryConfigFile,
 		},
 	)
 }
@@ -258,7 +264,10 @@ func TestStepHelmReleaseWithOCIUsingRegistryConfig(t *testing.T) {
 			CLI: runner.OrderedCommands[0].Name + " " + strings.Join(runner.OrderedCommands[0].Args, " "),
 		},
 		fakerunner.FakeResult{
-			CLI: helmDependencyBuild,
+			CLI: "helm repo add 0 file://myapp-common",
+		},
+		fakerunner.FakeResult{
+			CLI: helmDependencyBuild + o.RegistryConfigFile,
 		},
 		fakerunner.FakeResult{
 			CLI: helmLint,
@@ -268,7 +277,7 @@ func TestStepHelmReleaseWithOCIUsingRegistryConfig(t *testing.T) {
 		},
 
 		fakerunner.FakeResult{
-			CLI: "helm push myapp-" + chartVersion + ".tgz " + OCIRegistry + " --registry-config " + o.RegistryConfigFile,
+			CLI: "helm push myapp-" + chartVersion + ".tgz " + "oci://" + OCIRegistry + " --registry-config " + o.RegistryConfigFile,
 		},
 	)
 }
@@ -292,7 +301,10 @@ func TestStepHelmReleaseWithOCINoOCILogin(t *testing.T) {
 			CLI: runner.OrderedCommands[0].Name + " " + strings.Join(runner.OrderedCommands[0].Args, " "),
 		},
 		fakerunner.FakeResult{
-			CLI: helmDependencyBuild,
+			CLI: "helm repo add 0 file://myapp-common",
+		},
+		fakerunner.FakeResult{
+			CLI: helmDependencyBuild + o.RegistryConfigFile,
 		},
 		fakerunner.FakeResult{
 			CLI: helmLint,
@@ -302,7 +314,7 @@ func TestStepHelmReleaseWithOCINoOCILogin(t *testing.T) {
 		},
 
 		fakerunner.FakeResult{
-			CLI: "helm push myapp-" + chartVersion + ".tgz " + OCIRegistry + " --registry-config " + o.RegistryConfigFile,
+			CLI: "helm push myapp-" + chartVersion + ".tgz " + "oci://" + OCIRegistry + " --registry-config " + o.RegistryConfigFile,
 		})
 
 }
