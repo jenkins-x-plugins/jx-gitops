@@ -7,16 +7,18 @@ import (
 	"testing"
 	"time"
 
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/gc/activities"
 	v1 "github.com/jenkins-x/jx-api/v4/pkg/apis/jenkins.io/v1"
 	jxfake "github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned/fake"
 	"github.com/jenkins-x/lighthouse-client/pkg/apis/lighthouse/v1alpha1"
 	fakelh "github.com/jenkins-x/lighthouse-client/pkg/client/clientset/versioned/fake"
 	"github.com/stretchr/testify/assert"
-	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
-	faketekton "github.com/tektoncd/pipeline/pkg/client/clientset/versioned/fake"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	fakedyn "k8s.io/client-go/dynamic/fake"
 )
 
 func TestGCPipelineActivities(t *testing.T) {
@@ -118,38 +120,43 @@ func TestGCPipelineActivities(t *testing.T) {
 	lhjRuntimes := LighthouseJobsToRuntimes(lhJobs)
 	lhClient := fakelh.NewSimpleClientset(lhjRuntimes...)
 
-	tknPipelineRuns := ToPipelineRuns(pas)
-	tknRuntimes := PipelineRunsToRuntimes(tknPipelineRuns)
-	tknClient := faketekton.NewSimpleClientset(tknRuntimes...)
+	scheme := runtime.NewScheme()
+	tknClient := fakedyn.NewSimpleDynamicClientWithCustomListKinds(scheme, map[schema.GroupVersionResource]string{activities.PipelineResource: "PipelineRunList"})
+
+	tknPipelineRuns := ToPipelineRuns(t, pas)
+	for i := range tknPipelineRuns {
+		err := tknClient.Tracker().Create(activities.PipelineResource, tknPipelineRuns[i], ns)
+		assert.NoError(t, err)
+	}
 
 	_, o := activities.NewCmdGCActivities()
 	o.Namespace = ns
 	o.JXClient = jxClient
 	o.LHClient = lhClient
-	o.TknClient = tknClient
+	o.DynamicClient = tknClient
 
 	lhjobs, err := lhClient.LighthouseV1alpha1().LighthouseJobs(ns).List(ctx, metav1.ListOptions{})
 	assert.NoError(t, err)
 	t.Logf("has %d LighthouseJobs\n", len(lhjobs.Items))
 
-	prRuns, err := tknClient.TektonV1beta1().PipelineRuns(ns).List(ctx, metav1.ListOptions{})
+	prRuns, err := tknClient.Resource(activities.PipelineResource).Namespace(ns).List(ctx, metav1.ListOptions{})
 	assert.NoError(t, err)
 	t.Logf("has %d PipelineRuns\n", len(prRuns.Items))
 
 	// Delete a pipeline run to ensure that gc activites don't try to delete something that does not exist.
-	err = tknClient.TektonV1beta1().PipelineRuns(ns).Delete(ctx, prRuns.Items[0].Name, metav1.DeleteOptions{})
+	err = tknClient.Resource(activities.PipelineResource).Namespace(ns).Delete(ctx, prRuns.Items[0].GetName(), metav1.DeleteOptions{})
 	assert.NoError(t, err)
 
 	err = o.Run()
 	assert.NoError(t, err)
 
-	activities, err := jxClient.JenkinsV1().PipelineActivities(ns).List(ctx, metav1.ListOptions{})
+	activityList, err := jxClient.JenkinsV1().PipelineActivities(ns).List(ctx, metav1.ListOptions{})
 	assert.NoError(t, err)
 
-	assert.Len(t, activities.Items, 3, "Two of the activities should've been garbage collected")
+	assert.Len(t, activityList.Items, 3, "Two of the activities should've been garbage collected")
 
 	var verifier []bool
-	for _, v := range activities.Items {
+	for _, v := range activityList.Items {
 		if v.BranchName() == "batch" || v.BranchName() == "PR-1" {
 			verifier = append(verifier, true)
 		}
@@ -190,21 +197,19 @@ func ToLighthouseJobs(list []*v1.PipelineActivity) []*v1alpha1.LighthouseJob {
 	return answer
 }
 
-func ToPipelineRuns(list []*v1.PipelineActivity) []*v1beta1.PipelineRun {
-	var answer []*v1beta1.PipelineRun
-	for _, r := range list {
-		j := &v1beta1.PipelineRun{
-			ObjectMeta: r.ObjectMeta,
-		}
-		answer = append(answer, j)
-	}
-	return answer
-}
-
-func PipelineRunsToRuntimes(list []*v1beta1.PipelineRun) []runtime.Object {
+func ToPipelineRuns(t *testing.T, list []*v1.PipelineActivity) []runtime.Object {
 	var answer []runtime.Object
 	for _, r := range list {
-		answer = append(answer, r)
+		j := &unstructured.Unstructured{}
+		j.SetName(r.ObjectMeta.Name)
+		j.SetNamespace(r.ObjectMeta.Namespace)
+		j.SetGroupVersionKind(schema.GroupVersionKind{
+			Group:   activities.PipelineResource.Group,
+			Version: activities.PipelineResource.Version,
+			Kind:    activities.PipelineResource.Resource,
+		})
+
+		answer = append(answer, j)
 	}
 	return answer
 }

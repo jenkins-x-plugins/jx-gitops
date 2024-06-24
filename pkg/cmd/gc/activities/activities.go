@@ -6,6 +6,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jenkins-x/jx-helpers/v3/pkg/kube"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/dynamic"
+
 	v1 "github.com/jenkins-x/jx-api/v4/pkg/apis/jenkins.io/v1"
 	jxc "github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned"
 	jv1 "github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned/typed/jenkins.io/v1"
@@ -18,8 +23,6 @@ import (
 	lhclient "github.com/jenkins-x/lighthouse-client/pkg/client/clientset/versioned"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
-	tknC "github.com/tektoncd/pipeline/pkg/client/clientset/versioned"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -37,12 +40,18 @@ type Options struct {
 	Namespace               string
 	JXClient                jxc.Interface
 	LHClient                lhclient.Interface
-	TknClient               tknC.Interface
+	DynamicClient           dynamic.Interface
 }
 
 const PrLabel = "tekton.dev/pipeline"
 
 var (
+	PipelineResource = schema.GroupVersionResource{
+		Group:    "tekton.dev",
+		Version:  "v1beta1",
+		Resource: "PipelineRun",
+	}
+
 	info = termcolor.ColorInfo
 
 	cmdLong = templates.LongDesc(`
@@ -123,7 +132,7 @@ func (o *Options) Run() error {
 		return errors.Wrapf(err, "failed to create the lighthouse client")
 	}
 
-	o.TknClient, err = LazyCreateTknClient(o.TknClient)
+	o.DynamicClient, err = kube.LazyCreateDynamicClient(o.DynamicClient)
 	if err != nil {
 		return errors.Wrapf(err, "failed to create the tekton client")
 	}
@@ -299,11 +308,11 @@ func (o *Options) deletePipelineRun(ctx context.Context, ns, prName string) erro
 	if o.DryRun {
 		return nil
 	}
-	return o.TknClient.TektonV1beta1().PipelineRuns(ns).Delete(ctx, prName, metav1.DeleteOptions{})
+	return o.DynamicClient.Resource(PipelineResource).Namespace(ns).Delete(ctx, prName, metav1.DeleteOptions{})
 }
 
-func (o *Options) getPipelineRun(ctx context.Context, ns, prName string) (*v1beta1.PipelineRun, error) {
-	return o.TknClient.TektonV1beta1().PipelineRuns(ns).Get(ctx, prName, metav1.GetOptions{})
+func (o *Options) getPipelineRun(ctx context.Context, ns, prName string) (*unstructured.Unstructured, error) {
+	return o.DynamicClient.Resource(PipelineResource).Namespace(ns).Get(ctx, prName, metav1.GetOptions{})
 }
 
 // LazyCreateLHClient lazy creates the lighthouse client if its not defined
@@ -319,23 +328,6 @@ func LazyCreateLHClient(client lhclient.Interface) (lhclient.Interface, error) {
 	client, err = lhclient.NewForConfig(cfg)
 	if err != nil {
 		return client, errors.Wrap(err, "error building lighthouse clientset")
-	}
-	return client, nil
-}
-
-// LazyCreateTknClient lazy creates the tekton client if its not defined
-func LazyCreateTknClient(client tknC.Interface) (tknC.Interface, error) {
-	if client != nil {
-		return client, nil
-	}
-	f := kubeclient.NewFactory()
-	cfg, err := f.CreateKubeConfig()
-	if err != nil {
-		return client, errors.Wrap(err, "failed to get kubernetes config")
-	}
-	client, err = tknC.NewForConfig(cfg)
-	if err != nil {
-		return client, errors.Wrap(err, "error building tekton clientset")
 	}
 	return client, nil
 }
