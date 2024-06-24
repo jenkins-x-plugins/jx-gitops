@@ -20,7 +20,7 @@ require (
 	github.com/jenkins-x/jx-helpers/v3 v3.7.1
 	github.com/jenkins-x/jx-kube-client/v3 v3.0.8
 	github.com/jenkins-x/jx-logging/v3 v3.0.16
-	github.com/jenkins-x/lighthouse-client v0.0.1224
+	github.com/jenkins-x/lighthouse-client v0.0.1230
 	github.com/pborman/uuid v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/rollout/rox-go v0.0.0-20181220111955-29ddae74a8c4

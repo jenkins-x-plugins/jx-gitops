@@ -203,6 +203,9 @@ type Trigger struct {
 	ElideSkippedContexts *bool `json:"elide_skipped_contexts,omitempty"`
 	// SkipDraftPR when enabled, skips triggering pipelines for draft PRs, unless /ok-to-test is added.
 	SkipDraftPR *bool `json:"skip_draft_pr,omitempty"`
+	// SkipReportComment when enabled, skips report comments in the SCM provider based on the state of
+	// the LighthouseJobs.
+	SkipReportComment *bool `json:"skip_report_comment,omitempty" protobuf:"bytes,6,opt,name=skip_report_comment"`
 }
 
 // Postsubmits is a list of Postsubmit job configurations that can optionally completely replace the Postsubmit job
