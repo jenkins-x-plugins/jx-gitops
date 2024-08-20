@@ -206,6 +206,9 @@ type Trigger struct {
 	// SkipReportComment when enabled, skips report comments in the SCM provider based on the state of
 	// the LighthouseJobs.
 	SkipReportComment *bool `json:"skip_report_comment,omitempty" protobuf:"bytes,6,opt,name=skip_report_comment"`
+	// SkipReportRunningStatus when enabled, skips report status in the SCM provider
+	// based on the current and last state of the LighthouseJobs.
+	SkipReportRunningStatus *bool `json:"skip_report_running_status,omitempty"`
 }
 
 // Postsubmits is a list of Postsubmit job configurations that can optionally completely replace the Postsubmit job

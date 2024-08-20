@@ -148,6 +148,9 @@ func buildTrigger(answer *plugins.Trigger, trigger *schedulerapi.Trigger, orgNam
 	if trigger.SkipReportComment != nil {
 		answer.SkipReportComment = *trigger.SkipReportComment
 	}
+	if trigger.SkipReportRunningStatus != nil {
+		answer.SkipReportRunningStatus = *trigger.SkipReportRunningStatus
+	}
 	answer.Repos = []string{
 		orgSlashRepo(orgName, repoName),
 	}
