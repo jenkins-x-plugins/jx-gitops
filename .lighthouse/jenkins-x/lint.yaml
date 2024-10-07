@@ -25,7 +25,7 @@ spec:
           resources:
             requests:
               cpu: 1
-              memory: 1400Mi
+              memory: 3400Mi
   podTemplate: {}
   serviceAccountName: tekton-bot
   timeout: 60m0s
