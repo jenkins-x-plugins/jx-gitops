@@ -25,7 +25,7 @@ var (
 	authenticating as git user with token provided by jx-boot secret, also provided by jx-git-operator installation.
 
 	Effectively this command runs jx gitops git setup before proceeding to simply clone the repository into either the
-	folder passed in via --clone-dir or into the ./setup directory.
+	folder passed in via --clone-dir or into the ./source directory.
 `)
 
 	cmdExample = templates.Examples(`
