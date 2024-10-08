@@ -25,7 +25,7 @@ spec:
           resources:
             # override requests for the pod here
             requests:
-              cpu: 400m
+              cpu: 1400m
               memory: 600Mi
         - name: build-make-linux
           resources: {}

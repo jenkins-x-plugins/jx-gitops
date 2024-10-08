@@ -3,6 +3,7 @@ package comment
 import (
 	"context"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 
@@ -50,6 +51,7 @@ type Options struct {
 	Comment  string
 	Result   *scm.PullRequest
 	Strategy string
+	FileName string
 }
 
 // NewCmdPullRequestComment creates a command object for the command
@@ -69,6 +71,7 @@ func NewCmdPullRequestComment() (*cobra.Command, *Options) {
 	o.PullRequestOptions.AddFlags(cmd)
 
 	cmd.Flags().StringVarP(&o.Comment, "comment", "c", "", "comment to add")
+	cmd.Flags().StringVarP(&o.FileName, "file", "f", "", "add content of file as comment")
 	cmd.Flags().StringVarP(&o.Strategy, "strategy", "s", CreateCommentStrategy, fmt.Sprintf("comment strategy to choose (%s)", strings.Join(availableStrategies, ", ")))
 	return cmd, o
 }
@@ -85,6 +88,14 @@ func (o *Options) Run() error {
 	}
 	if pr == nil {
 		return errors.Errorf("no Pull Request could be found for %d in repository %s", o.Number, o.Repository)
+	}
+
+	if o.FileName != "" {
+		content, err := os.ReadFile(o.FileName)
+		if err != nil {
+			return fmt.Errorf("can't read file %s", o.FileName)
+		}
+		o.Comment += string(content)
 	}
 	return o.commentPullRequestWithStrategy(context.Background())
 }

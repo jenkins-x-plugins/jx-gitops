@@ -2026,6 +2026,30 @@ bool
 <p>SkipDraftPR when enabled, skips triggering pipelines for draft PRs, unless /ok-to-test is added.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>skip_report_comment</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>SkipReportComment when enabled, skips report comments in the SCM provider based on the state of
+the LighthouseJobs.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>skip_report_running_status</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>SkipReportRunningStatus when enabled, skips report status in the SCM provider
+based on the current and last state of the LighthouseJobs.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="scheduler.jenkins-x.io/v1alpha1.Welcome">Welcome
@@ -2060,5 +2084,5 @@ string
 <hr/>
 <p><em>
 Generated with <code>gen-crd-api-reference-docs</code>
-on git commit <code>4184d641</code>.
+on git commit <code>a3436997</code>.
 </em></p>

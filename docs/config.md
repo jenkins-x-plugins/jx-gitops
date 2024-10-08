@@ -696,7 +696,7 @@ string
 </em>
 </td>
 <td>
-<p>Strategy is the merge strategy kpt will use see <a href="https://googlecontainertools.github.io/kpt/reference/pkg/update/#flags">https://googlecontainertools.github.io/kpt/reference/pkg/update/#flags</a></p>
+<p>Strategy is the merge strategy kpt will use see <a href="https://kpt.dev/reference/cli/pkg/update/?id=flags">https://kpt.dev/reference/cli/pkg/update/?id=flags</a></p>
 </td>
 </tr>
 </tbody>
@@ -1747,5 +1747,5 @@ string
 <hr/>
 <p><em>
 Generated with <code>gen-crd-api-reference-docs</code>
-on git commit <code>100093a8</code>.
+on git commit <code>a3436997</code>.
 </em></p>
