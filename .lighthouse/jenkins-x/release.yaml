@@ -23,7 +23,7 @@ spec:
         - name: next-version
           resources:
             requests:
-              cpu: 1
+              cpu: 1400m
               memory: 1400Mi
         - name: jx-variables
           resources: {}

@@ -24,7 +24,7 @@ spec:
         - name: make-lint
           resources:
             requests:
-              cpu: 1
+              cpu: 1400m
               memory: 4400Mi
   podTemplate: {}
   serviceAccountName: tekton-bot
