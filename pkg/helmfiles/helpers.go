@@ -1,6 +1,9 @@
 package helmfiles
 
 import (
+	"fmt"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/versionstreamer"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/versionstream"
 	"os"
 	"path/filepath"
 	"strings"
@@ -63,3 +66,60 @@ func GatherHelmfiles(helmfile, dir string) ([]Helmfile, error) {
 	}
 	return helmfiles, nil
 }
+
+// AddRepository ensures that the helm repository for the prefix exists in the helmstate.
+// For it to succeed either repositoryUrl needs to be set or the prefix exists in prefixes.
+func AddRepository(helmState *state.HelmState, prefix string, repositoryUrl string, prefixes *versionstream.RepositoryPrefixes) (string, error) {
+	// lets resolve the chart prefix from a local repository from the file or from a
+	// prefix in the versions stream
+	var oci bool
+	if prefix != "" && repositoryUrl == "" {
+		for k := range helmState.Repositories {
+			r := helmState.Repositories[k]
+			if r.Name == prefix {
+				repositoryUrl = r.URL
+				oci = r.OCI
+			}
+		}
+	}
+	var err error
+	if repositoryUrl == "" && prefix != "" {
+		repositoryUrl, err = versionstreamer.MatchRepositoryPrefix(prefixes, prefix)
+		if err != nil {
+			return "", errors.Wrapf(err, "failed to match prefix %s with repositories from versionstream", prefix)
+		}
+	}
+	if repositoryUrl == "" && prefix != "" {
+		return "", errors.Wrapf(err, "failed to find repository URL, not defined in helmfile.yaml or versionstream")
+	}
+	if repositoryUrl != "" && prefix != "" {
+		ociPrefix := strings.HasPrefix(repositoryUrl, "oci://")
+		if ociPrefix {
+			repositoryUrl = repositoryUrl[len("oci://"):]
+			oci = true
+		}
+		// lets ensure we've got a repository for this URL in the apps file
+		found := false
+		for k := range helmState.Repositories {
+			r := helmState.Repositories[k]
+			if r.Name == prefix {
+				if r.URL != repositoryUrl {
+					return "",
+						fmt.Errorf("release has prefix %s for repository URL %s which is also mapped to prefix %s",
+							prefix, r.URL, r.Name)
+				}
+				found = true
+				break
+			}
+		}
+		if !found {
+			helmState.Repositories = append(helmState.Repositories, state.RepositorySpec{
+				Name: prefix,
+				URL:  repositoryUrl,
+				OCI:  oci,
+			})
+		}
+	}
+	return repositoryUrl, nil
+}
+

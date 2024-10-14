@@ -428,44 +428,9 @@ func (o *Options) resolveHelmfile(helmState *state.HelmState, helmfile helmfiles
 
 		// lets not try resolve repository / versions for local charts
 		if prefix != "." && prefix != ".." {
-			// lets resolve the chart prefix from a local repository from the file or from a
-			// prefix in the versions stream
-			if prefix != "" {
-				for k := range helmState.Repositories {
-					r := helmState.Repositories[k]
-					if r.Name == prefix {
-						repository = r.URL
-					}
-				}
-			}
-			if repository == "" && prefix != "" {
-				repository, err = versionstreamer.MatchRepositoryPrefix(o.prefixes, prefix)
-				if err != nil {
-					return errors.Wrapf(err, "failed to match prefix %s with repositories from versionstream %s", prefix, o.VersionStreamURL)
-				}
-			}
-			if repository == "" && prefix != "" {
-				return errors.Wrapf(err, "failed to find repository URL, not defined in helmfile.yaml or versionstream %s", o.VersionStreamURL)
-			}
-			if repository != "" && prefix != "" {
-				// lets ensure we've got a repository for this URL in the apps file
-				found := false
-				for k := range helmState.Repositories {
-					r := helmState.Repositories[k]
-					if r.Name == prefix {
-						if r.URL != repository {
-							return errors.Errorf("release %s has prefix %s for repository URL %s which is also mapped to prefix %s", release.Name, prefix, r.URL, r.Name)
-						}
-						found = true
-						break
-					}
-				}
-				if !found {
-					helmState.Repositories = append(helmState.Repositories, state.RepositorySpec{
-						Name: prefix,
-						URL:  repository,
-					})
-				}
+			repository, err = helmfiles.AddRepository(helmState, prefix, "", o.prefixes)
+			if err != nil {
+				return fmt.Errorf("failed to add repository for release %s: %w", release.Name, err)
 			}
 
 			// lets look for an override version label
@@ -579,12 +544,17 @@ func (o *Options) updateRelease(helmState *state.HelmState, prefix string, relea
 			}
 			if !found {
 				repository, err = versionstreamer.MatchRepositoryPrefix(o.prefixes, versionProperties.ReplacementChartPrefix)
+				oci := strings.HasPrefix(repository, "oci://")
+				if oci {
+					repository = repository[len("oci://"):]
+				}
 				if err != nil {
 					return err
 				}
 				helmState.Repositories = append(helmState.Repositories, state.RepositorySpec{
 					Name: versionProperties.ReplacementChartPrefix,
 					URL:  repository,
+					OCI:  oci,
 				})
 			}
 		}
