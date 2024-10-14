@@ -73,6 +73,7 @@ func NewCmdMirror() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.Branch, "branch", "b", "gh-pages", "the git branch to clone the repository")
 	cmd.Flags().StringVarP(&o.GitURL, "url", "u", "", "the git URL of the repository to mirror the charts into")
 	cmd.Flags().StringVarP(&o.CommitMessage, "message", "m", "chore: upgrade mirrored charts", "the commit message")
+	cmd.Flags().BoolVarP(&o.NoPush, "no-push", "", true, "disables pushing changes back to the git repository")
 	cmd.Flags().StringArrayVarP(&o.Excludes, "exclude", "x", []string{"jenkins-x", "jx3"}, "the helm repositories to exclude from mirroring")
 
 	o.Factory.AddFlags(cmd)
@@ -163,9 +164,15 @@ func (o *Options) Run() error {
 		return nil
 	}
 	if o.NoPush {
+		log.Logger().Infof("No push as --no-push is enabled")
 		return nil
 	}
-	err = gitclient.Pull(o.GitClient, gitDir)
+	// set upstream and push
+	err = gitclient.SetUpstreamTo(o.GitClient, gitDir, o.Branch)
+	if err != nil {
+		return errors.Wrapf(err, "failed to set upstream to %s", o.Branch)
+	}
+	err = gitclient.Push(o.GitClient, gitDir, o.GitURL, false)
 	if err != nil {
 		return errors.Wrapf(err, "failed to push changes")
 	}
