@@ -12,4 +12,7 @@ const (
 
 	// LockLabelValue the value of the VersionLabel or ValuesLabel to lock the values and not apply version stream values
 	LockLabelValue = "lock"
+
+	// NoRequirementsLabelValue the value of the ValuesLabel to not add jx-values.yaml as to values
+	NoRequirementsLabelValue = "no-jx-values"
 )
