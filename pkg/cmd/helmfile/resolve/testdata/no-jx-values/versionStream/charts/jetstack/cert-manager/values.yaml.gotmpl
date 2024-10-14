@@ -1,0 +1,27 @@
+installCRDs: true
+
+global:
+  leaderElection:
+    namespace: cert-manager
+
+cert-manager:
+  enabled: {{ .Values.jxRequirements.ingress.tls.enabled }}
+
+startupapicheck:
+  enabled: false
+
+extraArgs:
+  - --issuer-ambient-credentials
+
+securityContext:
+  runAsNonRoot: true
+
+{{- if and (hasKey .Values.jxRequirements.cluster "project") (hasKey .Values.jxRequirements.cluster "clusterName") (eq .Values.jxRequirements.cluster.provider "eks") }}
+serviceAccount:
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::{{ .Values.jxRequirements.cluster.project }}:role/{{ .Values.jxRequirements.cluster.clusterName }}-cert-manager-cert-manager
+{{- else if and (hasKey .Values.jxRequirements.cluster "project") (hasKey .Values.jxRequirements.cluster "clusterName") (eq .Values.jxRequirements.cluster.provider "gke") }}
+serviceAccount:
+  annotations:
+    iam.gke.io/gcp-service-account: {{ .Values.jxRequirements.cluster.clusterName }}-dn@{{ .Values.jxRequirements.cluster.project }}.iam.gserviceaccount.com
+{{- end }}

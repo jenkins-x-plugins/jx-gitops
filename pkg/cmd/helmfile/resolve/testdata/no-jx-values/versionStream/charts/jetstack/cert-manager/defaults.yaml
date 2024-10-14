@@ -1,0 +1,5 @@
+gitUrl: https://github.com/jetstack/cert-manager
+namespace: cert-manager
+version: v1.16.0
+labels:
+  values.jenkins-x.io: no-jx-values

@@ -1,0 +1,15 @@
+apiVersion: core.jenkins-x.io/v4beta1
+kind: Requirements
+spec:
+  autoUpdate:
+    enabled: false
+    schedule: ""
+  cluster:
+    clusterName: mycluster
+    project: myproject
+    provider: gke
+  ingress:
+    domain: ""
+    externalDNS: false
+    namespaceSubDomain: ""
+  vault: {}

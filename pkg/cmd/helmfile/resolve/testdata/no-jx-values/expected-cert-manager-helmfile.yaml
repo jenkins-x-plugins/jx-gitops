@@ -1,0 +1,19 @@
+filepath: ""
+environments:
+  default:
+    values:
+    - jx-values.yaml
+namespace: cert-manager
+repositories:
+- name: jetstack
+  url: https://charts.jetstack.io
+releases:
+- chart: jetstack/cert-manager
+  version: v1.16.0
+  name: cert-manager
+  labels:
+    values.jenkins-x.io: no-jx-values
+  values:
+  - ../../versionStream/charts/jetstack/cert-manager/values.yaml.gotmpl
+templates: {}
+renderedvalues: {}
