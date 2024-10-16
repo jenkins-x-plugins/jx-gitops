@@ -17,11 +17,12 @@ import (
 )
 
 var info = termcolor.ColorInfo
+var SourceConfigFile = filepath.Join(".jx", "gitops", v1alpha1.SourceConfigFileName)
 
 // LoadSourceConfig loads the source config and optionally adds the default vlaues
 func LoadSourceConfig(dir string, applyDefaults bool) (*v1alpha1.SourceConfig, error) {
 	config := &v1alpha1.SourceConfig{}
-	path := filepath.Join(dir, ".jx", "gitops", v1alpha1.SourceConfigFileName)
+	path := filepath.Join(dir, SourceConfigFile)
 
 	exists, err := files.FileExists(path)
 	if err != nil {

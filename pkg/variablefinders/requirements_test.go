@@ -72,7 +72,7 @@ func TestFindRequirements(t *testing.T) {
 					devGitPath := filepath.Join(dir, "dev-env")
 					destDir := command.Dir
 					if len(command.Args) > 2 {
-						destDir = command.Args[2]
+						destDir = command.Args[len(command.Args)-1]
 					}
 					err := files.CopyDirOverwrite(devGitPath, destDir)
 					if err != nil {
