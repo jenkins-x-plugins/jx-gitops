@@ -152,7 +152,7 @@ func (o *Options) DeleteWebhookFromSourceRepository(sr *v1.SourceRepository, err
 		if !o.WarnOnFail {
 			return false, err
 		}
-		log.Logger().Warnf(err.Error())
+		log.Logger().Warn(err.Error())
 	}
 	return true, nil
 }

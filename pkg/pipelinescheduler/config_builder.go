@@ -309,7 +309,7 @@ func buildJobConfig(jobConfig *config.JobConfig, prowConfig *config.ProwConfig,
 
 	buildKeeperConfig(prowConfig, scheduler.Queries, scheduler.MergeMethod, scheduler.ProtectionPolicy, scheduler.ContextOptions, org, repo)
 
-	if scheduler.Attachments != nil && len(scheduler.Attachments) > 0 {
+	if len(scheduler.Attachments) > 0 {
 		buildPlank(prowConfig, scheduler.Attachments)
 	}
 }
