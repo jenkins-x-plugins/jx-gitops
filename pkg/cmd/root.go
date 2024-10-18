@@ -48,7 +48,7 @@ func Main() *cobra.Command {
 		Run: func(cmd *cobra.Command, _ []string) {
 			err := cmd.Help()
 			if err != nil {
-				log.Logger().Errorf(err.Error())
+				log.Logger().Error(err.Error())
 			}
 		},
 	}

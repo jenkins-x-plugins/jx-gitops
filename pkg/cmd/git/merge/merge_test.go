@@ -67,7 +67,7 @@ func TestGitMerge(t *testing.T) {
 
 	for _, tc := range testCases {
 		name := tc.name
-		t.Logf(name)
+		t.Log(name)
 		dir = filepath.Join(tmpDir, name)
 
 		err := os.MkdirAll(dir, files.DefaultDirWritePermissions)
