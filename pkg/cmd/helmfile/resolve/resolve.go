@@ -518,11 +518,14 @@ func (o *Options) updateRelease(helmState *state.HelmState, prefix string, relea
 	if err != nil {
 		return errors.Wrapf(err, "failed to find version number for chart %s", release.Name)
 	}
-	if versionProperties.ReplacementChart != "" && (release.Version == "" || o.UpdateMode) {
-		release.Name = versionProperties.ReplacementChart
+	if (versionProperties.ReplacementChart != "" || versionProperties.ReplacementChartPrefix != "") &&
+		(release.Version == "" || o.UpdateMode) {
+		if versionProperties.ReplacementChart != "" {
+			release.Name = versionProperties.ReplacementChart
+		}
 		if versionProperties.ReplacementChartPrefix != "" {
 			prefix = versionProperties.ReplacementChartPrefix
-			newChart := fmt.Sprintf("%s/%s", prefix, versionProperties.ReplacementChart)
+			newChart := fmt.Sprintf("%s/%s", prefix, release.Name)
 			// Checking that replacement chart doesn't already exist in helmfile
 			for i := range helmState.Releases {
 				existingRelease := helmState.Releases[i]
