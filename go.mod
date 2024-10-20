@@ -15,11 +15,11 @@ require (
 	github.com/helmfile/helmfile v0.165.0
 	github.com/imdario/mergo v0.3.16
 	github.com/jenkins-x-plugins/jx-charter v0.0.30
-	github.com/jenkins-x/go-scm v1.14.37
+	github.com/jenkins-x/go-scm v1.14.43
 	github.com/jenkins-x/jx-api/v4 v4.7.6
-	github.com/jenkins-x/jx-helpers/v3 v3.7.1
+	github.com/jenkins-x/jx-helpers/v3 v3.8.1
 	github.com/jenkins-x/jx-kube-client/v3 v3.0.8
-	github.com/jenkins-x/jx-logging/v3 v3.0.16
+	github.com/jenkins-x/jx-logging/v3 v3.0.17
 	github.com/jenkins-x/lighthouse-client v0.0.1286
 	github.com/pborman/uuid v1.2.0
 	github.com/pkg/errors v0.9.1
@@ -32,7 +32,7 @@ require (
 	gopkg.in/validator.v2 v2.0.0-20200605151824-2b28d334fa05
 	helm.sh/helm/v3 v3.15.2
 	k8s.io/api v0.30.2
-	k8s.io/apimachinery v0.30.2
+	k8s.io/apimachinery v0.30.3
 	k8s.io/client-go v0.30.2
 	sigs.k8s.io/kustomize/api v0.17.2
 	sigs.k8s.io/kustomize/kyaml v0.17.1
@@ -119,7 +119,7 @@ require (
 	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
 	github.com/blendle/zapdriver v1.3.1 // indirect
-	github.com/bluekeyes/go-gitdiff v0.7.1 // indirect
+	github.com/bluekeyes/go-gitdiff v0.8.0 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/cenkalti/backoff/v3 v3.2.2 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.4.1 // indirect
