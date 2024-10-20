@@ -78,7 +78,6 @@ func (o *ChartDetails) Add(helmState *state.HelmState) (bool, error) {
 		return false, fmt.Errorf("failed to add repository for release %s: %w", o.ReleaseName, err)
 	}
 
-
 	// lets only set the namespace if its different to the default to keep the helmfiles DRY
 	namespace := o.Namespace
 	if namespace == helmState.OverrideNamespace {

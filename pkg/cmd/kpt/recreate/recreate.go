@@ -170,12 +170,12 @@ func (o *Options) Run() error {
 			return errors.Wrapf(err, "failed to remove kpt directory %s", kptDir)
 		}
 		text, err := o.CommandRunner(c)
-		log.Logger().Infof(text)
+		log.Logger().Info(text)
 		if err != nil {
 			if !o.IgnoreErrors {
 				return errors.Wrapf(err, "failed to run kpt command")
 			}
-			log.Logger().Warnf(err.Error())
+			log.Logger().Warn(err.Error())
 		}
 		return nil
 	})
