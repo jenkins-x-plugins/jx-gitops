@@ -79,6 +79,10 @@ func TestStepHelmfileResolve(t *testing.T) {
 			folder:     "replace-chart",
 			namespaces: []string{"secret-infra"},
 		},
+		{
+			folder:     "replace-chart-oci",
+			namespaces: []string{"secret-infra"},
+		},
 	}
 
 	// lets find the helm binary on the $PATH or download a plugin if inside CI/CD

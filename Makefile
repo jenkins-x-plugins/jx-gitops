@@ -149,7 +149,7 @@ clean: ## Clean the generated artifacts
 	rm -rf build release dist
 
 get-fmt-deps: ## Install test dependencies
-	$(GO_NOMOD) get golang.org/x/tools/cmd/goimports
+	$(GO_NOMOD) install golang.org/x/tools/cmd/goimports
 
 .PHONY: fmt
 fmt: importfmt ## Format the code
@@ -176,7 +176,7 @@ lint: ## Lint the code
 all: fmt build test lint generate-refdocs
 
 install-refdocs:
-	$(GO) get github.com/jenkins-x/gen-crd-api-reference-docs
+	$(GO) install github.com/jenkins-x/gen-crd-api-reference-docs
 
 generate-refdocs: install-refdocs
 	gen-crd-api-reference-docs -config "hack/configdocs/config.json" \

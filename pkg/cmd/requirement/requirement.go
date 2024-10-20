@@ -24,7 +24,7 @@ func NewCmdRequirement() *cobra.Command {
 		Run: func(command *cobra.Command, _ []string) {
 			err := command.Help()
 			if err != nil {
-				log.Logger().Errorf(err.Error())
+				log.Logger().Error(err.Error())
 			}
 		},
 	}

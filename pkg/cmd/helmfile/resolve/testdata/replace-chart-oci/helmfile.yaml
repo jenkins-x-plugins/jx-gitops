@@ -1,0 +1,7 @@
+releases:
+  - chart: banzaicloud-stable/vault-operator
+    name: vault-operator
+    version: 1.2.3
+repositories:
+  - name: banzaicloud-stable
+    url: https://kubernetes-charts.banzaicloud.com

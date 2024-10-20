@@ -1,0 +1,4 @@
+namespace: secret-infra
+url: https://bank-vaults.dev/docs/operator/
+gitUrl: https://github.com/bank-vaults/vault-operator.git
+version: 1.22.3

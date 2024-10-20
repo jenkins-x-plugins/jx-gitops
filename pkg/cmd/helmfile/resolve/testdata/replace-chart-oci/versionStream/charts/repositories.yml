@@ -1,0 +1,4 @@
+repositories:
+- prefix: bank-vaults
+  urls:
+  - oci://ghcr.io/bank-vaults/helm-charts
