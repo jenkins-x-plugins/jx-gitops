@@ -1,12 +1,11 @@
 package helmfiles
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/helmfile/helmfile/pkg/state"
-	"github.com/jenkins-x-plugins/jx-gitops/pkg/versionstreamer"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/versionstream"
-	"github.com/pkg/errors"
 )
 
 // ChartDetails the chart options when adding/updating charts
@@ -67,51 +66,16 @@ func (o *ChartDetails) String() string {
 func (o *ChartDetails) Add(helmState *state.HelmState) (bool, error) {
 	modified := false
 	found := false
-	var err error
 	prefix, localName := SpitChartName(o.Chart)
-	repository := o.Repository
 	if o.ReleaseName == "" {
 		o.ReleaseName = localName
 	}
 
 	// lets resolve the chart prefix from a local repository from the file or from a
 	// prefix in the versions stream
-	if repository == "" && prefix != "" {
-		for k := range helmState.Repositories {
-			r := helmState.Repositories[k]
-			if r.Name == prefix {
-				repository = r.URL
-			}
-		}
-	}
-	if repository == "" && prefix != "" {
-		repository, err = versionstreamer.MatchRepositoryPrefix(o.Prefixes, prefix)
-		if err != nil {
-			return false, errors.Wrapf(err, "failed to match prefix %s with repositories from versionstream", prefix)
-		}
-	}
-	if repository == "" && prefix != "" {
-		return false, errors.Wrapf(err, "failed to find repository URL, not defined in helmfile.yaml or versionstream")
-	}
-	if repository != "" && prefix != "" {
-		// lets ensure we've got a repository for this URL in the apps file
-		foundRepo := false
-		for k := range helmState.Repositories {
-			r := helmState.Repositories[k]
-			if r.Name == prefix {
-				if r.URL != repository {
-					return false, errors.Errorf("release %s has prefix %s for repository URL %s which is also mapped to prefix %s", o.Chart, prefix, r.URL, r.Name)
-				}
-				foundRepo = true
-				break
-			}
-		}
-		if !foundRepo {
-			helmState.Repositories = append(helmState.Repositories, state.RepositorySpec{
-				Name: prefix,
-				URL:  repository,
-			})
-		}
+	_, err := AddRepository(helmState, prefix, o.Repository, o.Prefixes)
+	if err != nil {
+		return false, fmt.Errorf("failed to add repository for release %s: %w", o.ReleaseName, err)
 	}
 
 	// lets only set the namespace if its different to the default to keep the helmfiles DRY

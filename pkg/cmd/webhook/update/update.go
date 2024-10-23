@@ -202,7 +202,7 @@ func (o *Options) UpdateWebhookForSourceRepository(sr *v1.SourceRepository, webh
 		if !o.WarnOnFail {
 			return false, err
 		}
-		log.Logger().Warnf(err.Error())
+		log.Logger().Warn(err.Error())
 	}
 	return true, nil
 }
