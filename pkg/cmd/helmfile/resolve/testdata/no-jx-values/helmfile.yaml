@@ -1,0 +1,3 @@
+releases:
+  - chart: jetstack/cert-manager
+    name: cert-manager

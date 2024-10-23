@@ -493,16 +493,24 @@ func (o *Options) resolveHelmfile(helmState *state.HelmState, helmfile helmfiles
 			}
 
 			if helmfile.RelativePathToRoot != "" {
-				foundValuesFile := false
-				for _, v := range release.Values {
-					s, ok := v.(string)
-					if ok && s == reqvalues.RequirementsValuesFileName {
-						foundValuesFile = true
-						break
+				if IsLabelValue(&release, helmhelpers.ValuesLabel, helmhelpers.NoRequirementsLabelValue) {
+					for i, v := range release.Values {
+						if v == reqvalues.RequirementsValuesFileName {
+							release.Values = append(release.Values[:i], release.Values[i+1:]...)
+						}
 					}
-				}
-				if !foundValuesFile {
-					release.Values = append(release.Values, reqvalues.RequirementsValuesFileName)
+				} else {
+					foundValuesFile := false
+					for _, v := range release.Values {
+						s, ok := v.(string)
+						if ok && s == reqvalues.RequirementsValuesFileName {
+							foundValuesFile = true
+							break
+						}
+					}
+					if !foundValuesFile {
+						release.Values = append(release.Values, reqvalues.RequirementsValuesFileName)
+					}
 				}
 			}
 		}
@@ -563,6 +571,14 @@ func (o *Options) updateRelease(helmState *state.HelmState, prefix string, relea
 		}
 		log.Logger().Debugf("replacing chart %s with %s", fullChartName, release.Chart)
 		return o.updateRelease(helmState, prefix, release, release.Chart, repository, helmfile)
+	}
+
+	// Adding default labels
+	if versionProperties.Labels != nil && release.Labels == nil {
+		release.Labels = make(map[string]string)
+	}
+	for k, v := range versionProperties.Labels {
+		release.Labels[k] = v
 	}
 
 	// Only falling back if the file for the alias exists, but doesn't contain version. Weird...

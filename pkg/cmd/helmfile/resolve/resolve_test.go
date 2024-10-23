@@ -64,6 +64,10 @@ func TestStepHelmfileResolve(t *testing.T) {
 			namespaces: []string{"jx", "external-secrets", "foo", "tekton-pipelines"},
 		},
 		{
+			folder:     "no-jx-values",
+			namespaces: []string{"cert-manager"},
+		},
+		{
 			folder:     "local-secrets",
 			namespaces: []string{"jx", "secret-infra", "tekton-pipelines"},
 		},
