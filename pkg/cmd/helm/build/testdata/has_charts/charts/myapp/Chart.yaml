@@ -1,5 +1,12 @@
-apiVersion: v1
+apiVersion: v2
 description: A Helm chart for Kubernetes
 icon: https://raw.githubusercontent.com/jenkins-x/jenkins-x-platform/d273e09/images/nodejs.png
 name: myapp
 version: 0.1.0-SNAPSHOT
+dependencies:
+  - name: myapp-common
+    version: 0.1.0-SNAPSHOT
+    repository: file://myapp-common
+  - name: myapp-uncommon
+    version: 0.1.0-SNAPSHOT
+    repository: oci://myapp-uncommon
