@@ -32,7 +32,7 @@ var (
 	info = termcolor.ColorInfo
 
 	cmdLong = templates.LongDesc(`
-		Escapes any {{ or }} characters in the YAML files so they can be included in a helm chart
+		Mirrors a set of remote Helm repositories specified locally in charts/repositories.yml to a remote git repository
 `)
 
 	cmdExample = templates.Examples(`
