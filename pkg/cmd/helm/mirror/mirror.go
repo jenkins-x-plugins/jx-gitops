@@ -36,8 +36,11 @@ var (
 `)
 
 	cmdExample = templates.Examples(`
-		# escapes any yaml files so they can be included in a helm chart 
-		%s helm escape --dir myyaml
+	# Mirror all Helm repositories defined in charts/repositories.yml to a default github pages branch
+	%s mirror --url=https://github.com/example/charts.git --no-push=false
+	
+	# Run the mirror command, ignoring unused repositories
+	%s mirror --url=https://github.com/example/charts.git --no-push=false --exclude=bitnami
 	`)
 )
 
@@ -61,7 +64,7 @@ func NewCmdMirror() (*cobra.Command, *Options) {
 
 	cmd := &cobra.Command{
 		Use:     "mirror",
-		Short:   "Creates a helm mirror ",
+		Short:   "Mirror a helm repository",
 		Long:    cmdLong,
 		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
 		Run: func(_ *cobra.Command, _ []string) {
