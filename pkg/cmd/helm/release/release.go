@@ -608,7 +608,7 @@ func (o *Options) createPublishCommand(repoURL, name, chartDir, username, passwo
 		return &cmdrunner.Command{
 			Dir:  chartDir,
 			Name: o.HelmBinary,
-			Args: []string{"s3", "push", tarFile, o.RepositoryName},
+			Args: []string{"s3", "push", "--relative", tarFile, o.RepositoryName},
 		}, nil
 	}
 

@@ -7,6 +7,7 @@ spec:
   pipelineSpec:
     tasks:
     - name: jx-gitops-lint
+      timeout: 12h0m0s
       resources: {}
       taskSpec:
         metadata: {}
@@ -25,8 +26,11 @@ spec:
           resources:
             requests:
               cpu: 1400m
-              memory: 5400Mi
+              memory: 4400Mi
+          env:
+          - name: GOGC
+            value: "30"
   podTemplate: {}
   serviceAccountName: tekton-bot
-  timeout: 60m0s
+  timeout: 12h0m0s
 status: {}
