@@ -7,6 +7,7 @@ spec:
   pipelineSpec:
     tasks:
     - name: jx-gitops-lint
+      timeout: 12h0m0s
       resources: {}
       taskSpec:
         metadata: {}
@@ -31,5 +32,5 @@ spec:
             value: "30"
   podTemplate: {}
   serviceAccountName: tekton-bot
-  timeout: 60m0s
+  timeout: 12h0m0s
 status: {}
