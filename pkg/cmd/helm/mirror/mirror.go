@@ -32,12 +32,15 @@ var (
 	info = termcolor.ColorInfo
 
 	cmdLong = templates.LongDesc(`
-		Escapes any {{ or }} characters in the YAML files so they can be included in a helm chart
+		Mirrors a set of remote Helm repositories specified locally in charts/repositories.yml to a remote git repository
 `)
 
 	cmdExample = templates.Examples(`
-		# escapes any yaml files so they can be included in a helm chart 
-		%s helm escape --dir myyaml
+	# Mirror all Helm repositories defined in charts/repositories.yml to a default github pages branch
+	%s mirror --url=https://github.com/example/charts.git --no-push=false
+	
+	# Run the mirror command, ignoring unused repositories
+	%s mirror --url=https://github.com/example/charts.git --no-push=false --exclude=bitnami
 	`)
 )
 
@@ -61,7 +64,7 @@ func NewCmdMirror() (*cobra.Command, *Options) {
 
 	cmd := &cobra.Command{
 		Use:     "mirror",
-		Short:   "Creates a helm mirror ",
+		Short:   "Mirror a helm repository",
 		Long:    cmdLong,
 		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
 		Run: func(_ *cobra.Command, _ []string) {
@@ -73,6 +76,7 @@ func NewCmdMirror() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.Branch, "branch", "b", "gh-pages", "the git branch to clone the repository")
 	cmd.Flags().StringVarP(&o.GitURL, "url", "u", "", "the git URL of the repository to mirror the charts into")
 	cmd.Flags().StringVarP(&o.CommitMessage, "message", "m", "chore: upgrade mirrored charts", "the commit message")
+	cmd.Flags().BoolVarP(&o.NoPush, "no-push", "", true, "disables pushing changes back to the git repository")
 	cmd.Flags().StringArrayVarP(&o.Excludes, "exclude", "x", []string{"jenkins-x", "jx3"}, "the helm repositories to exclude from mirroring")
 
 	o.Factory.AddFlags(cmd)
@@ -163,9 +167,15 @@ func (o *Options) Run() error {
 		return nil
 	}
 	if o.NoPush {
+		log.Logger().Infof("No push as --no-push is enabled")
 		return nil
 	}
-	err = gitclient.Pull(o.GitClient, gitDir)
+	// set upstream and push
+	err = gitclient.SetUpstreamTo(o.GitClient, gitDir, o.Branch)
+	if err != nil {
+		return errors.Wrapf(err, "failed to set upstream to %s", o.Branch)
+	}
+	err = gitclient.Push(o.GitClient, gitDir, o.GitURL, false)
 	if err != nil {
 		return errors.Wrapf(err, "failed to push changes")
 	}
