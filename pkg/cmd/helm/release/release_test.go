@@ -168,6 +168,12 @@ func TestStepHelmReleaseWithChartPages(t *testing.T) {
 			CLI: runner.OrderedCommands[0].Name + " " + strings.Join(runner.OrderedCommands[0].Args, " "),
 		},
 		fakerunner.FakeResult{
+			CLI: "git sparse-checkout set --no-cone .jx/gitops/source-config.yaml",
+		},
+		fakerunner.FakeResult{
+			CLI: "git checkout",
+		},
+		fakerunner.FakeResult{
 			CLI: helmDependencyBuild,
 		},
 		fakerunner.FakeResult{
@@ -219,6 +225,12 @@ func TestStepHelmReleaseWithOCIUsingUserName(t *testing.T) {
 			CLI: runner.OrderedCommands[0].Name + " " + strings.Join(runner.OrderedCommands[0].Args, " "),
 		},
 		fakerunner.FakeResult{
+			CLI: "git sparse-checkout set --no-cone .jx/gitops/source-config.yaml",
+		},
+		fakerunner.FakeResult{
+			CLI: "git checkout",
+		},
+		fakerunner.FakeResult{
 			CLI: helmDependencyBuild,
 		},
 		fakerunner.FakeResult{
@@ -258,6 +270,12 @@ func TestStepHelmReleaseWithOCIUsingRegistryConfig(t *testing.T) {
 			CLI: runner.OrderedCommands[0].Name + " " + strings.Join(runner.OrderedCommands[0].Args, " "),
 		},
 		fakerunner.FakeResult{
+			CLI: "git sparse-checkout set --no-cone .jx/gitops/source-config.yaml",
+		},
+		fakerunner.FakeResult{
+			CLI: "git checkout",
+		},
+		fakerunner.FakeResult{
 			CLI: helmDependencyBuild,
 		},
 		fakerunner.FakeResult{
@@ -290,6 +308,12 @@ func TestStepHelmReleaseWithOCINoOCILogin(t *testing.T) {
 		fakerunner.FakeResult{
 			// workaround for dynamically generated git clone destination folder
 			CLI: runner.OrderedCommands[0].Name + " " + strings.Join(runner.OrderedCommands[0].Args, " "),
+		},
+		fakerunner.FakeResult{
+			CLI: "git sparse-checkout set --no-cone .jx/gitops/source-config.yaml",
+		},
+		fakerunner.FakeResult{
+			CLI: "git checkout",
 		},
 		fakerunner.FakeResult{
 			CLI: helmDependencyBuild,
