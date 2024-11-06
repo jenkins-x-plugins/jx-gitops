@@ -5,7 +5,7 @@
 
 .SH NAME
 .PP
-jx\-gitops\-helm\-mirror \- Creates a helm mirror
+jx\-gitops\-helm\-mirror \- Mirror a helm repository
 
 
 .SH SYNOPSIS
@@ -15,7 +15,7 @@ jx\-gitops\-helm\-mirror \- Creates a helm mirror
 
 .SH DESCRIPTION
 .PP
-Escapes any {{ or }} characters in the YAML files so they can be included in a helm chart
+Mirrors a set of remote Helm repositories specified locally in charts/repositories.yml to a remote git repository
 
 
 .SH OPTIONS
@@ -56,14 +56,24 @@ Escapes any {{ or }} characters in the YAML files so they can be included in a h
     the commit message
 
 .PP
+\fB\-\-no\-push\fP[=true]
+    disables pushing changes back to the git repository
+
+.PP
 \fB\-u\fP, \fB\-\-url\fP=""
     the git URL of the repository to mirror the charts into
 
 
 .SH EXAMPLE
 .PP
-# escapes any yaml files so they can be included in a helm chart
-  jx\-gitops helm escape \-\-dir myyaml
+# Mirror all Helm repositories defined in charts/repositories.yml to a default github pages branch
+  jx\-gitops mirror \-\-url=
+\[la]https://github.com/example/charts.git\[ra] \-\-no\-push=false
+
+.PP
+# Run the mirror command, ignoring unused repositories
+  %!s(MISSING) mirror \-\-url=
+\[la]https://github.com/example/charts.git\[ra] \-\-no\-push=false \-\-exclude=bitnami
 
 
 .SH SEE ALSO
