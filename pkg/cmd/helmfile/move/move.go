@@ -26,21 +26,26 @@ import (
 
 const (
 	// HelmReleaseNameAnnotation the annotation added by helm to denote a release name
-	HelmReleaseNameAnnotation = "meta.helm.sh/release-name"
+	HelmReleaseNameAnnotation      = "meta.helm.sh/release-name"
+	HelmReleaseNameSpaceAnnotation = "meta.helm.sh/release-namespace"
 
 	pathSeparator = string(os.PathSeparator)
 )
 
 var (
 	namespaceLong = templates.LongDesc(`
-		Moves the generated template files from 'helmfile template' into the right gitops directory
+		Moves the generated template files from 'helmfile template' into the right gitops directory.
 
-The output of 'helmfile template' ignores the namespace specified in the 'helmfile.yaml' and there is a dummy top level directory.
+		The output of 'helmfile template' ignores the namespace specified in the 'helmfile.yaml' and there is a dummy top level directory.
 
-So this command applies the namespace to all the generated resources and then moves the namespaced resources into the config-root/namespaces/$ns/$releaseName directory
-and then moves any CRDs or cluster level resources into 'config-root/cluster/$releaseName'
+		So by default this command applies the namespace to all the generated resources
 
-If supplied with --dir-includes-release-name then by default we will annotate the resources with the annotation 'meta.helm.sh/release-name' to preserve the helm release name
+		Then it moves the namespaced resources into the config-root/namespaces/$ns/$releaseName directory
+		and any CRDs or cluster level resources into 'config-root/cluster/$releaseName'.
+
+		If supplied with --dir-includes-release-name then by default we will annotate the resources with the annotations "app.kubernetes.io/instance" to preserve the helm release name.
+
+		The annotation "meta.helm.sh/release-namespace" will be added by default and contain the namespace specified in the release.
 `)
 
 	namespaceExample = templates.Examples(`
@@ -59,9 +64,10 @@ type Options struct {
 	ClusterResourcesDir          string
 	CustomResourceDefinitionsDir string
 	NamespacesDir                string
-	SingleNamespace              string
 	DirIncludesReleaseName       bool
+	OverrideNamespace            bool
 	AnnotateReleaseNames         bool
+	AnnotateReleaseNameSpace     bool
 	HelmState                    *state.HelmState
 	NamespacedKind               map[string]bool
 	ResourcesToMove              []ResourceToMove
@@ -86,6 +92,8 @@ func NewCmdHelmfileMove() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.OutputDir, "output-dir", "o", "config-root", "the output directory")
 	cmd.Flags().BoolVarP(&o.DirIncludesReleaseName, "dir-includes-release-name", "", false, "the directory containing the generated resources has a path segment that is the release name")
 	cmd.Flags().BoolVarP(&o.AnnotateReleaseNames, "annotate-release-name", "", true, "if using --dir-includes-release-name layout then lets add the 'meta.helm.sh/release-name' annotation to record the helm release name")
+	cmd.Flags().BoolVarP(&o.AnnotateReleaseNameSpace, "annotate-release-namespace", "", true, "add the 'meta.helm.sh/release-namespace' annotation to record the helm release namespace")
+	cmd.Flags().BoolVarP(&o.OverrideNamespace, "override-namespace", "", true, "applies the namespace specified in helmfile to all the generated resources")
 
 	o.Filter.AddFlags(cmd)
 	return cmd, o
@@ -195,10 +203,21 @@ noKube:
 		outDir := filepath.Join(o.ClusterResourcesDir, res.namespace, res.pathname)
 
 		if isNamespaced {
-			err := res.node.PipeE(yaml.LookupCreate(yaml.ScalarNode, "metadata", "namespace"), yaml.FieldSetter{StringValue: res.namespace})
-			if err != nil {
-				return errors.Wrapf(err, "failed to set metadata.namespace to %s for path %s", res.namespace, res.path)
+			setNS := true
+			namespaceLookup := yaml.LookupCreate(yaml.ScalarNode, "metadata", "namespace")
+			if !o.OverrideNamespace {
+				nsNode, _ := res.node.Pipe(namespaceLookup)
+				nsNodeText, _ := nsNode.String()
+				setNS = nsNodeText == ""
 			}
+			if setNS {
+				err = res.node.PipeE(namespaceLookup, yaml.FieldSetter{StringValue: res.namespace})
+
+				if err != nil {
+					return errors.Wrapf(err, "failed to set metadata.namespace to %s for path %s", res.namespace, res.path)
+				}
+			}
+
 			outDir = filepath.Join(o.NamespacesDir, res.namespace, res.pathname)
 		} else {
 			err := res.node.PipeE(yaml.Lookup("metadata"), yaml.FieldClearer{Name: "namespace"})
@@ -320,16 +339,22 @@ func (o *Options) moveFilesToClusterOrNamespacesFolder(dir, ns, releaseName, cha
 			pathName = fmt.Sprintf("%s-%s", chartName, releaseName)
 		}
 
+		setAnnotations := make(map[string]string)
 		if o.AnnotateReleaseNames {
-			k := HelmReleaseNameAnnotation
+			setAnnotations[HelmReleaseNameAnnotation] = releaseName
+		}
+		if o.AnnotateReleaseNameSpace {
+			setAnnotations[HelmReleaseNameSpaceAnnotation] = ns
+		}
+		for k, newValue := range setAnnotations {
 			v, err := node.Pipe(yaml.GetAnnotation(k))
 			if err != nil {
 				return errors.Wrapf(err, "failed to get annotation %s for path %s", k, path)
 			}
 			if v == nil {
-				err = node.PipeE(yaml.SetAnnotation(k, releaseName))
+				err = node.PipeE(yaml.SetAnnotation(k, newValue))
 				if err != nil {
-					return errors.Wrapf(err, "failed to set annotation %s to %s for path %s", k, releaseName, path)
+					return errors.Wrapf(err, "failed to set annotation %s to %s for path %s", k, newValue, path)
 				}
 			}
 		}

@@ -12,13 +12,17 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
+type test struct {
+	folder                         string
+	hasReleaseName                 bool
+	expectedFiles                  []string
+	expectedHelmReleaseAnnotations map[string]string
+	expectedNamespace              map[string]string
+	nonStandardNamespace           map[string]string
+}
+
 func TestUpdateNamespaceInYamlFiles(t *testing.T) {
-	tests := []struct {
-		folder                  string
-		hasReleaseName          bool
-		expectedFiles           []string
-		expectedHelmAnnotations map[string]string
-	}{
+	tests := []test{
 		{
 			folder:         "output",
 			hasReleaseName: false,
@@ -26,6 +30,11 @@ func TestUpdateNamespaceInYamlFiles(t *testing.T) {
 				"customresourcedefinitions/jx/lighthouse/lighthousejobs.lighthouse.jenkins.io-crd.yaml",
 				"cluster/resources/nginx/nginx-ingress/nginx-ingress-clusterrole.yaml",
 				"namespaces/jx/lighthouse/lighthouse-foghorn-deploy.yaml",
+			},
+			expectedNamespace: map[string]string{
+				"customresourcedefinitions/jx/lighthouse/lighthousejobs.lighthouse.jenkins.io-crd.yaml": "jx",
+				"cluster/resources/nginx/nginx-ingress/nginx-ingress-clusterrole.yaml":                  "nginx",
+				"namespaces/jx/lighthouse/lighthouse-foghorn-deploy.yaml":                               "jx",
 			},
 		},
 		{
@@ -39,48 +48,88 @@ func TestUpdateNamespaceInYamlFiles(t *testing.T) {
 				"cluster/resources/nginx/nginx-ingress-2/nginx-ingress-clusterrole.yaml",
 				"namespaces/jx/lighthouse-2/lighthouse-foghorn-deploy.yaml",
 				"namespaces/jx/chart-release/example.yaml",
+				"namespaces/selenium-grid/keda-selenium/keda-operator-auth-reader-rb.yaml",
 			},
-
-			expectedHelmAnnotations: map[string]string{
-				"namespaces/jx/lighthouse-2/lighthouse-foghorn-deploy.yaml":            "lighthouse-2",
-				"cluster/resources/nginx/nginx-ingress/nginx-ingress-clusterrole.yaml": "my-release-name",
+			expectedHelmReleaseAnnotations: map[string]string{
+				"namespaces/jx/lighthouse-2/lighthouse-foghorn-deploy.yaml":                "lighthouse-2",
+				"cluster/resources/nginx/nginx-ingress/nginx-ingress-clusterrole.yaml":     "my-release-name",
+				"namespaces/selenium-grid/keda-selenium/keda-operator-auth-reader-rb.yaml": "selenium",
+			},
+			expectedNamespace: map[string]string{
+				"namespaces/jx/lighthouse-2/lighthouse-foghorn-deploy.yaml":                               "jx",
+				"cluster/resources/nginx/nginx-ingress/nginx-ingress-clusterrole.yaml":                    "nginx",
+				"customresourcedefinitions/jx/lighthouse/lighthousejobs.lighthouse.jenkins.io-crd.yaml":   "jx",
+				"namespaces/jx/lighthouse/lighthouse-foghorn-deploy.yaml":                                 "jx",
+				"customresourcedefinitions/jx/lighthouse-2/lighthousejobs.lighthouse.jenkins.io-crd.yaml": "jx",
+				"cluster/resources/nginx/nginx-ingress-2/nginx-ingress-clusterrole.yaml":                  "nginx",
+				"namespaces/jx/chart-release/example.yaml":                                                "jx",
+				"namespaces/selenium-grid/keda-selenium/keda-operator-auth-reader-rb.yaml":                "selenium-grid",
+			},
+			nonStandardNamespace: map[string]string{
+				"namespaces/selenium-grid/keda-selenium/keda-operator-auth-reader-rb.yaml": "kube-system",
 			},
 		},
 	}
 
 	for _, test := range tests {
+		testMove(t, test, true)
+		testMove(t, test, false)
+	}
+}
 
-		tmpDir := t.TempDir()
+func testMove(t *testing.T, test test, overrideNamespace bool) {
+	_, o := move.NewCmdHelmfileMove()
 
-		_, o := move.NewCmdHelmfileMove()
+	o.Dir = filepath.Join("testdata", test.folder)
+	o.DirIncludesReleaseName = test.hasReleaseName
 
-		t.Logf("generating output to %s\n", tmpDir)
+	tmpDir := t.TempDir()
+	t.Logf("generating output to namespace %s, override namespace: %t\n", tmpDir, overrideNamespace)
+	o.OutputDir = tmpDir
+	o.OverrideNamespace = overrideNamespace
 
-		o.Dir = filepath.Join("testdata", test.folder)
-		o.OutputDir = tmpDir
-		o.DirIncludesReleaseName = test.hasReleaseName
-		o.AnnotateReleaseNames = true
+	err := o.Run()
+	require.NoError(t, err, "failed to run helmfile move")
 
-		err := o.Run()
-		require.NoError(t, err, "failed to run helmfile move")
+	for _, efn := range test.expectedFiles {
+		ef := filepath.Join(append([]string{tmpDir}, strings.Split(efn, "/")...)...)
+		assert.FileExists(t, ef)
+		t.Logf("generated expected file %s\n", ef)
 
-		for _, efn := range test.expectedFiles {
-			ef := filepath.Join(append([]string{tmpDir}, strings.Split(efn, "/")...)...)
-			assert.FileExists(t, ef)
-			t.Logf("generated expected file %s\n", ef)
-
-			if test.expectedHelmAnnotations != nil {
-				expectedAnnotation := test.expectedHelmAnnotations[efn]
-				if expectedAnnotation != "" {
-					u := &unstructured.Unstructured{}
-					err = yamls.LoadFile(ef, u)
-					require.NoError(t, err, "failed to load %s", ef)
-					ann := u.GetAnnotations()
-					require.NotNil(t, ann, "should have annotations for file %s", ef)
-					annotation := move.HelmReleaseNameAnnotation
-					value := ann[annotation]
-					assert.Equal(t, expectedAnnotation, value, "for annotation %s in file %s", annotation, ef)
-					t.Logf("expected helm annotation is %s\n", value)
+		if test.expectedHelmReleaseAnnotations != nil {
+			expectedAnnotation := test.expectedHelmReleaseAnnotations[efn]
+			if expectedAnnotation != "" {
+				u := &unstructured.Unstructured{}
+				err = yamls.LoadFile(ef, u)
+				require.NoError(t, err, "failed to load %s", ef)
+				ann := u.GetAnnotations()
+				require.NotNil(t, ann, "should have annotations for file %s", ef)
+				annotation := move.HelmReleaseNameAnnotation
+				value := ann[annotation]
+				assert.Equal(t, expectedAnnotation, value, "for annotation %s in file %s", annotation, ef)
+				t.Logf("expected helm annotation is %s\n", value)
+			}
+		}
+		if test.expectedNamespace != nil {
+			expectedNS := test.expectedNamespace[efn]
+			if expectedNS != "" {
+				u := &unstructured.Unstructured{}
+				err = yamls.LoadFile(ef, u)
+				require.NoError(t, err, "failed to load %s", ef)
+				ann := u.GetAnnotations()
+				require.NotNil(t, ann, "should have annotations for file %s", ef)
+				annotation := move.HelmReleaseNameSpaceAnnotation
+				value := ann[annotation]
+				assert.Equal(t, expectedNS, value, "for annotation %s in file %s", annotation, ef)
+				t.Logf("expected namespace annotation is %s\n", value)
+				nonStandardNS, hasNonStandardNS := test.nonStandardNamespace[efn]
+				ns := u.GetNamespace()
+				if overrideNamespace || !hasNonStandardNS {
+					if ns != "" {
+						assert.Equal(t, expectedNS, ns, "for namespace %s in file %s", annotation, ef)
+					}
+				} else {
+					assert.Equal(t, nonStandardNS, ns, "for namespace %s in file %s", annotation, ef)
 				}
 			}
 		}
