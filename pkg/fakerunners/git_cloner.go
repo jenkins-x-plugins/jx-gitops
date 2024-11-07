@@ -9,7 +9,11 @@ import (
 func NewFakeRunnerWithGitClone() *fakerunner.FakeRunner {
 	return &fakerunner.FakeRunner{
 		CommandRunner: func(command *cmdrunner.Command) (string, error) {
-			if command.Name == "git" && len(command.Args) > 1 && command.Args[0] == "clone" {
+			if command.Name == "git" && len(command.Args) > 1 {
+				if command.Args[0] == "clone" || command.Args[0] == "sparse-checkout" {
+					return cmdrunner.DefaultCommandRunner(command)
+				}
+			} else if command.Args[0] == "checkout" {
 				return cmdrunner.DefaultCommandRunner(command)
 			}
 			return "fake " + command.CLI(), nil
