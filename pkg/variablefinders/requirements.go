@@ -95,7 +95,11 @@ func GetSettings(g gitclient.Interface, jxClient jxc.Interface, ns, dir, owner, 
 			return nil, "", errors.New("failed to find a dev environment source url on development environment resource")
 		}
 	}
-	clusterDir, err := requirements.PartialCloneClusterRepo(g, gitURL, true, sourceconfigs.SourceConfigFile)
+	combinedConfigFiles := []string{"/" + jxcore.RequirementsConfigFileName, sourceconfigs.SourceConfigFile}
+	if len(combinedConfigFiles) == 0 {
+		return nil, "", errors.New("combined config files are empty")
+	}
+	clusterDir, err := requirements.PartialCloneClusterRepo(g, gitURL, true, combinedConfigFiles...)
 	if err != nil {
 		return nil, "", err
 	}
