@@ -96,9 +96,6 @@ func GetSettings(g gitclient.Interface, jxClient jxc.Interface, ns, dir, owner, 
 		}
 	}
 	combinedConfigFiles := []string{"/" + jxcore.RequirementsConfigFileName, sourceconfigs.SourceConfigFile}
-	if len(combinedConfigFiles) == 0 {
-		return nil, "", errors.New("combined config files are empty")
-	}
 	clusterDir, err := requirements.PartialCloneClusterRepo(g, gitURL, true, combinedConfigFiles...)
 	if err != nil {
 		return nil, "", err
