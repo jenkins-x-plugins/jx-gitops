@@ -15,22 +15,32 @@ jx\-gitops\-helmfile\-move \- Moves the generated template files from 'helmfile 
 
 .SH DESCRIPTION
 .PP
-Moves the generated template files from 'helmfile template' into the right gitops directory
+Moves the generated template files from 'helmfile template' into the right gitops directory.
 
 .PP
 The output of 'helmfile template' ignores the namespace specified in the 'helmfile.yaml' and there is a dummy top level directory.
 
 .PP
-So this command applies the namespace to all the generated resources and then moves the namespaced resources into the config\-root/namespaces/$ns/$releaseName directory and then moves any CRDs or cluster level resources into 'config\-root/cluster/$releaseName'
+So by default this command applies the namespace to all the generated resources
 
 .PP
-If supplied with \-\-dir\-includes\-release\-name then by default we will annotate the resources with the annotation 'meta.helm.sh/release\-name' to preserve the helm release name
+Then it moves the namespaced resources into the config\-root/namespaces/$ns/$releaseName directory and any CRDs or cluster level resources into 'config\-root/cluster/$releaseName'.
+
+.PP
+If supplied with \-\-dir\-includes\-release\-name then by default we will annotate the resources with the annotations "app.kubernetes.io/instance" to preserve the helm release name.
+
+.PP
+The annotation "meta.helm.sh/release\-namespace" will be added by default and contain the namespace specified in the release.
 
 
 .SH OPTIONS
 .PP
 \fB\-\-annotate\-release\-name\fP[=true]
     if using \-\-dir\-includes\-release\-name layout then lets add the 'meta.helm.sh/release\-name' annotation to record the helm release name
+
+.PP
+\fB\-\-annotate\-release\-namespace\fP[=true]
+    add the 'meta.helm.sh/release\-namespace' annotation to record the helm release namespace
 
 .PP
 \fB\-\-dir\fP=""
@@ -61,6 +71,10 @@ If supplied with \-\-dir\-includes\-release\-name then by default we will annota
 .PP
 \fB\-o\fP, \fB\-\-output\-dir\fP="config\-root"
     the output directory
+
+.PP
+\fB\-\-override\-namespace\fP[=true]
+    applies the namespace specified in helmfile to all the generated resources
 
 .PP
 \fB\-\-selector\fP=[]

@@ -176,6 +176,7 @@ lint: ## Lint the code
 all: fmt build test lint generate-refdocs
 
 install-refdocs:
+	$(GO) get github.com/jenkins-x/gen-crd-api-reference-docs
 	$(GO) install github.com/jenkins-x/gen-crd-api-reference-docs
 
 generate-refdocs: install-refdocs
