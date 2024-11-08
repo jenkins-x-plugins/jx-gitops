@@ -19,13 +19,16 @@ type test struct {
 	expectedHelmReleaseAnnotations map[string]string
 	expectedNamespace              map[string]string
 	nonStandardNamespace           map[string]string
+	overrideNamespace              bool
 }
 
 func TestUpdateNamespaceInYamlFiles(t *testing.T) {
 	tests := []test{
 		{
-			folder:         "output",
-			hasReleaseName: false,
+			folder:            "output",
+			hasReleaseName:    false,
+			overrideNamespace: true,
+
 			expectedFiles: []string{
 				"customresourcedefinitions/jx/lighthouse/lighthousejobs.lighthouse.jenkins.io-crd.yaml",
 				"cluster/resources/nginx/nginx-ingress/nginx-ingress-clusterrole.yaml",
@@ -38,8 +41,10 @@ func TestUpdateNamespaceInYamlFiles(t *testing.T) {
 			},
 		},
 		{
-			folder:         "dirIncludesReleaseName",
-			hasReleaseName: true,
+			folder:            "dirIncludesReleaseName",
+			hasReleaseName:    true,
+			overrideNamespace: true,
+
 			expectedFiles: []string{
 				"customresourcedefinitions/jx/lighthouse/lighthousejobs.lighthouse.jenkins.io-crd.yaml",
 				"cluster/resources/nginx/nginx-ingress/nginx-ingress-clusterrole.yaml",
@@ -48,12 +53,10 @@ func TestUpdateNamespaceInYamlFiles(t *testing.T) {
 				"cluster/resources/nginx/nginx-ingress-2/nginx-ingress-clusterrole.yaml",
 				"namespaces/jx/lighthouse-2/lighthouse-foghorn-deploy.yaml",
 				"namespaces/jx/chart-release/example.yaml",
-				"namespaces/selenium-grid/keda-selenium/keda-operator-auth-reader-rb.yaml",
 			},
 			expectedHelmReleaseAnnotations: map[string]string{
-				"namespaces/jx/lighthouse-2/lighthouse-foghorn-deploy.yaml":                "lighthouse-2",
-				"cluster/resources/nginx/nginx-ingress/nginx-ingress-clusterrole.yaml":     "my-release-name",
-				"namespaces/selenium-grid/keda-selenium/keda-operator-auth-reader-rb.yaml": "selenium",
+				"namespaces/jx/lighthouse-2/lighthouse-foghorn-deploy.yaml":            "lighthouse-2",
+				"cluster/resources/nginx/nginx-ingress/nginx-ingress-clusterrole.yaml": "my-release-name",
 			},
 			expectedNamespace: map[string]string{
 				"namespaces/jx/lighthouse-2/lighthouse-foghorn-deploy.yaml":                               "jx",
@@ -63,30 +66,56 @@ func TestUpdateNamespaceInYamlFiles(t *testing.T) {
 				"customresourcedefinitions/jx/lighthouse-2/lighthousejobs.lighthouse.jenkins.io-crd.yaml": "jx",
 				"cluster/resources/nginx/nginx-ingress-2/nginx-ingress-clusterrole.yaml":                  "nginx",
 				"namespaces/jx/chart-release/example.yaml":                                                "jx",
-				"namespaces/selenium-grid/keda-selenium/keda-operator-auth-reader-rb.yaml":                "selenium-grid",
+			},
+		},
+		{
+			folder:            "nonStandardNamespace",
+			hasReleaseName:    true,
+			overrideNamespace: true,
+			expectedFiles: []string{
+				"namespaces/selenium-grid/keda-selenium/keda-operator-auth-reader-rb.yaml",
+			},
+			expectedHelmReleaseAnnotations: map[string]string{
+				"namespaces/selenium-grid/keda-selenium/keda-operator-auth-reader-rb.yaml": "selenium",
+			},
+			expectedNamespace: map[string]string{
+				"namespaces/selenium-grid/keda-selenium/keda-operator-auth-reader-rb.yaml": "selenium-grid",
+			},
+		},
+		{
+			folder:            "nonStandardNamespace",
+			hasReleaseName:    true,
+			overrideNamespace: false,
+			expectedFiles: []string{
+				"namespaces/kube-system/keda-selenium/keda-operator-auth-reader-rb.yaml",
+			},
+			expectedHelmReleaseAnnotations: map[string]string{
+				"namespaces/kube-system/keda-selenium/keda-operator-auth-reader-rb.yaml": "selenium",
+			},
+			expectedNamespace: map[string]string{
+				"namespaces/kube-system/keda-selenium/keda-operator-auth-reader-rb.yaml": "selenium-grid",
 			},
 			nonStandardNamespace: map[string]string{
-				"namespaces/selenium-grid/keda-selenium/keda-operator-auth-reader-rb.yaml": "kube-system",
+				"namespaces/kube-system/keda-selenium/keda-operator-auth-reader-rb.yaml": "kube-system",
 			},
 		},
 	}
 
 	for _, test := range tests {
-		testMove(t, test, true)
-		testMove(t, test, false)
+		testMove(t, &test)
 	}
 }
 
-func testMove(t *testing.T, test test, overrideNamespace bool) {
+func testMove(t *testing.T, test *test) {
 	_, o := move.NewCmdHelmfileMove()
 
 	o.Dir = filepath.Join("testdata", test.folder)
 	o.DirIncludesReleaseName = test.hasReleaseName
 
 	tmpDir := t.TempDir()
-	t.Logf("generating output to namespace %s, override namespace: %t\n", tmpDir, overrideNamespace)
+	t.Logf("generating output to namespace %s, override namespace: %t\n", tmpDir, test.overrideNamespace)
 	o.OutputDir = tmpDir
-	o.OverrideNamespace = overrideNamespace
+	o.OverrideNamespace = test.overrideNamespace
 
 	err := o.Run()
 	require.NoError(t, err, "failed to run helmfile move")
@@ -124,7 +153,7 @@ func testMove(t *testing.T, test test, overrideNamespace bool) {
 				t.Logf("expected namespace annotation is %s\n", value)
 				nonStandardNS, hasNonStandardNS := test.nonStandardNamespace[efn]
 				ns := u.GetNamespace()
-				if overrideNamespace || !hasNonStandardNS {
+				if test.overrideNamespace || !hasNonStandardNS {
 					if ns != "" {
 						assert.Equal(t, expectedNS, ns, "for namespace %s in file %s", annotation, ef)
 					}
