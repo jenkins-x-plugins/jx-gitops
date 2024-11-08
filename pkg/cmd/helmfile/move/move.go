@@ -339,22 +339,28 @@ func (o *Options) moveFilesToClusterOrNamespacesFolder(dir, ns, releaseName, cha
 			pathName = fmt.Sprintf("%s-%s", chartName, releaseName)
 		}
 
-		setAnnotations := make(map[string]string)
+		var setAnnotations []yaml.AnnotationSetter
 		if o.AnnotateReleaseNames {
-			setAnnotations[HelmReleaseNameAnnotation] = releaseName
+			setAnnotations = append(setAnnotations, yaml.AnnotationSetter{
+				Key:   HelmReleaseNameAnnotation,
+				Value: releaseName,
+			})
 		}
 		if o.AnnotateReleaseNameSpace {
-			setAnnotations[HelmReleaseNameSpaceAnnotation] = ns
+			setAnnotations = append(setAnnotations, yaml.AnnotationSetter{
+				Key:   HelmReleaseNameSpaceAnnotation,
+				Value: ns,
+			})
 		}
-		for k, newValue := range setAnnotations {
-			v, err := node.Pipe(yaml.GetAnnotation(k))
+		for _, a := range setAnnotations {
+			v, err := node.Pipe(yaml.GetAnnotation(a.Key))
 			if err != nil {
-				return errors.Wrapf(err, "failed to get annotation %s for path %s", k, path)
+				return errors.Wrapf(err, "failed to get annotation %s for path %s", a.Key, path)
 			}
 			if v == nil {
-				err = node.PipeE(yaml.SetAnnotation(k, newValue))
+				err = node.PipeE(a)
 				if err != nil {
-					return errors.Wrapf(err, "failed to set annotation %s to %s for path %s", k, newValue, path)
+					return errors.Wrapf(err, "failed to set annotation %s to %s for path %s", a.Key, a.Value, path)
 				}
 			}
 		}
