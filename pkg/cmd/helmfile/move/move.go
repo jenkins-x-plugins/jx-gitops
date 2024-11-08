@@ -203,12 +203,18 @@ noKube:
 		outDir := filepath.Join(o.ClusterResourcesDir, res.namespace, res.pathname)
 
 		if isNamespaced {
+			resourceNamespace := res.namespace
 			setNS := true
 			namespaceLookup := yaml.LookupCreate(yaml.ScalarNode, "metadata", "namespace")
 			if !o.OverrideNamespace {
 				nsNode, _ := res.node.Pipe(namespaceLookup)
 				nsNodeText, _ := nsNode.String()
-				setNS = nsNodeText == ""
+				nsNodeText = strings.TrimSpace(nsNodeText)
+				if nsNodeText != "" {
+					setNS = false
+					resourceNamespace = nsNodeText
+				}
+
 			}
 			if setNS {
 				err = res.node.PipeE(namespaceLookup, yaml.FieldSetter{StringValue: res.namespace})
@@ -218,7 +224,7 @@ noKube:
 				}
 			}
 
-			outDir = filepath.Join(o.NamespacesDir, res.namespace, res.pathname)
+			outDir = filepath.Join(o.NamespacesDir, resourceNamespace, res.pathname)
 		} else {
 			err := res.node.PipeE(yaml.Lookup("metadata"), yaml.FieldClearer{Name: "namespace"})
 			if err != nil {
