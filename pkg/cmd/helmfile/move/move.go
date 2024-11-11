@@ -205,19 +205,15 @@ noKube:
 		if isNamespaced {
 			resourceNamespace := res.namespace
 			setNS := true
-			namespaceLookup := yaml.LookupCreate(yaml.ScalarNode, "metadata", "namespace")
 			if !o.OverrideNamespace {
-				nsNode, _ := res.node.Pipe(namespaceLookup)
-				nsNodeText, _ := nsNode.String()
-				nsNodeText = strings.TrimSpace(nsNodeText)
+				nsNodeText := kyamls.GetNamespace(res.node, res.path)
 				if nsNodeText != "" {
 					setNS = false
 					resourceNamespace = nsNodeText
 				}
-
 			}
 			if setNS {
-				err = res.node.PipeE(namespaceLookup, yaml.FieldSetter{StringValue: res.namespace})
+				err = res.node.PipeE(yaml.LookupCreate(yaml.ScalarNode, "metadata", "namespace"), yaml.FieldSetter{StringValue: res.namespace})
 
 				if err != nil {
 					return errors.Wrapf(err, "failed to set metadata.namespace to %s for path %s", res.namespace, res.path)
