@@ -2,6 +2,7 @@ package move_test
 
 import (
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -19,15 +20,14 @@ type test struct {
 	expectedHelmReleaseAnnotations map[string]string
 	expectedNamespace              map[string]string
 	nonStandardNamespace           map[string]string
-	overrideNamespace              bool
+	overrideNamespace              string
 }
 
 func TestUpdateNamespaceInYamlFiles(t *testing.T) {
 	tests := []test{
 		{
-			folder:            "output",
-			hasReleaseName:    false,
-			overrideNamespace: true,
+			folder:         "output",
+			hasReleaseName: false,
 
 			expectedFiles: []string{
 				"customresourcedefinitions/jx/lighthouse/lighthousejobs.lighthouse.jenkins.io-crd.yaml",
@@ -41,9 +41,8 @@ func TestUpdateNamespaceInYamlFiles(t *testing.T) {
 			},
 		},
 		{
-			folder:            "dirIncludesReleaseName",
-			hasReleaseName:    true,
-			overrideNamespace: true,
+			folder:         "dirIncludesReleaseName",
+			hasReleaseName: true,
 
 			expectedFiles: []string{
 				"customresourcedefinitions/jx/lighthouse/lighthousejobs.lighthouse.jenkins.io-crd.yaml",
@@ -71,7 +70,7 @@ func TestUpdateNamespaceInYamlFiles(t *testing.T) {
 		{
 			folder:            "nonStandardNamespace",
 			hasReleaseName:    true,
-			overrideNamespace: true,
+			overrideNamespace: "true",
 			expectedFiles: []string{
 				"namespaces/selenium-grid/keda-selenium/keda-operator-auth-reader-rb.yaml",
 			},
@@ -85,7 +84,7 @@ func TestUpdateNamespaceInYamlFiles(t *testing.T) {
 		{
 			folder:            "nonStandardNamespace",
 			hasReleaseName:    true,
-			overrideNamespace: false,
+			overrideNamespace: "false",
 			expectedFiles: []string{
 				"namespaces/kube-system/keda-selenium/keda-operator-auth-reader-rb.yaml",
 			},
@@ -102,20 +101,26 @@ func TestUpdateNamespaceInYamlFiles(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		testMove(t, &test)
+		if test.overrideNamespace == "" {
+			testMove(t, &test, true)
+			testMove(t, &test, false)
+		} else {
+			overrideNamespace, _ := strconv.ParseBool(test.overrideNamespace)
+			testMove(t, &test, overrideNamespace)
+		}
 	}
 }
 
-func testMove(t *testing.T, test *test) {
+func testMove(t *testing.T, test *test, overrideNamespace bool) {
 	_, o := move.NewCmdHelmfileMove()
 
 	o.Dir = filepath.Join("testdata", test.folder)
 	o.DirIncludesReleaseName = test.hasReleaseName
 
 	tmpDir := t.TempDir()
-	t.Logf("generating output to namespace %s, override namespace: %t\n", tmpDir, test.overrideNamespace)
+	t.Logf("generating output to namespace %s, override namespace: %t\n", tmpDir, overrideNamespace)
 	o.OutputDir = tmpDir
-	o.OverrideNamespace = test.overrideNamespace
+	o.OverrideNamespace = overrideNamespace
 
 	err := o.Run()
 	require.NoError(t, err, "failed to run helmfile move")
@@ -153,7 +158,7 @@ func testMove(t *testing.T, test *test) {
 				t.Logf("expected namespace annotation is %s\n", value)
 				nonStandardNS, hasNonStandardNS := test.nonStandardNamespace[efn]
 				ns := u.GetNamespace()
-				if test.overrideNamespace || !hasNonStandardNS {
+				if overrideNamespace || !hasNonStandardNS {
 					if ns != "" {
 						assert.Equal(t, expectedNS, ns, "for namespace %s in file %s", annotation, ef)
 					}
