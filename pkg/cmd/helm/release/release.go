@@ -220,7 +220,6 @@ func (o *Options) Validate() error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to load requirements")
 	}
-
 	if requirements != nil {
 		o.Requirements = requirements
 		if o.ContainerRegistryOrg == "" {
@@ -351,7 +350,7 @@ func (o *Options) oCIRegistry(repoURL, chartDir, name string) error {
 	c = &cmdrunner.Command{
 		Dir:  chartDir,
 		Name: o.HelmBinary,
-		Args: []string{"push", chartPackageName, repoURL, "--registry-config", o.RegistryConfigFile},
+		Args: []string{"push", chartPackageName, "oci://" + repoURL, "--registry-config", o.RegistryConfigFile},
 	}
 	_, err = o.CommandRunner(c)
 	if err != nil {
@@ -540,10 +539,9 @@ func (o *Options) BuildAndPackage(chartDir string) error {
 		if err != nil {
 			return errors.Wrapf(err, "failed to load Chart.yaml")
 		}
-
 		for i, dependency := range chartDef.Dependencies {
-			log.Logger().Infof("Adding repository for dependency %s", dependency.Name)
-			if dependency.Repository != "" {
+			log.Logger().Infof("Adding  dependency %s", dependency.Name)
+			if dependency.Repository != "" && !strings.HasPrefix(dependency.Repository, "oci://") {
 				c := &cmdrunner.Command{
 					Dir:  chartDir,
 					Name: o.HelmBinary,
@@ -557,12 +555,13 @@ func (o *Options) BuildAndPackage(chartDir string) error {
 				log.Logger().Infof("Skipping local dependency %s", dependency.Name)
 			}
 		}
+
 	}
 
 	c := &cmdrunner.Command{
 		Dir:  chartDir,
 		Name: o.HelmBinary,
-		Args: []string{"dependency", "build", "."},
+		Args: []string{"dependency", "build", ".", "--registry-config", o.RegistryConfigFile},
 	}
 	_, err = o.CommandRunner(c)
 	if err != nil {

@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/chart"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"
@@ -36,10 +37,15 @@ var (
 
 // Options the options for the command
 type Options struct {
-	UseHelmPlugin bool
-	HelmBinary    string
-	ChartsDir     string
-	CommandRunner cmdrunner.CommandRunner
+	UseHelmPlugin      bool
+	HelmBinary         string
+	ChartsDir          string
+	OCI                bool
+	RegistryConfigFile string
+	RepositoryUsername string
+	RepositoryPassword string
+	RepositoryURL      string
+	CommandRunner      cmdrunner.CommandRunner
 }
 
 // NewCmdHelmBuild creates a command object for the command
@@ -59,6 +65,10 @@ func NewCmdHelmBuild() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.ChartsDir, "charts-dir", "c", "charts", "the directory to look for helm charts to release")
 	cmd.Flags().StringVarP(&o.HelmBinary, "binary", "n", "", "specifies the helm binary location to use. If not specified defaults to 'helm' on the $PATH")
 	cmd.Flags().BoolVarP(&o.UseHelmPlugin, "use-helm-plugin", "", false, "uses the jx binary plugin for helm rather than whatever helm is on the $PATH")
+	cmd.Flags().StringVarP(&o.RepositoryUsername, "repo-username", "", "", "the username to access the chart repository. If not specified defaults to the environment variable $JX_REPOSITORY_USERNAME")
+	cmd.Flags().StringVarP(&o.RepositoryPassword, "repo-password", "", "", "the password to access the chart repository. If not specified defaults to the environment variable $JX_REPOSITORY_PASSWORD")
+	cmd.Flags().BoolVarP(&o.OCI, "oci", "", false, "using OCI charts")
+	cmd.Flags().StringVarP(&o.RegistryConfigFile, "registry-config", "", "/tekton/creds-secrets/tekton-container-registry-auth/.dockerconfigjson", "the path to the registry config for OCI login")
 	return cmd, o
 }
 
@@ -79,6 +89,25 @@ func (o *Options) Validate() error {
 			o.HelmBinary = "helm"
 		}
 	}
+	if o.RepositoryUsername == "" {
+		o.RepositoryUsername = os.Getenv("JX_REPOSITORY_USERNAME")
+		if o.RepositoryUsername == "" {
+			o.RepositoryUsername = os.Getenv("GITHUB_REPOSITORY_OWNER")
+		}
+		if o.RepositoryUsername == "" {
+			o.RepositoryUsername = os.Getenv("GIT_USERNAME")
+		}
+		if o.RepositoryUsername == "" {
+			o.RepositoryUsername = os.Getenv("GITHUB_ACTOR")
+		}
+	}
+	if o.RepositoryPassword == "" {
+		o.RepositoryPassword = os.Getenv("JX_REPOSITORY_PASSWORD")
+		if o.RepositoryPassword == "" {
+			o.RepositoryPassword = os.Getenv("GITHUB_TOKEN")
+		}
+	}
+
 	return nil
 }
 
@@ -127,7 +156,7 @@ func (o *Options) Run() error {
 
 			for i, dependency := range chartDef.Dependencies {
 				log.Logger().Infof("Adding repository for dependency %s", dependency.Name)
-				if dependency.Repository != "" {
+				if dependency.Repository != "" && !strings.HasPrefix(dependency.Repository, "oci://") {
 					c := &cmdrunner.Command{
 						Dir:  chartDir,
 						Name: o.HelmBinary,
@@ -154,21 +183,63 @@ func (o *Options) Run() error {
 		if err != nil {
 			return errors.Wrapf(err, "failed to lint")
 		}
+		if o.OCI {
+			if o.RepositoryPassword == "" {
+				log.Logger().Debugf("OCI helm dependency build using --registry-config  %s", info(o.RegistryConfigFile))
+				c = &cmdrunner.Command{
+					Dir:  chartDir,
+					Name: o.HelmBinary,
+					Args: []string{"dependency", "build", ".", "--registry-config", o.RegistryConfigFile},
+				}
+				_, err = o.CommandRunner(c)
+				if err != nil {
+					return errors.Wrapf(err, "failed to build dependencies")
+				}
+			} else {
+				log.Logger().Debugf("OCI helm dependency build using username/password '%s/***'", info(o.RepositoryUsername))
 
-		c = &cmdrunner.Command{
-			Dir:  chartDir,
-			Name: o.HelmBinary,
-			Args: []string{"dependency", "build", "."},
+				c = &cmdrunner.Command{
+					Dir:  chartDir,
+					Name: o.HelmBinary,
+					Args: []string{"registry", "login", o.RepositoryURL, "--username", o.RepositoryUsername, "--password", o.RepositoryPassword},
+				}
+				_, err = o.CommandRunner(c)
+				if err != nil {
+					return errors.Wrapf(err, "failed to helm login")
+				}
+				c = &cmdrunner.Command{
+					Dir:  chartDir,
+					Name: o.HelmBinary,
+					Args: []string{"dependency", "build", "."},
+				}
+				_, err = o.CommandRunner(c)
+				if err != nil {
+					return errors.Wrapf(err, "failed to build dependencies")
+				}
+			}
+		} else {
+			c = &cmdrunner.Command{
+				Dir:  chartDir,
+				Name: o.HelmBinary,
+				Args: []string{"dependency", "build", "."},
+			}
+			_, err = o.CommandRunner(c)
+			if err != nil {
+				return errors.Wrapf(err, "failed to build dependencies")
+			}
 		}
-		_, err = o.CommandRunner(c)
-		if err != nil {
-			return errors.Wrapf(err, "failed to build dependencies")
-		}
-
-		c = &cmdrunner.Command{
-			Dir:  chartDir,
-			Name: o.HelmBinary,
-			Args: []string{"package", "."},
+		if o.OCI && o.RepositoryPassword == "" {
+			c = &cmdrunner.Command{
+				Dir:  chartDir,
+				Name: o.HelmBinary,
+				Args: []string{"package", ".", "--registry-config", o.RegistryConfigFile},
+			}
+		} else {
+			c = &cmdrunner.Command{
+				Dir:  chartDir,
+				Name: o.HelmBinary,
+				Args: []string{"package", "."},
+			}
 		}
 		_, err = o.CommandRunner(c)
 		if err != nil {

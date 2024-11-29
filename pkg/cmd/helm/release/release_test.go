@@ -21,7 +21,7 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-const helmDependencyBuild = "helm dependency build ."
+const helmDependencyBuild = "helm dependency build . --registry-config "
 const helmLint = "helm lint"
 const helmPackage = "helm package ."
 
@@ -168,13 +168,16 @@ func TestStepHelmReleaseWithChartPages(t *testing.T) {
 			CLI: runner.OrderedCommands[0].Name + " " + strings.Join(runner.OrderedCommands[0].Args, " "),
 		},
 		fakerunner.FakeResult{
+			CLI: "helm repo add 0 file://myapp-common",
+		},
+		fakerunner.FakeResult{
 			CLI: "git sparse-checkout set --no-cone jx-requirements.yml .jx/gitops/source-config.yaml",
 		},
 		fakerunner.FakeResult{
 			CLI: "git checkout",
 		},
 		fakerunner.FakeResult{
-			CLI: helmDependencyBuild,
+			CLI: helmDependencyBuild + o.RegistryConfigFile,
 		},
 		fakerunner.FakeResult{
 			CLI: helmLint,
@@ -225,13 +228,16 @@ func TestStepHelmReleaseWithOCIUsingUserName(t *testing.T) {
 			CLI: runner.OrderedCommands[0].Name + " " + strings.Join(runner.OrderedCommands[0].Args, " "),
 		},
 		fakerunner.FakeResult{
+			CLI: "helm repo add 0 file://myapp-common",
+		},
+		fakerunner.FakeResult{
 			CLI: "git sparse-checkout set --no-cone jx-requirements.yml .jx/gitops/source-config.yaml",
 		},
 		fakerunner.FakeResult{
 			CLI: "git checkout",
 		},
 		fakerunner.FakeResult{
-			CLI: helmDependencyBuild,
+			CLI: helmDependencyBuild + o.RegistryConfigFile,
 		},
 		fakerunner.FakeResult{
 			CLI: helmLint,
@@ -243,11 +249,12 @@ func TestStepHelmReleaseWithOCIUsingUserName(t *testing.T) {
 			CLI: "helm registry login " + OCIRegistry + " --username " + o.RepositoryUsername + " --password " + o.RepositoryPassword,
 		},
 		fakerunner.FakeResult{
-			CLI: "helm push myapp-" + chartVersion + ".tgz " + OCIRegistry + " --registry-config " + o.RegistryConfigFile,
+			CLI: "helm push myapp-" + chartVersion + ".tgz oci://" + OCIRegistry + " --registry-config " + o.RegistryConfigFile,
 		},
 	)
 }
 
+//nolint:dupl
 func TestStepHelmReleaseWithOCIUsingRegistryConfig(t *testing.T) {
 	// force ChartOCI to true
 	// fake OCI registry vars
@@ -270,13 +277,16 @@ func TestStepHelmReleaseWithOCIUsingRegistryConfig(t *testing.T) {
 			CLI: runner.OrderedCommands[0].Name + " " + strings.Join(runner.OrderedCommands[0].Args, " "),
 		},
 		fakerunner.FakeResult{
+			CLI: "helm repo add 0 file://myapp-common",
+		},
+		fakerunner.FakeResult{
 			CLI: "git sparse-checkout set --no-cone jx-requirements.yml .jx/gitops/source-config.yaml",
 		},
 		fakerunner.FakeResult{
 			CLI: "git checkout",
 		},
 		fakerunner.FakeResult{
-			CLI: helmDependencyBuild,
+			CLI: helmDependencyBuild + o.RegistryConfigFile,
 		},
 		fakerunner.FakeResult{
 			CLI: helmLint,
@@ -286,11 +296,12 @@ func TestStepHelmReleaseWithOCIUsingRegistryConfig(t *testing.T) {
 		},
 
 		fakerunner.FakeResult{
-			CLI: "helm push myapp-" + chartVersion + ".tgz " + OCIRegistry + " --registry-config " + o.RegistryConfigFile,
+			CLI: "helm push myapp-" + chartVersion + ".tgz " + "oci://" + OCIRegistry + " --registry-config " + o.RegistryConfigFile,
 		},
 	)
 }
 
+//nolint:dupl
 func TestStepHelmReleaseWithOCINoOCILogin(t *testing.T) {
 	runner, OCIRegistry, chartVersion, o, err := setupReleaseOCI(t)
 	require.NoError(t, err, "failed to run the command")
@@ -310,13 +321,16 @@ func TestStepHelmReleaseWithOCINoOCILogin(t *testing.T) {
 			CLI: runner.OrderedCommands[0].Name + " " + strings.Join(runner.OrderedCommands[0].Args, " "),
 		},
 		fakerunner.FakeResult{
+			CLI: "helm repo add 0 file://myapp-common",
+		},
+		fakerunner.FakeResult{
 			CLI: "git sparse-checkout set --no-cone jx-requirements.yml .jx/gitops/source-config.yaml",
 		},
 		fakerunner.FakeResult{
 			CLI: "git checkout",
 		},
 		fakerunner.FakeResult{
-			CLI: helmDependencyBuild,
+			CLI: helmDependencyBuild + o.RegistryConfigFile,
 		},
 		fakerunner.FakeResult{
 			CLI: helmLint,
@@ -326,7 +340,7 @@ func TestStepHelmReleaseWithOCINoOCILogin(t *testing.T) {
 		},
 
 		fakerunner.FakeResult{
-			CLI: "helm push myapp-" + chartVersion + ".tgz " + OCIRegistry + " --registry-config " + o.RegistryConfigFile,
+			CLI: "helm push myapp-" + chartVersion + ".tgz " + "oci://" + OCIRegistry + " --registry-config " + o.RegistryConfigFile,
 		})
 
 }
