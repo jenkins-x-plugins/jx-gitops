@@ -42,7 +42,6 @@ type Options struct {
 	ChartsDir          string
 	OCI                bool
 	RegistryConfigFile string
-	NoOCILogin         bool
 	RepositoryUsername string
 	RepositoryPassword string
 	RepositoryURL      string
