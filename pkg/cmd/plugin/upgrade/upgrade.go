@@ -28,7 +28,7 @@ var (
 
 	cmdPluginsExample = templates.Examples(`
 		# upgrades your plugin binaries for gitops
-		%s plugins upgrade
+		%s plugin upgrade
 	`)
 )
 

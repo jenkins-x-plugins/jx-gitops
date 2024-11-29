@@ -254,6 +254,7 @@ func TestStepHelmReleaseWithOCIUsingUserName(t *testing.T) {
 	)
 }
 
+//nolint:dupl
 func TestStepHelmReleaseWithOCIUsingRegistryConfig(t *testing.T) {
 	// force ChartOCI to true
 	// fake OCI registry vars
@@ -300,6 +301,7 @@ func TestStepHelmReleaseWithOCIUsingRegistryConfig(t *testing.T) {
 	)
 }
 
+//nolint:dupl
 func TestStepHelmReleaseWithOCINoOCILogin(t *testing.T) {
 	runner, OCIRegistry, chartVersion, o, err := setupReleaseOCI(t)
 	require.NoError(t, err, "failed to run the command")
