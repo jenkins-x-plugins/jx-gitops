@@ -6,7 +6,7 @@ metadata:
 spec:
   pipelineSpec:
     tasks:
-    - name: jx-pipeline-release
+    - name: chart
       resources: {}
       timeout: 2h30m0s
       taskSpec:
@@ -28,33 +28,15 @@ spec:
         - name: jx-variables
           resources: {}
         - name: release-binary
-          image: golang:1.22
           resources: {}
-          script: |
-            #!/bin/bash
-            source .jx/variables.sh
-            make release
-        - image: uses:jenkins-x/jx3-pipeline-catalog/tasks/build-scan-push/build-scan-push.yaml@versionStream
-          name: build-container
-        - image: uses:jenkins-x/jx3-pipeline-catalog/tasks/build-scan-push/build-scan-push.yaml@versionStream
-          name: push-container
+        - name: build-and-push-image
+          resources: {}
         - name: chart-docs
           resources: {}
         - name: release-chart
           resources: {}
         - name: changelog
           resources: {}
-        - image: uses:jenkins-x/jx3-pipeline-catalog/tasks/supply-chain-security/task.yaml@versionStream
-          name: download-syft
-        - image: uses:jenkins-x/jx3-pipeline-catalog/tasks/supply-chain-security/task.yaml@versionStream
-          name: build-and-push-sbom
-          resources: {}
-        - name: cleanup-image-tar
-          image: alpine:3.16
-          resources: {}
-          script: |
-            #!/bin/sh
-            rm -f /workspace/source/image.tar
         - name: upload-binaries
           resources: {}
         - name: promote-release
