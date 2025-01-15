@@ -161,7 +161,8 @@ func (o *Options) Run() error {
 	// Filter out running activities
 	for k := range activities.Items {
 		a := activities.Items[k]
-		if a.Spec.CompletedTimestamp != nil {
+		// TODO: Should we let activities with status pending lay around forever?
+		if a.Spec.Status.IsTerminated() {
 			completedActivities = append(completedActivities, a)
 		}
 	}
@@ -178,7 +179,12 @@ func (o *Options) Run() error {
 		isPR, isBatch := o.isPullRequestOrBatchBranch(branchName)
 		maxAge, revisionHistory := o.ageAndHistoryLimits(isPR, isBatch)
 		// lets remove activities that are too old
-		if activity.Spec.CompletedTimestamp != nil && activity.Spec.CompletedTimestamp.Add(maxAge).Before(now) {
+		timestamp := activity.Spec.CompletedTimestamp
+		if timestamp == nil {
+			timestamp = activity.Spec.StartedTimestamp
+		}
+
+		if timestamp.Add(maxAge).Before(now) {
 			err = o.deleteResources(ctx, activityInterface, &activity, currentNs)
 			if err != nil {
 				return err
@@ -188,7 +194,7 @@ func (o *Options) Run() error {
 
 		repoBranchAndContext := activity.RepositoryOwner() + "/" + activity.RepositoryName() + "/" + activity.BranchName() + "/" + activity.Spec.Context
 		c := counters.AddBuild(repoBranchAndContext, isPR)
-		if c > revisionHistory && activity.Spec.CompletedTimestamp != nil {
+		if c > revisionHistory && timestamp != nil {
 			err = o.deleteResources(ctx, activityInterface, &activity, currentNs)
 			if err != nil {
 				return err

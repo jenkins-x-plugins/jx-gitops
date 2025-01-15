@@ -3,7 +3,9 @@ package variables
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
+	"path"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -34,6 +36,19 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+
+	"gocloud.dev/blob"
+
+	// support azure blobs
+	_ "gocloud.dev/blob/azureblob"
+	// support file blobs
+	_ "gocloud.dev/blob/fileblob"
+	// support GCS blobs
+	_ "gocloud.dev/blob/gcsblob"
+	// support memory blobs
+	_ "gocloud.dev/blob/memblob"
+	// support s3 blobs
+	_ "gocloud.dev/blob/s3blob"
 )
 
 var (
@@ -527,7 +542,8 @@ func (o *Options) FindBuildNumber(buildID string) (string, error) {
 	safeRepository := naming.ToValidName(repository)
 	safeBranch := naming.ToValidName(branch)
 
-	resources, err := activityInterface.List(context.TODO(), metav1.ListOptions{})
+	ctx := context.TODO()
+	resources, err := activityInterface.List(ctx, metav1.ListOptions{})
 	if err != nil && !apierrors.IsNotFound(err) {
 		return "", errors.Wrapf(err, "failed to find PipelineActivity resources in namespace %s", o.Namespace)
 	}
@@ -537,34 +553,36 @@ func (o *Options) FindBuildNumber(buildID string) (string, error) {
 			ps := &pa.Spec
 			if (ps.GitOwner == owner || ps.GitOwner == safeOwner) &&
 				(ps.GitRepository == repository || ps.GitRepository == safeRepository) &&
-				(ps.GitBranch == branch || ps.GitBranch == safeBranch) {
+				(ps.GitBranch == branch || ps.GitBranch == safeBranch) &&
+				pa.Labels != nil {
 				activitySlice = append(activitySlice, pa)
 			}
 		}
 	}
-
+	log.Logger().Debugf("found %d activities for branch", len(activitySlice))
 	maxBuild := 0
-	for _, pa := range activitySlice {
-		labels := pa.Labels
-		if labels == nil {
-			continue
-		}
-		if labels["buildID"] == buildID || labels["lighthouse.jenkins-x.io/buildNum"] == buildID {
-			if pa.Spec.Build == "" {
-				log.Logger().Warnf("PipelineActivity %s does not have a spec.build value", pa.Name)
-			} else {
-				return pa.Spec.Build, nil
+	if len(activitySlice) > 0 {
+		for _, pa := range activitySlice {
+			labels := pa.Labels
+			if labels["buildID"] == buildID || labels["lighthouse.jenkins-x.io/buildNum"] == buildID {
+				if pa.Spec.Build == "" {
+					log.Logger().Warnf("PipelineActivity %s does not have a spec.build value", pa.Name)
+				} else {
+					return pa.Spec.Build, nil
+				}
+				continue
 			}
-			continue
-		}
-		if pa.Spec.Build != "" {
-			i, err := strconv.Atoi(pa.Spec.Build)
-			if err != nil {
-				log.Logger().Warnf("PipelineActivity %s has an invalid spec.build number %s should be an integer: %s", pa.Name, pa.Spec.Build, err.Error())
-			} else if i > maxBuild {
-				maxBuild = i
+			if pa.Spec.Build != "" {
+				i, err := strconv.Atoi(pa.Spec.Build)
+				if err != nil {
+					log.Logger().Warnf("PipelineActivity %s has an invalid spec.build number %s should be an integer: %s", pa.Name, pa.Spec.Build, err.Error())
+				} else if i > maxBuild {
+					maxBuild = i
+				}
 			}
 		}
+	} else {
+		maxBuild = o.findMaxBuildFromPersistedLogs(ctx, owner, repository, branch)
 	}
 	o.BuildNumber = strconv.Itoa(maxBuild + 1)
 
@@ -591,6 +609,44 @@ func (o *Options) FindBuildNumber(buildID string) (string, error) {
 		return o.BuildNumber, errors.Wrapf(err, "failed to lazily create PipelineActivity %s", name)
 	}
 	return o.BuildNumber, nil
+}
+
+func (o *Options) findMaxBuildFromPersistedLogs(ctx context.Context, owner, repository, branch string) int {
+	bucketURL := o.Requirements.GetStorageURL("logs")
+	if bucketURL == "" {
+		return 0
+	}
+	pathDir := filepath.Join("jenkins-x", "logs", owner, repository, branch)
+	// TODO: Skip looking in bucket if this build is triggered by creation of pull request.
+	// But at the moment that is unknown here. So either move the logic to lighthouse or lighthouse should make the
+	// action available in environment variable
+	log.Logger().Debugf("open logs bucket (%s) to find latest build number", bucketURL)
+	bucket, err := blob.OpenBucket(ctx, bucketURL)
+	if err != nil {
+		log.Logger().Warnf("Can't open logs bucket (%s) to find latest build number: %s", bucketURL, err)
+		return 0
+	}
+	log.Logger().Debugf("listing prefix %s of logs bucket (%s) to find latest build number", pathDir, bucketURL)
+	iter := bucket.List(&blob.ListOptions{Prefix: pathDir})
+	maxBuild := 0
+	for {
+		obj, err := iter.Next(ctx)
+		if err != nil {
+			if err != io.EOF {
+				log.Logger().Warnf("Can not list log bucket (%s) to find max build number in %s: %s",
+					bucketURL, pathDir, err)
+			}
+			break
+		}
+		pathWithoutExt, found := strings.CutSuffix(obj.Key, ".yaml")
+		if found {
+			i, _ := strconv.Atoi(path.Base(pathWithoutExt))
+			if i > maxBuild {
+				maxBuild = i
+			}
+		}
+	}
+	return maxBuild
 }
 
 // GetBuildID returns the current build ID

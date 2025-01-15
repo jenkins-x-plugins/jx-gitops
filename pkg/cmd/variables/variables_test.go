@@ -165,6 +165,7 @@ func TestFindBuildNumber(t *testing.T) {
 		o.Options.Repository = repository
 		o.Options.Branch = branch
 		o.Options.SourceURL = "https://github.com/" + owner + "/" + repository
+		o.Requirements = &jxcore.RequirementsConfig{}
 		return o
 	}
 
