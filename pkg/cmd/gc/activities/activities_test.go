@@ -35,11 +35,12 @@ func TestGCPipelineActivities(t *testing.T) {
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "1",
 				Namespace: ns,
-				Labels:    createLabels("PR-1", "1"),
+				Labels:    createLabels("PR-1", "3"),
 			},
 			Spec: v1.PipelineActivitySpec{
 				Pipeline:           "org/project/PR-1",
 				CompletedTimestamp: &metav1.Time{Time: nowMinusThreeDays},
+				Status:             v1.ActivityStatusTypeFailed,
 			},
 		},
 		{
@@ -50,18 +51,19 @@ func TestGCPipelineActivities(t *testing.T) {
 			},
 			Spec: v1.PipelineActivitySpec{
 				Pipeline: "org/project/PR-1",
-				// No completion time, to make sure this doesn't get deleted.
+				Status:   v1.ActivityStatusTypeRunning,
 			},
 		},
 		{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "3",
 				Namespace: ns,
-				Labels:    createLabels("PR-1", "3"),
+				Labels:    createLabels("PR-1", "1"),
 			},
 			Spec: v1.PipelineActivitySpec{
 				Pipeline:           "org/project/PR-1",
-				CompletedTimestamp: &metav1.Time{Time: nowMinusThreeDays},
+				CompletedTimestamp: &metav1.Time{Time: nowMinusThirtyOneDays},
+				Status:             v1.ActivityStatusTypeSucceeded,
 			},
 		},
 		{
@@ -73,6 +75,7 @@ func TestGCPipelineActivities(t *testing.T) {
 			Spec: v1.PipelineActivitySpec{
 				Pipeline:           "org/project/PR-1",
 				CompletedTimestamp: &metav1.Time{Time: nowMinusOneDay},
+				Status:             v1.ActivityStatusTypeAborted,
 			},
 		},
 
@@ -85,8 +88,9 @@ func TestGCPipelineActivities(t *testing.T) {
 				Labels:    createLabels("PR-1", "0"),
 			},
 			Spec: v1.PipelineActivitySpec{
-				Pipeline:           "org/project/PR-1",
-				CompletedTimestamp: &metav1.Time{Time: nowMinusThirtyOneDays},
+				Pipeline:         "org/project/PR-1",
+				StartedTimestamp: &metav1.Time{Time: nowMinusThirtyOneDays},
+				Status:           v1.ActivityStatusTypeCancelled,
 			},
 		},
 		{
@@ -96,8 +100,9 @@ func TestGCPipelineActivities(t *testing.T) {
 				Labels:    createLabels("batch", "5"),
 			},
 			Spec: v1.PipelineActivitySpec{
-				Pipeline:           "org/project/batch",
-				CompletedTimestamp: &metav1.Time{Time: nowMinusThreeDays},
+				Pipeline:         "org/project/batch",
+				StartedTimestamp: &metav1.Time{Time: nowMinusThreeDays},
+				Status:           v1.ActivityStatusTypeTimedOut,
 			},
 		},
 		{
@@ -107,8 +112,9 @@ func TestGCPipelineActivities(t *testing.T) {
 				Labels:    createLabels("master", "6"),
 			},
 			Spec: v1.PipelineActivitySpec{
-				Pipeline:           "org/project/master",
-				CompletedTimestamp: &metav1.Time{Time: nowMinusThreeDays},
+				Pipeline:         "org/project/master",
+				StartedTimestamp: &metav1.Time{Time: nowMinusThreeDays},
+				Status:           v1.ActivityStatusTypeError,
 			},
 		},
 	}
@@ -161,7 +167,7 @@ func TestGCPipelineActivities(t *testing.T) {
 			verifier = append(verifier, true)
 		}
 	}
-	assert.Len(t, verifier, 2, "Both PR and Batch builds should've been verified")
+	assert.Len(t, verifier, 2, "Both PR and Batch builds should've been garbage collected")
 
 	// lets verify number of LH jobs left
 	lhjobs, err = lhClient.LighthouseV1alpha1().LighthouseJobs(ns).List(ctx, metav1.ListOptions{})
