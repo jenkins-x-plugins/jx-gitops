@@ -130,6 +130,9 @@ func applyToTrigger(parent, child *schedulerapi.Trigger) {
 	if child.SkipReportRunningStatus == nil {
 		child.SkipReportRunningStatus = parent.SkipReportRunningStatus
 	}
+	if child.ShowReportCompletionDuration == nil {
+		child.ShowReportCompletionDuration = parent.ShowReportCompletionDuration
+	}
 }
 
 func applyToSchedulerAgent(parent, child *schedulerapi.SchedulerAgent) {
