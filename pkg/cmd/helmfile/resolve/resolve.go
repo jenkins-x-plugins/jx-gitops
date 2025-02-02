@@ -273,6 +273,11 @@ func (o *Options) processHelmfile(helmfile helmfiles.Helmfile) error {
 		return errors.Wrapf(err, "failed to resolve helmfile %s", helmfile)
 	}
 
+	if o.UpdateMode {
+		// let's remove any unused chart repositories
+		removeRedundantRepositories(&helmState)
+	}
+
 	err = yaml2s.SaveFile(helmState, path)
 	if err != nil {
 		return errors.Wrapf(err, "failed to save file %s", helmfile)
@@ -1038,10 +1043,6 @@ func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
 		}
 	}
 
-	// let's remove any unused jx3 repo
-	removeRedundantRepositories(helmstate)
-
-	// TODO lets remove the jx-labs repository if its no longer referenced...
 	if o.AddEnvironmentPipelines {
 		lighthouseTriggerFile := filepath.Join(o.Dir, ".lighthouse", "jenkins-x", "triggers.yaml")
 		exists, err := files.FileExists(lighthouseTriggerFile)
