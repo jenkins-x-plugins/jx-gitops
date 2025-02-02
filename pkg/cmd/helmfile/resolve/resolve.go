@@ -990,23 +990,6 @@ func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
 		}
 	}
 
-	// remove jx-labs repository if we have no more charts left using the prefix
-	jxLabsCount := 0
-	for i := range helmstate.Releases {
-		release := &helmstate.Releases[i]
-		if strings.HasPrefix(release.Chart, "jx-labs/") {
-			jxLabsCount++
-		}
-	}
-	if jxLabsCount == 0 {
-		for i := range helmstate.Repositories {
-			if helmstate.Repositories[i].Name == "jx-labs" {
-				helmstate.Repositories = append(helmstate.Repositories[0:i], helmstate.Repositories[i+1:]...)
-				break
-			}
-		}
-	}
-
 	// lets ensure we have the jx-build-controller installed
 	if helmstate.OverrideNamespace == "jx" && isDevCluster(helmstate) {
 		found := false
