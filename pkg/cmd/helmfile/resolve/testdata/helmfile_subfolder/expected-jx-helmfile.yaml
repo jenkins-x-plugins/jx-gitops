@@ -12,19 +12,16 @@ releases:
   version: 1.0.64
   name: jxboot-helmfile-resources
   values:
-  - ../../versionStream/charts/jxgh/jxboot-helmfile-resources/values.yaml.gotmpl
   - jx-values.yaml
 - chart: jxgh/jenkins-x-crds
   version: 3.0.7
   name: jenkins-x-crds
   values:
-  - ../../versionStream/charts/jxgh/jenkins-x-crds/values.yaml.gotmpl
   - jx-values.yaml
 - chart: jxgh/jx-pipelines-visualizer
   version: 1.7.1
   name: jx-pipelines-visualizer
   values:
-  - ../../versionStream/charts/jxgh/jx-pipelines-visualizer/values.yaml.gotmpl
   - jx-values.yaml
 - chart: jxgh/jx-preview
   version: 0.0.183
@@ -43,7 +40,6 @@ releases:
   version: 0.1.65
   name: bucketrepo
   values:
-  - ../../versionStream/charts/jxgh/bucketrepo/values.yaml.gotmpl
   - jx-values.yaml
 - chart: jxgh/jx-build-controller
   version: 0.3.3
@@ -59,7 +55,6 @@ releases:
   version: 0.0.56
   name: health-checks-jx
   values:
-  - ../../versionStream/charts/jxgh/health-checks-jx/values.yaml.gotmpl
   - jx-values.yaml
 templates: {}
 renderedvalues: {}

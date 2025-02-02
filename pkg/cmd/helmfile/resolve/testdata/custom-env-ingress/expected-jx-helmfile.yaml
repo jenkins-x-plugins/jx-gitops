@@ -21,7 +21,6 @@ releases:
 - chart: jxgh/jxboot-helmfile-resources
   name: jxboot-helmfile-resources
   values:
-  - ../../versionStream/charts/jxgh/jxboot-helmfile-resources/values.yaml.gotmpl
   - jx-values.yaml
 - chart: doesnotexist/bucketrepo
   name: bucketrepo

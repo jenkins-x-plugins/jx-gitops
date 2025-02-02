@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/apis/gitops/v1alpha1"
@@ -456,14 +457,14 @@ func (o *Options) resolveHelmfile(helmState *state.HelmState, helmfile helmfiles
 
 		// lets try resolve any values files in the version stream using the prefix and chart name first
 		if !IsLabelValue(&release, helmhelpers.ValuesLabel, helmhelpers.LockLabelValue) {
-			found, err := o.addValues(helmfile, filepath.Join(prefix, release.Name), &release)
+			found, err := o.updateValues(helmfile, filepath.Join(prefix, release.Name), &release)
 			if err != nil {
 				return errors.Wrapf(err, "failed to add values")
 			}
 			if !found {
 				// next try the full chart name
 				// ToDo: use this found value
-				found, err = o.addValues(helmfile, fullChartName, &release) //nolint:ineffassign,staticcheck
+				found, err = o.updateValues(helmfile, fullChartName, &release) //nolint:ineffassign,staticcheck
 				if err != nil {
 					return errors.Wrapf(err, "failed to add values")
 				}
@@ -626,7 +627,28 @@ func IsLabelValue(release *state.ReleaseSpec, label, value string) bool {
 	return answer
 }
 
-func (o *Options) addValues(helmfile helmfiles.Helmfile, name string, release *state.ReleaseSpec) (bool, error) {
+func (o *Options) updateValues(helmfile helmfiles.Helmfile, name string, release *state.ReleaseSpec) (bool, error) {
+	// Prune any reference to value file in version stream that has been removed
+	release.Values = slices.DeleteFunc(release.Values, func(value any) bool {
+		if valueFileName, ok := value.(string); ok {
+			relativeValueFile, inVersionStream := strings.CutPrefix(
+				valueFileName,
+				filepath.Join(helmfile.RelativePathToRoot, versionStreamDir),
+			)
+			if inVersionStream {
+				versionStreamValuesFile := filepath.Join(o.Resolver.VersionsDir, relativeValueFile)
+
+				exists, err := files.FileExists(versionStreamValuesFile)
+				if err != nil {
+					log.Logger().Warnf("failed to check if version stream values file exists %s", versionStreamValuesFile)
+					return false
+				}
+				return !exists
+			}
+		}
+		return false
+	})
+	// Add any value file in version stream for chart
 	found := false
 	for _, valueFileName := range valueFileNames {
 		versionStreamValuesFile := filepath.Join(o.Resolver.VersionsDir, "charts", name, valueFileName)
@@ -640,9 +662,6 @@ func (o *Options) addValues(helmfile helmfiles.Helmfile, name string, release *s
 				release.Values = append(release.Values, path)
 			}
 			found = true
-			break
-		}
-		if found {
 			break
 		}
 	}

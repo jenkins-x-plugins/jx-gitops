@@ -25,7 +25,6 @@ releases:
 - chart: jxgh/jenkins-x-crds
   name: jenkins-x-crds
   values:
-  - ../../versionStream/charts/jxgh/jenkins-x-crds/values.yaml.gotmpl
   - jx-values.yaml
 - chart: jxgh/local-external-secrets
   name: local-external-secrets
