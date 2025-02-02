@@ -445,6 +445,16 @@ func (o *Options) resolveHelmfile(helmState *state.HelmState, helmfile helmfiles
 				if err != nil {
 					return err
 				}
+				// If release.Chart has changed update related variables
+				if fullChartName != release.Chart {
+					fullChartName = release.Chart
+					parts = strings.Split(fullChartName, "/")
+					chartName = release.Chart
+					if len(parts) > 1 {
+						prefix = parts[0]
+						chartName = parts[1]
+					}
+				}
 			}
 		}
 
