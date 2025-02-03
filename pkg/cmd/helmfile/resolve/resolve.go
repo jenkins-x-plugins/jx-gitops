@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/apis/gitops/v1alpha1"
@@ -272,6 +273,11 @@ func (o *Options) processHelmfile(helmfile helmfiles.Helmfile) error {
 		return errors.Wrapf(err, "failed to resolve helmfile %s", helmfile)
 	}
 
+	if o.UpdateMode {
+		// let's remove any unused chart repositories
+		removeRedundantRepositories(&helmState)
+	}
+
 	err = yaml2s.SaveFile(helmState, path)
 	if err != nil {
 		return errors.Wrapf(err, "failed to save file %s", helmfile)
@@ -439,6 +445,16 @@ func (o *Options) resolveHelmfile(helmState *state.HelmState, helmfile helmfiles
 				if err != nil {
 					return err
 				}
+				// If release.Chart has changed update related variables
+				if fullChartName != release.Chart {
+					fullChartName = release.Chart
+					parts = strings.Split(fullChartName, "/")
+					chartName = release.Chart
+					if len(parts) > 1 {
+						prefix = parts[0]
+						chartName = parts[1]
+					}
+				}
 			}
 		}
 
@@ -456,14 +472,14 @@ func (o *Options) resolveHelmfile(helmState *state.HelmState, helmfile helmfiles
 
 		// lets try resolve any values files in the version stream using the prefix and chart name first
 		if !IsLabelValue(&release, helmhelpers.ValuesLabel, helmhelpers.LockLabelValue) {
-			found, err := o.addValues(helmfile, filepath.Join(prefix, release.Name), &release)
+			found, err := o.updateValues(helmfile, filepath.Join(prefix, release.Name), &release)
 			if err != nil {
 				return errors.Wrapf(err, "failed to add values")
 			}
 			if !found {
 				// next try the full chart name
 				// ToDo: use this found value
-				found, err = o.addValues(helmfile, fullChartName, &release) //nolint:ineffassign,staticcheck
+				found, err = o.updateValues(helmfile, fullChartName, &release) //nolint:ineffassign,staticcheck
 				if err != nil {
 					return errors.Wrapf(err, "failed to add values")
 				}
@@ -626,7 +642,28 @@ func IsLabelValue(release *state.ReleaseSpec, label, value string) bool {
 	return answer
 }
 
-func (o *Options) addValues(helmfile helmfiles.Helmfile, name string, release *state.ReleaseSpec) (bool, error) {
+func (o *Options) updateValues(helmfile helmfiles.Helmfile, name string, release *state.ReleaseSpec) (bool, error) {
+	// Prune any reference to value file in version stream that has been removed
+	release.Values = slices.DeleteFunc(release.Values, func(value any) bool {
+		if valueFileName, ok := value.(string); ok {
+			relativeValueFile, inVersionStream := strings.CutPrefix(
+				valueFileName,
+				filepath.Join(helmfile.RelativePathToRoot, versionStreamDir),
+			)
+			if inVersionStream {
+				versionStreamValuesFile := filepath.Join(o.Resolver.VersionsDir, relativeValueFile)
+
+				exists, err := files.FileExists(versionStreamValuesFile)
+				if err != nil {
+					log.Logger().Warnf("failed to check if version stream values file exists %s", versionStreamValuesFile)
+					return false
+				}
+				return !exists
+			}
+		}
+		return false
+	})
+	// Add any value file in version stream for chart
 	found := false
 	for _, valueFileName := range valueFileNames {
 		versionStreamValuesFile := filepath.Join(o.Resolver.VersionsDir, "charts", name, valueFileName)
@@ -640,9 +677,6 @@ func (o *Options) addValues(helmfile helmfiles.Helmfile, name string, release *s
 				release.Values = append(release.Values, path)
 			}
 			found = true
-			break
-		}
-		if found {
 			break
 		}
 	}
@@ -966,23 +1000,6 @@ func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
 		}
 	}
 
-	// remove jx-labs repository if we have no more charts left using the prefix
-	jxLabsCount := 0
-	for i := range helmstate.Releases {
-		release := &helmstate.Releases[i]
-		if strings.HasPrefix(release.Chart, "jx-labs/") {
-			jxLabsCount++
-		}
-	}
-	if jxLabsCount == 0 {
-		for i := range helmstate.Repositories {
-			if helmstate.Repositories[i].Name == "jx-labs" {
-				helmstate.Repositories = append(helmstate.Repositories[0:i], helmstate.Repositories[i+1:]...)
-				break
-			}
-		}
-	}
-
 	// lets ensure we have the jx-build-controller installed
 	if helmstate.OverrideNamespace == "jx" && isDevCluster(helmstate) {
 		found := false
@@ -1019,10 +1036,6 @@ func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
 		}
 	}
 
-	// let's remove any unused jx3 repo
-	removeRedundantRepositories(helmstate)
-
-	// TODO lets remove the jx-labs repository if its no longer referenced...
 	if o.AddEnvironmentPipelines {
 		lighthouseTriggerFile := filepath.Join(o.Dir, ".lighthouse", "jenkins-x", "triggers.yaml")
 		exists, err := files.FileExists(lighthouseTriggerFile)
