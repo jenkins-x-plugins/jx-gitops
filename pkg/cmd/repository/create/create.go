@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/apis/gitops/v1alpha1"
-	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/sourceconfigs"
 	v1 "github.com/jenkins-x/jx-api/v4/pkg/apis/jenkins.io/v1"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
@@ -25,11 +24,6 @@ var (
 	cmdLong = templates.LongDesc(`
 		Creates any missing SourceRepository resources
 `)
-
-	cmdExample = templates.Examples(`
-		# creates any missing SourceRepository resources  
-		%s repository create https://github.com/myorg/myrepo.git
-	`)
 )
 
 // LabelOptions the options for the command
@@ -45,10 +39,9 @@ func NewCmdCreateRepository() (*cobra.Command, *Options) {
 	o := &Options{}
 
 	cmd := &cobra.Command{
-		Use:     "create",
-		Short:   "Creates any missing SourceRepository resources",
-		Long:    cmdLong,
-		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName, rootcmd.BinaryName),
+		Use:   "create",
+		Short: "Creates any missing SourceRepository resources",
+		Long:  cmdLong,
 		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)
