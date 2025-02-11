@@ -43,7 +43,11 @@ import (
 // Main creates the new command
 func Main() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   rootcmd.TopLevelCommand,
+		Use: rootcmd.TopLevelCommand,
+		Annotations: map[string]string{
+			cobra.CommandDisplayNameAnnotation: rootcmd.TopLevelCommand,
+		},
+
 		Short: "commands for working with GitOps based git repositories",
 		Run: func(cmd *cobra.Command, _ []string) {
 			err := cmd.Help()
