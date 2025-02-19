@@ -43,7 +43,6 @@ import (
 // Main creates the new command
 func Main() *cobra.Command {
 	cmd := &cobra.Command{
-		Use: rootcmd.TopLevelCommand,
 		Annotations: map[string]string{
 			cobra.CommandDisplayNameAnnotation: rootcmd.TopLevelCommand,
 		},
