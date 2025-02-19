@@ -2050,6 +2050,18 @@ bool
 based on the current and last state of the LighthouseJobs.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>show_report_completion_duration</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>ShowReportCompletionDuration when enabled, show completion duration in report status in the SCM provider
+based on StartTime and CompletionTime of the PipelineActivity.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="scheduler.jenkins-x.io/v1alpha1.Welcome">Welcome
@@ -2084,5 +2096,5 @@ string
 <hr/>
 <p><em>
 Generated with <code>gen-crd-api-reference-docs</code>
-on git commit <code>a3436997</code>.
+on git commit <code>060775df</code>.
 </em></p>

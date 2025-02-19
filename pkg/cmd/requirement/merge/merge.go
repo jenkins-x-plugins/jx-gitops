@@ -44,7 +44,7 @@ This lets you take requirements from, say, the output of a terraform plan and me
 		%s requirements merge -f /tmp/jx-requirements.yml
 
 		# merge requirements from a ConfigMap called 'terraform-jx-requirements' in the default namespace
-		%s requirements merge 
+		%[1]s requirements merge 
 	`)
 )
 
@@ -67,7 +67,7 @@ func NewCmdRequirementsMerge() (*cobra.Command, *Options) {
 		Use:     "merge",
 		Short:   "Merges values from the given file to the local jx-requirements.yml file",
 		Long:    cmdLong,
-		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName, rootcmd.BinaryName),
+		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
 		RunE: func(_ *cobra.Command, _ []string) error {
 			return o.Run()
 		},

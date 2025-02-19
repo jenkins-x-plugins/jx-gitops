@@ -26,7 +26,7 @@ var (
 		%s helmfile add --chart somerepo/mychart
 
 		# adds a chart using a new repository URL with a custom version and namespace
-		%s helmfile add --chart somerepo/mychart --repository https://acme.com/myrepo --namespace foo --version 1.2.3
+		%[1]s helmfile add --chart somerepo/mychart --repository https://acme.com/myrepo --namespace foo --version 1.2.3
 	`)
 )
 
@@ -49,7 +49,7 @@ func NewCmdHelmfileAdd() (*cobra.Command, *Options) {
 		Use:     "add",
 		Short:   "Adds a chart to the local 'helmfile.yaml' file",
 		Long:    cmdLong,
-		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName, rootcmd.BinaryName),
+		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
 		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)

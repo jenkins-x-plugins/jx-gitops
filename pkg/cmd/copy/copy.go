@@ -32,10 +32,10 @@ var (
 		%s copy --name beer --to=foo
 
 		# copies config maps with a selector to a namespace
-		%s copy -l mylabel=something --to=foo
+		%[1]s copy -l mylabel=something --to=foo
 
 		# copies resources matching a selector and kind
-		%s copy --kind ingresses -l mylabel=something --to=foo
+		%[1]s copy --kind ingresses -l mylabel=something --to=foo
 	`)
 )
 
@@ -63,7 +63,7 @@ func NewCmdCopy() (*cobra.Command, *Options) {
 		Use:     "copy",
 		Short:   "Copies resources (by default confimaps) with the given selector or name from a source namespace to a destination namespace",
 		Long:    cmdLong,
-		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName, rootcmd.BinaryName, rootcmd.BinaryName),
+		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
 		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)

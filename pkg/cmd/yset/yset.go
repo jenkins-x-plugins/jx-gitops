@@ -21,13 +21,13 @@ var (
 
 	annotateExample = templates.Examples(`
 		# sets the foo.bar=abc in the files *.yaml
-		jx gitops yset --path foo.bar --value abc *.yaml
+		%s yset --path foo.bar --value abc *.yaml
 
 		# sets the foo.bar=abc in the file foo.yaml
-		jx gitops yset --path foo.bar --value abc --file foo.yaml
+		%[1]s yset --path foo.bar --value abc --file foo.yaml
 
 		# sets the foo.bar=abc in the file foo.yaml and bar.yaml
-		jx gitops yset --path foo.bar --value abc --file bar.yaml --file foo.yaml
+		%[1]s --path foo.bar --value abc --file bar.yaml --file foo.yaml
 	`)
 )
 
@@ -47,7 +47,7 @@ func NewCmdYSet() (*cobra.Command, *Options) {
 		Use:     "yset",
 		Short:   "Modifies a value in a YAML file at a given path expression while preserving comments",
 		Long:    annotateLong,
-		Example: fmt.Sprintf(annotateExample, rootcmd.BinaryName, rootcmd.BinaryName),
+		Example: fmt.Sprintf(annotateExample, rootcmd.BinaryName),
 		Run: func(_ *cobra.Command, args []string) {
 			o.Args = args
 			err := o.Run()

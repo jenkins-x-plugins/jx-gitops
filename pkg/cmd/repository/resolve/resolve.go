@@ -30,7 +30,7 @@ var (
 		# updates git repository URL for the resources in the current directory 
 		%s repository resolve https://github.com/myorg/myrepo.git
 		# updates git repository URL for the resources in some directory 
-		%s repository resolve --dir something https://github.com/myorg/myrepo.git
+		%[1]s repository resolve --dir something https://github.com/myorg/myrepo.git
 	`)
 )
 
@@ -51,7 +51,7 @@ func NewCmdResolveRepository() (*cobra.Command, *Options) {
 		Use:     "resolve",
 		Short:   "Resolves the git repository URL for the cluster/environment",
 		Long:    labelLong,
-		Example: fmt.Sprintf(labelExample, rootcmd.BinaryName, rootcmd.BinaryName),
+		Example: fmt.Sprintf(labelExample, rootcmd.BinaryName),
 		Run: func(_ *cobra.Command, args []string) {
 			err := o.Run(args)
 			helper.CheckErr(err)

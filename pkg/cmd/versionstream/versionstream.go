@@ -37,10 +37,10 @@ var (
 		%s versionstream --lts
 
 		# switch to latest version stream
-		%s versionstream --latest
+		%[1]s versionstream --latest
 
 		# switch to a custom version stream
-		%s versionstream --custom --url https://github.com/foo/bar.git --ref main
+		%[1]s versionstream --custom --url https://github.com/foo/bar.git --ref main
 	`)
 )
 
@@ -72,7 +72,7 @@ func NewCmdVersionstream() (*cobra.Command, *Options) {
 		Use:     "versionstream",
 		Short:   "Administer the cluster version stream settings",
 		Long:    createLong,
-		Example: fmt.Sprintf(createExample, rootcmd.BinaryName, rootcmd.BinaryName, rootcmd.BinaryName),
+		Example: fmt.Sprintf(createExample, rootcmd.BinaryName),
 		Run: func(cmd *cobra.Command, args []string) {
 			o.Cmd = cmd
 			o.Args = args

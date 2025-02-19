@@ -55,7 +55,7 @@ func NewCmdExportConfig() (*cobra.Command, *Options) {
 		Use:     "export",
 		Short:   "Exports the 'source-config.yaml' file from the kubernetes resources in the current cluster",
 		Long:    cmdLong,
-		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName, rootcmd.BinaryName),
+		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
 		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)
