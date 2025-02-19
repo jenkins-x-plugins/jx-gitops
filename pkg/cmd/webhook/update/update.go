@@ -61,10 +61,10 @@ var (
 		%s update
 
 		# only update the webhooks for a given owner
-		%s update --org=mycorp
+		%[1]s update --org=mycorp
 
 		# use a custom hook webhook endpoint (e.g. if you are on premise using node ports or something)
-		%s update --endpoint http://mything.com
+		%[1]s update --endpoint http://mything.com
 
 `)
 )
@@ -76,7 +76,7 @@ func NewCmdWebHookVerify() (*cobra.Command, *Options) {
 		Use:     "update",
 		Short:   "Updates the webhooks for all the source repositories optionally filtering by owner and/or repository",
 		Long:    cmdLong,
-		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName, rootcmd.BinaryName, rootcmd.BinaryName),
+		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
 		RunE: func(_ *cobra.Command, _ []string) error {
 			return o.Run()
 		},

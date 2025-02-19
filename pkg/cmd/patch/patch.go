@@ -33,7 +33,7 @@ var (
 		# updates recursively annotates all resources in the current directory 
 		%s annotate myannotate=cheese another=thing
 		# updates recursively all resources 
-		%s annotate --dir myresource-dir foo=bar
+		%[1]s annotate --dir myresource-dir foo=bar
 	`)
 )
 
@@ -58,7 +58,7 @@ func NewCmdPatch() (*cobra.Command, *Options) {
 		Use:     "patch",
 		Short:   "Patches the given resources",
 		Long:    annotateLong,
-		Example: fmt.Sprintf(annotateExample, rootcmd.BinaryName, rootcmd.BinaryName),
+		Example: fmt.Sprintf(annotateExample, rootcmd.BinaryName),
 		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)

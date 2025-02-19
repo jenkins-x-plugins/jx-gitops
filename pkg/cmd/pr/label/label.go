@@ -32,7 +32,7 @@ var (
 		%s pr label -n mylabel 
 
 		# add label if there exists a matching label with the regex
-		%s pr label -n mylabel --matches "env/.*"
+		%[1]s pr label -n mylabel --matches "env/.*"
 	`)
 )
 
@@ -56,7 +56,7 @@ func NewCmdPullRequestLabel() (*cobra.Command, *Options) {
 		Use:     "label",
 		Short:   "Add label to the pull request",
 		Long:    cmdLong,
-		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName, rootcmd.BinaryName),
+		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
 		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)

@@ -54,10 +54,10 @@ var (
 		%s delete --filter https://foo.bar
 
 		# only delete the webhooks for a given owner
-		%s delete --owner=mycorp --filter https://foo.bar
+		%[1]s delete --owner=mycorp --filter https://foo.bar
 
 		# delete all webhooks within an organisation
-		%s delete --owner=mycorp --all-webhooks
+		%[1]s delete --owner=mycorp --all-webhooks
 `)
 )
 
@@ -68,7 +68,7 @@ func NewCmdWebHookDelete() (*cobra.Command, *Options) {
 		Use:     "delete",
 		Short:   "deletes the webhooks for all the source repositories optionally filtering by owner and/or repository",
 		Long:    cmdLong,
-		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName, rootcmd.BinaryName, rootcmd.BinaryName),
+		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
 		RunE: func(_ *cobra.Command, _ []string) error {
 			return o.Run()
 		},

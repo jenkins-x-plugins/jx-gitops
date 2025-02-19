@@ -57,7 +57,7 @@ func NewCmdPostProcess() (*cobra.Command, *Options) {
 		Use:     "postprocess",
 		Short:   "Post processes kubernetes resources to enrich resources like ServiceAccounts with cloud specific sensitive data to enable IAM rles",
 		Long:    cmdLong,
-		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName, rootcmd.BinaryName),
+		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
 		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)

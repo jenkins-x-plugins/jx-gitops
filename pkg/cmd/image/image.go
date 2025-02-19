@@ -24,7 +24,7 @@ var (
 		# modify the images in the content-root folder using the current version stream
 		%s image
 		# modify the images in the ./src dir using the current dir to find the version stream
-		%s image --source-dir ./src --dir . 
+		%[1]s image --source-dir ./src --dir . 
 	`)
 
 	kindToPaths = map[string][][]string{
@@ -79,7 +79,7 @@ func NewCmdUpdateImage() (*cobra.Command, *Options) {
 
 		Short:   "Updates images in the kubernetes resources from the version stream",
 		Long:    cmdLong,
-		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName, rootcmd.BinaryName),
+		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
 		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)

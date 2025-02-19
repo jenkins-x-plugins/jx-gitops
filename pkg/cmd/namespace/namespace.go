@@ -35,7 +35,7 @@ var (
 		# sets the namespace property to the name of the child directory inside of 'config-root/namespaces'
 		# e.g. so that the files 'config-root/namespaces/cheese/*.yaml' get set to namespace 'cheese' 
 		# and 'config-root/namespaces/wine/*.yaml' are set to 'wine'
-		%s namespace --dir-mode --dir config-root/namespaces
+		%[1]s namespace --dir-mode --dir config-root/namespaces
 	`)
 )
 
@@ -57,7 +57,7 @@ func NewCmdUpdateNamespace() (*cobra.Command, *Options) {
 		Aliases: []string{"ns"},
 		Short:   "Updates all kubernetes resources in the given directory to the given namespace",
 		Long:    namespaceLong,
-		Example: fmt.Sprintf(namespaceExample, rootcmd.BinaryName, rootcmd.BinaryName),
+		Example: fmt.Sprintf(namespaceExample, rootcmd.BinaryName),
 		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)

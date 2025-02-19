@@ -29,7 +29,7 @@ var (
 you can use ! in front of a filter to be the equivalent of not matching the condition. e.g.
 
 		# runs a command if the last commit message does not have a given prefix
-		%s condition --last-commit-msg-prefix '!Merge pull request' -- make all commit push
+		%[1]s condition --last-commit-msg-prefix '!Merge pull request' -- make all commit push
 
 	`)
 )
@@ -53,7 +53,7 @@ func NewCmdCondition() (*cobra.Command, *Options) {
 		Use:     "condition [flags] command arguments...",
 		Short:   "Runs a command if the condition is true",
 		Long:    cmdLong,
-		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName, rootcmd.BinaryName),
+		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
 		Run: func(_ *cobra.Command, args []string) {
 			o.Args = args
 			err := o.Run()

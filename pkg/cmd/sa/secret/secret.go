@@ -44,7 +44,7 @@ func NewCmdServiceAccountSecrets() (*cobra.Command, *Options) {
 		Use:     "secret",
 		Short:   "Adds one or more secrets to the given ServiceAccount files",
 		Long:    annotateLong,
-		Example: fmt.Sprintf(annotateExample, rootcmd.BinaryName, rootcmd.BinaryName),
+		Example: fmt.Sprintf(annotateExample, rootcmd.BinaryName),
 		Run: func(_ *cobra.Command, _ []string) {
 			err := o.Run()
 			helper.CheckErr(err)
