@@ -32,6 +32,22 @@ Builds and lints any helm charts
     help for build
 
 .PP
+\fB\-\-oci\fP[=false]
+    using OCI charts
+
+.PP
+\fB\-\-registry\-config\fP="/tekton/creds\-secrets/tekton\-container\-registry\-auth/.dockerconfigjson"
+    the path to the registry config for OCI login
+
+.PP
+\fB\-\-repo\-password\fP=""
+    the password to access the chart repository. If not specified defaults to the environment variable $JX\_REPOSITORY\_PASSWORD
+
+.PP
+\fB\-\-repo\-username\fP=""
+    the username to access the chart repository. If not specified defaults to the environment variable $JX\_REPOSITORY\_USERNAME
+
+.PP
 \fB\-\-use\-helm\-plugin\fP[=false]
     uses the jx binary plugin for helm rather than whatever helm is on the $PATH
 
