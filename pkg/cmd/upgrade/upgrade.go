@@ -1,6 +1,7 @@
 package upgrade
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -23,6 +24,7 @@ type Options struct {
 	kptupdate.Options
 	HelmfileResolve  resolve.Options
 	TerraformUpgrade tfupgrade.Options
+	ReleaseNotesFile string
 }
 
 // NewCmdUpgrade creates a command object
@@ -38,6 +40,7 @@ func NewCmdUpgrade() (*cobra.Command, *Options) {
 			helper.CheckErr(err)
 		},
 	}
+	cmd.Flags().StringVarP(&o.ReleaseNotesFile, "release-notes-file", "", "", "the file to save any release notes in. By default any release notes will be rendered in the console")
 	o.Options.AddFlags(cmd)
 	o.HelmfileResolve.AddFlags(cmd, "")
 	return cmd, o
@@ -68,8 +71,7 @@ func (o *Options) Run() error {
 		return errors.Wrapf(err, "failed to upgrade terraform configuration")
 	}
 
-	o.DisplayReleaseNotes()
-	return nil
+	return o.DisplayReleaseNotes()
 }
 
 func (o *Options) doHelmfileUpgrade() error {
@@ -106,13 +108,20 @@ func (o *Options) doTerraformUpgrade() error {
 }
 
 // DisplayReleaseNotes Display untracked (new) files in notes directory
-func (o *Options) DisplayReleaseNotes() {
+func (o *Options) DisplayReleaseNotes() error {
 	newNotes, err := o.GitClient.Command(o.Dir, "ls-files", "--exclude-standard", "--others", "versionStream/release-notes")
 	if err != nil {
 		log.Logger().Warnf("failed to find release notes: %s", err)
-		return
+		return nil
 	}
 	if newNotes != "" {
+		var relNotesFile *os.File
+		if o.ReleaseNotesFile != "" {
+			relNotesFile, err = os.Create(o.ReleaseNotesFile)
+			if err != nil {
+				return fmt.Errorf("failed to create file for release notes %s: %w", o.ReleaseNotesFile, err)
+			}
+		}
 		noteFiles := strings.Split(newNotes, "\n")
 		for _, noteFile := range noteFiles {
 			// Notes files in markdown and text format are supported. If suffix isn't .md text format is assumed.
@@ -121,14 +130,22 @@ func (o *Options) DisplayReleaseNotes() {
 				log.Logger().Warnf("failed to load release notes file %s: %s", noteFile, err)
 				continue
 			}
-			if strings.HasSuffix(noteFile, ".md") {
-				width, _, err := term.GetSize(int(os.Stdout.Fd()))
-				if err != nil || width > 115 {
-					width = 115
+			if relNotesFile != nil {
+				_, err = relNotesFile.Write(fileContent)
+				if err != nil {
+					return fmt.Errorf("failed to write to file for release notes %s: %w", o.ReleaseNotesFile, err)
 				}
-				fileContent = markdown.Render(string(fileContent), width, 0)
+			} else {
+				if strings.HasSuffix(noteFile, ".md") {
+					width, _, err := term.GetSize(int(os.Stdout.Fd()))
+					if err != nil || width > 115 {
+						width = 115
+					}
+					fileContent = markdown.Render(string(fileContent), width, 0)
+				}
+				log.Logger().Infof("\n%s\n", fileContent)
 			}
-			log.Logger().Infof("\n%s\n", fileContent)
 		}
 	}
+	return nil
 }
