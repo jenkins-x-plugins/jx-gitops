@@ -1,6 +1,4 @@
-//go:build unit
-
-package activities_test
+package activities
 
 import (
 	"context"
@@ -10,7 +8,6 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
-	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/gc/activities"
 	v1 "github.com/jenkins-x/jx-api/v4/pkg/apis/jenkins.io/v1"
 	jxfake "github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned/fake"
 	"github.com/jenkins-x/lighthouse-client/pkg/apis/lighthouse/v1alpha1"
@@ -127,15 +124,15 @@ func TestGCPipelineActivities(t *testing.T) {
 	lhClient := fakelh.NewSimpleClientset(lhjRuntimes...)
 
 	scheme := runtime.NewScheme()
-	tknClient := fakedyn.NewSimpleDynamicClientWithCustomListKinds(scheme, map[schema.GroupVersionResource]string{activities.PipelineResource: "PipelineRunList"})
+	tknClient := fakedyn.NewSimpleDynamicClientWithCustomListKinds(scheme, map[schema.GroupVersionResource]string{PipelineResource: "PipelineRunList"})
 
 	tknPipelineRuns := ToPipelineRuns(t, pas)
 	for i := range tknPipelineRuns {
-		err := tknClient.Tracker().Create(activities.PipelineResource, tknPipelineRuns[i], ns)
+		err := tknClient.Tracker().Create(PipelineResource, tknPipelineRuns[i], ns)
 		assert.NoError(t, err)
 	}
 
-	_, o := activities.NewCmdGCActivities()
+	_, o := NewCmdGCActivities()
 	o.Namespace = ns
 	o.JXClient = jxClient
 	o.LHClient = lhClient
@@ -145,12 +142,12 @@ func TestGCPipelineActivities(t *testing.T) {
 	assert.NoError(t, err)
 	t.Logf("has %d LighthouseJobs\n", len(lhjobs.Items))
 
-	prRuns, err := tknClient.Resource(activities.PipelineResource).Namespace(ns).List(ctx, metav1.ListOptions{})
+	prRuns, err := tknClient.Resource(PipelineResource).Namespace(ns).List(ctx, metav1.ListOptions{})
 	assert.NoError(t, err)
 	t.Logf("has %d PipelineRuns\n", len(prRuns.Items))
 
 	// Delete a pipeline run to ensure that gc activites don't try to delete something that does not exist.
-	err = tknClient.Resource(activities.PipelineResource).Namespace(ns).Delete(ctx, prRuns.Items[0].GetName(), metav1.DeleteOptions{})
+	err = tknClient.Resource(PipelineResource).Namespace(ns).Delete(ctx, prRuns.Items[0].GetName(), metav1.DeleteOptions{})
 	assert.NoError(t, err)
 
 	err = o.Run()
@@ -210,9 +207,9 @@ func ToPipelineRuns(t *testing.T, list []*v1.PipelineActivity) []runtime.Object 
 		j.SetName(r.ObjectMeta.Name)
 		j.SetNamespace(r.ObjectMeta.Namespace)
 		j.SetGroupVersionKind(schema.GroupVersionKind{
-			Group:   activities.PipelineResource.Group,
-			Version: activities.PipelineResource.Version,
-			Kind:    activities.PipelineResource.Resource,
+			Group:   PipelineResource.Group,
+			Version: PipelineResource.Version,
+			Kind:    PipelineResource.Resource,
 		})
 
 		answer = append(answer, j)
@@ -235,6 +232,6 @@ func createLabels(branch, buildNum string) map[string]string {
 		"lighthouse.jenkins-x.io/refs.org":      "org",
 		"lighthouse.jenkins-x.io/refs.repo":     "project",
 		"lighthouse.jenkins-x.io/type":          t,
-		activities.PrLabel:                      buildNum,
+		PrLabel:                                 buildNum,
 	}
 }
