@@ -294,7 +294,17 @@ func (o *Options) lazyCreateNamespaceResource(ns string) error {
 }
 
 func (o *Options) moveFilesToClusterOrNamespacesFolder(dir, ns, releaseName, chartName string) error {
-	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error { //nolint:staticcheck
+	var err error
+	matchFn := func(_ *yaml.RNode, _ string) (bool, error) {
+		return true, nil
+	}
+	if o.Selector != nil {
+		matchFn, err = o.ToFilterFn()
+		if err != nil {
+			return err
+		}
+	}
+	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error { //nolint:staticcheck
 		if info == nil || info.IsDir() {
 			return nil
 		}
@@ -331,6 +341,13 @@ func (o *Options) moveFilesToClusterOrNamespacesFolder(dir, ns, releaseName, cha
 			return errors.Wrapf(err, "failed to load YAML file %s", path)
 		}
 
+		match, err := matchFn(node, path)
+		if err != nil {
+			return err
+		}
+		if !match {
+			return nil
+		}
 		// pathName is always prefixed with chartName but lets also remove any duplication
 		var pathName string
 		if chartName == releaseName {
