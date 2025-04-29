@@ -62,9 +62,12 @@ func SaveRequirementsValuesFile(c *jxcore.RequirementsConfig, dir, fileName stri
 		VaultCondition:              &HelmfileConditional{Enabled: c.SecretStorage == jxcore.SecretStorageTypeVault},
 	}
 
-	global, err := yaml.Marshal(jxGlobals)
-	if err != nil {
-		return errors.Wrap(err, "failed to marshal to YAML")
+	var global []byte
+	if len(jxGlobals) > 0 {
+		global, err = yaml.Marshal(jxGlobals)
+		if err != nil {
+			return errors.Wrap(err, "failed to marshal to YAML")
+		}
 	}
 	data, err := yaml.Marshal(y)
 	if err != nil {
@@ -85,7 +88,6 @@ func loadJXGlobals(dir string) (map[string]interface{}, error) {
 
 	fileNames := []string{
 		filepath.Join(dir, "versionStream", "src", "fake-secrets.yaml.gotmpl"),
-		filepath.Join(dir, "imagePullSecrets.yaml"),
 		filepath.Join(dir, "jx-global-values.yaml"),
 	}
 	for _, f := range fileNames {

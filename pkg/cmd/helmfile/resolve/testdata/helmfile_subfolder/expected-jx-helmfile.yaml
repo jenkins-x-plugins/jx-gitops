@@ -1,8 +1,8 @@
-filepath: ""
 environments:
   default:
     values:
     - jx-values.yaml
+---
 namespace: jx
 repositories:
 - name: jxgh
@@ -56,5 +56,3 @@ releases:
   name: health-checks-jx
   values:
   - jx-values.yaml
-templates: {}
-renderedvalues: {}

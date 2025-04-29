@@ -1,4 +1,3 @@
-filepath: ""
 namespace: nginx
 repositories:
   - name: ingress-nginx
@@ -7,5 +6,4 @@ releases:
   - chart: ingress-nginx/ingress-nginx
     name: nginx-ingress
     values:
-templates: {}
-renderedvalues: {}
+

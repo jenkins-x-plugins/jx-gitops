@@ -1,8 +1,8 @@
-filepath: ""
 environments:
   default:
     values:
     - jx-values.yaml
+---
 namespace: jx-staging
 repositories:
 - name: doesnotexist
@@ -12,5 +12,4 @@ releases:
   name: myapp
   values:
   - jx-values.yaml
-templates: {}
-renderedvalues: {}
+

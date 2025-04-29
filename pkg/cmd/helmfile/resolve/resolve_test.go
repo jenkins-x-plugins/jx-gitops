@@ -215,7 +215,6 @@ func TestStepHelmfileResolve(t *testing.T) {
 
 		switch name {
 		case "input":
-			require.FileExists(t, filepath.Join(o.Dir, "jx-global-values.yaml"), "should have renamed imagePullSecrets.yaml")
 
 			// lets check we have updated the pipeline catalog
 			pc, _, err := pipelinecatalogs.LoadPipelineCatalogs(o.Dir)

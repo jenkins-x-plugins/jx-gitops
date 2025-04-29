@@ -26,7 +26,6 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/cli"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/stringhelpers"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/yaml2s"
 
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
@@ -214,12 +213,12 @@ func (o *Options) Run() error {
 		}
 	}
 
-	helmfiles, err := helmfiles.GatherHelmfiles(o.Helmfile, o.Dir)
+	includedHelmfiles, err := helmfiles.GatherHelmfiles(o.Helmfile, o.Dir)
 	if err != nil {
 		return errors.Wrapf(err, "error gathering helmfiles")
 	}
 
-	for _, helmfile := range helmfiles {
+	for _, helmfile := range includedHelmfiles {
 		err := o.processHelmfile(helmfile)
 		if err != nil {
 			return errors.Wrapf(err, "failed to process helmfile %s", helmfile.Filepath)
@@ -241,24 +240,51 @@ func (o *Options) Run() error {
 	return nil
 }
 
+// Handle WARNING: environments and releases cannot be defined within the same YAML part. Use --- to extract the environments into a dedicated part
+// Split automatically
+// Handle helmfile with multiple documents.
 func (o *Options) processHelmfile(helmfile helmfiles.Helmfile) error {
-	helmState := state.HelmState{}
 	path := helmfile.Filepath
-	err := yaml2s.LoadFile(path, &helmState)
+	helmStates, err := helmfiles.LoadHelmfile(path)
 	if err != nil {
-		return errors.Wrapf(err, "failed to load helmfile %s", helmfile)
+		return err
 	}
 
-	if o.UpdateMode {
-		err = o.CustomUpgrades(&helmState)
+	for _, helmState := range helmStates {
+		if o.UpdateMode {
+			err = o.CustomUpgrades(helmState)
+			if err != nil {
+				return errors.Wrapf(err, "failed to perform custom upgrades")
+			}
+		}
+
+		err = o.resolveHelmfile(helmState, helmfile)
 		if err != nil {
-			return errors.Wrapf(err, "failed to perform custom upgrades")
+			return errors.Wrapf(err, "failed to resolve helmfile %s", helmfile)
+		}
+
+		if o.UpdateMode {
+			// let's remove any unused chart repositories
+			removeRedundantRepositories(helmState)
 		}
 	}
 
 	if helmfile.RelativePathToRoot != "" {
+		// Split file
+		if len(helmStates) == 1 {
+			environmentHead := []*state.HelmState{
+				{
+					ReleaseSetSpec: state.ReleaseSetSpec{
+						Environments: helmStates[0].Environments,
+					},
+				},
+			}
+			helmStates[0].Environments = nil
+			helmStates = append(environmentHead, helmStates...)
+		}
+		o.ensureEnvironment(helmStates[0], helmfile)
 		helmfileDir := filepath.Dir(path)
-		ns := helmState.OverrideNamespace
+		ns := helmStates[1].OverrideNamespace
 		if ns == "" {
 			_, ns = filepath.Split(helmfileDir)
 		}
@@ -268,21 +294,7 @@ func (o *Options) processHelmfile(helmfile helmfiles.Helmfile) error {
 		}
 	}
 
-	err = o.resolveHelmfile(&helmState, helmfile)
-	if err != nil {
-		return errors.Wrapf(err, "failed to resolve helmfile %s", helmfile)
-	}
-
-	if o.UpdateMode {
-		// let's remove any unused chart repositories
-		removeRedundantRepositories(&helmState)
-	}
-
-	err = yaml2s.SaveFile(helmState, path)
-	if err != nil {
-		return errors.Wrapf(err, "failed to save file %s", helmfile)
-	}
-	return nil
+	return helmfiles.SaveHelmfile(path, helmStates)
 }
 
 func (o *Options) saveNamespaceJXValuesFile(helmfileDir, ns string) error {
@@ -348,11 +360,11 @@ func (o *Options) upgradeHelmfileStructure(dir string) (int, error) {
 	}
 	count++
 
-	helmfiles, err := helmfiles.GatherHelmfiles(o.Helmfile, o.Dir)
+	includedHelmfiles, err := helmfiles.GatherHelmfiles(o.Helmfile, o.Dir)
 	if err != nil {
 		return 0, errors.Wrapf(err, "error gathering helmfiles")
 	}
-	o.Helmfiles = helmfiles
+	o.Helmfiles = includedHelmfiles
 
 	err = gitclient.Add(o.Git(), o.Dir, "helmfiles")
 	if err != nil {
@@ -362,54 +374,15 @@ func (o *Options) upgradeHelmfileStructure(dir string) (int, error) {
 }
 
 func (o *Options) resolveHelmfile(helmState *state.HelmState, helmfile helmfiles.Helmfile) error {
+	if helmState.Releases == nil {
+		return nil
+	}
 	var err error
 	var ignoreRepositories []string
 	if !helmhelpers.IsInCluster() || o.TestOutOfCluster {
 		ignoreRepositories, err = helmhelpers.FindClusterLocalRepositoryURLs(helmState.Repositories)
 		if err != nil {
 			return errors.Wrapf(err, "failed to find cluster local repositories")
-		}
-	}
-
-	if helmfile.RelativePathToRoot != "" {
-		// ensure we have added the jx-values.yaml file in the envirionment
-		if helmState.Environments == nil {
-			helmState.Environments = map[string]state.EnvironmentSpec{}
-		}
-		// lets remove any old legacy files in the root dir
-		oldFiles := []string{
-			filepath.Join("..", "..", reqvalues.RequirementsValuesFileName),
-			filepath.Join("..", "..", "versionStream", "src", "fake-secrets.yaml.gotmpl"),
-		}
-		envSpec := helmState.Environments["default"]
-		for _, f := range oldFiles {
-			for i, v := range envSpec.Values {
-				s, ok := v.(string)
-				if ok && s == f {
-					newValues := envSpec.Values[0:i]
-					if len(envSpec.Values) > i+1 {
-						newValues = append(newValues, envSpec.Values[i+1:]...)
-					}
-					envSpec.Values = newValues
-					helmState.Environments["default"] = envSpec
-					break
-				}
-			}
-		}
-
-		envSpec = helmState.Environments["default"]
-		foundValuesFile := false
-		for _, v := range envSpec.Values {
-			s, ok := v.(string)
-			if ok && s == reqvalues.RequirementsValuesFileName {
-				foundValuesFile = true
-				break
-			}
-		}
-		if !foundValuesFile {
-			envValue := helmState.Environments["default"]
-			envValue.Values = append(envValue.Values, reqvalues.RequirementsValuesFileName)
-			helmState.Environments["default"] = envValue
 		}
 	}
 	for i := range helmState.Releases {
@@ -534,6 +507,30 @@ func (o *Options) resolveHelmfile(helmState *state.HelmState, helmfile helmfiles
 	}
 
 	return nil
+}
+
+func (o *Options) ensureEnvironment(helmState *state.HelmState, helmfile helmfiles.Helmfile) {
+	if helmfile.RelativePathToRoot != "" {
+		// ensure we have added the jx-values.yaml file in the envirionment
+		if helmState.Environments == nil {
+			helmState.Environments = map[string]state.EnvironmentSpec{}
+		}
+
+		envSpec := helmState.Environments["default"]
+		foundValuesFile := false
+		for _, v := range envSpec.Values {
+			s, ok := v.(string)
+			if ok && s == reqvalues.RequirementsValuesFileName {
+				foundValuesFile = true
+				break
+			}
+		}
+		if !foundValuesFile {
+			envValue := helmState.Environments["default"]
+			envValue.Values = append(envValue.Values, reqvalues.RequirementsValuesFileName)
+			helmState.Environments["default"] = envValue
+		}
+	}
 }
 
 func (o *Options) updateRelease(helmState *state.HelmState, prefix string, release *state.ReleaseSpec, fullChartName, repository string, helmfile helmfiles.Helmfile) error {
@@ -730,11 +727,10 @@ func (o *Options) GitCommit(outDir, commitMessage string) error {
 
 // CustomUpgrades performs custom upgrades outside of the version stream/kpt approach
 func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
-	err := o.renameImagePullSecretsFile()
-	if err != nil {
-		return errors.Wrapf(err, "failed to rename old image pull secrets file")
+	if helmstate.Releases == nil {
+		return nil
 	}
-	err = o.migrateQuickstartsFile()
+	err := o.migrateQuickstartsFile()
 	if err != nil {
 		return errors.Wrapf(err, "failed to migrate quickstarts file")
 	}
@@ -1111,27 +1107,6 @@ func (o *Options) updateVersionFromVersionStream(release *state.ReleaseSpec) {
 	}
 
 	release.Version = versionProperties.Version
-}
-
-func (o *Options) renameImagePullSecretsFile() error {
-	oldPath := filepath.Join(o.Dir, "imagePullSecrets.yaml")
-	newPath := filepath.Join(o.Dir, "jx-global-values.yaml")
-	exists, err := files.FileExists(oldPath)
-	if err != nil {
-		return errors.Wrapf(err, "failed to check for %s", oldPath)
-	}
-	if !exists {
-		return nil
-	}
-	err = os.Rename(oldPath, newPath)
-	if err != nil {
-		return errors.Wrapf(err, "failed to rename %s to %s", oldPath, newPath)
-	}
-	err = gitclient.Add(o.Git(), o.Dir, "jx-global-values.yaml")
-	if err != nil {
-		return errors.Wrapf(err, "failed to add files to git")
-	}
-	return nil
 }
 
 func (o *Options) upgradePipelineCatalog() error {
