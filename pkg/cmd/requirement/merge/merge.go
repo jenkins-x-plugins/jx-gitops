@@ -105,7 +105,8 @@ func (o *Options) Run() error {
 	// lets not se the usual loading as we don't want any default values populated
 	requirementChanges, err := jxcore.LoadRequirementsConfigFileNoDefaults(o.File, false)
 	if err != nil {
-		return errors.Wrapf(err, "failed to load requirement changes from file: %s", o.File)
+		log.Logger().Errorf("failed to load requirement changes from file %s: %v", o.File, err)
+		return nil
 	}
 	if requirementChanges != nil {
 		// lets remove any environments as those are always defined in the dev cluster git repository
