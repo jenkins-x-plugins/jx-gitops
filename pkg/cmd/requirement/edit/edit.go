@@ -105,7 +105,6 @@ func NewCmdRequirementsEdit() (*cobra.Command, *Options) {
 	cmd.Flags().StringVarP(&o.Requirements.Spec.Cluster.Zone, "zone", "z", "", "configures the cloud zone")
 
 	cmd.Flags().StringVarP(&o.Requirements.Spec.Cluster.ExternalDNSSAName, "extdns-sa", "", "", "configures the External DNS service account name")
-	cmd.Flags().StringVarP(&o.Requirements.Spec.Cluster.KanikoSAName, "kaniko-sa", "", "", "configures the Kaniko service account name")
 
 	// git
 	cmd.Flags().StringVarP(&o.Requirements.Spec.Cluster.GitKind, "git-kind", "", "", fmt.Sprintf("the kind of git repository to use. Possible values: %s", strings.Join(giturl.KindGits, ", ")))
