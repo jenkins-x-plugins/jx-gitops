@@ -13,8 +13,6 @@ spec:
     chartKind: oci
     chartRepository: mythingy.azurecr.io
     clusterName: my_cluster_name
-    devEnvApprovers:
-    - todo
     environmentGitOwner: my_git_owner_requirement_repos
     gitKind: github
     gitName: github

@@ -7,8 +7,6 @@ spec:
   cluster:
     chartRepository: mythingy.azurecr.io
     chartKind: oci
-    devEnvApprovers:
-    - todo
     environmentGitOwner: todo
     gitKind: github
     gitName: github

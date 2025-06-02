@@ -6,8 +6,6 @@ spec:
     schedule: ""
   cluster:
     chartRepository: http://bucketrepo/bucketrepo/charts/
-    devEnvApprovers:
-    - todo
     environmentGitOwner: todo
     gitKind: github
     gitName: github

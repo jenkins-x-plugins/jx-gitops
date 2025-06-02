@@ -730,11 +730,7 @@ func (o *Options) GitCommit(outDir, commitMessage string) error {
 
 // CustomUpgrades performs custom upgrades outside of the version stream/kpt approach
 func (o *Options) CustomUpgrades(helmstate *state.HelmState) error {
-	err := o.migrateRequirementsToV4()
-	if err != nil {
-		return errors.Wrapf(err, "failed to migrate jx-requirements.yml")
-	}
-	err = o.renameImagePullSecretsFile()
+	err := o.renameImagePullSecretsFile()
 	if err != nil {
 		return errors.Wrapf(err, "failed to rename old image pull secrets file")
 	}
@@ -1088,40 +1084,6 @@ func removeRedundantRepositories(helmstate *state.HelmState) {
 		}
 	}
 	helmstate.Repositories = cleanedRepositories
-}
-
-func (o *Options) migrateRequirementsToV4() error {
-	path := filepath.Join(o.Dir, "jx-requirements.yml")
-	exists, err := files.FileExists(path)
-	if err != nil {
-		return errors.Wrapf(err, "failed checking if jx-requirements.yml exists")
-	}
-	if !exists {
-		return fmt.Errorf("failed to migrate jx-requirements.yml as it does not exist in directory %s", o.Dir)
-	}
-
-	if exists {
-		file, err := os.ReadFile(path)
-		if err != nil {
-			return errors.Wrapf(err, "failed to read %s", path)
-		}
-
-		if !jxcore.IsNewRequirementsFile(string(file)) {
-			log.Logger().Info(termcolor.ColorInfo("Migrating your jx-requirements.yml file, please ignore warnings about validation failures in YAML"))
-
-			reqs, err := jxcore.LoadRequirementsConfigFileNoDefaults(path, false)
-			if err != nil {
-				return errors.Wrapf(err, "failed loading jx-requirements.yml in directory %s", o.Dir)
-			}
-			err = reqs.SaveConfig(path)
-			if err != nil {
-				return errors.Wrap(err, "failed checking if jx-requirements.yml exists")
-			}
-		}
-
-	}
-
-	return nil
 }
 
 func isDevCluster(helmState *state.HelmState) bool {

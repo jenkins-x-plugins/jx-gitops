@@ -7,8 +7,6 @@ spec:
   cluster:
     chartRepository: http://bucketrepo/bucketrepo/charts/
     clusterName: my_cluster_name
-    devEnvApprovers:
-    - todo
     environmentGitOwner: todo
     gitKind: github
     gitName: github

@@ -7,9 +7,9 @@ spec:
     provider: gke
     zone: "my_zone"
   environments:
-  - key: dev
-  - key: staging
-  - key: production
+    - key: dev
+    - key: staging
+    - key: production
   ingress:
     domain: "my_subdomain.my_apex_domain"
     externalDNS: true

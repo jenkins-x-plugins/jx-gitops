@@ -168,7 +168,7 @@ func (o *Options) modifyRequirements() error {
 		return nil
 	}
 
-	requirementsResource, err := jxcore.LoadRequirementsConfigFile(fileName, true)
+	requirementsResource, err := jxcore.LoadRequirementsConfigFile(fileName, false)
 	if err != nil {
 		return errors.Wrapf(err, "failed to load file %s", fileName)
 	}

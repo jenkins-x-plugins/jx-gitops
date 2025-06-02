@@ -1,56 +1,38 @@
-autoUpdate:
-  enabled: false
-  schedule: ""
-terraform: true
-cluster:
-  clusterName: "my_cluster_name"
-  environmentGitOwner: "my_git_owner_requirement_repos"
-  provider: aks
-  registry: "my_registry_name"
-  azure:
-    dns:
-      tenantId: my_dns_tenant_id
-      subscriptionId: my_dns_subscription_id
-      resourceGroup: my_dns_resource_group
-gitops: true
-environments:
-  - key: dev
-  - key: staging
-  - key: production
-ingress:
-  domain: "my_domain"
-  ignoreLoadBalancer: true
-  externalDNS: true
-  tls:
-    email: "my_tls_email"
-    enabled: true
-    production: true
-kaniko: true
-secretStorage: vault
-vault:
-  azure:
-    tenantId: "my_vault_tenant_id"
-    vaultName: "my_vault_keyvault_name"
-    keyName: "my_vault_key_name"
-    storageAccountName: "my_vault_storage_account_name"
-    containerName: "my_vault_storage_container_name"
-storage:
-  backup:
+apiVersion: core.jenkins-x.io/v4beta1
+kind: Requirements
+spec:
+  autoUpdate:
     enabled: false
-  logs:
-    enabled: false
-  reports:
-    enabled: false
-  repository:
-    enabled: false
-velero:
-  namespace: my_velero_namespace
-  schedule: "my_velero_schedule"
-  serviceAccount: my_velero_storage_account
-  ttl: "my_velero_ttl"
-  bucketName: "my_velero_bucket_name"
-  resourceGroup: "my_velero_storage_account_resource_group"
-versionStream:
-  ref: master
-  url: https://github.com/jenkins-x/jenkins-x-versions.git
-webhook: lighthouse
+    schedule: ""
+  terraform: true
+  cluster:
+    clusterName: "my_cluster_name"
+    environmentGitOwner: "my_git_owner_requirement_repos"
+    provider: aks
+    registry: "my_registry_name"
+    azure:
+      dns:
+        tenantId: my_dns_tenant_id
+        subscriptionId: my_dns_subscription_id
+        resourceGroup: my_dns_resource_group
+  environments:
+    - key: dev
+    - key: staging
+    - key: production
+  ingress:
+    domain: "my_domain"
+    ignoreLoadBalancer: true
+    externalDNS: true
+    tls:
+      email: "my_tls_email"
+      enabled: true
+      production: true
+  secretStorage: vault
+  vault:
+    azure:
+      tenantId: "my_vault_tenant_id"
+      vaultName: "my_vault_keyvault_name"
+      keyName: "my_vault_key_name"
+      storageAccountName: "my_vault_storage_account_name"
+      containerName: "my_vault_storage_container_name"
+  webhook: lighthouse
