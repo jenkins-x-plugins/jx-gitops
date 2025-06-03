@@ -146,7 +146,7 @@ func TestGCPipelineActivities(t *testing.T) {
 	assert.NoError(t, err)
 	t.Logf("has %d PipelineRuns\n", len(prRuns.Items))
 
-	// Delete a pipeline run to ensure that gc activites don't try to delete something that does not exist.
+	// Delete a pipeline run to ensure that gc activities don't try to delete something that does not exist.
 	err = tknClient.Resource(PipelineResource).Namespace(ns).Delete(ctx, prRuns.Items[0].GetName(), metav1.DeleteOptions{})
 	assert.NoError(t, err)
 
@@ -201,6 +201,7 @@ func ToLighthouseJobs(list []*v1.PipelineActivity) []*v1alpha1.LighthouseJob {
 }
 
 func ToPipelineRuns(t *testing.T, list []*v1.PipelineActivity) []runtime.Object {
+	t.Logf("Generating PipelineRuns for test: %s", t.Name())
 	var answer []runtime.Object
 	for _, r := range list {
 		j := &unstructured.Unstructured{}
