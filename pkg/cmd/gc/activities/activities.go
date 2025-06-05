@@ -48,7 +48,7 @@ const PrLabel = "tekton.dev/pipeline"
 var (
 	PipelineResource = schema.GroupVersionResource{
 		Group:    "tekton.dev",
-		Version:  "v1beta1",
+		Version:  "v1",
 		Resource: "PipelineRun",
 	}
 
