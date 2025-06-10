@@ -22,17 +22,8 @@ spec:
           resources: {}
         - name: next-version
           resources: {}
-        - image: ghcr.io/jenkins-x/jx-boot:3.11.95
-          name: jx-variables
-          resources:
-            # set requests for the pod here
-            requests:
-              cpu: 1400m
-              memory: 600Mi
-          script: |
-            #!/usr/bin/env sh
-            sleep 900
-            jx gitops variables
+        - name: jx-variables
+          resources: {}
         - name: release-binary
           resources: {}
         - name: build-and-push-image
