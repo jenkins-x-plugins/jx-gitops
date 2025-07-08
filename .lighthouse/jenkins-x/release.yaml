@@ -23,7 +23,10 @@ spec:
         - name: next-version
           resources: {}
         - name: jx-variables
-          resources: {}
+          resources:
+            # set requests for the pod here
+            requests:
+              memory: 2Gi
         - name: release-binary
           resources: {}
         - name: build-and-push-image
