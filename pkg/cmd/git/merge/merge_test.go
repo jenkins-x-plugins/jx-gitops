@@ -76,6 +76,9 @@ func TestGitMerge(t *testing.T) {
 		err = gitclient.Init(g, dir)
 		require.NoError(t, err, "failed to git init for %s", name)
 
+		_, _, err = gitclient.EnsureUserAndEmailSetup(g, dir, "", "")
+		require.NoError(t, err, "failed to ensure user and email are setup for git")
+
 		requireWritefile(t, dir, "a.txt", "a")
 		requireGitAdd(t, g, dir)
 		masterSha = requireCommit(t, g, dir, "a commit")
