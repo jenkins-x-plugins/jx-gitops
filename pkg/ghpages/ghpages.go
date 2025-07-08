@@ -30,10 +30,6 @@ func CloneGitHubPagesToDir(g gitclient.Interface, repoURL, branch, username, pas
 		if err != nil {
 			return dir, errors.Wrapf(err, "failed to clone repository %s to directory: %s", gitCloneURL, dir)
 		}
-		_, _, err := gitclient.EnsureUserAndEmailSetup(g, dir, "", "")
-		if err != nil {
-			return dir, errors.Wrapf(err, "failed to setup git user and email")
-		}
 		// now lets create an empty orphan branch: see https://stackoverflow.com/a/13969482/2068211
 		_, err = g.Command(dir, "checkout", "--orphan", branch)
 		if err != nil {
@@ -62,12 +58,15 @@ func CloneGitHubPagesToDir(g gitclient.Interface, repoURL, branch, username, pas
 			}
 		}
 	}
-	if err == nil {
-		_, err = g.Command(dir, "remote", "set-url", "origin", gitCloneURL)
-		if err != nil {
-			return dir, errors.Wrapf(err, "failed to set origin URL")
-		}
+	_, err = g.Command(dir, "remote", "set-url", "origin", gitCloneURL)
+	if err != nil {
+		return dir, errors.Wrapf(err, "failed to set origin URL")
 	}
+	_, _, err = gitclient.EnsureUserAndEmailSetup(g, dir, "", "")
+	if err != nil {
+		return dir, errors.Wrapf(err, "failed to setup git user and email")
+	}
+
 	return dir, nil
 }
 
