@@ -2,7 +2,7 @@ package structure
 
 import (
 	"fmt"
-	"os"
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/helmfiles"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -12,7 +12,6 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/yaml2s"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -82,23 +81,23 @@ func (o *Options) Run() error {
 		return errors.Wrapf(err, "failed to validate")
 	}
 
-	parentHelmState, _ := loadHelmfile(o.Helmfile)
+	parentHelmStates, _ := helmfiles.LoadHelmfile(o.Helmfile)
 
-	namespaceReleases := gatherNamespaceReleases(parentHelmState)
+	namespaceReleases := gatherNamespaceReleases(parentHelmStates)
 
 	configureHelmStatePaths(namespaceReleases)
 
-	parentHelmState = configureParentHelmState(*parentHelmState, namespaceReleases)
+	parentHelmStates = configureParentHelmState(parentHelmStates, namespaceReleases)
 
 	for ns, hs := range namespaceReleases {
 		helmfile := getHelmfileAbsolute(o.Dir, ns)
-		err = saveHelmState(helmfile, hs, false)
+		err = helmfiles.SaveNewHelmfile(helmfile, hs)
 		if err != nil {
 			return errors.Wrapf(err, "error saving helmfile %s", helmfile)
 		}
 	}
 
-	err = saveHelmState(o.Helmfile, parentHelmState, true)
+	err = helmfiles.SaveHelmfile(o.Helmfile, parentHelmStates)
 	if err != nil {
 		return errors.Wrapf(err, "aborting save as file exists")
 	}
@@ -114,11 +113,12 @@ func getHelmfileAbsolute(workingDirectory, namespace string) string {
 	return filepath.Join(workingDirectory, getHelmfileRelative(namespace))
 }
 
-func configureParentHelmState(helmState state.HelmState, nestedStates map[string]*state.HelmState) *state.HelmState { //nolint:gocritic
+func configureParentHelmState(helmStates []*state.HelmState, nestedStates map[string][]*state.HelmState) []*state.HelmState { //nolint:gocritic
+	lastHelmState := helmStates[len(helmStates)-1]
 	hs := state.HelmState{
-		FilePath:       helmState.FilePath,
-		ReleaseSetSpec: helmState.ReleaseSetSpec,
-		RenderedValues: helmState.RenderedValues,
+		FilePath:       lastHelmState.FilePath,
+		ReleaseSetSpec: lastHelmState.ReleaseSetSpec,
+		RenderedValues: lastHelmState.RenderedValues,
 	}
 	hs.Releases = nil
 	hs.Repositories = nil
@@ -138,119 +138,96 @@ func configureParentHelmState(helmState state.HelmState, nestedStates map[string
 			Path: getHelmfileRelative(ns),
 		})
 	}
-	return &hs
+	return []*state.HelmState{&hs}
 }
 
-func saveHelmState(filename string, helmState *state.HelmState, overwrite bool) error {
-	if b, _ := files.FileExists(filename); b && !overwrite {
-		return fmt.Errorf("helmfile already exists at %s, overwriting disabled and merging of helmfiles not currently supported", filename)
-	}
-
-	helmDir := filepath.Dir(filename)
-	err := os.MkdirAll(helmDir, files.DefaultDirWritePermissions)
-	if err != nil {
-		return errors.Wrapf(err, "failed to create directory %s", helmDir)
-	}
-
-	err = yaml2s.SaveFile(helmState, filename)
-	if err != nil {
-		return errors.Wrapf(err, "failed to save file %s", filename)
-	}
-	return nil
-}
-
-func configureHelmStatePaths(releases map[string]*state.HelmState) {
+func configureHelmStatePaths(releases map[string][]*state.HelmState) {
 	for j := range releases {
-		hs := releases[j]
-		for k := range hs.Releases {
-			r := hs.Releases[k]
-			for i, v := range r.Values {
-				switch m := v.(type) { //nolint:gocritic
-				// Explicit value strings are considered paths that need rewriting
-				case string:
-					r.Values[i] = filepath.Join("..", "..", m)
+		for _, hs := range releases[j] {
+			for k := range hs.Releases {
+				r := hs.Releases[k]
+				for i, v := range r.Values {
+					switch m := v.(type) { //nolint:gocritic
+					// Explicit value strings are considered paths that need rewriting
+					case string:
+						r.Values[i] = filepath.Join("..", "..", m)
+					}
 				}
 			}
-		}
-		for _, env := range hs.Environments {
-			for i, v := range env.Values {
-				switch m := v.(type) { //nolint:gocritic
-				// Explicit value strings are considered paths that need rewriting
-				case string:
-					env.Values[i] = filepath.Join("..", "..", m)
+			for _, env := range hs.Environments {
+				for i, v := range env.Values {
+					switch m := v.(type) { //nolint:gocritic
+					// Explicit value strings are considered paths that need rewriting
+					case string:
+						env.Values[i] = filepath.Join("..", "..", m)
+					}
 				}
 			}
 		}
 	}
 }
 
-func loadHelmfile(file string) (*state.HelmState, error) {
-	helmState := state.HelmState{}
-	err := yaml2s.LoadFile(file, &helmState)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to load helmfile %s", file)
-	}
-	return &helmState, nil
-}
-
-func gatherNamespaceReleases(helmstate *state.HelmState) map[string]*state.HelmState {
+func gatherNamespaceReleases(helmstates []*state.HelmState) map[string][]*state.HelmState {
 	repositories := map[string]state.RepositorySpec{}
-	for k := range helmstate.Repositories {
-		repo := helmstate.Repositories[k]
-		if _, ok := repositories[repo.Name]; !ok {
-			repositories[repo.Name] = repo
-		}
-	}
-
-	addedRepos := map[string]map[string]bool{}
-
-	helmStates := map[string]*state.HelmState{}
-	for k := range helmstate.Releases {
-		r := helmstate.Releases[k]
-		ns := r.Namespace
-		r.Namespace = ""
-		if _, ok := helmStates[ns]; !ok {
-			helmStates[ns] = &state.HelmState{
-				ReleaseSetSpec: state.ReleaseSetSpec{
-					OverrideNamespace: ns,
-					Repositories:      []state.RepositorySpec{},
-					Releases:          []state.ReleaseSpec{},
-				},
+	statesForNamespace := map[string][]*state.HelmState{}
+	for _, helmstate := range helmstates {
+		for k := range helmstate.Repositories {
+			repo := helmstate.Repositories[k]
+			if _, ok := repositories[repo.Name]; !ok {
+				repositories[repo.Name] = repo
 			}
 		}
-		if _, ok := addedRepos[ns]; !ok {
-			addedRepos[ns] = map[string]bool{}
-		}
 
-		hs := helmStates[ns]
-		hs.Releases = append(hs.Releases, r)
+		addedRepos := map[string]map[string]bool{}
 
-		repoName := getRepoFromChart(r.Chart)
-		if repoName == "." || repoName == ".." {
-			// skip if repository is pointing at a local chart
-			continue
-		}
-		if _, ok := addedRepos[ns][repoName]; !ok {
-			hs.Repositories = append(hs.Repositories, repositories[repoName])
-			addedRepos[ns][repoName] = true
-		}
-	}
-
-	for ns := range helmStates {
-		envSpecMap := map[string]state.EnvironmentSpec{}
-		for key, env := range helmstate.Environments {
-			var vals []interface{}
-			vals = append(vals, env.Values...)
-
-			envSpecMap[key] = state.EnvironmentSpec{
-				Values: vals,
+		for k := range helmstate.Releases {
+			r := helmstate.Releases[k]
+			ns := r.Namespace
+			r.Namespace = ""
+			if _, ok := statesForNamespace[ns]; !ok {
+				statesForNamespace[ns] = []*state.HelmState{{
+					ReleaseSetSpec: state.ReleaseSetSpec{
+						OverrideNamespace: ns,
+						Repositories:      []state.RepositorySpec{},
+						Releases:          []state.ReleaseSpec{},
+					},
+				}}
+			}
+			if _, ok := addedRepos[ns]; !ok {
+				addedRepos[ns] = map[string]bool{}
 			}
 
+			hs := statesForNamespace[ns]
+			lastState := hs[len(hs)-1]
+			lastState.Releases = append(lastState.Releases, r)
+
+			repoName := getRepoFromChart(r.Chart)
+			if repoName == "." || repoName == ".." {
+				// skip if repository is pointing at a local chart
+				continue
+			}
+			if _, ok := addedRepos[ns][repoName]; !ok {
+				lastState.Repositories = append(lastState.Repositories, repositories[repoName])
+				addedRepos[ns][repoName] = true
+			}
 		}
-		helmStates[ns].Environments = envSpecMap
+
+		for ns := range statesForNamespace {
+			envSpecMap := map[string]state.EnvironmentSpec{}
+			for key, env := range helmstate.Environments {
+				var vals []interface{}
+				vals = append(vals, env.Values...)
+
+				envSpecMap[key] = state.EnvironmentSpec{
+					Values: vals,
+				}
+
+			}
+			statesForNamespace[ns][0].Environments = envSpecMap
+		}
 	}
 
-	return helmStates
+	return statesForNamespace
 }
 
 func getRepoFromChart(chartName string) string {

@@ -1,4 +1,3 @@
-filepath: ""
 namespace: cheese
 repositories:
 - name: jenkins-x
@@ -6,5 +5,3 @@ repositories:
 releases:
 - chart: jenkins-x/new-cheese
   name: mythingy
-templates: {}
-renderedvalues: {}

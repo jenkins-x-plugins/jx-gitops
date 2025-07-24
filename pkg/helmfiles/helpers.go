@@ -2,6 +2,7 @@ package helmfiles
 
 import (
 	"fmt"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"io"
 	"os"
 	"path/filepath"
@@ -81,16 +82,18 @@ func GatherHelmfiles(helmfile, dir string) ([]Helmfile, error) {
 
 // AddRepository ensures that the helm repository for the prefix exists in the helmstate.
 // For it to succeed either repositoryUrl needs to be set or the prefix exists in prefixes.
-func AddRepository(helmState *state.HelmState, prefix, repositoryURL string, prefixes *versionstream.RepositoryPrefixes) (string, error) {
+func AddRepository(helmStates []*state.HelmState, prefix, repositoryURL string, prefixes *versionstream.RepositoryPrefixes) (string, error) {
 	// lets resolve the chart prefix from a local repository from the file or from a
 	// prefix in the versions stream
 	var oci bool
 	if prefix != "" && repositoryURL == "" {
-		for k := range helmState.Repositories {
-			r := helmState.Repositories[k]
-			if r.Name == prefix {
-				repositoryURL = r.URL
-				oci = r.OCI
+		for _, helmState := range helmStates {
+			for k := range helmState.Repositories {
+				r := helmState.Repositories[k]
+				if r.Name == prefix {
+					repositoryURL = r.URL
+					oci = r.OCI
+				}
 			}
 		}
 	}
@@ -112,20 +115,23 @@ func AddRepository(helmState *state.HelmState, prefix, repositoryURL string, pre
 		}
 		// lets ensure we've got a repository for this URL in the apps file
 		found := false
-		for k := range helmState.Repositories {
-			r := helmState.Repositories[k]
-			if r.Name == prefix {
-				if r.URL != repositoryURL {
-					return "",
-						fmt.Errorf("release has prefix %s for repository URL %s which is also mapped to prefix %s",
-							prefix, r.URL, r.Name)
+		for _, helmState := range helmStates {
+			for k := range helmState.Repositories {
+				r := helmState.Repositories[k]
+				if r.Name == prefix {
+					if r.URL != repositoryURL {
+						return "",
+							fmt.Errorf("release has prefix %s for repository URL %s which is also mapped to prefix %s",
+								prefix, r.URL, r.Name)
+					}
+					found = true
+					break
 				}
-				found = true
-				break
 			}
 		}
 		if !found {
-			helmState.Repositories = append(helmState.Repositories, state.RepositorySpec{
+			lastHelmState := helmStates[len(helmStates)-1]
+			lastHelmState.Repositories = append(lastHelmState.Repositories, state.RepositorySpec{
 				Name: prefix,
 				URL:  repositoryURL,
 				OCI:  oci,
@@ -149,9 +155,13 @@ func LoadHelmfile(path string) ([]*state.HelmState, error) {
 		helmState := state.HelmState{}
 		if err := dec.Decode(&helmState); err != nil {
 			if errors.Is(err, io.EOF) {
-				break
+				// Make sure at least an empty helmstate is returned
+				if helmStates != nil {
+					break
+				}
+			} else {
+				return nil, err
 			}
-			return nil, err
 		}
 		helmStates = append(helmStates, &helmState)
 	}
@@ -163,12 +173,36 @@ func LoadHelmfile(path string) ([]*state.HelmState, error) {
 	return helmStates, nil
 }
 
-// SaveHelmfile saves helmfile to a path
+// SaveHelmfile saves helmfile to a path, overwriting if file exists
 func SaveHelmfile(path string, helmStates []*state.HelmState) error {
-	file, err := os.Create(path)
+	helmDir := filepath.Dir(path)
+	err := os.MkdirAll(helmDir, files.DefaultDirWritePermissions)
+	if err != nil {
+		return errors.Wrapf(err, "failed to create directory %s", helmDir)
+	}
+	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
 		return err
 	}
+	return saveToFile(path, helmStates, file, err)
+}
+
+// SaveNewHelmfile saves helmfile to a path, returning error if file exists
+func SaveNewHelmfile(path string, helmStates []*state.HelmState) error {
+	helmDir := filepath.Dir(path)
+	err := os.MkdirAll(helmDir, files.DefaultDirWritePermissions)
+	if err != nil {
+		return errors.Wrapf(err, "failed to create directory %s", helmDir)
+	}
+	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0666)
+	if err != nil {
+		return err
+	}
+	return saveToFile(path, helmStates, file, err)
+}
+
+
+func saveToFile(path string, helmStates []*state.HelmState, file *os.File, err error) error {
 	env := yaml.NewEncoder(
 		file,
 		yaml.OmitEmpty(),

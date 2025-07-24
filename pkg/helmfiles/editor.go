@@ -1,14 +1,11 @@
 package helmfiles
 
 import (
-	"os"
 	"path/filepath"
 	"sort"
 
 	"github.com/helmfile/helmfile/pkg/state"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/yaml2s"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/pkg/errors"
 )
@@ -17,7 +14,7 @@ var info = termcolor.ColorInfo
 
 // Editor an editor of helmfiles
 type Editor struct {
-	pathToState     map[string]*state.HelmState
+	pathToState     map[string][]*state.HelmState
 	namespaceToPath map[string]string
 	modified        map[string]bool
 	dir             string
@@ -27,7 +24,7 @@ type Editor struct {
 // NewEditor creates a new editor
 func NewEditor(dir string, helmfiles []Helmfile) (*Editor, error) {
 	e := &Editor{
-		pathToState:     map[string]*state.HelmState{},
+		pathToState:     map[string][]*state.HelmState{},
 		namespaceToPath: map[string]string{},
 		modified:        map[string]bool{},
 		dir:             dir,
@@ -35,24 +32,24 @@ func NewEditor(dir string, helmfiles []Helmfile) (*Editor, error) {
 	}
 	for i := range helmfiles {
 		src := &helmfiles[i]
-		helmState := &state.HelmState{}
 		path := src.Filepath
-		err := yaml2s.LoadFile(path, helmState)
+		helmStates, err := LoadHelmfile(path)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to load helmfile %s", path)
 		}
-		e.pathToState[path] = helmState
-		if helmState.OverrideNamespace != "" {
-			e.namespaceToPath[helmState.OverrideNamespace] = path
+		e.pathToState[path] = helmStates
+		lastHelmState := helmStates[len(helmStates)-1]
+		if lastHelmState.OverrideNamespace != "" {
+			e.namespaceToPath[lastHelmState.OverrideNamespace] = path
 		}
 	}
 	return e, nil
 }
 
-func (e *Editor) getOrCreateState(path string) *state.HelmState {
+func (e *Editor) getOrCreateState(path string) []*state.HelmState {
 	hf := e.pathToState[path]
 	if hf == nil {
-		hf = &state.HelmState{}
+		hf = []*state.HelmState{{}}
 		e.pathToState[path] = hf
 	}
 	return hf
@@ -73,10 +70,12 @@ func (e *Editor) AddChart(opts *ChartDetails) error {
 		e.namespaceToPath[ns] = path
 	}
 	hf := e.getOrCreateState(path)
-	hf.OverrideNamespace = ns
+	lastHelmState := hf[len(hf)-1]
+	lastHelmState.OverrideNamespace = ns
 
 	rootPath := e.helmfiles[0].Filepath
-	root := e.getOrCreateState(rootPath)
+	root := e.getOrCreateState(rootPath)[0]
+	// Assumes the root helmfile has only one document
 	found := false
 	for _, f := range root.Helmfiles {
 		if f.Path == rel {
@@ -141,13 +140,8 @@ func (e *Editor) Save() error {
 		if state == nil {
 			return errors.Errorf("no state for path %s", path)
 		}
-		dir := filepath.Dir(path)
-		err := os.MkdirAll(dir, files.DefaultDirWritePermissions)
-		if err != nil {
-			return errors.Wrapf(err, "failed to make dir %s", dir)
-		}
 
-		err = yaml2s.SaveFile(state, path)
+		err := SaveHelmfile(path, state)
 		if err != nil {
 			return errors.Wrapf(err, "failed to save file %s", path)
 		}

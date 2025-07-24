@@ -1,4 +1,3 @@
-filepath: ""
 environments:
   default:
     values:
@@ -74,5 +73,3 @@ releases:
     namespace: tekton-pipelines
     values:
       - versionStream/charts/cdf/tekton-pipeline/values.yaml.gotmpl
-templates: {}
-missingFileHandler: ""
