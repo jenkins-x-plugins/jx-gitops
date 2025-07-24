@@ -2,10 +2,11 @@ package structure
 
 import (
 	"fmt"
-	"github.com/jenkins-x-plugins/jx-gitops/pkg/helmfiles"
 	"path/filepath"
 	"sort"
 	"strings"
+
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/helmfiles"
 
 	"github.com/helmfile/helmfile/pkg/state"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"

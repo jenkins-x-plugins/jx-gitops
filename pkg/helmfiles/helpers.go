@@ -2,11 +2,12 @@ package helmfiles
 
 import (
 	"fmt"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 
 	"github.com/goccy/go-yaml"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/versionstreamer"
@@ -184,7 +185,7 @@ func SaveHelmfile(path string, helmStates []*state.HelmState) error {
 	if err != nil {
 		return err
 	}
-	return saveToFile(path, helmStates, file, err)
+	return saveToFile(path, helmStates, file)
 }
 
 // SaveNewHelmfile saves helmfile to a path, returning error if file exists
@@ -198,11 +199,10 @@ func SaveNewHelmfile(path string, helmStates []*state.HelmState) error {
 	if err != nil {
 		return err
 	}
-	return saveToFile(path, helmStates, file, err)
+	return saveToFile(path, helmStates, file)
 }
 
-
-func saveToFile(path string, helmStates []*state.HelmState, file *os.File, err error) error {
+func saveToFile(path string, helmStates []*state.HelmState, file *os.File) error {
 	env := yaml.NewEncoder(
 		file,
 		yaml.OmitEmpty(),
@@ -215,7 +215,7 @@ func saveToFile(path string, helmStates []*state.HelmState, file *os.File, err e
 			return fmt.Errorf("failed to save file %s: %w", path, err)
 		}
 	}
-	err = file.Sync()
+	err := file.Sync()
 	if err != nil {
 		return err
 	}
