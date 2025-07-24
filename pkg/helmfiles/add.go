@@ -63,7 +63,7 @@ func (o *ChartDetails) String() string {
 }
 
 // Add adds or updates the chart details in the helm state
-func (o *ChartDetails) Add(helmState *state.HelmState) (bool, error) {
+func (o *ChartDetails) Add(helmStates []*state.HelmState) (bool, error) {
 	modified := false
 	found := false
 	prefix, localName := SpitChartName(o.Chart)
@@ -73,47 +73,54 @@ func (o *ChartDetails) Add(helmState *state.HelmState) (bool, error) {
 
 	// lets resolve the chart prefix from a local repository from the file or from a
 	// prefix in the versions stream
-	_, err := AddRepository(helmState, prefix, o.Repository, o.Prefixes)
+	_, err := AddRepository(helmStates, prefix, o.Repository, o.Prefixes)
 	if err != nil {
 		return false, fmt.Errorf("failed to add repository for release %s: %w", o.ReleaseName, err)
 	}
 
 	// lets only set the namespace if its different to the default to keep the helmfiles DRY
-	namespace := o.Namespace
-	if namespace == helmState.OverrideNamespace {
-		namespace = ""
-	}
-	for i := range helmState.Releases {
-		release := &helmState.Releases[i]
-		if release.Chart == o.Chart && release.Name == o.ReleaseName {
-			found = true
-			if release.Namespace != "" && release.Namespace != namespace {
-				release.Namespace = namespace
-				modified = true
-			}
-			if release.Version != o.Version && o.Version != "" {
-				release.Version = o.Version
-				modified = true
-			}
-
-			// lets add any missing values
-			for _, v := range o.Values {
-				foundValue := false
-				for j := range release.Values {
-					if release.Values[j] == v {
-						foundValue = true
-						break
-					}
-				}
-				if !foundValue {
-					release.Values = append(release.Values, v)
+	for _, helmState := range helmStates {
+		namespace := o.Namespace
+		if namespace == helmState.OverrideNamespace {
+			namespace = ""
+		}
+		for i := range helmState.Releases {
+			release := &helmState.Releases[i]
+			if release.Chart == o.Chart && release.Name == o.ReleaseName {
+				found = true
+				if release.Namespace != "" && release.Namespace != namespace {
+					release.Namespace = namespace
 					modified = true
 				}
+				if release.Version != o.Version && o.Version != "" {
+					release.Version = o.Version
+					modified = true
+				}
+
+				// lets add any missing values
+				for _, v := range o.Values {
+					foundValue := false
+					for j := range release.Values {
+						if release.Values[j] == v {
+							foundValue = true
+							break
+						}
+					}
+					if !foundValue {
+						release.Values = append(release.Values, v)
+						modified = true
+					}
+				}
+				break
 			}
-			break
 		}
 	}
 	if !found && !o.UpdateOnly {
+		lastHelmState := helmStates[len(helmStates)-1]
+		namespace := o.Namespace
+		if namespace == lastHelmState.OverrideNamespace {
+			namespace = ""
+		}
 		release := state.ReleaseSpec{
 			Chart:     o.Chart,
 			Version:   o.Version,
@@ -123,25 +130,27 @@ func (o *ChartDetails) Add(helmState *state.HelmState) (bool, error) {
 		for _, v := range o.Values {
 			release.Values = append(release.Values, v)
 		}
-		helmState.Releases = append(helmState.Releases, release)
+		lastHelmState.Releases = append(lastHelmState.Releases, release)
 		modified = true
 	}
 	return modified, nil
 }
 
 // Delete removes the releases for the given details from the given helm state
-func (o *ChartDetails) Delete(helmState *state.HelmState) (bool, error) {
+func (o *ChartDetails) Delete(helmStates []*state.HelmState) (bool, error) {
 	modified := false
-	last := len(helmState.Releases) - 1
-	for i := last; i >= 0; i-- {
-		release := &helmState.Releases[i]
-		if MatchesChartName(release.Chart, o.Chart) && (o.ReleaseName == "" || release.Name == o.ReleaseName) {
-			r2 := helmState.Releases[0:i]
-			if i < last {
-				r2 = append(r2, helmState.Releases[i+1:]...)
+	for _, helmState := range helmStates {
+		last := len(helmState.Releases) - 1
+		for i := last; i >= 0; i-- {
+			release := &helmState.Releases[i]
+			if MatchesChartName(release.Chart, o.Chart) && (o.ReleaseName == "" || release.Name == o.ReleaseName) {
+				r2 := helmState.Releases[0:i]
+				if i < last {
+					r2 = append(r2, helmState.Releases[i+1:]...)
+				}
+				helmState.Releases = r2
+				modified = true
 			}
-			helmState.Releases = r2
-			modified = true
 		}
 	}
 	return modified, nil

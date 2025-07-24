@@ -407,7 +407,7 @@ func (o *Options) resolveHelmfile(helmState *state.HelmState, helmfile helmfiles
 
 		// lets not try resolve repository / versions for local charts
 		if prefix != "." && prefix != ".." {
-			repository, err = helmfiles.AddRepository(helmState, prefix, "", o.prefixes)
+			repository, err = helmfiles.AddRepository([]*state.HelmState{helmState}, prefix, "", o.prefixes)
 			if err != nil {
 				return fmt.Errorf("failed to add repository for release %s: %w", release.Name, err)
 			}

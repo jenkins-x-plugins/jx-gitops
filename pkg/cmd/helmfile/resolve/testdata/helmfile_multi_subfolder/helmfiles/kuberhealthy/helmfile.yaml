@@ -1,4 +1,3 @@
-filepath: ""
 environments:
   default:
     values:
@@ -28,5 +27,3 @@ releases:
   name: kh-tls-check
   values:
   - jx-values.yaml
-templates: {}
-renderedvalues: {}

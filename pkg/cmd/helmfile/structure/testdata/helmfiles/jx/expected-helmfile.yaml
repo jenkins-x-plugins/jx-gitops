@@ -1,4 +1,3 @@
-filepath: ""
 environments:
   default:
     values:
@@ -51,5 +50,3 @@ releases:
   name: jx-build-controller
   values:
   - ../../versionStream/charts/jx3/jx-build-controller/values.yaml.gotmpl
-templates: {}
-renderedvalues: {}

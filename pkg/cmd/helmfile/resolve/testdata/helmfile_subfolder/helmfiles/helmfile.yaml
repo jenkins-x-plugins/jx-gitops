@@ -1,4 +1,3 @@
-filepath: ""
 helmfiles:
 - path: jx/helmfile.yaml
 - path: secret-infra/helmfile.yaml

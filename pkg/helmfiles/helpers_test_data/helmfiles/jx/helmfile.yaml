@@ -1,6 +1,3 @@
-filepath: ""
 namespace: jx
 helmfiles:
   - path: helmfiles/nested/helmfile.yaml
-templates: {}
-renderedvalues: {}

@@ -1,4 +1,3 @@
-filepath: ""
 environments:
   default:
     values:
@@ -16,5 +15,3 @@ releases:
   values:
   - ../../versionStream/charts/ingress-nginx/ingress-nginx/values.yaml.gotmpl
   - jx-values.yaml
-templates: {}
-renderedvalues: {}

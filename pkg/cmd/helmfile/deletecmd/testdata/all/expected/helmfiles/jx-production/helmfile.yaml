@@ -1,4 +1,3 @@
-filepath: ""
 environments:
   default:
     values:
@@ -13,5 +12,3 @@ releases:
   name: another
   values:
   - jx-values.yaml
-templates: {}
-renderedvalues: {}

@@ -1,4 +1,3 @@
-filepath: ""
 namespace: jx
 repositories:
 - name: jenkins-x
@@ -10,5 +9,3 @@ releases:
   name: jx-test-collector
 - chart: jenkins/jenkins-operator
   name: jenkins-operator
-templates: {}
-renderedvalues: {}
