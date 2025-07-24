@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/jenkins-x-plugins/jx-gitops/pkg/helmfiles"
+
 	"github.com/helmfile/helmfile/pkg/state"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/helmfile/resolve"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/cmd/jenkins/add"
@@ -13,7 +15,6 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cmdrunner/fakerunner"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/cli"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/yaml2s"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -81,9 +82,9 @@ func TestJenkinsAdd(t *testing.T) {
 }
 
 func assertValidHelmfile(t *testing.T, expectedFile string) {
-	helmState := &state.HelmState{}
-	err := yaml2s.LoadFile(expectedFile, helmState)
+	helmStates, err := helmfiles.LoadHelmfile(expectedFile)
 	require.NoError(t, err, "failed to load %s", expectedFile)
+	helmState := helmStates[len(helmStates)-1]
 
 	AssertHemlfileChartCount(t, 1, helmState, "jxgh/jenkins-resources", "file %s", expectedFile)
 	AssertHemlfileChartCount(t, 1, helmState, "jenkinsci/jenkins", "file %s", expectedFile)

@@ -1,8 +1,8 @@
-filepath: ""
 environments:
   default:
     values:
     - jx-values.yaml
+---
 namespace: foo
 repositories:
 - name: bitnami
@@ -16,5 +16,4 @@ releases:
   values:
   - ../../values/external-dns/values.yaml
   - jx-values.yaml
-templates: {}
-renderedvalues: {}
+

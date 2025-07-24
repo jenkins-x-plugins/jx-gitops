@@ -1,5 +1,2 @@
-filepath: ""
 helmfiles:
 - path: helmfiles/secret-infra/helmfile.yaml
-templates: {}
-renderedvalues: {}

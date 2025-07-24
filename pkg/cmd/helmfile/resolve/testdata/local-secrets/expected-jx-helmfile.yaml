@@ -1,8 +1,8 @@
-filepath: ""
 environments:
   default:
     values:
     - jx-values.yaml
+---
 namespace: jx
 repositories:
 - name: jxgh
@@ -34,5 +34,4 @@ releases:
   name: jx-build-controller
   values:
   - jx-values.yaml
-templates: {}
-renderedvalues: {}
+

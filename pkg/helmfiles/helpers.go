@@ -2,15 +2,16 @@ package helmfiles
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/goccy/go-yaml"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/versionstreamer"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/versionstream"
 
 	"github.com/helmfile/helmfile/pkg/state"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/yaml2s"
 	"github.com/pkg/errors"
 )
 
@@ -36,34 +37,44 @@ func GatherHelmfiles(helmfile, dir string) ([]Helmfile, error) {
 	}
 
 	helmfile = filepath.Join(dir, helmfile)
-	helmState := state.HelmState{}
-	err := yaml2s.LoadFile(helmfile, &helmState)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to load helmfile %s", helmfile)
-	}
 
+	file, err := os.Open(helmfile)
+	if err != nil {
+		return nil, err
+	}
 	relativePath := strings.Repeat("../", parentHelmfileDepth)
 
 	helmfiles := []Helmfile{
 		{helmfile, relativePath},
 	}
 
-	for _, nested := range helmState.Helmfiles {
-		// lets ignore remote helmfiles
-		if strings.HasPrefix(nested.Path, "git::") {
-			continue
+	dec := yaml.NewDecoder(file)
+	for {
+		helmState := state.HelmState{}
+		if err := dec.Decode(&helmState); err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
+			return nil, fmt.Errorf("failed to load helmfile %s: %w", helmfile, err)
 		}
 
-		// recursively gather nested helmfiles including their relative path so we can add correct location to version stream values files
-		// note: unit tests cover this as it is a complex function however they set a test dir with files copied into it,
-		// when running the resolve command for real the dir is '.' and therefore can take a slightly different route through this
-		// func.  If you change this then its also worth giving a manual test of jx giotops helmfile resolve on a nested helmfile
-		// and make sure the relative path to version stream values remain the same.
-		nestedHelmfile, err := GatherHelmfiles(filepath.Join(baseParentHelmfileDir, nested.Path), dir)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to get nested helmnfiles %s in %s", nested.Path, dir)
+		for _, nested := range helmState.Helmfiles {
+			// lets ignore remote helmfiles
+			if strings.HasPrefix(nested.Path, "git::") {
+				continue
+			}
+
+			// recursively gather nested helmfiles including their relative path so we can add correct location to version stream values files
+			// note: unit tests cover this as it is a complex function however they set a test dir with files copied into it,
+			// when running the resolve command for real the dir is '.' and therefore can take a slightly different route through this
+			// func.  If you change this then its also worth giving a manual test of jx giotops helmfile resolve on a nested helmfile
+			// and make sure the relative path to version stream values remain the same.
+			nestedHelmfile, err := GatherHelmfiles(filepath.Join(baseParentHelmfileDir, nested.Path), dir)
+			if err != nil {
+				return nil, errors.Wrapf(err, "failed to get nested helmnfiles %s in %s", nested.Path, dir)
+			}
+			helmfiles = append(helmfiles, nestedHelmfile...)
 		}
-		helmfiles = append(helmfiles, nestedHelmfile...)
 	}
 	return helmfiles, nil
 }
@@ -122,4 +133,62 @@ func AddRepository(helmState *state.HelmState, prefix, repositoryURL string, pre
 		}
 	}
 	return repositoryURL, nil
+}
+
+// LoadHelmfile loads helmfile from a path
+func LoadHelmfile(path string) ([]*state.HelmState, error) {
+	var helmStates []*state.HelmState
+
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+
+	dec := yaml.NewDecoder(file)
+	for {
+		helmState := state.HelmState{}
+		if err := dec.Decode(&helmState); err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
+			return nil, err
+		}
+		helmStates = append(helmStates, &helmState)
+	}
+	err = file.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	return helmStates, nil
+}
+
+// SaveHelmfile saves helmfile to a path
+func SaveHelmfile(path string, helmStates []*state.HelmState) error {
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	env := yaml.NewEncoder(
+		file,
+		yaml.OmitEmpty(),
+		yaml.UseLiteralStyleIfMultiline(true),
+		yaml.UseSingleQuote(true),
+	)
+	for i := range helmStates {
+		err := env.Encode(*helmStates[i])
+		if err != nil {
+			return fmt.Errorf("failed to save file %s: %w", path, err)
+		}
+	}
+	err = file.Sync()
+	if err != nil {
+		return err
+	}
+	err = file.Close()
+	if err != nil {
+		return fmt.Errorf("failed to save file %s: %w", path, err)
+	}
+
+	return nil
 }

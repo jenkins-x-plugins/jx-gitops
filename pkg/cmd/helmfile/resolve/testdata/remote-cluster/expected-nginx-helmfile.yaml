@@ -1,8 +1,8 @@
-filepath: ""
 environments:
   default:
     values:
     - jx-values.yaml
+---
 namespace: nginx
 repositories:
 - name: ingress-nginx
@@ -12,5 +12,4 @@ releases:
   name: nginx-ingress
   values:
   - jx-values.yaml
-templates: {}
-renderedvalues: {}
+
