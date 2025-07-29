@@ -24,7 +24,6 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube/services"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/options"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/yaml2s"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/pkg/errors"
@@ -228,56 +227,56 @@ func (o *Options) processHelmfile(helmfile helmfiles.Helmfile) (*releasereport.N
 	if helmfile.RelativePathToRoot == "" {
 		return nil, nil
 	}
-	helmState := &state.HelmState{}
 	path := helmfile.Filepath
-	err := yaml2s.LoadFile(path, helmState)
+	helmStates, err := helmfiles.LoadHelmfile(path)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to load helmfile %s", helmfile)
 	}
 
-	ns := helmState.OverrideNamespace
-	if ns == "" {
-		names := strings.Split(helmfile.Filepath, string(os.PathSeparator))
-		if len(names) > 1 {
-			ns = names[len(names)-2]
+	for _, helmState := range helmStates {
+		ns := helmState.OverrideNamespace
+		if ns == "" {
+			names := strings.Split(helmfile.Filepath, string(os.PathSeparator))
+			if len(names) > 1 {
+				ns = names[len(names)-2]
+			}
 		}
-	}
-	answer.Namespace = ns
-	answer.Path = helmfile.Filepath
+		answer.Namespace = ns
+		answer.Path = helmfile.Filepath
 
-	log.Logger().Infof("namespace %s", ns)
+		log.Logger().Infof("namespace %s", ns)
 
-	for i := range helmState.Releases {
-		rel := &helmState.Releases[i]
-		exists, err := o.verifyReleaseExists(ns, rel)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to verify if release exists %s in namespace %s", rel.Chart, ns)
-		}
-		if !exists {
-			if rel.Condition != "" {
-				log.Logger().Infof("ignoring release %s in namespace %s as using conditional %s", info(rel.Chart), info(ns), info(rel.Condition))
+		for i := range helmState.Releases {
+			rel := &helmState.Releases[i]
+			exists, err := o.verifyReleaseExists(ns, rel)
+			if err != nil {
+				return nil, errors.Wrapf(err, "failed to verify if release exists %s in namespace %s", rel.Chart, ns)
+			}
+			if !exists {
+				if rel.Condition != "" {
+					log.Logger().Infof("ignoring release %s in namespace %s as using conditional %s", info(rel.Chart), info(ns), info(rel.Condition))
+					continue
+				}
+				if rel.Installed != nil && !*rel.Installed {
+					log.Logger().Infof("ignoring release %s in namespace %s as it isn't installed", info(rel.Chart), info(ns))
+					continue
+				}
+				log.Logger().Warnf("ignoring release %s in namespace %s as we cannot find any generated resources but there is no conditional", rel.Chart, ns)
 				continue
 			}
-			if rel.Installed != nil && !*rel.Installed {
-				log.Logger().Infof("ignoring release %s in namespace %s as it isn't installed", info(rel.Chart), info(ns))
+
+			ci, err := o.createReleaseInfo(helmState, ns, rel)
+			if err != nil {
+				return nil, errors.Wrapf(err, "failed to create release info for %s", rel.Chart)
+			}
+
+			if info == nil {
 				continue
 			}
-			log.Logger().Warnf("ignoring release %s in namespace %s as we cannot find any generated resources but there is no conditional", rel.Chart, ns)
-			continue
+			answer.Releases = append(answer.Releases, ci)
+			log.Logger().Infof("found %s", ci.String())
 		}
-
-		ci, err := o.createReleaseInfo(helmState, ns, rel)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to create release info for %s", rel.Chart)
-		}
-
-		if info == nil {
-			continue
-		}
-		answer.Releases = append(answer.Releases, ci)
-		log.Logger().Infof("found %s", ci.String())
 	}
-	log.Logger().Infof("")
 	return answer, nil
 }
 
