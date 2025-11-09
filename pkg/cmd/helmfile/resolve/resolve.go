@@ -539,6 +539,13 @@ func (o *Options) updateRelease(helmState *state.HelmState, prefix string, relea
 	if err != nil {
 		return errors.Wrapf(err, "failed to find version number for chart %s", release.Name)
 	}
+	// let's fall back to using the full chart name
+	if versionProperties.Missing() {
+		versionProperties, err = o.Options.Resolver.StableVersion(versionstream.KindChart, fullChartName)
+		if err != nil {
+			return errors.Wrapf(err, "failed to find version number for chart %s", fullChartName)
+		}
+	}
 	if (versionProperties.ReplacementChart != "" || versionProperties.ReplacementChartPrefix != "") &&
 		(release.Version == "" || o.UpdateMode) {
 		if versionProperties.ReplacementChart != "" {
@@ -592,15 +599,6 @@ func (o *Options) updateRelease(helmState *state.HelmState, prefix string, relea
 	}
 	for k, v := range versionProperties.Labels {
 		release.Labels[k] = v
-	}
-
-	// Only falling back if the file for the alias exists, but doesn't contain version. Weird...
-	// lets fall back to using the full chart name
-	if versionProperties.Version == "" {
-		versionProperties, err = o.Options.Resolver.StableVersion(versionstream.KindChart, fullChartName)
-		if err != nil {
-			return errors.Wrapf(err, "failed to find version number for chart %s", fullChartName)
-		}
 	}
 
 	version := versionProperties.Version
