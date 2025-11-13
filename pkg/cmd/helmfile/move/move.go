@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/helmfile/helmfile/pkg/state"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/helmhelpers"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
@@ -68,7 +67,6 @@ type Options struct {
 	OverrideNamespace            bool
 	AnnotateReleaseNames         bool
 	AnnotateReleaseNameSpace     bool
-	HelmState                    *state.HelmState
 	NamespacedKind               map[string]bool
 	ResourcesToMove              []ResourceToMove
 }
