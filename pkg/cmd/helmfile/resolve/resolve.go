@@ -414,7 +414,7 @@ func (o *Options) resolveHelmfile(helmState *state.HelmState, helmfile helmfiles
 
 			// lets look for an override version label
 			if stringhelpers.StringArrayIndex(ignoreRepositories, repository) < 0 && !IsLabelValue(&release, helmhelpers.VersionLabel, helmhelpers.LockLabelValue) {
-				err = o.updateRelease(helmState, prefix, &release, fullChartName, repository, helmfile)
+				err = o.updateRelease(helmState, prefix, chartName, &release, fullChartName, repository, helmfile)
 				if err != nil {
 					return err
 				}
@@ -533,7 +533,7 @@ func (o *Options) ensureEnvironment(helmState *state.HelmState, helmfile helmfil
 	}
 }
 
-func (o *Options) updateRelease(helmState *state.HelmState, prefix string, release *state.ReleaseSpec, fullChartName, repository string, helmfile helmfiles.Helmfile) error {
+func (o *Options) updateRelease(helmState *state.HelmState, prefix, chartName string, release *state.ReleaseSpec, fullChartName, repository string, helmfile helmfiles.Helmfile) error {
 	// first try and match using the prefix and release name as we might have a version stream folder that uses helm alias
 	versionProperties, err := o.Options.Resolver.StableVersion(versionstream.KindChart, prefix+"/"+release.Name)
 	if err != nil {
@@ -549,11 +549,11 @@ func (o *Options) updateRelease(helmState *state.HelmState, prefix string, relea
 	if (versionProperties.ReplacementChart != "" || versionProperties.ReplacementChartPrefix != "") &&
 		(release.Version == "" || o.UpdateMode) {
 		if versionProperties.ReplacementChart != "" {
-			release.Name = versionProperties.ReplacementChart
+			chartName = versionProperties.ReplacementChart
 		}
 		if versionProperties.ReplacementChartPrefix != "" {
 			prefix = versionProperties.ReplacementChartPrefix
-			newChart := fmt.Sprintf("%s/%s", prefix, release.Name)
+			newChart := fmt.Sprintf("%s/%s", prefix, chartName)
 			// Checking that replacement chart doesn't already exist in helmfile
 			for i := range helmState.Releases {
 				existingRelease := helmState.Releases[i]
@@ -590,7 +590,7 @@ func (o *Options) updateRelease(helmState *state.HelmState, prefix string, relea
 			}
 		}
 		log.Logger().Debugf("replacing chart %s with %s", fullChartName, release.Chart)
-		return o.updateRelease(helmState, prefix, release, release.Chart, repository, helmfile)
+		return o.updateRelease(helmState, prefix, chartName, release, release.Chart, repository, helmfile)
 	}
 
 	// Adding default labels
