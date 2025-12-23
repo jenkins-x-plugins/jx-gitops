@@ -6,6 +6,9 @@ export PR_HEAD_REF="my-branch"
 export PR_HEAD_SHA="fakesha5678"
 export PR_LABEL_ENV_STAGING="true"
 export PR_LABEL_SOME_LABEL="true"
+export PR_LABEL_SOME_LABEL_WITH_RANDOM_CHAR="true"
+export PR_LABEL_SOME_RANDOM_LABEL="true"
+export PR_LABEL_SOME_SPECIAL_LABEL="true"
 export PR_LABEL_UPDATEBOT="true"
 
 
