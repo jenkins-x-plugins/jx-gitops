@@ -61,6 +61,15 @@ func TestPullRequestVariables(t *testing.T) {
 			{
 				Name: "some:label",
 			},
+			{
+				Name: "some:/random-label",
+			},
+			{
+				Name: "some:special/label",
+			},
+			{
+				Name: "some.label:with|random-@/char",
+			},
 		},
 	}
 
