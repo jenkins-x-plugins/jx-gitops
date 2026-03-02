@@ -182,3 +182,29 @@ func TestOnlyPluginsMixFromParentAndRepo(t *testing.T) {
 			},
 		})
 }
+
+// TestPluginConsolidation verifies that multiple repos with identical plugin configurations
+// are consolidated into single entries with multiple repos listed, rather than creating
+// duplicate entries for each repo.
+func TestPluginConsolidation(t *testing.T) {
+	wd, err := os.Getwd()
+	assert.NoError(t, err)
+	testhelpers.BuildAndValidateProwConfig(t, filepath.Join(wd, "testdata", "plugin_consolidation"), "",
+		"plugins.yaml", []testhelpers.SchedulerFile{
+			{
+				Filenames: []string{"parent.yaml"},
+				Org:       "acme",
+				Repo:      "repo1",
+			},
+			{
+				Filenames: []string{"parent.yaml"},
+				Org:       "acme",
+				Repo:      "repo2",
+			},
+			{
+				Filenames: []string{"parent.yaml"},
+				Org:       "acme",
+				Repo:      "repo3",
+			},
+		})
+}

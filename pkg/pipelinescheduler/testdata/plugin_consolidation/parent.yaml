@@ -1,0 +1,14 @@
+trigger:
+  trusted_org: myorg
+  only_org_members: true
+approve:
+  lgtm_acts_as_approve: true
+  require_self_approval: true
+lgtm:
+  review_acts_as_lgtm: true
+  store_tree_hash: false
+plugins:
+  entries:
+    - approve
+    - lgtm
+    - trigger
