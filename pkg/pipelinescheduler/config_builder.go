@@ -64,7 +64,7 @@ func buildPlugins(answer *plugins.Configuration, scheduler *schedulerapi.Schedul
 	if scheduler.Approve != nil {
 		approve := plugins.Approve{}
 		buildApprove(&approve, scheduler.Approve, orgName, repoName)
-		answer.Approve = mergeApprove(answer.Approve, approve)
+		answer.Approve = mergeApprove(answer.Approve, &approve)
 	}
 	if scheduler.Welcome != nil {
 		if answer.Welcome == nil {
@@ -112,7 +112,7 @@ func buildPlugins(answer *plugins.Configuration, scheduler *schedulerapi.Schedul
 	if scheduler.LGTM != nil {
 		lgtm := plugins.Lgtm{}
 		buildLgtm(&lgtm, scheduler.LGTM, orgName, repoName)
-		answer.Lgtm = mergeLgtm(answer.Lgtm, lgtm)
+		answer.Lgtm = mergeLgtm(answer.Lgtm, &lgtm)
 	}
 	if answer.Triggers == nil {
 		answer.Triggers = make([]plugins.Trigger, 0)
@@ -120,7 +120,7 @@ func buildPlugins(answer *plugins.Configuration, scheduler *schedulerapi.Schedul
 	if scheduler.Trigger != nil {
 		trigger := plugins.Trigger{}
 		buildTrigger(&trigger, scheduler.Trigger, orgName, repoName)
-		answer.Triggers = mergeTrigger(answer.Triggers, trigger)
+		answer.Triggers = mergeTrigger(answer.Triggers, &trigger)
 	}
 }
 
@@ -580,10 +580,10 @@ func buildContextPolicy(answer *keeper.ContextPolicy,
 	}
 }
 
-func mergeApprove(existing []plugins.Approve, newApprove plugins.Approve) []plugins.Approve {
+func mergeApprove(existing []plugins.Approve, newApprove *plugins.Approve) []plugins.Approve {
 	for index := range existing {
 		existingApprove := &existing[index]
-		if cmp.Equal(existingApprove, &newApprove, cmpopts.IgnoreFields(plugins.Approve{}, "Repos")) {
+		if cmp.Equal(existingApprove, newApprove, cmpopts.IgnoreFields(plugins.Approve{}, "Repos")) {
 			for _, newRepo := range newApprove.Repos {
 				if !utils.ContainsString(existingApprove.Repos, newRepo) {
 					existingApprove.Repos = append(existingApprove.Repos, newRepo)
@@ -592,13 +592,13 @@ func mergeApprove(existing []plugins.Approve, newApprove plugins.Approve) []plug
 			return existing
 		}
 	}
-	return append(existing, newApprove)
+	return append(existing, *newApprove)
 }
 
-func mergeLgtm(existing []plugins.Lgtm, newLgtm plugins.Lgtm) []plugins.Lgtm {
+func mergeLgtm(existing []plugins.Lgtm, newLgtm *plugins.Lgtm) []plugins.Lgtm {
 	for index := range existing {
 		existingLgtm := &existing[index]
-		if cmp.Equal(existingLgtm, &newLgtm, cmpopts.IgnoreFields(plugins.Lgtm{}, "Repos")) {
+		if cmp.Equal(existingLgtm, newLgtm, cmpopts.IgnoreFields(plugins.Lgtm{}, "Repos")) {
 			for _, newRepo := range newLgtm.Repos {
 				if !utils.ContainsString(existingLgtm.Repos, newRepo) {
 					existingLgtm.Repos = append(existingLgtm.Repos, newRepo)
@@ -607,13 +607,13 @@ func mergeLgtm(existing []plugins.Lgtm, newLgtm plugins.Lgtm) []plugins.Lgtm {
 			return existing
 		}
 	}
-	return append(existing, newLgtm)
+	return append(existing, *newLgtm)
 }
 
-func mergeTrigger(existing []plugins.Trigger, newTrigger plugins.Trigger) []plugins.Trigger {
+func mergeTrigger(existing []plugins.Trigger, newTrigger *plugins.Trigger) []plugins.Trigger {
 	for index := range existing {
 		existingTrigger := &existing[index]
-		if cmp.Equal(existingTrigger, &newTrigger, cmpopts.IgnoreFields(plugins.Trigger{}, "Repos")) {
+		if cmp.Equal(existingTrigger, newTrigger, cmpopts.IgnoreFields(plugins.Trigger{}, "Repos")) {
 			for _, newRepo := range newTrigger.Repos {
 				if !utils.ContainsString(existingTrigger.Repos, newRepo) {
 					existingTrigger.Repos = append(existingTrigger.Repos, newRepo)
@@ -622,7 +622,7 @@ func mergeTrigger(existing []plugins.Trigger, newTrigger plugins.Trigger) []plug
 			return existing
 		}
 	}
-	return append(existing, newTrigger)
+	return append(existing, *newTrigger)
 }
 
 func buildQuery(answer *keeper.Config, queries []*schedulerapi.Query, org, repo string) {
