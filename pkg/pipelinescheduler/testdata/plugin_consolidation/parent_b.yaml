@@ -1,0 +1,9 @@
+trigger:
+  trusted_org: myorg
+approve:
+  lgtm_acts_as_approve: false
+  require_self_approval: true
+plugins:
+  entries:
+    - approve
+    - trigger

@@ -1,0 +1,26 @@
+approve:
+  - lgtm_acts_as_approve: true
+    repos:
+      - acme/repo1
+      - acme/repo3
+    require_self_approval: true
+  - lgtm_acts_as_approve: false
+    repos:
+      - acme/repo2
+    require_self_approval: true
+plugins:
+  acme/repo1:
+    - approve
+    - trigger
+  acme/repo2:
+    - approve
+    - trigger
+  acme/repo3:
+    - approve
+    - trigger
+triggers:
+  - repos:
+      - acme/repo1
+      - acme/repo2
+      - acme/repo3
+    trusted_org: myorg
