@@ -584,11 +584,7 @@ func mergeApprove(existing []plugins.Approve, newApprove *plugins.Approve) []plu
 	for index := range existing {
 		existingApprove := &existing[index]
 		if cmp.Equal(existingApprove, newApprove, cmpopts.IgnoreFields(plugins.Approve{}, "Repos")) {
-			for _, newRepo := range newApprove.Repos {
-				if !utils.ContainsString(existingApprove.Repos, newRepo) {
-					existingApprove.Repos = append(existingApprove.Repos, newRepo)
-				}
-			}
+			existingApprove.Repos = append(existingApprove.Repos, newApprove.Repos...)
 			return existing
 		}
 	}
@@ -599,11 +595,7 @@ func mergeLgtm(existing []plugins.Lgtm, newLgtm *plugins.Lgtm) []plugins.Lgtm {
 	for index := range existing {
 		existingLgtm := &existing[index]
 		if cmp.Equal(existingLgtm, newLgtm, cmpopts.IgnoreFields(plugins.Lgtm{}, "Repos")) {
-			for _, newRepo := range newLgtm.Repos {
-				if !utils.ContainsString(existingLgtm.Repos, newRepo) {
-					existingLgtm.Repos = append(existingLgtm.Repos, newRepo)
-				}
-			}
+			existingLgtm.Repos = append(existingLgtm.Repos, newLgtm.Repos...)
 			return existing
 		}
 	}
@@ -614,11 +606,7 @@ func mergeTrigger(existing []plugins.Trigger, newTrigger *plugins.Trigger) []plu
 	for index := range existing {
 		existingTrigger := &existing[index]
 		if cmp.Equal(existingTrigger, newTrigger, cmpopts.IgnoreFields(plugins.Trigger{}, "Repos")) {
-			for _, newRepo := range newTrigger.Repos {
-				if !utils.ContainsString(existingTrigger.Repos, newRepo) {
-					existingTrigger.Repos = append(existingTrigger.Repos, newRepo)
-				}
-			}
+			existingTrigger.Repos = append(existingTrigger.Repos, newTrigger.Repos...)
 			return existing
 		}
 	}
