@@ -190,10 +190,15 @@ func (o *Options) Validate() error {
 			return errors.Wrapf(err, "failed to find container registry org")
 		}
 
-		o.RepositoryURL, err = variablefinders.FindRepositoryURL(o.Requirements, registryOrg, o.Repository)
-		if err != nil {
-			return errors.Wrapf(err, "failed to find chart repository URL")
-		}
+		chartKind := o.Requirements.Cluster.ChartKind
+		o.RepositoryURL = variablefinders.FindRepositoryURL(
+			o.Requirements,
+			registryOrg,
+			o.Repository,
+			chartKind == jxcore.ChartRepositoryTypeOCI,
+			chartKind == jxcore.ChartRepositoryTypePages,
+			false,
+		)
 	}
 
 	if o.Options.Branch == "" || o.Options.Branch == "HEAD" {
@@ -270,7 +275,15 @@ func (o *Options) Validate() error {
 				if err != nil {
 					return "", errors.Wrapf(err, "failed to find container registry org")
 				}
-				return variablefinders.FindRepositoryURL(o.Requirements, registryOrg, o.Options.Repository)
+				chartKind := o.Requirements.Cluster.ChartKind
+				return variablefinders.FindRepositoryURL(
+					o.Requirements,
+					registryOrg,
+					o.Options.Repository,
+					chartKind == jxcore.ChartRepositoryTypeOCI,
+					chartKind == jxcore.ChartRepositoryTypePages,
+					false,
+				), nil
 			},
 		},
 		{
