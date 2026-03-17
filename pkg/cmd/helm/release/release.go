@@ -330,7 +330,7 @@ func (o *Options) oCIRegistry(repoURL, chartDir, name string) error {
 		return errors.Wrapf(err, "failed to package chart")
 	}
 
-	if !o.NoOCILogin {
+	if !o.NoOCILogin && o.RepositoryUsername != "" {
 		c = &cmdrunner.Command{
 			Dir:  chartDir,
 			Name: o.HelmBinary,
