@@ -9,8 +9,6 @@ import (
 	"strings"
 
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/chart"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"
-
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/ghpages"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/plugins"
 	"github.com/jenkins-x-plugins/jx-gitops/pkg/rootcmd"
@@ -29,6 +27,7 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/scmhelpers"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/stringhelpers"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/termcolor"
+	"github.com/jenkins-x/jx-helpers/v3/pkg/yamls"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -102,6 +101,7 @@ type Options struct {
 	CommandRunner        cmdrunner.CommandRunner
 	Requirements         *jxcore.RequirementsConfig
 	ReleasedCharts       int
+	Cmd                  *cobra.Command
 }
 
 // NewCmdHelmRelease creates a command object for the command
@@ -113,7 +113,8 @@ func NewCmdHelmRelease() (*cobra.Command, *Options) {
 		Short:   "Performs a release of all the charts in the charts folder",
 		Long:    cmdLong,
 		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
-		Run: func(_ *cobra.Command, _ []string) {
+		Run: func(cmd *cobra.Command, _ []string) {
+			o.Cmd = cmd
 			err := o.Run()
 			helper.CheckErr(err)
 		},
@@ -291,10 +292,14 @@ func (o *Options) Run() error {
 
 		// find the repository URL
 		if repoURL == "" {
-			repoURL, err = variablefinders.FindRepositoryURL(o.Requirements, o.ContainerRegistryOrg, name)
-			if err != nil {
-				return errors.Wrapf(err, "failed to find chart repository URL")
-			}
+			repoURL = variablefinders.FindRepositoryURL(
+				o.Requirements,
+				o.ContainerRegistryOrg,
+				name,
+				o.ChartOCI,
+				o.ChartPages,
+				o.flagChanged("repo-url"),
+			)
 		}
 		if o.ChartPages {
 			err = o.ChartPageRegistry(repoURL, chartDir, name)
@@ -700,4 +705,15 @@ func (o *Options) findChartRepositoryUserPassword() (string, string, error) {
 		err = fmt.Errorf("no environment variable $JX_REPOSITORY_PASSWORD defined")
 	}
 	return userName, password, err
+}
+
+// FlagChanged returns true if the given flag was supplied on the command line
+func (o *Options) flagChanged(name string) bool {
+	if o.Cmd != nil {
+		f := o.Cmd.Flag(name)
+		if f != nil {
+			return f.Changed
+		}
+	}
+	return false
 }
