@@ -98,7 +98,7 @@ require (
 	github.com/alecthomas/repr v0.0.0-20181024024818-d37bc2a10ba1 // indirect
 	github.com/alessio/shellescape v1.4.2 // indirect
 	github.com/antchfx/jsonquery v1.3.4 // indirect
-	github.com/antchfx/xpath v1.3.0 // indirect
+	github.com/antchfx/xpath v1.3.6 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.0 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
