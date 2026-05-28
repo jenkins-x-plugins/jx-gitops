@@ -26,7 +26,7 @@ spec:
           resources:
             requests:
               cpu: 1400m
-              memory: 5Gi
+              memory: 4800Mi
           env:
           - name: GOGC
             value: "20"
