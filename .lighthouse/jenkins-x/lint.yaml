@@ -26,10 +26,10 @@ spec:
           resources:
             requests:
               cpu: 1400m
-              memory: 6Gi
+              memory: 5Gi
           env:
           - name: GOGC
-            value: "30"
+            value: "20"
   podTemplate: {}
   serviceAccountName: tekton-bot
   timeout: 12h0m0s
