@@ -40,6 +40,11 @@ type Options struct {
 	Overwrite bool
 }
 
+type kvPair struct {
+	key   *yaml.Node
+	value *yaml.Node
+}
+
 // NewCmdUpdateTag creates a command object for the command
 func NewCmdUpdateTag(tagVerb, tagType string) (*cobra.Command, *Options) {
 	o := &Options{}
@@ -107,10 +112,47 @@ func (o *Options) UpdateTagInYamlFiles(tagType string, tags []string) error {
 				modified = true
 			}
 		}
+
+		if sortTagContent(tagNode) {
+			modified = true
+		}
 		return modified, nil
 	}
 
 	return kyamls.ModifyFiles(o.Dir, modifyFn, o.Filter)
+}
+
+// ensures consistent label order across files to prevent spurious diffs
+func sortTagContent(tagNode *yaml.RNode) bool {
+	content := tagNode.YNode().Content
+	// each label occupies 2 slots (key + value)
+	n := len(content) / 2
+	// nothing to sort with 1 or fewer labels
+	if n < 2 {
+		return false
+	}
+
+	// pair up keys and values before sorting so they move together
+	pairs := make([]kvPair, n)
+	for i := 0; i < n; i++ {
+		pairs[i] = kvPair{content[i*2], content[i*2+1]}
+	}
+
+	// alphabetical comparison used by both the check and the sort
+	byKey := func(i, j int) bool { return pairs[i].key.Value < pairs[j].key.Value }
+
+	// return early if already in order
+	if sort.SliceIsSorted(pairs, byKey) {
+		return false
+	}
+
+	sort.SliceStable(pairs, byKey)
+	// update in-place so the yaml node reflects the new order
+	for i, pair := range pairs {
+		content[i*2] = pair.key
+		content[i*2+1] = pair.value
+	}
+	return true
 }
 
 func getTagNode(node *yaml.RNode, path, tagType string, o *Options) (*yaml.RNode, error) {

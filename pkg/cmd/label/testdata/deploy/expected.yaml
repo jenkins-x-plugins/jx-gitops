@@ -5,8 +5,8 @@ metadata:
     app.kubernetes.io/instance: external-dns
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: external-dns
-    helm.sh/chart: external-dns-6.8.2
     beer: 'stella'
+    helm.sh/chart: external-dns-6.8.2
     wine: 'merlot'
   name: external-dns
   namespace: jx

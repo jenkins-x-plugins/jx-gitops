@@ -3,8 +3,9 @@ kind: Service
 metadata:
   name: cheese
   labels:
-    beer: 'stella'
-    wine: reisling
+    zoo: animal
+    middle: thing
+    apple: fruit
 spec:
   ports:
   - port: 80

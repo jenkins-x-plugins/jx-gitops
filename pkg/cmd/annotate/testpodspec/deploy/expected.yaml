@@ -24,9 +24,9 @@ spec:
   template:
     metadata:
       annotations:
+        beer: 'stella'
         prometheus.io/port: "7979"
         prometheus.io/scrape: "true"
-        beer: 'stella'
         wine: 'merlot'
       labels:
         app.kubernetes.io/instance: external-dns
