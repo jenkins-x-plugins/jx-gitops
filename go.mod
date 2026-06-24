@@ -379,4 +379,4 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.6.0 // indirect
 )
 
-go 1.24.4
+go 1.26.3
