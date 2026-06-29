@@ -35,6 +35,7 @@ type RequirementsValues struct {
 	// RequirementsConfig contains the logical installation requirements
 	RequirementsConfig          *jxcore.RequirementsConfig `json:"jxRequirements,omitempty"`
 	IngressExternalDNSCondition *HelmfileConditional       `json:"jxRequirementsIngressExternalDNS,omitempty"`
+	IngressHTTPRouteCondition   *HelmfileConditional       `json:"jxRequirementsIngressHTTPRoute,omitempty"`
 	IngressTLSCondition         *HelmfileConditional       `json:"jxRequirementsIngressTLS,omitempty"`
 	KuberhealthyCondition       *HelmfileConditional       `json:"jxRequirementsKuberhealthy,omitempty"`
 	TLSCheckCondition           *HelmfileConditional       `json:"jxRequirementsTLSCheck,omitempty"`
@@ -56,6 +57,7 @@ func SaveRequirementsValuesFile(c *jxcore.RequirementsConfig, dir, fileName stri
 	y := &RequirementsValues{
 		RequirementsConfig:          c,
 		IngressExternalDNSCondition: &HelmfileConditional{Enabled: c.Ingress.ExternalDNS},
+		IngressHTTPRouteCondition:   &HelmfileConditional{Enabled: c.Ingress.Kind == jxcore.IngressTypeHTTPRoute},
 		IngressTLSCondition:         &HelmfileConditional{Enabled: c.Ingress.TLS.Enabled},
 		KuberhealthyCondition:       &HelmfileConditional{Enabled: c.Kuberhealthy},
 		TLSCheckCondition:           &HelmfileConditional{Enabled: c.Kuberhealthy && c.Ingress.TLS.Enabled},
