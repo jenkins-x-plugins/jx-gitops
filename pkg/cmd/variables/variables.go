@@ -504,7 +504,7 @@ func (o *Options) minkImage() (string, error) {
 		return "", errors.Wrapf(err, "failed to find version")
 	}
 
-	image := strings.Replace(o.Options.Repository, "/", "-", -1) + ":" + version
+	image := strings.ReplaceAll(o.Options.Repository, "/", "-") + ":" + version
 	return stringhelpers.UrlJoin(registry, registryOrg, image), nil
 }
 
@@ -684,7 +684,7 @@ func (o *Options) GetJenkinsXURL() (string, error) {
 		return "", err
 	}
 	owner := o.Options.Owner
-	repo := strings.Replace(o.Options.Repository, "/", "-", -1)
+	repo := strings.ReplaceAll(o.Options.Repository, "/", "-")
 	branch := o.Options.Branch
 	build := o.BuildNumber
 
@@ -709,7 +709,7 @@ func (o *Options) GetDashboardURL() (string, error) {
 
 // ToLower is required because repos with capitals in their names are not allowed in chartmuseum and it will throw a 500 error.
 func (o *Options) getRepoName() string {
-	return strings.Replace(strings.ToLower(o.Options.Repository), "/", "-", -1)
+	return strings.ReplaceAll(strings.ToLower(o.Options.Repository), "/", "-")
 }
 
 func configMapKeyToEnvVar(k string) string {

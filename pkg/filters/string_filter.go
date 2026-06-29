@@ -62,7 +62,7 @@ func (f *StringFilter) String() string {
 			if b.Len() > 0 {
 				b.WriteString(" && ")
 			}
-			b.WriteString(fmt.Sprintf("%s = '%s'", name, value))
+			fmt.Fprintf(&b, "%s = '%s'", name, value)
 		}
 	}
 	fn("prefix", f.Prefix)

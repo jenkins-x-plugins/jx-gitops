@@ -384,7 +384,7 @@ func (o *Options) moveFilesToClusterOrNamespacesFolder(dir, ns, releaseName, cha
 
 		kind := kyamls.GetKind(node, path)
 		if kind == "" {
-			return fmt.Errorf("No kind in %s", path)
+			return fmt.Errorf("no kind in %s", path)
 		}
 
 		if kyamls.IsCustomResourceDefinition(kind) {

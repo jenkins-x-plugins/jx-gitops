@@ -93,10 +93,7 @@ func ProcessYamlFiles(dir string) error {
 
 				text := buf.String()
 				// remove all newline prefixes
-				for {
-					if !strings.HasPrefix(text, "\n") {
-						break
-					}
+				for strings.HasPrefix(text, "\n") {
 					text = strings.TrimPrefix(text, "\n")
 				}
 				fileNames = append(fileNames, text)

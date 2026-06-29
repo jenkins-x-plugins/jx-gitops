@@ -69,6 +69,11 @@ linters:
       require-explanation: false
       require-specific: false
       allow-unused: false
+    staticcheck:
+      checks:
+        - "all"
+        # https://staticcheck.io/docs/checks#QF1008
+        - "-QF1008"
   exclusions:
     generated: lax
     presets:

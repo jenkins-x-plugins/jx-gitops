@@ -199,7 +199,7 @@ func GetRepository(groups []v1alpha1.RepositoryGroup, repoName string) *v1alpha1
 			repo := &group.Repositories[r]
 			// Nested repositories in gitlab can have / in their name which includes the subgroup
 			// this replaces the / with -
-			if strings.Replace(repo.Name, "/", "-", -1) == repoName {
+			if strings.ReplaceAll(repo.Name, "/", "-") == repoName {
 				return repo
 			}
 		}
