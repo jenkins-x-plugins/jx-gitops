@@ -26,6 +26,8 @@ jxRequirementsIngressExternalDNS:
   enabled: false
 jxRequirementsIngressHTTPRoute:
   enabled: false
+jxRequirementsIngressHTTPRouteTLS:
+  enabled: false
 jxRequirementsIngressTLS:
   enabled: false
 jxRequirementsKuberhealthy:
