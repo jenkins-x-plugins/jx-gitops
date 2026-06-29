@@ -37,6 +37,11 @@ linters:
     goconst:
       min-len: 3
       min-occurrences: 3
+    gosec:
+      excludes:
+      # These rules were previously suppressed - this CLI operates from a checked-out repo, so not a threat
+      - G122 # symlink TOCTOU
+      - G703 # tain-based path traversal for _test.go paths and a few CLI paths derived from user-supplied flags
     gocritic:
       disabled-checks:
       - dupImport
@@ -72,8 +77,7 @@ linters:
     staticcheck:
       checks:
         - "all"
-        # https://staticcheck.io/docs/checks#QF1008
-        - "-QF1008"
+        - "-QF1008" # https://staticcheck.io/docs/checks#QF1008
   exclusions:
     generated: lax
     presets:

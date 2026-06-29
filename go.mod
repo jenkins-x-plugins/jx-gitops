@@ -1,5 +1,7 @@
 module github.com/jenkins-x-plugins/jx-gitops
 
+go 1.26.3
+
 require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/MichaelMure/go-term-markdown v0.1.4
@@ -378,5 +380,3 @@ require (
 	sigs.k8s.io/randfill v1.0.0 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.6.0 // indirect
 )
-
-go 1.26.3
