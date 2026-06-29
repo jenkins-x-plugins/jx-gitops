@@ -24,6 +24,8 @@ jxRequirements:
   vault: {}
 jxRequirementsIngressExternalDNS:
   enabled: false
+IngressResourceCondition:
+  enabled: false
 jxRequirementsIngressHTTPRoute:
   enabled: false
 jxRequirementsIngressHTTPRouteTLS:

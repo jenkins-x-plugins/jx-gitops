@@ -37,6 +37,7 @@ type RequirementsValues struct {
 	IngressExternalDNSCondition  *HelmfileConditional       `json:"jxRequirementsIngressExternalDNS,omitempty"`
 	IngressHTTPRouteCondition    *HelmfileConditional       `json:"jxRequirementsIngressHTTPRoute,omitempty"`
 	IngressHTTPRouteTLSCondition *HelmfileConditional       `json:"jxRequirementsIngressHTTPRouteTLS,omitempty"`
+	IngressResourceCondition     *HelmfileConditional       `json:"jxRequirementsIngressResource,omitempty"`
 	IngressTLSCondition          *HelmfileConditional       `json:"jxRequirementsIngressTLS,omitempty"`
 	KuberhealthyCondition        *HelmfileConditional       `json:"jxRequirementsKuberhealthy,omitempty"`
 	TLSCheckCondition            *HelmfileConditional       `json:"jxRequirementsTLSCheck,omitempty"`
@@ -60,6 +61,7 @@ func SaveRequirementsValuesFile(c *jxcore.RequirementsConfig, dir, fileName stri
 		IngressExternalDNSCondition:  &HelmfileConditional{Enabled: c.Ingress.ExternalDNS},
 		IngressHTTPRouteCondition:    &HelmfileConditional{Enabled: c.Ingress.Kind == jxcore.IngressTypeHTTPRoute},
 		IngressHTTPRouteTLSCondition: &HelmfileConditional{Enabled: c.Ingress.Kind == jxcore.IngressTypeHTTPRoute && c.Ingress.TLS.Enabled},
+		IngressResourceCondition:     &HelmfileConditional{Enabled: c.Ingress.Kind == jxcore.IngressTypeIngress || c.Ingress.Kind == jxcore.IngressTypeIstio || c.Ingress.Kind == jxcore.IngressTypeNone},
 		IngressTLSCondition:          &HelmfileConditional{Enabled: c.Ingress.TLS.Enabled},
 		KuberhealthyCondition:        &HelmfileConditional{Enabled: c.Kuberhealthy},
 		TLSCheckCondition:            &HelmfileConditional{Enabled: c.Kuberhealthy && c.Ingress.TLS.Enabled},
