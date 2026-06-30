@@ -1,1 +1,1 @@
-## BDD test for Jenkins X Pipelines with static master
+## BDD test for JayeX Pipelines with static master

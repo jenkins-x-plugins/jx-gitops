@@ -30,7 +30,7 @@ var (
 
 		Copies a file specified by --file flag from a Git repository into local file system. The repository from which the
 		file is read is either the one specified via command line flags or the one defined as the target repository of the
-		Jenkins X Environment object, whose name too can be passed in via CLI flags.
+		JayeX Environment object, whose name too can be passed in via CLI flags.
 
 		In case that repository is read out from the environment, then if we are running in Kubernetes cluster the Environment
 		object is searched for either in the namespace defined by the current kubeconfig context (if command is executed
