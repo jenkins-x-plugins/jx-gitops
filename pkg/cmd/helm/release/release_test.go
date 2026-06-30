@@ -70,7 +70,7 @@ func TestStepHelmRelease(t *testing.T) {
 		t.Logf("ran: %s\n", c.CLI())
 	}
 
-	assert.Equal(t, o.ReleasedCharts, 1, "should have released 1 chart")
+	assert.Equal(t, 2, o.ReleasedCharts, "should have released 2 charts")
 }
 
 func TestStepHelmReleaseWithArtifactory(t *testing.T) {
@@ -112,7 +112,7 @@ func TestStepHelmReleaseWithArtifactory(t *testing.T) {
 		},
 	)
 
-	err = o.Run()
+	err = o.Run("anotherchart")
 	require.NoError(t, err, "failed to run the command")
 
 	for _, c := range runner.OrderedCommands {
@@ -160,7 +160,7 @@ func TestStepHelmReleaseWithChartPages(t *testing.T) {
 		t.Logf("ran: %s\n", c.CLI())
 	}
 
-	assert.Equal(t, o.ReleasedCharts, 1, "should have released 1 chart")
+	assert.Equal(t, 2, o.ReleasedCharts, "should have released 2 charts")
 
 	runner.ExpectResults(t,
 		fakerunner.FakeResult{
@@ -168,13 +168,37 @@ func TestStepHelmReleaseWithChartPages(t *testing.T) {
 			CLI: runner.OrderedCommands[0].Name + " " + strings.Join(runner.OrderedCommands[0].Args, " "),
 		},
 		fakerunner.FakeResult{
-			CLI: "helm repo add 0 file://myapp-common",
-		},
-		fakerunner.FakeResult{
 			CLI: "git sparse-checkout set --no-cone jx-requirements.yml .jx/gitops/source-config.yaml",
 		},
 		fakerunner.FakeResult{
 			CLI: "git checkout",
+		},
+		fakerunner.FakeResult{
+			CLI: helmDependencyBuild + o.RegistryConfigFile,
+		},
+		fakerunner.FakeResult{
+			CLI: helmLint,
+		},
+		fakerunner.FakeResult{
+			CLI: helmPackage,
+		},
+		fakerunner.FakeResult{
+			CLI: "helm repo index .",
+		},
+		fakerunner.FakeResult{
+			CLI: "git add *",
+		},
+		fakerunner.FakeResult{
+			CLI: "git status -s",
+		},
+		fakerunner.FakeResult{
+			CLI: "git commit -m chore: add helm chart for anotherchart v1.2.3",
+		},
+		fakerunner.FakeResult{
+			CLI: "git push --set-upstream origin gh-pages",
+		},
+		fakerunner.FakeResult{
+			CLI: "helm repo add 0 file://myapp-common",
 		},
 		fakerunner.FakeResult{
 			CLI: helmDependencyBuild + o.RegistryConfigFile,
@@ -213,7 +237,7 @@ func TestStepHelmReleaseWithOCIUsingUserName(t *testing.T) {
 	o.RepositoryPassword = reposvearword
 	o.Dir = "testdata"
 
-	err = o.Run()
+	err = o.Run("myapp")
 	require.NoError(t, err, "failed to run the command")
 
 	for _, c := range runner.OrderedCommands {
@@ -262,7 +286,48 @@ func TestStepHelmReleaseWithOCIUsingRegistryConfig(t *testing.T) {
 	require.NoError(t, err, "failed to setup commands")
 	o.NoOCILogin = true
 	o.RegistryConfigFile = "testdata/helmregistry/config.json"
-	err = o.Run()
+	err = o.Run("anotherchart")
+	require.NoError(t, err, "failed to run the command")
+
+	for _, c := range runner.OrderedCommands {
+		t.Logf("ran: %s\n", c.CLI())
+	}
+
+	assert.Equal(t, o.ReleasedCharts, 1, "should have released 1 chart")
+
+	runner.ExpectResults(t,
+		fakerunner.FakeResult{
+			// workaround for dynamically generated git clone destination folder
+			CLI: runner.OrderedCommands[0].Name + " " + strings.Join(runner.OrderedCommands[0].Args, " "),
+		},
+		fakerunner.FakeResult{
+			CLI: "git sparse-checkout set --no-cone jx-requirements.yml .jx/gitops/source-config.yaml",
+		},
+		fakerunner.FakeResult{
+			CLI: "git checkout",
+		},
+		fakerunner.FakeResult{
+			CLI: helmDependencyBuild + o.RegistryConfigFile,
+		},
+		fakerunner.FakeResult{
+			CLI: helmLint,
+		},
+		fakerunner.FakeResult{
+			CLI: helmPackage,
+		},
+
+		fakerunner.FakeResult{
+			CLI: "helm push anotherchart-" + chartVersion + ".tgz " + "oci://" + OCIRegistry + " --registry-config " + o.RegistryConfigFile,
+		},
+	)
+}
+
+//nolint:dupl
+func TestStepHelmReleaseWithOCINoOCILogin(t *testing.T) {
+	runner, OCIRegistry, chartVersion, o, err := setupReleaseOCI(t)
+	require.NoError(t, err, "failed to run the command")
+	o.NoOCILogin = true
+	err = o.Run("myapp")
 	require.NoError(t, err, "failed to run the command")
 
 	for _, c := range runner.OrderedCommands {
@@ -297,15 +362,15 @@ func TestStepHelmReleaseWithOCIUsingRegistryConfig(t *testing.T) {
 
 		fakerunner.FakeResult{
 			CLI: "helm push myapp-" + chartVersion + ".tgz " + "oci://" + OCIRegistry + " --registry-config " + o.RegistryConfigFile,
-		},
-	)
+		})
+
 }
 
 //nolint:dupl
-func TestStepHelmReleaseWithOCINoOCILogin(t *testing.T) {
+func TestStepHelmReleaseWithOCINoOCILoginImplicit(t *testing.T) {
 	runner, OCIRegistry, chartVersion, o, err := setupReleaseOCI(t)
 	require.NoError(t, err, "failed to run the command")
-	o.NoOCILogin = true
+	o.IgnoreChartNames = []string{"anotherchart", "preview"}
 	err = o.Run()
 	require.NoError(t, err, "failed to run the command")
 

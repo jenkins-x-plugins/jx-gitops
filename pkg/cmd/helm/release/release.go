@@ -41,12 +41,15 @@ var (
 	info = termcolor.ColorInfo
 
 	cmdLong = templates.LongDesc(`
-		Generate the kubernetes resources from a helm chart
+		Build and push the helm charts in the charts folder
 `)
 
 	cmdExample = templates.Examples(`
-		# generates the resources from a helm chart
-		%s step helm template
+		# Performs a release of all the charts in the charts folder
+		%s helm release
+
+		# Performs a release of a specific chart in the charts folder
+		%[1]s helm release myapp
 	`)
 
 	defaultReadMe = `
@@ -113,8 +116,8 @@ func NewCmdHelmRelease() (*cobra.Command, *Options) {
 		Short:   "Performs a release of all the charts in the charts folder",
 		Long:    cmdLong,
 		Example: fmt.Sprintf(cmdExample, rootcmd.BinaryName),
-		Run: func(_ *cobra.Command, _ []string) {
-			err := o.Run()
+		Run: func(_ *cobra.Command, args []string) {
+			err := o.Run(args...)
 			helper.CheckErr(err)
 		},
 	}
@@ -248,7 +251,7 @@ func (o *Options) Validate() error {
 }
 
 // Run implements the command
-func (o *Options) Run() error {
+func (o *Options) Run(includeRepos ...string) error {
 	err := o.Validate()
 	if err != nil {
 		return errors.Wrapf(err, "failed to validate")
@@ -283,7 +286,7 @@ func (o *Options) Run() error {
 			continue
 		}
 
-		if stringhelpers.StringArrayIndex(o.IgnoreChartNames, name) >= 0 {
+		if !stringhelpers.StringContainsAny(name, includeRepos, o.IgnoreChartNames) {
 			log.Logger().Infof("not releasing chart %s", info(name))
 			continue
 		}
