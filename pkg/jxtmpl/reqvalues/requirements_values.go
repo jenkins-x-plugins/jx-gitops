@@ -33,12 +33,15 @@ type HelmfileConditional struct {
 // RequirementsValues contains the logical installation requirements in the `jx-requirements.yml` file as helm values
 type RequirementsValues struct {
 	// RequirementsConfig contains the logical installation requirements
-	RequirementsConfig          *jxcore.RequirementsConfig `json:"jxRequirements,omitempty"`
-	IngressExternalDNSCondition *HelmfileConditional       `json:"jxRequirementsIngressExternalDNS,omitempty"`
-	IngressTLSCondition         *HelmfileConditional       `json:"jxRequirementsIngressTLS,omitempty"`
-	KuberhealthyCondition       *HelmfileConditional       `json:"jxRequirementsKuberhealthy,omitempty"`
-	TLSCheckCondition           *HelmfileConditional       `json:"jxRequirementsTLSCheck,omitempty"`
-	VaultCondition              *HelmfileConditional       `json:"jxRequirementsVault,omitempty"`
+	RequirementsConfig           *jxcore.RequirementsConfig `json:"jxRequirements,omitempty"`
+	IngressExternalDNSCondition  *HelmfileConditional       `json:"jxRequirementsIngressExternalDNS,omitempty"`
+	IngressHTTPRouteCondition    *HelmfileConditional       `json:"jxRequirementsIngressHTTPRoute,omitempty"`
+	IngressHTTPRouteTLSCondition *HelmfileConditional       `json:"jxRequirementsIngressHTTPRouteTLS,omitempty"`
+	IngressResourceCondition     *HelmfileConditional       `json:"jxRequirementsIngressResource,omitempty"`
+	IngressTLSCondition          *HelmfileConditional       `json:"jxRequirementsIngressTLS,omitempty"`
+	KuberhealthyCondition        *HelmfileConditional       `json:"jxRequirementsKuberhealthy,omitempty"`
+	TLSCheckCondition            *HelmfileConditional       `json:"jxRequirementsTLSCheck,omitempty"`
+	VaultCondition               *HelmfileConditional       `json:"jxRequirementsVault,omitempty"`
 	// JX                          map[string]interface{}     `json:"jx,omitempty"`
 }
 
@@ -54,12 +57,15 @@ func SaveRequirementsValuesFile(c *jxcore.RequirementsConfig, dir, fileName stri
 	}
 
 	y := &RequirementsValues{
-		RequirementsConfig:          c,
-		IngressExternalDNSCondition: &HelmfileConditional{Enabled: c.Ingress.ExternalDNS},
-		IngressTLSCondition:         &HelmfileConditional{Enabled: c.Ingress.TLS.Enabled},
-		KuberhealthyCondition:       &HelmfileConditional{Enabled: c.Kuberhealthy},
-		TLSCheckCondition:           &HelmfileConditional{Enabled: c.Kuberhealthy && c.Ingress.TLS.Enabled},
-		VaultCondition:              &HelmfileConditional{Enabled: c.SecretStorage == jxcore.SecretStorageTypeVault},
+		RequirementsConfig:           c,
+		IngressExternalDNSCondition:  &HelmfileConditional{Enabled: c.Ingress.ExternalDNS},
+		IngressHTTPRouteCondition:    &HelmfileConditional{Enabled: c.Ingress.Kind == jxcore.IngressTypeHTTPRoute},
+		IngressHTTPRouteTLSCondition: &HelmfileConditional{Enabled: c.Ingress.Kind == jxcore.IngressTypeHTTPRoute && c.Ingress.TLS.Enabled},
+		IngressResourceCondition:     &HelmfileConditional{Enabled: c.Ingress.Kind == jxcore.IngressTypeIngress || c.Ingress.Kind == jxcore.IngressTypeIstio || c.Ingress.Kind == jxcore.IngressTypeNone},
+		IngressTLSCondition:          &HelmfileConditional{Enabled: c.Ingress.TLS.Enabled},
+		KuberhealthyCondition:        &HelmfileConditional{Enabled: c.Kuberhealthy},
+		TLSCheckCondition:            &HelmfileConditional{Enabled: c.Kuberhealthy && c.Ingress.TLS.Enabled},
+		VaultCondition:               &HelmfileConditional{Enabled: c.SecretStorage == jxcore.SecretStorageTypeVault},
 	}
 
 	var global []byte
