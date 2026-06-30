@@ -65,14 +65,14 @@
 	    </tr>
     <tr>
 	      <td>jenkins-x-crds</td>
-	      <td title='Custom Resource Definitions for Jenkins X'> <img src='https://raw.githubusercontent.com/jenkins-x/jenkins-x-platform/d273e09/images/go.png' width='24px' height='24px'> jenkins-x-crds</td>
+	      <td title='Custom Resource Definitions for JayeX'> <img src='https://raw.githubusercontent.com/jenkins-x/jenkins-x-platform/d273e09/images/go.png' width='24px' height='24px'> jenkins-x-crds</td>
 	      <td>3.0.5</td>
 	      <td></td>
 	      <td></td>
 	    </tr>
     <tr>
 	      <td>jx-pipelines-visualizer</td>
-	      <td title='Web UI for Jenkins X, with a clear goal - visualize the pipelines - and their logs.'><a href='https://github.com/jenkins-x/jx-pipelines-visualizer'> jx-pipelines-visualizer</a></td>
+	      <td title='Web UI for JayeX, with a clear goal - visualize the pipelines - and their logs.'><a href='https://github.com/jenkins-x/jx-pipelines-visualizer'> jx-pipelines-visualizer</a></td>
 	      <td>0.0.61</td>
 	      <td><a href='http://dashboard-jx.34.105.246.143.xip.io'>view</a></td>
 	      <td><a href='https://github.com/jenkins-x/jx-pipelines-visualizer'>source</a></td>
@@ -109,7 +109,7 @@
 	    </tr>
     <tr>
 	      <td>jx-build-controller</td>
-	      <td title='Jenkins X next gen cloud CI / CD platform for Kubernetes'><a href='https://jenkins-x.io/'> <img src='https://jenkins-x.github.io/jenkins-x-website/img/profile.png' width='24px' height='24px'> jx-build-controller</a></td>
+	      <td title='JayeX next gen cloud CI / CD platform for Kubernetes'><a href='https://jayex.io/'> <img src='https://jenkins-x.github.io/jenkins-x-website/img/profile.png' width='24px' height='24px'> jx-build-controller</a></td>
 	      <td>0.0.20</td>
 	      <td></td>
 	      <td><a href='https://github.com/jenkins-x-plugins/jx-build-controller'>source</a></td>
@@ -172,4 +172,4 @@
   </tbody>
 </table>
 
-created by [Jenkins X](https://jenkins-x.io/) - see the docs on [how to configure these releases](https://jenkins-x.io/v3/develop/apps/)
+created by [JayeX](https://jayex.io/) - see the docs on [how to configure these releases](https://jayex.io/v3/develop/apps/)

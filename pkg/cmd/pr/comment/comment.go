@@ -34,7 +34,7 @@ var (
 
 	cmdExample = templates.Examples(`
 		# add comment
-		%s pr comment -c "message from Jenkins X pipeline"
+		%s pr comment -c "message from JayeX pipeline"
 	`)
 
 	availableStrategies = []string{

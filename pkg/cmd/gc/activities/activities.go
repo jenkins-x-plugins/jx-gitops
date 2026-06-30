@@ -55,7 +55,7 @@ var (
 	info = termcolor.ColorInfo
 
 	cmdLong = templates.LongDesc(`
-		Garbage collect the Jenkins X PipelineActivity resources
+		Garbage collect the JayeX PipelineActivity resources
 
 `)
 

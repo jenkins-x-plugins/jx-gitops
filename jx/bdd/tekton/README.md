@@ -1,1 +1,1 @@
-## BDD test for Jenkins X Pipelines with Tekton
+## BDD test for JayeX Pipelines with Tekton
