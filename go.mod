@@ -13,7 +13,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/h2non/gock v1.0.9
-	github.com/helmfile/helmfile v0.165.0
+	github.com/helmfile/helmfile v1.1.0
 	github.com/imdario/mergo v0.3.16
 	github.com/jenkins-x-plugins/jx-charter v0.0.30
 	github.com/jenkins-x/go-scm v1.15.1
