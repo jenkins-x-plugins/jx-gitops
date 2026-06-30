@@ -75,6 +75,10 @@ func TestGitMerge(t *testing.T) {
 		err = gitclient.Init(g, dir)
 		require.NoError(t, err, "failed to git init for %s", name)
 
+		// force the initial branch name so the test does not depend on the
+		// ambient git `init.defaultBranch` config (CI defaults to "master")
+		requireGit(t, g, dir, "symbolic-ref", "HEAD", "refs/heads/"+defaultBranch)
+
 		_, _, err = gitclient.EnsureUserAndEmailSetup(g, dir, "", "")
 		require.NoError(t, err, "failed to ensure user and email are setup for git")
 
