@@ -24,12 +24,12 @@ jxRequirements:
   vault: {}
 jxRequirementsIngressExternalDNS:
   enabled: false
-IngressResourceCondition:
-  enabled: false
 jxRequirementsIngressHTTPRoute:
   enabled: false
 jxRequirementsIngressHTTPRouteTLS:
   enabled: false
+jxRequirementsIngressResource:
+  enabled: true
 jxRequirementsIngressTLS:
   enabled: false
 jxRequirementsKuberhealthy:
