@@ -10,7 +10,7 @@ jx-gitops is a small command line tool working with Kubernetes resources in a Gi
 
 ## Commands
 
-See the [jx-gitops command reference](docs/cmd/jx-gitops.md#see-also) or the [jx reference site](https://jenkins-x.io/v3/develop/reference/jx/gitops/)
+See the [jx-gitops command reference](docs/cmd/jx-gitops.md#see-also) or the [jx reference site](https://jayex.io/v3/develop/reference/jx/gitops/)
 
 ## Documentation
 

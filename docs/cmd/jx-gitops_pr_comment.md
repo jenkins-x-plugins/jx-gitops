@@ -15,7 +15,7 @@ Adds a comment to the current pull request
 ### Examples
 
   # add comment
-  jx-gitops pr comment -c "message from Jenkins X pipeline"
+  jx-gitops pr comment -c "message from JayeX pipeline"
 
 ### Options
 

@@ -13,11 +13,11 @@ const (
 // +genclient:noStatus
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// KptStrategies contains a collection of merge strategies Jenkins X will use when performing kpt updates
+// KptStrategies contains a collection of merge strategies JayeX will use when performing kpt updates
 //
 // +k8s:openapi-gen=true
 type KptStrategies struct {
-	// KptStrategyConfig contains a collection of merge strategies Jenkins X will use when performing kpt updates
+	// KptStrategyConfig contains a collection of merge strategies JayeX will use when performing kpt updates
 	KptStrategyConfig []KptStrategyConfig `json:"config" validate:"nonzero"`
 }
 

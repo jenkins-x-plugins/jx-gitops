@@ -45,6 +45,11 @@ func TestStepHelmBuildWithCharts(t *testing.T) {
 }
 
 func TestStepHelmBuildWithChartsOCI(t *testing.T) {
+	// ensure the ambient environment doesn't supply a repository password,
+	// otherwise the registry-login branch is taken and an extra command is run
+	t.Setenv("JX_REPOSITORY_PASSWORD", "")
+	t.Setenv("GITHUB_TOKEN", "")
+
 	sourceData := "testdata"
 
 	path := filepath.Join(sourceData, "has_charts")

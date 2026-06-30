@@ -29,7 +29,7 @@ Resource Types:
 <h3 id="gitops.jenkins-x.io/v1alpha1.KptStrategies">KptStrategies
 </h3>
 <p>
-<p>KptStrategies contains a collection of merge strategies Jenkins X will use when performing kpt updates</p>
+<p>KptStrategies contains a collection of merge strategies JayeX will use when performing kpt updates</p>
 </p>
 <table>
 <thead>
@@ -66,7 +66,7 @@ string
 </em>
 </td>
 <td>
-<p>KptStrategyConfig contains a collection of merge strategies Jenkins X will use when performing kpt updates</p>
+<p>KptStrategyConfig contains a collection of merge strategies JayeX will use when performing kpt updates</p>
 </td>
 </tr>
 </tbody>

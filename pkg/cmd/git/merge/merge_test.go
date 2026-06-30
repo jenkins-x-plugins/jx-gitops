@@ -11,7 +11,6 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/files"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/gitclient/cli"
-	"github.com/jenkins-x/jx-helpers/v3/pkg/testhelpers"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -27,7 +26,7 @@ func TestGitMerge(t *testing.T) {
 	// Set this for manual triggers
 	os.Setenv("PULL_BASE_REF", "HEAD")
 
-	defaultBranch := testhelpers.GetDefaultBranch(t)
+	defaultBranch := "main"
 	testCases := []struct {
 		name  string
 		init  func(*merge.Options)
@@ -75,6 +74,10 @@ func TestGitMerge(t *testing.T) {
 
 		err = gitclient.Init(g, dir)
 		require.NoError(t, err, "failed to git init for %s", name)
+
+		// force the initial branch name so the test does not depend on the
+		// ambient git `init.defaultBranch` config (CI defaults to "master")
+		requireGit(t, g, dir, "symbolic-ref", "HEAD", "refs/heads/"+defaultBranch)
 
 		_, _, err = gitclient.EnsureUserAndEmailSetup(g, dir, "", "")
 		require.NoError(t, err, "failed to ensure user and email are setup for git")
