@@ -190,6 +190,10 @@ func (o *Options) Run() error {
 				if apiVersion != "kpt.dev/v1" {
 					err := o.upgradeKptPkg(path, bin, apiVersion)
 					if err != nil {
+						if o.IgnoreYamlContentError && strings.Contains(err.Error(), "yaml: did not find expected node content") {
+							log.Logger().Warnf("ignoring kpt package %s as it contains YAML that cannot be parsed: %s", rel, err.Error())
+							return nil
+						}
 						return err
 					}
 					node, err = kyaml.ReadFile(path)
@@ -357,7 +361,7 @@ func (o *Options) LoadOverrideStrategies() (map[string]string, error) {
 
 func (o *Options) upgradeKptPkg(kptfilePath, bin, upgradeFromAPIVersion string) error {
 	dir := filepath.Dir(kptfilePath)
-	args := []string{"fn", "eval", "--image", "gcr.io/kpt-fn/fix:v0.2", "--truncate-output=false", "--match-api-version", upgradeFromAPIVersion}
+	args := []string{"fn", "eval", "--image", "ghcr.io/kptdev/krm-functions-catalog/fix:ad0c3fe", "--truncate-output=false", "--match-api-version", upgradeFromAPIVersion}
 	c := &cmdrunner.Command{
 		Dir:  dir,
 		Name: bin,
