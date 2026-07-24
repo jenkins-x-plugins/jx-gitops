@@ -1,7 +1,6 @@
 apiVersion: gitops.jenkins-x.io/v1alpha1
 kind: SourceConfig
-metadata:
-  creationTimestamp: null
+metadata: {}
 spec:
   groups:
   - owner: jenkins-x

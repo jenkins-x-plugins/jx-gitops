@@ -3,7 +3,6 @@ kind: Ingress
 metadata:
   annotations:
     kubernetes.io/ingress.class: nginx
-  creationTimestamp: null
   name: modify-ingress
   namespace: myapps
 spec:
