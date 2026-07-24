@@ -19,10 +19,10 @@ require (
 	github.com/imdario/mergo v0.3.16
 	github.com/jenkins-x-plugins/jx-charter v0.0.30
 	github.com/jenkins-x/go-scm v1.15.30
-	github.com/jenkins-x/jx-api/v4 v4.8.1
-	github.com/jenkins-x/jx-helpers/v3 v3.10.4
-	github.com/jenkins-x/jx-kube-client/v3 v3.0.8
-	github.com/jenkins-x/jx-logging/v3 v3.1.0
+	github.com/jenkins-x/jx-api/v4 v4.8.6
+	github.com/jenkins-x/jx-helpers/v3 v3.11.6
+	github.com/jenkins-x/jx-kube-client/v3 v3.0.11
+	github.com/jenkins-x/jx-logging/v3 v3.1.6
 	github.com/jenkins-x/lighthouse-client v0.0.1987
 	github.com/pborman/uuid v1.2.0
 	github.com/pkg/errors v0.9.1
@@ -155,7 +155,7 @@ require (
 	github.com/evanphx/json-patch/v5 v5.9.11 // indirect
 	github.com/exponent-io/jsonpath v0.0.0-20210407135951-1de76d718b3f // indirect
 	github.com/extism/go-sdk v1.2.0 // indirect
-	github.com/fatih/color v1.18.0 // indirect
+	github.com/fatih/color v1.19.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fujiwara/tfstate-lookup v1.3.2 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
@@ -239,7 +239,7 @@ require (
 	github.com/itchyny/gojq v0.12.16 // indirect
 	github.com/itchyny/timefmt-go v0.1.6 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
-	github.com/jenkins-x/logrus-stackdriver-formatter v0.2.7 // indirect
+	github.com/jenkins-x/logrus-stackdriver-formatter v0.2.9 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
@@ -252,7 +252,7 @@ require (
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
-	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/mattn/go-isatty v0.0.22 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
@@ -310,7 +310,7 @@ require (
 	github.com/ulikunitz/xz v0.5.15 // indirect
 	github.com/urfave/cli v1.22.16 // indirect
 	github.com/variantdev/dag v1.1.0 // indirect
-	github.com/vrischmann/envconfig v1.3.0 // indirect
+	github.com/vrischmann/envconfig v1.4.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect

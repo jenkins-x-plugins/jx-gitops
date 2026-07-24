@@ -164,9 +164,13 @@ func (o *Options) Run() error {
 
 // GetWebHookEndpointFromHook returns the webhook endpoint
 func (o *Options) GetWebHookEndpointFromHook() (string, error) {
-	baseURL, err := services.GetServiceURLFromName(o.KubeClient, "hook", o.Namespace)
+	hookServiceName := "hook"
+	baseURL, err := services.GetServiceURLFromName(o.KubeClient, hookServiceName, o.Namespace)
 	if err != nil {
 		return "", err
+	}
+	if baseURL == "" {
+		return "", errors.Errorf("no external URL found for '%s' service in namespace %s", hookServiceName, o.Namespace)
 	}
 
 	// lets add /hook if it does not already have it
