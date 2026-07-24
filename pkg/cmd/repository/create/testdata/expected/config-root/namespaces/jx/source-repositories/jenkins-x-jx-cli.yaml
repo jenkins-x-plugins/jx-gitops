@@ -1,7 +1,6 @@
 apiVersion: jenkins.io/v1
 kind: SourceRepository
 metadata:
-  creationTimestamp: null
   labels:
     owner: jenkins-x
     provider: github

@@ -15,6 +15,7 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/testhelpers/testjx"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
 	"sigs.k8s.io/yaml"
@@ -50,6 +51,17 @@ func TestWebhookVerify(t *testing.T) {
 			},
 			Data: map[string][]byte{
 				"hmac": []byte("dummyhmactoken"),
+			},
+		},
+		&networkingv1.Ingress{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "hook",
+				Namespace: ns,
+			},
+			Spec: networkingv1.IngressSpec{
+				Rules: []networkingv1.IngressRule{
+					{Host: "hook-jx.jx.example.com"},
+				},
 			},
 		},
 	)
