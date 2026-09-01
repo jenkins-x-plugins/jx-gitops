@@ -141,6 +141,8 @@ func (o *Options) DisplayReleaseNotes() error {
 					if err != nil || width > 115 {
 						width = 115
 					}
+					// FIXME: The github.com/MichaelMure/go-term-markdown package seems unmaintained.
+					// Is there a better way to handle the display of release notes?
 					fileContent = markdown.Render(string(fileContent), width, 0)
 				}
 				log.Logger().Infof("\n%s\n", fileContent)
