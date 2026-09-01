@@ -543,8 +543,9 @@ func (o *Options) BuildAndPackage(chartDir string) error {
 			return errors.Wrapf(err, "failed to load Chart.yaml")
 		}
 		for i, dependency := range chartDef.Dependencies {
-			log.Logger().Infof("Adding  dependency %s", dependency.Name)
 			if dependency.Repository != "" && !strings.HasPrefix(dependency.Repository, "oci://") {
+				log.Logger().Infof("Adding repo %s for dependency %s",
+					stringhelpers.SanitizeURL(dependency.Repository), dependency.Name)
 				c := &cmdrunner.Command{
 					Dir:  chartDir,
 					Name: o.HelmBinary,
@@ -555,7 +556,7 @@ func (o *Options) BuildAndPackage(chartDir string) error {
 					return errors.Wrapf(err, "failed to add repository")
 				}
 			} else {
-				log.Logger().Infof("Skipping local dependency %s", dependency.Name)
+				log.Logger().Debugf("Skipping local/oci dependency %s", dependency.Name)
 			}
 		}
 
