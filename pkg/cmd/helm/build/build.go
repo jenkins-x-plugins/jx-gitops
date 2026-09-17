@@ -155,8 +155,8 @@ func (o *Options) Run() error {
 			}
 
 			for i, dependency := range chartDef.Dependencies {
-				log.Logger().Infof("Adding repository for dependency %s", dependency.Name)
 				if dependency.Repository != "" && !strings.HasPrefix(dependency.Repository, "oci://") {
+					log.Logger().Infof("Adding repository for dependency %s", dependency.Name)
 					c := &cmdrunner.Command{
 						Dir:  chartDir,
 						Name: o.HelmBinary,
@@ -167,7 +167,7 @@ func (o *Options) Run() error {
 						return errors.Wrapf(err, "failed to add repository")
 					}
 				} else {
-					log.Logger().Infof("Skipping local dependency %s", dependency.Name)
+					log.Logger().Infof("Skipping local/oci dependency %s", dependency.Name)
 				}
 			}
 		}
