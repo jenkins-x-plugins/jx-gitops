@@ -93,7 +93,9 @@ func (o *Options) Run() error {
 		return err
 	}
 
-	deleteOptions := metav1.DeleteOptions{}
+	// without a propagation policy the API server keeps a deleted Job's Pods
+	propagation := metav1.DeletePropagationBackground
+	deleteOptions := metav1.DeleteOptions{PropagationPolicy: &propagation}
 	errors := []error{}
 
 	// we need to keep all jobs, don't waste time sorting or iterating
