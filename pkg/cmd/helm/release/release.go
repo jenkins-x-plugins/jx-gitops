@@ -285,9 +285,13 @@ func (o *Options) Run(includeRepos ...string) error {
 		if !exists {
 			continue
 		}
+		if stringhelpers.StringArrayIndex(o.IgnoreChartNames, name) >= 0 {
+			log.Logger().Infof("not releasing ignored chart %s", info(name))
+			continue
+		}
 
-		if !stringhelpers.StringContainsAny(name, includeRepos, o.IgnoreChartNames) {
-			log.Logger().Infof("not releasing chart %s", info(name))
+		if len(includeRepos) > 0 && stringhelpers.StringArrayIndex(includeRepos, name) < 0 {
+			log.Logger().Infof("not releasing chart since it isn't explicitly listed %s", info(name))
 			continue
 		}
 		log.Logger().Infof("releasing chart %s", info(name))
